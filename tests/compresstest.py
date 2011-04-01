@@ -12,3 +12,7 @@ pylzma.decompress(compressed)
 print "Compressed size " + str(sys.getsizeof(compressed))
 print "Full Size " + str(sys.getsizeof(initialstring))
 
+f = open('workfile', 'w')
+f.write(compressed)
+f.close()
+
