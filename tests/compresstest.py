@@ -16,3 +16,8 @@ f = open('workfile', 'w')
 f.write(compressed)
 f.close()
 
+g = open('workfile', 'r')
+filecontents = g.read()
+
+uncompressed = pylzma.decompress(filecontents) 
+print uncompressed
