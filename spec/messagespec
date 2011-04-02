@@ -8,12 +8,12 @@
 	<SIGNATURE>ABCDEFG...</SIGNATURE>
 </SERVER>
 
-<POSTID-SHA512>3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54</POSTID-SHA512>
+<POSTID_SHA512>3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54</POSTID_SHA512>
 
 <AUTHORITY> 400993485910747473038382868614...</AUTHORITY>
 <AUTHORITY> 991921353197822591619597987982...</AUTHORITY>
 
-<SENDER_SIGNATURE>ZYXABC...</SIGNATURE>
+<SENDER_SIGNATURE>ZYXABC...</SENDER_SIGNATURE>
 <MESSAGE>
 	
 	<TOPICTAG>Startrek</TOPICTAG>
@@ -50,7 +50,7 @@ The "time_seen" format is ISO 8601, and should be the GMT time the message was p
 Use the specific ISO8601 format of YYYY-MM-DDTHH:MMZ
 	Where YYYY = 4 digit year, MM 2 digit month, DD 2 digit day. T is a literal T, then HH is 2 digit hour, a literal color, 2 digit minute, and a Z, indicating Zulu-time, or GMT.
 
-The 'POSTID-SHA512' should be the SHA-512 hash of the 'Message' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
+The 'POSTID_SHA512' should be the SHA-512 hash of the 'Message' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
 SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
 
 
@@ -63,7 +63,7 @@ The 'sender_signature' should be a RSA signature of the 'Message' portion. This 
 
 The server's signature should also be of the "Message" portion, not the entire container.
 
-"Regarding" should be the 'POSTID-SHA512' of the message, if any, that this is in reference to.  If this is not in reference to another message, this field should be omitted.
+"Regarding" should be the 'POSTID_SHA512' of the message, if any, that this is in reference to.  If this is not in reference to another message, this field should be omitted.
 You should not post a message with a "regarding" of a binary-control-message. If you do, a server should discard the message.
 
 
@@ -109,12 +109,12 @@ Binary control files follow the same control structures as a Message, but replac
 	<FILENAME>IMG_0081.JPG</FILENAME>
 	<MIME>image/jpeg</MIME>
 	<COORDS>29.199505,-90.041242</COORDS>
-	<FILE-SHA512>ce7f20a3d91b60b561beeba6bd301e23544074496982e6db408940297ea25c2f2f8d28833dc5db2329822542be68ec37429405b548345f8f2771f084992b43e9</FILE-SHA512>
+	<FILE_SHA512>ce7f20a3d91b60b561beeba6bd301e23544074496982e6db408940297ea25c2f2f8d28833dc5db2329822542be68ec37429405b548345f8f2771f084992b43e9</FILE_SHA512>
 </BINARY>
-The "POSTID-SHA512" field should be the SHA512 of the "BINARY" field, rather than a message, in this case.
+The "POSTID_SHA512" field should be the SHA512 of the "BINARY" field, rather than a message, in this case.
 
 
-The FILE-SHA512 should be the SHA-512 sum of the actual binary.
+The FILE_SHA512 should be the SHA_512 sum of the actual binary.
 A server should not pass along a binary or control file if the data does not match- In particular- Verify the Size, since some clients may use this to determine if it should be displayed inline. 
 
 ****
@@ -131,3 +131,4 @@ The "ENC_DATA" text should be identical to the "MESSAGE" text above, including f
 In this case, the "POSTID-SHA512" field, should contain the SHA-512 of the "ENCRYPTED_MESSAGE" field.
 
 
+http://www.thomasfrank.se/xml_to_json.html
