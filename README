@@ -1,2 +1,23 @@
 Readme will go here.
 Better to write code than a doc for a product no one will read for now ;)
+
+
+
+Using the following Libraries:
+	yENC (under LGPL, see email below)
+	M2Crypto (MIT)
+	pylzma (LGPL)
+
+
+
+---
+
+Hi Colin,
+I apologize for my bad English. Actually It's been a very long time
+since I last worked on yenc module and I really don't have a
+repository for the source, the only sources lying around I'm aware of
+are those from the Debian repository.
+Just let me know which version you're using and I will release it in
+under LGPL (or consider yourself fully authorized to make all the
+necessary modifications in disclaimers and comments, I know this is
+not an orthodox approach)

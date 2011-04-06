@@ -1,0 +1,10 @@
+$Id: TODO,v 1.2 2004/02/18 23:05:05 cvs Exp $
+
+version 0.3:
+
+- Provide *real* documentation.
+
+- More examples (especially: multipart encoding/decoding).
+
+- More testing.
+
