@@ -25,19 +25,23 @@ class Container(object):
         self.message = Container.Message(self.dict['pluric_container']['message'])
         
         
-    def __init__(self,importfile):
+    def __init__(self,importfile=None):
         
-        #Determine the file extension to see how to parse it.
-        basename,ext = os.path.splitext(importfile)
+        if importfile =! None:
+            #Determine the file extension to see how to parse it.
+            basename,ext = os.path.splitext(importfile)
 
-        filehandle = open(importfile, 'r')
-        filecontents = filehandle.read() 
-        if (ext == '.PluricContainer'):
-            #7zip'd JSON
-            filecontents = pylzma.decompress(filecontents)
-            print filecontents
-        self.dict = json.loads(filecontents)
-        filehandle.close()
+            filehandle = open(importfile, 'r')
+            filecontents = filehandle.read() 
+            if (ext == '.7zPluricContainer'):
+                #7zip'd JSON
+                filecontents = pylzma.decompress(filecontents)
+                print filecontents
+            self.dict = json.loads(filecontents)
+            filehandle.close()
+        else:
+             self.dict = ['pluric_container']['message']
+    
         self.message = Container.Message(self.dict['pluric_container']['message'])
         
     def text(self): 
@@ -56,14 +60,8 @@ class Container(object):
         # print "Full Size " + str(sys.getsizeof(self.dict))        
         
         #We want to name this file to the SHA512 of the MESSAGE contents, so it is consistant across servers.
-        filehandle = open(self.message.hash() + ".PluricContainer",'w')
+        filehandle = open(self.message.hash() + ".7zPluricContainer",'w')
         filehandle.write(compressed)
         filehandle.close()
         
-    
-        
-cont1 = Container('52dfc8ea26abc1c6a23e57b413116f17799a861e1403db5aa4b7c2d6e572c52e0f9885d0fcc4ca5c3cb92d84280c1646ace0f99dbaafefa3c189eadf5ac9cd8f.PluricContainer')
-print cont1.prettytext()
-print "---------"
-print cont1.message.text()
-cont1.tofile()
+
