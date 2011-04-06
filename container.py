@@ -27,7 +27,7 @@ class Container(object):
         
     def __init__(self,importfile=None):
         
-        if importfile =! None:
+        if importfile != None:
             #Determine the file extension to see how to parse it.
             basename,ext = os.path.splitext(importfile)
 
