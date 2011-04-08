@@ -1,40 +1,23 @@
 import os,json
 import M2Crypto
 import platform
+from container import *
+import time
+from keys import *
+import logging
 
 def empty_callback ():
  return
 
 M2Crypto.Rand.rand_seed (os.urandom (1024))
 
-class Keys(object):
-    def __init__(self,pub=None,priv=None):
-        if priv == None:
-            self.privkey_bio = M2Crypto.BIO.MemoryBuffer()
-        else:
-            self.privkey_bio = M2Crypto.BIO.MemoryBuffer(priv)
-            self.privkey = priv
-        if pub == None:
-            self.pubkey_bio = M2Crypto.BIO.MemoryBuffer()
-        else:
-            self.pubkey_bio = M2Crypto.BIO.MemoryBuffer(pub)
-            self.pubkey = pub
-        
-    def generate(self):
-        Keys = M2Crypto.RSA.gen_key (4096, 65537,empty_callback)
-        Keys.save_key_bio(self.privkey_bio,None)
-        Keys.save_pub_key_bio(self.pubkey_bio)
-        
-        #TODO- use __get_addr__ to calc these OnDemand
-        self.privkey = self.privkey_bio.read()        
-        self.pubkey = self.pubkey_bio.read()
-        
 
 class Server(object):
 
         
     def __init__(self,settingsfile=None):            
         self.ServerSettings = {}
+
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
                 #Load Default file(hostname)
@@ -46,8 +29,11 @@ class Server(object):
                 self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
                 self.ServerSettings['privkey'] = self.ServerKeys.privkey
                 self.ServerSettings['hostname'] = platform.node()
+                self.ServerSettings['logfile'] = self.ServerSettings['hostname'] + '.log'
         else:
             self.loadconfig(settingsfile)
+        self.ServerSettings['logfile'] = platform.node() + '.log'
+        logging.basicConfig(stream=sys.stdout,filename=self.ServerSettings['logfile'],level=logging.DEBUG)
 
     def loadconfig(self,filename=None):
         if filename == None:
@@ -62,12 +48,45 @@ class Server(object):
         if filename == None:
             filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
         filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.ServerSettings,ensure_ascii=False,separators=(',',':'))) 
+        filehandle.write(json.dumps(self.ServerSettings,ensure_ascii=False,separators=(u',',u':'))) 
         filehandle.close()
-         
-#Seed the random number generator with 1024 random bytes (8192 bits)
-M2Crypto.Rand.rand_seed (os.urandom (1024))
 
-s = Server("Threepwood.savewave.com.PluricServerSettings")
-print s.ServerKeys.pubkey
-s.saveconfig()
+    def prettytext(self):
+        newstr = json.dumps(self.ServerSettings,ensure_ascii=False,indent=2,separators=(u', ',u': '))
+        return newstr
+    
+
+    def receivecontainer(self,container):
+        c = Container(importstring=container)
+        
+        if c.dict.has_key('servers'):
+            serverlist = c.dict['servers']
+        else:
+            serverlist = []
+        
+        #Search the server list to look for ourselves. Don't double-receive.
+        for server in serverlist:
+            if server['pubkey'] == self.ServerKeys.pubkey:
+                logging.debug("Found potential us. Let's verify.")
+                containerkey = Keys(pub=self.ServerKeys.pubkey)
+                if containerkey.verifystring(stringtoverify=c.message.text(),signature=server['signature']) == True:
+                    #If we've gotten here, we've received the same message twice
+                    logging.debug("It's a Me!")
+                    return
+                else:
+                    #Someone is imitating us. Bastards.
+                    logging.error("It's a FAAAAAAKE!")
+                    
+                    
+        gmttime = time.gmtime()
+        gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime) 
+        #Pluric has an exact time string per ISO Spec.
+
+
+        #Sign the message to saw we saw it.
+        signedmessage = self.ServerKeys.signstring(c.message.text())
+        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':gmtstring,u'signature':signedmessage,u'pubkey': self.ServerKeys.pubkey}
+        serverlist.append(myserverinfo)
+        c.dict[u'servers'] = serverlist
+        print c.prettytext()
+        #c.tofile()

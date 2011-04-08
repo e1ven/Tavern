@@ -2,6 +2,7 @@ import json
 import hashlib
 import pylzma,sys
 import os
+from keys import *
 
 class Container(object):
 
@@ -19,13 +20,8 @@ class Container(object):
             #print "Hashing " + self.text()
             return h.hexdigest()         
             
-            
-    def __init__(self): 
-        self.dict = ['pluric_container']['message']
-        self.message = Container.Message(self.dict['pluric_container']['message'])
         
-        
-    def __init__(self,importfile=None):
+    def __init__(self,importfile=None,importstring=None):
         
         if importfile != None:
             #Determine the file extension to see how to parse it.
@@ -36,16 +32,18 @@ class Container(object):
             if (ext == '.7zPluricContainer'):
                 #7zip'd JSON
                 filecontents = pylzma.decompress(filecontents)
-                print filecontents
             self.dict = json.loads(filecontents)
             filehandle.close()
         else:
-             self.dict = ['pluric_container']['message']
-    
+            if importstring != None:
+                self.dict = json.loads(importstring)
+            else:
+                self.dict = ['pluric_container']['message']
+        
         self.message = Container.Message(self.dict['pluric_container']['message'])
         
-    def text(self): 
-        newstr = json.dumps(self.dict,ensure_ascii=False,separators=(',',':'))
+    def text(self):
+        newstr = json.dumps(self.dict,separators=(',',':'),encoding='utf8')
         return newstr
 
     def prettytext(self): 
@@ -63,5 +61,4 @@ class Container(object):
         filehandle = open(self.message.hash() + ".7zPluricContainer",'w')
         filehandle.write(compressed)
         filehandle.close()
-        
-
+    
