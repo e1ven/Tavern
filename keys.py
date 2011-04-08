@@ -1,7 +1,14 @@
-import M2Crypto
+import M2Crypto,os
 
+
+ 
+ 
 class Keys(object):
+    def empty_callback ():
+     return
+     
     def __init__(self,pub=None,priv=None):
+        M2Crypto.Rand.rand_seed (os.urandom (1024))
         self.Keys = M2Crypto.RSA
         if priv == None:
             self.privkey_bio = M2Crypto.BIO.MemoryBuffer()
@@ -24,7 +31,7 @@ class Keys(object):
             self.Keys.load_key_string(self.combinedkey)      
         
     def generate(self):
-        self.Keys = M2Crypto.RSA.gen_key (4096, 65537,empty_callback)
+        self.Keys = M2Crypto.RSA.gen_key (4096, 65537,self.empty_callback)
         self.Keys.save_key_bio(self.privkey_bio,None)
         self.Keys.save_pub_key_bio(self.pubkey_bio)
         

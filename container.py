@@ -24,16 +24,7 @@ class Container(object):
     def __init__(self,importfile=None,importstring=None):
         
         if importfile != None:
-            #Determine the file extension to see how to parse it.
-            basename,ext = os.path.splitext(importfile)
-
-            filehandle = open(importfile, 'r')
-            filecontents = filehandle.read() 
-            if (ext == '.7zPluricContainer'):
-                #7zip'd JSON
-                filecontents = pylzma.decompress(filecontents)
-            self.dict = json.loads(filecontents)
-            filehandle.close()
+           self.load(importfile)        
         else:
             if importstring != None:
                 self.dict = json.loads(importstring)
@@ -41,13 +32,33 @@ class Container(object):
                 self.dict = ['pluric_container']['message']
         
         self.message = Container.Message(self.dict['pluric_container']['message'])
+   
+   
+    def load(self,filename):
         
+        #Determine the file extension to see how to parse it.
+        basename,ext = os.path.splitext(filename)
+
+        #Determine the file extension to see how to parse it.
+        basename,ext = os.path.splitext(filename)
+        filehandle = open(filename, 'r')
+        filecontents = filehandle.read() 
+        if (ext == '.7zPluricContainer'):
+            #7zip'd JSON
+            filecontents = pylzma.decompress(filecontents)
+        self.dict = json.loads(filecontents)
+        filehandle.close()
+        
+        
+    def reload(self):
+        self.load(self.message.hash() + ".7zPluricContainer")
+            
     def text(self):
         newstr = json.dumps(self.dict,separators=(',',':'),encoding='utf8')
         return newstr
 
     def prettytext(self): 
-        newstr = json.dumps(self.dict,ensure_ascii=False,indent=2,separators=(', ',': '))
+        newstr = json.dumps(self.dict,indent=2,separators=(', ',': '))
         return newstr 
         
     def tofile(self):
@@ -61,4 +72,5 @@ class Container(object):
         filehandle = open(self.message.hash() + ".7zPluricContainer",'w')
         filehandle.write(compressed)
         filehandle.close()
+        
     

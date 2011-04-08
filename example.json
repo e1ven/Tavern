@@ -1,16 +1,5 @@
 {
     "pluric_container": {
-        "server": [
-            {
-                "time_seen": "2011-04-01T01: 53Z",
-                "signature": "hsfgdafsyzfrseurszxfdsaEafwyd..." 
-            },
-            {
-                "time_seen": "2011-04-01T02: 01Z",
-                "signature": "ABCDEFG..." 
-            } 
-        ],
-        "postid_sha512": "3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54",
         "authority": [
             "400993485910747473038382868614...",
             "991921353197822591619597987982..." 
