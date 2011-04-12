@@ -5,12 +5,18 @@ Better to write code than a doc for a product no one will read for now ;)
 
 Using the following Libraries:
 	yENC (under LGPL, see email below)
+		For converting Binaries to Text.
+		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.		
 	M2Crypto (MIT)
+		For all Crypto work. Thanks!
 	pylzma (LGPL)
+		For reducing the size of on-disk saves.
+	http://www.mindrot.org/projects/py-bcrypt/ (BSD)
+		For passwords. Remeber kids, never do your own password hasing.
+	
 
 
-
----
+--- yENC license --
 
 Hi Colin,
 I apologize for my bad English. Actually It's been a very long time

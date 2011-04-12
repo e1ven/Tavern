@@ -24,7 +24,6 @@ class User(object):
             
             self.UserSettings['time_created'] = gmtstring
             
-            
         else:
             self.loaduser(filename)
             
