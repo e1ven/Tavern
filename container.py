@@ -3,12 +3,13 @@ import hashlib
 import pylzma,sys
 import os
 from keys import *
+import collections
+from collections import *
+json.encoder.c_make_encoder = None
 
 class Container(object):
 
     class Message(object):
-        def __init__(self):
-            self.dict = []
         def __init__(self,initialdict):
             self.dict = initialdict
         def text(self): 
@@ -18,18 +19,39 @@ class Container(object):
             h = hashlib.sha512()
             h.update(self.text())
             #print "Hashing " + self.text()
-            return h.hexdigest()         
-            
-        
+            return h.hexdigest()     
+        def validate(subject,body,user,topictag_list,to_list,regarding,coords):
+            if hasattr(self.dict,'subject') == False:
+                print "No subject"
+                return False
+            if hasattr(self.dict,'body') == False:
+                print "No Body"
+                return False
+            if hasattr(self.dict,'topictag_list') == False:
+                #You are allowed to have no topictags.
+                #But you can have no more than 3.
+                if self.dict['topictag_list'].len() > 3:
+                    print "List too long"
+                    return False
+            if hasattr(self.dict,'author') == False:
+                print "No Author Information"
+                return False
+            else:
+                if hasattr(self.dict['author'],'from') == False:
+                    print "No From line"
+                    return False
+                
     def __init__(self,importfile=None,importstring=None):
         
         if importfile != None:
            self.load(importfile)        
         else:
             if importstring != None:
-                self.dict = json.loads(importstring)
+                self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
             else:
-                self.dict = ['pluric_container']['message']
+                self.dict = OrderedDict()
+                self.dict['pluric_container'] = OrderedDict()
+                self.dict['pluric_container']['message'] = OrderedDict()
         
         self.message = Container.Message(self.dict['pluric_container']['message'])
    
@@ -46,7 +68,8 @@ class Container(object):
         if (ext == '.7zPluricContainer'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
-        self.dict = json.loads(filecontents)
+        self.dict = OrderedDict()
+        self.dict = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()
         
         
@@ -73,4 +96,3 @@ class Container(object):
         filehandle.write(compressed)
         filehandle.close()
         
-    

@@ -6,12 +6,15 @@ import time
 from keys import *
 import logging
 import bcrypt
+from collections import OrderedDict
 
 class User(object):
-    def __init__(self,username=None,password=None,filename=None):
+  
+          
+    def __init__(self,filename=None,username=None,password=None):
         
         if filename == None:
-            self.UserSettings = {}
+            self.UserSettings = OrderedDict()
             self.UserSettings['username'] = username
             self.UserSettings['hashedPassword'] = bcrypt.hashpw(password, bcrypt.gensalt(12))
             self.Keys = Keys()
@@ -30,9 +33,9 @@ class User(object):
     def loaduser(self,filename):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
-        self.UserSettings = json.loads(filecontents)
+        self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()    
-        self.UserSettings = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
+        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
         
     def saveuser(self,filename=None):
         if filename == None:
@@ -44,7 +47,7 @@ class User(object):
 class Server(object):
 
     def __init__(self,settingsfile=None):            
-        self.ServerSettings = {}
+        self.ServerSettings = OrderedDict()
 
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
@@ -68,7 +71,7 @@ class Server(object):
             filename = platform.node() + ".PluricServerSettings"
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
-        self.ServerSettings = json.loads(filecontents)
+        self.ServerSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],priv=self.ServerSettings['privkey'])
         filehandle.close()
             
@@ -124,3 +127,5 @@ class Server(object):
         #print c.prettytext()
         #logging.debug(c.prettytext())
         c.tofile()
+        
+

@@ -11,10 +11,15 @@ Using the following Libraries:
 		For all Crypto work. Thanks!
 	pylzma (LGPL)
 		For reducing the size of on-disk saves.
-	http://www.mindrot.org/projects/py-bcrypt/ (BSD)
+	Py-bcrypt (BSD)
+		http://www.mindrot.org/projects/py-bcrypt/
 		For passwords. Remeber kids, never do your own password hasing.
 	
-
+	If you want OrderedDict Support on 2.4-2.6, you need OrderedDict (MIT)
+			In Py2.7+, you don't need this
+			http://pypi.python.org/pypi/ordereddict/1.1
+			This is not guaranteed to solve the problem, since this version of
+			the json class does not support the OrderedDict type...
 
 --- yENC license --
 
