@@ -1,5 +1,5 @@
 from server import *
-from container import *
+from Envelope import *
 from collections import OrderedDict
 #Seed the random number generator with 1024 random bytes (8192 bits)
 M2Crypto.Rand.rand_seed (os.urandom (1024))
@@ -7,10 +7,10 @@ M2Crypto.Rand.rand_seed (os.urandom (1024))
 s = Server("Threepwood.savewave.com.PluricServerSettings")
 s.saveconfig()
 
-#c = Container(importfile='52dfc8ea26abc1c6a23e57b413116f17799a861e1403db5aa4b7c2d6e572c52e0f9885d0fcc4ca5c3cb92d84280c1646ace0f99dbaafefa3c189eadf5ac9cd8f.7zPluricContainer')
+#c = Envelope(importfile='52dfc8ea26abc1c6a23e57b413116f17799a861e1403db5aa4b7c2d6e572c52e0f9885d0fcc4ca5c3cb92d84280c1646ace0f99dbaafefa3c189eadf5ac9cd8f.7zPluricEnvelope')
 
-# c = Container(importfile='example.json')
-# s.receivecontainer(c.text())
+# c = Envelope(importfile='example.json')
+# s.receiveEnvelope(c.text())
 
 # print c.prettytext()
 # print "--------"
@@ -24,7 +24,7 @@ s.saveconfig()
 
 u = User(filename='colin.PluricUser')
 u.saveuser()
-c = Container()
+c = Envelope()
 c.message.dict['subject'] = "This is a super awesome message"
 topics = []
 topics.append('ExampleTopic')
@@ -36,10 +36,10 @@ c.message.dict['author']['client'] = "Sample Message Generator 0.1"
 print c.prettytext()
 
 ######## Process said message ###########
-s.receivecontainer(c.text())
+s.receiveEnvelope(c.text())
 
-######## Read in processed container ##########
-filename = c.message.hash() + ".7zPluricContainer"
+######## Read in processed Envelope ##########
+filename = c.message.hash() + ".7zPluricEnvelope"
 print "FILENAME: " + filename
-c_new = Container(filename)
+c_new = Envelope(filename)
 print c_new.prettytext()

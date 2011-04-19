@@ -1,7 +1,7 @@
 import os,json
 import M2Crypto
 import platform
-from container import *
+from Envelope import *
 import time
 from keys import *
 import logging
@@ -87,8 +87,8 @@ class Server(object):
         return newstr
     
 
-    def receivecontainer(self,container):
-        c = Container(importstring=container)
+    def receiveEnvelope(self,envelope):
+        c = Envelope(importstring=envelope)
         
         if c.dict.has_key('servers'):
             serverlist = c.dict['servers']
@@ -100,8 +100,8 @@ class Server(object):
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:
                 logging.debug("Found potential us. Let's verify.")
-                containerkey = Keys(pub=self.ServerKeys.pubkey)
-                if containerkey.verifystring(stringtoverify=c.message.text(),signature=server['signature']) == True:
+                Envelopekey = Keys(pub=self.ServerKeys.pubkey)
+                if Envelopekey.verifystring(stringtoverify=c.message.text(),signature=server['signature']) == True:
                     #If we've gotten here, we've received the same message twice
                     logging.debug("It's a Me!")
                     #return
@@ -116,7 +116,7 @@ class Server(object):
         #Pluric has an exact time string per ISO Spec.
 
         #Store a message hash in the message itself.
-        c.dict['pluric_container']['message_sha512'] = c.message.hash()
+        c.dict['pluric_envelope']['message_sha512'] = c.message.hash()
 
         #Sign the message to saw we saw it.
         signedmessage = self.ServerKeys.signstring(c.message.text())

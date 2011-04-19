@@ -7,7 +7,7 @@ import collections
 from collections import *
 json.encoder.c_make_encoder = None
 
-class Container(object):
+class Envelope(object):
 
     class Message(object):
         def __init__(self,initialdict):
@@ -50,10 +50,10 @@ class Container(object):
                 self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
             else:
                 self.dict = OrderedDict()
-                self.dict['pluric_container'] = OrderedDict()
-                self.dict['pluric_container']['message'] = OrderedDict()
+                self.dict['pluric_envelope'] = OrderedDict()
+                self.dict['pluric_envelope']['message'] = OrderedDict()
         
-        self.message = Container.Message(self.dict['pluric_container']['message'])
+        self.message = Envelope.Message(self.dict['pluric_envelope']['message'])
    
    
     def load(self,filename):
@@ -65,7 +65,7 @@ class Container(object):
         basename,ext = os.path.splitext(filename)
         filehandle = open(filename, 'r')
         filecontents = filehandle.read() 
-        if (ext == '.7zPluricContainer'):
+        if (ext == '.7zPluricEnvelope'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
         self.dict = OrderedDict()
@@ -74,7 +74,7 @@ class Container(object):
         
         
     def reload(self):
-        self.load(self.message.hash() + ".7zPluricContainer")
+        self.load(self.message.hash() + ".7zPluricEnvelope")
             
     def text(self):
         newstr = json.dumps(self.dict,separators=(',',':'),encoding='utf8')
@@ -85,14 +85,14 @@ class Container(object):
         return newstr 
         
     def tofile(self):
-        #Compress the whole internal container for saving.
+        #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(),dictionary=27,fastBytes=255)
 
         # print "Compressed size " + str(sys.getsizeof(compressed))
         # print "Full Size " + str(sys.getsizeof(self.dict))        
         
         #We want to name this file to the SHA512 of the MESSAGE contents, so it is consistant across servers.
-        filehandle = open(self.message.hash() + ".7zPluricContainer",'w')
+        filehandle = open(self.message.hash() + ".7zPluricEnvelope",'w')
         filehandle.write(compressed)
         filehandle.close()
         
