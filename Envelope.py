@@ -11,6 +11,7 @@ class Envelope(object):
 
     class Message(object):
         def __init__(self,initialdict):
+            self.dict = OrderedDict()
             self.dict = initialdict
         def text(self): 
             newstr = json.dumps(self.dict,ensure_ascii=False,separators=(',',':'))
