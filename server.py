@@ -137,7 +137,6 @@ class Server(object):
         c.dict[u'servers'] = serverlist
         #print c.prettytext()
         #logging.debug(c.prettytext())
-        c.tofile()
         c.toMongo(self.mongo)
         
 

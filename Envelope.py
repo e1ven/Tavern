@@ -44,22 +44,24 @@ class Envelope(object):
                     print "No From line"
                     return False
                 
-    def __init__(self,importfile=None,importstring=None):
-        
-        if importfile != None:
-           self.load(importfile)        
-        else:
-            if importstring != None:
-                self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
+    def __init__(self,importmongo=None,importfile=None,importstring=None,mongoconnection=None):
+        if importmongo != None:
+            self.loadmongo(mongo_id=importmongo,mongo_connection=mongoconnection)
+        else: 
+            if importfile != None:
+                self.loadfile(importfile)        
             else:
-                self.dict = OrderedDict()
-                self.dict['pluric_envelope'] = OrderedDict()
-                self.dict['pluric_envelope']['message'] = OrderedDict()
+                if importstring != None:
+                    self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
+                else:
+                    self.dict = OrderedDict()
+                    self.dict['pluric_envelope'] = OrderedDict()
+                    self.dict['pluric_envelope']['message'] = OrderedDict()
         
         self.message = Envelope.Message(self.dict['pluric_envelope']['message'])
    
    
-    def load(self,filename):
+    def loadfile(self,filename):
         
         #Determine the file extension to see how to parse it.
         basename,ext = os.path.splitext(filename)
@@ -75,8 +77,12 @@ class Envelope(object):
         self.dict = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()
         
+    def loadmongo(self,mongo_connection,mongo_id):
+        env = mongo_connection['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
+        self.dict = env
+
         
-    def reload(self):
+    def reloadfile(self):
         self.load(self.message.hash() + ".7zPluricEnvelope")
             
     def text(self):
@@ -101,5 +107,5 @@ class Envelope(object):
         
     def toMongo(self,mongo):
         self.dict['_id'] = self.message.hash()
-        mongo['envelop1'].insert(self.dict)
+        print mongo['envelopes'].save(self.dict)
     
