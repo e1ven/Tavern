@@ -6,6 +6,8 @@ from keys import *
 import collections
 from collections import *
 json.encoder.c_make_encoder = None
+import pymongo
+
 
 class Envelope(object):
 
@@ -97,3 +99,7 @@ class Envelope(object):
         filehandle.write(compressed)
         filehandle.close()
         
+    def toMongo(self,mongo):
+        self.dict['_id'] = self.message.hash()
+        mongo['envelop1'].insert(self.dict)
+    

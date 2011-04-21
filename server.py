@@ -7,6 +7,8 @@ from keys import *
 import logging
 import bcrypt
 from collections import OrderedDict
+import pymongo
+
 
 class User(object):
   
@@ -48,7 +50,6 @@ class Server(object):
 
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
-
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
                 #Load Default file(hostname)
@@ -61,8 +62,15 @@ class Server(object):
                 self.ServerSettings['privkey'] = self.ServerKeys.privkey
                 self.ServerSettings['hostname'] = platform.node()
                 self.ServerSettings['logfile'] = self.ServerSettings['hostname'] + '.log'
+                self.ServerSettings['mongo-hostname'] = 'localhost'
+                self.ServerSettings['mongo-port'] = 27017            
+                self.ServerSettings['mongo-db'] = 'test'  
+                self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
+                self.mongo = self.connection[ServerSettings['mongo-db']]             
+                   
         else:
             self.loadconfig(settingsfile)
+            
         logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
  
@@ -73,8 +81,11 @@ class Server(object):
         filecontents = filehandle.read()
         self.ServerSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],priv=self.ServerSettings['privkey'])
+        self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
+        self.mongo = self.connection[self.ServerSettings['mongo-db']]
         filehandle.close()
-            
+
+        
     def saveconfig(self,filename=None):
         if filename == None:
             filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
@@ -127,5 +138,6 @@ class Server(object):
         #print c.prettytext()
         #logging.debug(c.prettytext())
         c.tofile()
+        c.toMongo(self.mongo)
         
 
