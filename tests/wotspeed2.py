@@ -16,20 +16,21 @@ class user:
     def gatherTrust(self,allusers,incomingtrust,askingabout):
 
         score = 0 #You start off Neutral
-        maxtrust = .4 * incomingtrust #Max trust we can return
+        maxtrust = .4 * incomingtrust #Max trust we can return    
         
-        
-        #Cache trust.
+        #Cache trust for X seconds, where X is the value in the comparator
         if self.trustcache.has_key((askingabout,incomingtrust)):
-            return self.trustcache[askingabout,incomingtrust]
+            #Only use values cached in the last second
+            if time.time() - self.trustcache[askingabout,incomingtrust][1] < 20:
+                return self.trustcache[askingabout,incomingtrust][0]
                 
                 
                 
         if askingabout == self.name:
-            self.trustcache[askingabout,incomingtrust] = round(incomingtrust)
+            self.trustcache[askingabout,incomingtrust] = [round(incomingtrust),time.time()]
             return round(incomingtrust)
         if incomingtrust <= 2:
-            self.trustcache[askingabout,incomingtrust] = 0
+            self.trustcache[askingabout,incomingtrust] = [0,time.time()]
             return 0
             #Don't recurse forever, please.
 
@@ -53,15 +54,15 @@ class user:
         if score < (-1 * maxtrust):
             score = (-1 * maxtrust)
         
-        self.trustcache[askingabout,incomingtrust] = round(score)       
+        self.trustcache[askingabout,incomingtrust] = [round(score),time.time()]       
         return round(score)
     
     
     
 starttime = time.time()
 allusers = {}
-testcount = 2000
-testassignments = 1
+testcount = 1000
+testassignments = 300
 messagecount = 30
 ratioPostoNeg = .75
 
