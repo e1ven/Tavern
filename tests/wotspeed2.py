@@ -5,21 +5,31 @@ import string
 import time
 
 random.seed(a=None)
-
+    
 
 class user:
     def __init__(self):
         self.name = ''.join(random.choice(string.ascii_uppercase + string.digits) for x in range(6))
         self.trustscores = {}
-    
+        self.trustcache = {}
     
     def gatherTrust(self,allusers,incomingtrust,askingabout):
 
         score = 0 #You start off Neutral
         maxtrust = .4 * incomingtrust #Max trust we can return
+        
+        
+        #Cache trust.
+        if self.trustcache.has_key((askingabout,incomingtrust)):
+            return self.trustcache[askingabout,incomingtrust]
+                
+                
+                
         if askingabout == self.name:
+            self.trustcache[askingabout,incomingtrust] = round(incomingtrust)
             return round(incomingtrust)
         if incomingtrust <= 2:
+            self.trustcache[askingabout,incomingtrust] = 0
             return 0
             #Don't recurse forever, please.
 
@@ -42,16 +52,17 @@ class user:
             score = maxtrust
         if score < (-1 * maxtrust):
             score = (-1 * maxtrust)
-                
+        
+        self.trustcache[askingabout,incomingtrust] = round(score)       
         return round(score)
     
     
     
 starttime = time.time()
 allusers = {}
-testcount = 1000
-testassignments = 30
-messagecount = 1000
+testcount = 2000
+testassignments = 1
+messagecount = 30
 ratioPostoNeg = .75
 
 #Generate a bunch of test servers
@@ -93,26 +104,3 @@ for m in range(0,messagecount):
 print "Time to Randomly computer trust for  " + str(messagecount) + " messages, each checking  " + str(testcount) + " users with possible trust values "  + str(time.time() - starttime) + " seconds"
        
         
-        
-    # 
-    #         
-    # a = {}
-    # 
-    # for i in range(1,50000):
-    #   a[i] = random.choice([1,0,-1,-1,-1])
-    # 
-    # positivevotes = 0
-    # negativevotes = 0
-    # for k in a:
-    #   i = a[k]
-    #   if i == -1:
-    #       negativevotes = negativevotes + 1
-    #   elif i == 1:
-    #       positivevotes = positivevotes + 1
-    # print "Total negative " + str(negativevotes)
-    # print "Total positive " + str(positivevotes)
-    # print "Possy " + str((10 * (1 + math.log10(positivevotes))))
-    # print "Neggy " + str((9 * (1 + math.log10(negativevotes))))
-    # score = 0 + (10 * (1 + math.log10(positivevotes))) - (5 * (1 + math.log10(negativevotes)))
-    # print "Score " + str(score)
-    
