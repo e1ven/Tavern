@@ -164,3 +164,96 @@ Traceback (most recent call last):
 NameError: global name 'string' is not defined
 ERROR:root:500 GET /ggg (127.0.0.1) 1.15ms
 INFO:root:200 GET /ggg (127.0.0.1) 42.59ms
+INFO:root:304 GET / (127.0.0.1) 0.36ms
+INFO:root:200 GET /register.php (127.0.0.1) 41.16ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.47ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.24ms
+INFO:root:304 GET / (127.0.0.1) 0.26ms
+INFO:root:304 GET /register.php (127.0.0.1) 0.75ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+ERROR:root:Uncaught exception GET /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 172, in get
+    self.write(self.render_string('templates/registerform.html'))
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 516, in render_string
+    t = RequestHandler._templates[template_path].load(template_name)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 192, in load
+    f = open(path, "r")
+IOError: [Errno 2] No such file or directory: '/Users/e1ven/proj/Pluric/templates/registerform.html'
+ERROR:root:500 GET /register (127.0.0.1) 30.19ms
+ERROR:root:Uncaught exception GET /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none)', 'Cache-Control': 'max-age=0'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 173, in get
+    self.write(self.render_string('templates/footer.html',topchans=retrChans(self.uid,True).topchans,ustatus=self.ustatus,uid=self.uid))
+NameError: global name 'retrChans' is not defined
+ERROR:root:500 GET /register (127.0.0.1) 2.40ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715', 'If-None-Match': '"e02aa1b106d5c7c6a98def2b13005d5b84fd8dc8"'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 166, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+AttributeError: 'FrontPageHandler' object has no attribute 'username'
+ERROR:root:500 GET / (127.0.0.1) 1.11ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 166, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+AttributeError: 'FrontPageHandler' object has no attribute 'username'
+ERROR:root:500 GET / (127.0.0.1) 0.44ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 166, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+AttributeError: 'FrontPageHandler' object has no attribute 'username'
+ERROR:root:500 GET / (127.0.0.1) 1.10ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 166, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+AttributeError: 'FrontPageHandler' object has no attribute 'username'
+ERROR:root:500 GET / (127.0.0.1) 0.43ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.2.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 166, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+AttributeError: 'FrontPageHandler' object has no attribute 'username'
+ERROR:root:500 GET / (127.0.0.1) 0.43ms
+INFO:root:200 GET / (127.0.0.1) 3.51ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms

@@ -4,6 +4,7 @@ Better to write code than a doc for a product no one will read for now ;)
 
 
 Using the following Libraries:
+
 	yENC (under LGPL, see email below)
 		For converting Binaries to Text.
 		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.		
@@ -20,6 +21,19 @@ Using the following Libraries:
 			http://pypi.python.org/pypi/ordereddict/1.1
 			This is not guaranteed to solve the problem, since this version of
 			the json class does not support the OrderedDict type...
+
+	Mongo and the Mongo-Python-Driver (Apache)
+		https://github.com/mongodb/mongo-python-driver
+
+	Tornado (Apache)
+		http://www.tornadoweb.org/
+
+	Github-Flavored-Markdown
+		http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
+
+	Auto-linked Markdown
+		http://greaterdebater.com/blog/gabe/post/4
+	
 
 --- yENC license --
 

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
+	<meta name="keywords" content="Pluric, Plurist, Forum">
+	<link rel="stylesheet" href="/static/style.css" media="screen">
+	
+	<!-- Hey, Source Reader!
+
+	Welcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
+	Email me - colin@pluric.com
+	Anyway, Enjoy the site, eh?"
+
+	-->
+	<title>
+	{% if len(title) > 1 %}
+	Pluric :: {{title}}
+	{% end %}
+	{% if len(title) < 2 %}
+	Pluric :: A distributed discussion
+	{% end %}
+	</title>
+	
+	<script type="text/javascript">
+
+	  var _gaq = _gaq || [];
+	  _gaq.push(['_setAccount', 'UA-17094384-2']);
+	  _gaq.push(['_trackPageview']);
+
+	  (function() {
+	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+	  })();
+
+	</script>
+	
+	
+	<script type="text/javascript" src="/static/jquery.min.js"></script>
+	<script type="text/javascript" src="/static/json2.js"></script>
+	<script type="text/javascript" src="/static/jquery.blockUI.js"></script>
+</head>
+<p>
+Your UserName:  {{username}}
+</p>
+<body>

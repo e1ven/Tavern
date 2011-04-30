@@ -156,14 +156,91 @@ class NotFoundHandler(BaseHandler):
     def get(self,whatever):
         self.getvars()
         print ("---")
-        self.write(self.render_string('templates/header.html',uid=self.username))
+        self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username))
         self.write(self.render_string('templates/404.html'))
         self.write(self.render_string('templates/footer.html'))
 
 
-class PageHandler(tornado.web.RequestHandler):
+class FrontPageHandler(BaseHandler):
     def get(self):
+        self.getvars()
+        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
         self.write("Hello, world")
+        self.write(self.render_string('templates/footer.html'))
+
+class RegisterHandler(BaseHandler):
+    def get(self):
+        self.getvars()
+        self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username))
+        self.write(self.render_string('templates/registerform.html'))
+        self.write(self.render_string('templates/footer.html'))
+    def post(self):
+        self.getvars()
+        self.write(self.render_string('header.html',newmail=0,title='Register for an account',uid=self.uid,user=self.name,ustatus=self.ustatus))
+        client_newuser =  unicode(tornado.escape.xhtml_escape(self.get_argument("name")),'utf8')
+        client_newpass =  unicode(tornado.escape.xhtml_escape(self.get_argument("pass")),'utf8')
+        client_newpass2 =  unicode(tornado.escape.xhtml_escape(self.get_argument("pass2")),'utf8')
+        client_newemail = unicode(tornado.escape.xhtml_escape(self.get_argument("email")),'utf8')
+
+        if client_newpass != client_newpass2:
+            self.write("I'm sorry, your passwords don't match.") 
+            return
+
+        db = psycopg2.connect("dbname='lonava' user='YOURUSER' host='localhost' password='YOURPASS'")
+        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
+        #Make sure this email is unused
+        cur.execute("select count(*) as count from usrs where upper(email) = upper(%s);",[client_newemail])
+        count = cur.fetchone()['count']
+
+        if count != 0:
+            self.write("I'm sorry, this email address has already been used.")  
+            return
+        else:
+            hashed = bcrypt.hashpw(client_newpass, bcrypt.gensalt())
+            cur.execute("insert into usrs (name,password,email) values (%s,%s,%s) returning usrid;",[client_newuser,hashed,client_newemail])
+            ## Copy in Default Channels
+            newid = cur.fetchone()[0]
+    
+            #defaultchans = ({"usr":str(newid), "chan":"1"})    
+            cur.execute("select subbedchan from usrsubs where usr = 0")
+            rows = cur.fetchall()
+            for row in rows:
+                cur.execute("insert into usrsubs(usr,subbedchan) values (%s,%s)",[newid,row['subbedchan']])
+            self.write("User# " + str(newid) + " Created. You are now logged in. <br><a href='/' class='ul'>Return to main page</a>.")  
+    
+            #Go Ahead and Log you in by default
+
+            usrid = str(newid)
+            self.set_secure_cookie("usrid", usrid)
+            cur.execute('select name FROM usrs WHERE usrid = %s;', [usrid])
+            row = cur.fetchone()
+            self.set_secure_cookie("name", row['name'])
+            self.name = row['name']
+
+            #set cookie with hidden story votes
+            cur.execute('select * from storyvotes where usr = %s order by storyvoteid desc limit 100;',[self.uid])
+            rows = cur.fetchall()
+            cookiearry = "["
+            for row in rows:
+                cookiearry = cookiearry + '"' + "storyid||" + str(row['story']) + "||" + str(row['pointchange']) + '",'
+
+            #set cookie for replies
+            cur.execute('select * from replyvotes where usr = %s order by replyvoteid desc limit 100;',[self.uid])
+            rows = cur.fetchall()
+            for row in rows:
+                cookiearry = cookiearry + '"' + "replyid||" + str(row['reply']) + "||" + str(row['pointchange']) + '",'
+
+            cookiearry = cookiearry + '"storyid||0||1"]'
+
+            self.set_cookie("hidden-post-votes",cookiearry)
+            self.redirect("/")
+
+
+
+            db.commit() 
+            db.close()
+            self.redirect("/")
+
 
 
 
@@ -182,7 +259,8 @@ def main():
         "xsrf_cookies": True,
     }
     application = tornado.web.Application([
-        (r"/" ,PageHandler),
+        (r"/" ,FrontPageHandler),
+        (r"/register" ,RegisterHandler),
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

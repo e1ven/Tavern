@@ -1,0 +1,12 @@
+<u<form action="/register" method="post">
+  {{ xsrf_form_html() }}
+Name: <input type="text" name="name">
+<br>
+Email (Will not be publically displayed): <input type="text" name="email">
+<br>
+Password: <input type="password" name="pass">
+<br>
+Verify Password: <input type="password" name="pass2">
+<input type="submit" value="Create Login">
+</form>
+
