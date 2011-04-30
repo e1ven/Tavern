@@ -21,7 +21,7 @@ class user:
         #Cache trust for X seconds, where X is the value in the comparator
         if self.trustcache.has_key((askingabout,incomingtrust)):
             #Only use values cached in the last second
-            if time.time() - self.trustcache[askingabout,incomingtrust][1] < 20:
+            if time.time() - self.trustcache[askingabout,incomingtrust][1] < 01:
                 return self.trustcache[askingabout,incomingtrust][0]
                 
                 
@@ -75,15 +75,13 @@ for i in range(0,testcount):
 for i in range(0,testcount):
     for j in range (0,testassignments):
         randomlytrust = random.choice(allusers.keys())
-        randomlydistrust = random.choice(allusers.keys())
-        
-        
+                
         #Upvote if we're higher than the ratio
         RandomNumber = random.random()
         if RandomNumber > ratioPostoNeg:
             allusers[allusers.keys()[ i ]].trustscores[randomlytrust] = -100
         else:
-            allusers[allusers.keys()[ i ]].trustscores[randomlydistrust] = 100
+            allusers[allusers.keys()[ i ]].trustscores[randomlytrust] = 100
     
 
 # for i in range(0,testcount):
