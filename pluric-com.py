@@ -16,8 +16,15 @@ import markdown
 import imghdr 
 import random
 import socket
-
+import pymongo
+import json
+from collections import OrderedDict
+import pymongo
 from tornado.options import define, options
+from server import server,User
+
+
+
 
 import re
 try: 
@@ -29,6 +36,8 @@ import NofollowExtension
 
 define("port", default=8080, help="run on the given port", type=int)
 
+
+            
 
 #Autolink from http://greaterdebater.com/blog/gabe/post/4
 def autolink(html):
@@ -104,7 +113,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.username is None:
             self.username = "Guest"
 
-        return string(self.username)
+        return str(self.username)
            
     
 class FancyDateTimeDelta(object):
@@ -144,11 +153,12 @@ class FancyDateTimeDelta(object):
 
 
 class NotFoundHandler(BaseHandler):
-    def get(self):
+    def get(self,whatever):
         self.getvars()
-        self.write(self.render_string('header.html',uid=self.username))
-        self.write(self.render_string('404.html'))
-        self.write(self.render_string('footer.html'))
+        print ("---")
+        self.write(self.render_string('templates/header.html',uid=self.username))
+        self.write(self.render_string('templates/404.html'))
+        self.write(self.render_string('templates/footer.html'))
 
 
 class PageHandler(tornado.web.RequestHandler):
@@ -163,7 +173,8 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-
+    print "Starting Pluric-com for " + server.ServerSettings['hostname']
+            
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
@@ -172,10 +183,9 @@ def main():
     }
     application = tornado.web.Application([
         (r"/" ,PageHandler),
-        (r"/(.*)", NotFoundHandler),
-
-
+        (r"/(.*)", NotFoundHandler)
     ], **settings)
+    
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
     tornado.ioloop.IOLoop.instance().start()

@@ -9,7 +9,6 @@ import bcrypt
 from collections import OrderedDict
 import pymongo
 
-
 class User(object):
   
           
@@ -58,6 +57,7 @@ class Server(object):
                 #Generate New config    
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
+                self.ServerSettings = OrderedDict()
                 self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
                 self.ServerSettings['privkey'] = self.ServerKeys.privkey
                 self.ServerSettings['hostname'] = platform.node()
@@ -66,7 +66,7 @@ class Server(object):
                 self.ServerSettings['mongo-port'] = 27017            
                 self.ServerSettings['mongo-db'] = 'test'  
                 self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-                self.mongo = self.connection[ServerSettings['mongo-db']]             
+                self.mongo = self.connection[self.ServerSettings['mongo-db']]             
                    
         else:
             self.loadconfig(settingsfile)
@@ -139,4 +139,4 @@ class Server(object):
         #logging.debug(c.prettytext())
         c.toMongo(self.mongo)
         
-
+server = Server()

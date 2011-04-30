@@ -1,0 +1,166 @@
+INFO:root:304 GET / (127.0.0.1) 0.22ms
+ERROR:root:Uncaught exception GET /fg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/fg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /fg (127.0.0.1) 1.33ms
+INFO:root:304 GET / (127.0.0.1) 0.18ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ggg (127.0.0.1) 0.43ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cache-Control': 'max-age=0'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ggg (127.0.0.1) 0.49ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ggg (127.0.0.1) 1.00ms
+INFO:root:304 GET / (127.0.0.1) 0.29ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 0.46ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 1.02ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Pragma': 'no-cache', 'Cache-Control': 'no-cache'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 0.42ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 1.06ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 0.42ms
+ERROR:root:Uncaught exception GET /ff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ff (127.0.0.1) 0.42ms
+INFO:root:304 GET / (127.0.0.1) 0.19ms
+INFO:root:304 GET / (127.0.0.1) 0.20ms
+ERROR:root:Uncaught exception GET /f (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/f', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /f (127.0.0.1) 0.89ms
+INFO:root:304 GET / (127.0.0.1) 0.22ms
+ERROR:root:Uncaught exception GET /f (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/f', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /f (127.0.0.1) 0.91ms
+ERROR:root:Uncaught exception GET /fff (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/fff', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /fff (127.0.0.1) 1.01ms
+WARNING:root:404 GET /fff (127.0.0.1) 0.22ms
+WARNING:root:404 GET /fff (127.0.0.1) 0.21ms
+INFO:root:304 GET / (127.0.0.1) 0.20ms
+INFO:root:304 GET / (127.0.0.1) 0.20ms
+INFO:root:200 GET / (127.0.0.1) 0.55ms
+INFO:root:304 GET / (127.0.0.1) 0.24ms
+ERROR:root:Uncaught exception GET /df (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/df', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /df (127.0.0.1) 0.87ms
+INFO:root:304 GET / (127.0.0.1) 0.21ms
+INFO:root:200 GET / (127.0.0.1) 0.51ms
+INFO:root:304 GET / (127.0.0.1) 0.22ms
+INFO:root:304 GET / (127.0.0.1) 0.21ms
+INFO:root:304 GET / (127.0.0.1) 0.21ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+TypeError: get() takes exactly 1 argument (2 given)
+ERROR:root:500 GET /ggg (127.0.0.1) 0.88ms
+INFO:root:200 GET /ggg (127.0.0.1) 0.54ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.34ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.21ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.28ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.28ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.20ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.34ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.20ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.27ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.33ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.33ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.25ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.34ms
+INFO:root:304 GET /ggg (127.0.0.1) 0.33ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'If-None-Match': '"da39a3ee5e6b4b0d3255bfef95601890afd80709"'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "pluric-com.py", line 159, in get
+    self.write(self.render_string('templates/header.html',uid=self.username))
+AttributeError: 'NotFoundHandler' object has no attribute 'username'
+ERROR:root:500 GET /ggg (127.0.0.1) 1.10ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "pluric-com.py", line 157, in get
+    self.getvars()
+AttributeError: 'NotFoundHandler' object has no attribute 'getvars'
+ERROR:root:500 GET /ggg (127.0.0.1) 1.08ms
+ERROR:root:Uncaught exception GET /ggg (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/ggg', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "pluric-com.py", line 157, in get
+    self.getvars()
+  File "pluric-com.py", line 116, in getvars
+    return string(self.username)
+NameError: global name 'string' is not defined
+ERROR:root:500 GET /ggg (127.0.0.1) 1.15ms
+INFO:root:200 GET /ggg (127.0.0.1) 42.59ms
