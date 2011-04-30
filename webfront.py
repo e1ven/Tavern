@@ -173,7 +173,7 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    print "Starting Pluric-com for " + server.ServerSettings['hostname']
+    print "Starting Web Frontend for " + server.ServerSettings['hostname']
             
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
