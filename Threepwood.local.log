@@ -813,3 +813,447 @@ WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
 WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
 WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
 WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:304 GET / (127.0.0.1) 0.36ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.23ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.28ms
+INFO:root:304 GET / (127.0.0.1) 20.81ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:200 GET /newmessage (127.0.0.1) 1.23ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET /newmessage (127.0.0.1) 4.13ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:304 GET /login (127.0.0.1) 0.92ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:302 POST /login (127.0.0.1) 306.53ms
+INFO:root:200 GET / (127.0.0.1) 0.44ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:200 GET /newmessage (127.0.0.1) 0.98ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:304 GET /newmessage (127.0.0.1) 0.49ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.36ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.26ms
+INFO:root:200 GET / (127.0.0.1) 3.83ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+INFO:root:304 GET / (127.0.0.1) 0.63ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET /newmessage (127.0.0.1) 4.45ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.40ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+INFO:root:302 POST /logout (127.0.0.1) 1.17ms
+INFO:root:200 GET / (127.0.0.1) 0.34ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.22ms
+INFO:root:200 GET /newmessage (127.0.0.1) 0.42ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+WARNING:root:404 POST /login (127.0.0.1): Missing argument username
+WARNING:root:404 POST /login (127.0.0.1) 0.60ms
+INFO:root:200 GET /newmessage (127.0.0.1) 7.11ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 POST /newmessage (127.0.0.1) 0.59ms
+INFO:root:304 GET /login (127.0.0.1) 0.85ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.42ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:302 POST /login (127.0.0.1) 306.67ms
+INFO:root:200 GET / (127.0.0.1) 0.45ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.44ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+WARNING:root:404 POST /newmessage (127.0.0.1): Missing argument include_location
+WARNING:root:404 POST /newmessage (127.0.0.1) 0.64ms
+INFO:root:200 GET /newmessage (127.0.0.1) 6.82ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.28ms
+INFO:root:302 POST /logout (127.0.0.1) 1.19ms
+INFO:root:200 GET / (127.0.0.1) 0.37ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.21ms
+INFO:root:302 POST /logout (127.0.0.1) 1.31ms
+INFO:root:304 GET / (127.0.0.1) 3.77ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:304 GET / (127.0.0.1) 0.69ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:304 GET /login (127.0.0.1) 1.08ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:302 POST /login (127.0.0.1) 304.13ms
+INFO:root:200 GET / (127.0.0.1) 0.59ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.45ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.44ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:304 GET /newmessage (127.0.0.1) 0.88ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.26ms
+INFO:root:302 POST /logout (127.0.0.1) 0.48ms
+INFO:root:200 GET / (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+INFO:root:200 GET /login (127.0.0.1) 0.47ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.39ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /favicon.ico (127.0.0.1) 0.47ms
+INFO:root:304 GET / (127.0.0.1) 3.62ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.23ms
+INFO:root:304 GET /login (127.0.0.1) 0.83ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:302 POST /login (127.0.0.1) 304.30ms
+INFO:root:200 GET / (127.0.0.1) 0.45ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:200 GET /newmessage (127.0.0.1) 0.91ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.63ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.37ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.40ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.22ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+INFO:root:200 POST /newmessage (127.0.0.1) 0.54ms
+INFO:root:304 GET / (127.0.0.1) 3.62ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.30ms
+INFO:root:304 GET /newmessage (127.0.0.1) 0.92ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.41ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 259, in post
+    e = Envelope()
+TypeError: 'module' object is not callable
+ERROR:root:500 POST /newmessage (127.0.0.1) 23.20ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 267, in post
+    e.message.dict['author']['from'] = user.UserSettings['pubkey']
+AttributeError: 'dict' object has no attribute 'UserSettings'
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.20ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 266, in post
+    pprint(u)
+TypeError: 'module' object is not callable
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.71ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 268, in post
+    e.message.dict['author']['from'] = user.UserSettings['pubkey']
+AttributeError: 'dict' object has no attribute 'UserSettings'
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.93ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 278, in post
+    e.message.dict['coords'] = gir['latitude'] + "," + gir['longitude']
+TypeError: 'NoneType' object is not subscriptable
+ERROR:root:500 POST /newmessage (127.0.0.1) 3.03ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 278, in post
+    
+TypeError: 'NoneType' object is not subscriptable
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.25ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 284, in post
+    print gir['latitude']
+TypeError: 'NoneType' object is not subscriptable
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.87ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.22.10.1304222531; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 286, in post
+    e.message.dict['coords'] = gir['latitude'] + "," + gir['longitude']
+TypeError: unsupported operand type(s) for +: 'float' and 'str'
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.96ms
+INFO:root:200 POST /newmessage (127.0.0.1) 2.35ms
+INFO:root:200 POST /newmessage (127.0.0.1) 2.74ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=hbgfdsx&subject=hgfds&body=123123123&include_location=on', headers={'Content-Length': '101', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 289, in post
+    usersig = u.Keys.signstring(c.message.text())
+NameError: global name 'c' is not defined
+ERROR:root:500 POST /newmessage (127.0.0.1) 2.92ms
+INFO:root:200 POST /newmessage (127.0.0.1) 66.66ms
+INFO:root:200 POST /newmessage (127.0.0.1) 49.36ms
+INFO:root:200 POST /newmessage (127.0.0.1) 50.08ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    Server.receiveEnvelope(e.text())
+NameError: global name 'Server' is not defined
+ERROR:root:500 POST /newmessage (127.0.0.1) 50.37ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 148, in receiveEnvelope
+    signedmessage = self.ServerKeys.signstring(c.message.text())
+  File "/Users/e1ven/proj/Pluric/keys.py", line 43, in signstring
+    SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)
+AttributeError: 'Keys' object has no attribute 'combinedkey'
+ERROR:root:500 POST /newmessage (127.0.0.1) 51.09ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 148, in receiveEnvelope
+    signedmessage = self.ServerKeys.signstring(c.message.text())
+  File "/Users/e1ven/proj/Pluric/keys.py", line 42, in signstring
+    SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)
+AttributeError: 'Keys' object has no attribute 'combinedkey'
+ERROR:root:500 POST /newmessage (127.0.0.1) 51.34ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 148, in receiveEnvelope
+    signedmessage = self.ServerKeys.signstring(c.message.text())
+  File "/Users/e1ven/proj/Pluric/keys.py", line 45, in signstring
+    SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)
+AttributeError: 'Keys' object has no attribute 'combinedkey'
+ERROR:root:500 POST /newmessage (127.0.0.1) 51.82ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 148, in receiveEnvelope
+    signedmessage = self.ServerKeys.signstring(c.message.text())
+  File "/Users/e1ven/proj/Pluric/keys.py", line 47, in signstring
+    SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)
+AttributeError: 'Keys' object has no attribute 'combinedkey'
+ERROR:root:500 POST /newmessage (127.0.0.1) 52.02ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 148, in receiveEnvelope
+    signedmessage = self.ServerKeys.signstring(c.message.text())
+  File "/Users/e1ven/proj/Pluric/keys.py", line 44, in signstring
+    SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)
+AttributeError: 'Keys' object has no attribute 'combinedkey'
+ERROR:root:500 POST /newmessage (127.0.0.1) 52.02ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "./webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 159, in receiveEnvelope
+    c.toMongo(self.mongo)
+AttributeError: 'Envelope' object has no attribute 'toMongo'
+ERROR:root:500 POST /newmessage (127.0.0.1) 97.84ms
+ERROR:root:Uncaught exception POST /newmessage (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/newmessage', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&topic=Test&subject=1234&body=ABCD&include_location=on', headers={'Content-Length': '92', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/newmessage', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304219169.1304222531.4; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; username=ZTF2ZW4=|1304223140|c36122c3e5832a4b9a93e5b45b34bf3b4644cea5', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "./webfront.py", line 291, in post
+    server.receiveEnvelope(e.text())
+  File "/Users/e1ven/proj/Pluric/server.py", line 157, in receiveEnvelope
+    c.saveMongo(self.mongo)
+TypeError: saveMongo() takes exactly 1 argument (2 given)
+ERROR:root:500 POST /newmessage (127.0.0.1) 99.95ms
+INFO:root:200 POST /newmessage (127.0.0.1) 97.67ms
+INFO:root:200 POST /newmessage (127.0.0.1) 97.79ms

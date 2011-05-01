@@ -107,7 +107,7 @@ class Envelope(object):
         filehandle.write(compressed)
         filehandle.close()
         
-    def saveMongo(self):
+    def saveMongo(self,mongo):
         self.dict['_id'] = self.message.hash()
-        print self.mongo['envelopes'].save(self.dict)
+        mongo['envelopes'].save(self.dict)
     

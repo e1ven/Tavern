@@ -12,27 +12,29 @@ import pymongo
 class User(object):
   
           
-    def __init__(self,filename=None,username=None,password=None,mongo=None,email=None,hashedpass=None):
+    def __init__(self,filename=None,username=None,password=None,mongo=None,email=None,hashedpass=None,mongoload=None):
         if mongo != None:
             self.mongo = mongo
-            
-        if filename == None:
-            self.UserSettings = OrderedDict()
-            self.UserSettings['username'] = username
-            self.UserSettings['email'] = email
-            self.UserSettings['hashedpass'] = hashedpass
-            self.Keys = Keys()
-            self.Keys.generate()
-            self.UserSettings['privkey'] = self.Keys.privkey
-            self.UserSettings['pubkey'] = self.Keys.pubkey
-            
-            gmttime = time.gmtime()
-            gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
-            
-            self.UserSettings['time_created'] = gmtstring
-            
+        if mongoload != None:
+            self.loadmongo(mongo,mongoload)
         else:
-            self.loaduser(filename)
+            if filename == None:
+                self.UserSettings = OrderedDict()
+                self.UserSettings['username'] = username
+                self.UserSettings['email'] = email
+                self.UserSettings['hashedpass'] = hashedpass
+                self.Keys = Keys()
+                self.Keys.generate()
+                self.UserSettings['privkey'] = self.Keys.privkey
+                self.UserSettings['pubkey'] = self.Keys.pubkey
+            
+                gmttime = time.gmtime()
+                gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
+            
+                self.UserSettings['time_created'] = gmtstring
+            
+            else:
+                self.loaduser(filename)
             
     def loadfile(self,filename):
         filehandle = open(filename, 'r')
@@ -48,9 +50,9 @@ class User(object):
         filehandle.write(json.dumps(self.UserSettings,ensure_ascii=False,separators=(u',',u':'))) 
         filehandle.close()
     
-    def loadmongo(self):
-        self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-        filehandle.close()    
+    def loadmongo(self,mongo,pubkey):
+        user = server.mongo['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
+        self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
 
     def savemongo(self):
@@ -67,7 +69,8 @@ class Server(object):
                 #Load Default file(hostname)
                 self.loadconfig()
             else:
-                #Generate New config    
+                #Generate New config   
+                print "Generating new Config" 
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
                 self.ServerSettings = OrderedDict()
@@ -80,7 +83,7 @@ class Server(object):
                 self.ServerSettings['mongo-db'] = 'test'  
                 self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongo = self.connection[self.ServerSettings['mongo-db']]             
-                   
+                self.saveconfig()   
         else:
             self.loadconfig(settingsfile)
             
@@ -88,6 +91,7 @@ class Server(object):
         #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
  
     def loadconfig(self,filename=None):
+        print "Loading config from file."
         if filename == None:
             filename = platform.node() + ".PluricServerSettings"
         filehandle = open(filename, 'r')
@@ -150,6 +154,6 @@ class Server(object):
         c.dict[u'servers'] = serverlist
         #print c.prettytext()
         #logging.debug(c.prettytext())
-        c.toMongo(self.mongo)
+        c.saveMongo(self.mongo)
         
 server = Server()

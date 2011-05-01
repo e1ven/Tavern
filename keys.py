@@ -21,14 +21,12 @@ class Keys(object):
             self.pubkey_bio = M2Crypto.BIO.MemoryBuffer(pub.encode('utf8'))
             self.pubkey = pub.encode('utf8')
       
-      
         # Define the combined key if we have both variables.
         # Otherwise... Don't.
-        if hasattr(self, 'privkey') and hasattr(self, 'pubkey'):
+        if pub != None and priv != None:
             self.combinedkey = self.privkey + '\n' + self.pubkey
             self.combinedkey = self.combinedkey.encode('utf8')    
             self.combinedkey_bio = M2Crypto.BIO.MemoryBuffer(self.combinedkey)
-            self.Keys.load_key_string(self.combinedkey)      
         
     def generate(self):
         self.Keys = M2Crypto.RSA.gen_key (4096, 65537,self.empty_callback)
@@ -38,6 +36,11 @@ class Keys(object):
         #TODO- use __get_addr__ to calc these OnDemand
         self.privkey = self.privkey_bio.read()        
         self.pubkey = self.pubkey_bio.read()
+        
+        self.combinedkey = self.privkey + '\n' + self.pubkey
+        self.combinedkey = self.combinedkey.encode('utf8')    
+        self.combinedkey_bio = M2Crypto.BIO.MemoryBuffer(self.combinedkey)
+
 
     def signstring(self,signstring):
         SignEVP = M2Crypto.EVP.load_key_string(self.combinedkey)

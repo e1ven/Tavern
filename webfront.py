@@ -18,13 +18,14 @@ import random
 import socket
 import pymongo
 import json
+from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
 from server import server,User
-
-
-
+import GeoIP
+import pprint
+from keys import *
 
 import re
 try: 
@@ -35,7 +36,6 @@ import NofollowExtension
 
 
 define("port", default=8080, help="run on the given port", type=int)
-
 
             
 
@@ -112,7 +112,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.username = self.get_secure_cookie("username")
         if self.username is None:
             self.username = "Guest"
-
+        
         return str(self.username)
            
     
@@ -235,7 +235,61 @@ class LogoutHandler(BaseHandler):
          self.clear_cookie("username")
          self.redirect("/")
 
+class NewmessageHandler(BaseHandler):
+    def get(self):
+         self.getvars()
+         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username))
+         self.write(self.render_string('templates/newmessageform.html'))
+         self.write(self.render_string('templates/footer.html'))
 
+    def post(self):
+        self.getvars()
+        if self.username == "Guest":
+            self.write("You must be logged in to do this.")
+            return
+        
+        # self.write(self.render_string('templates/header.html',title='Post a new message',username=self.username))
+
+        client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
+        client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
+        client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
+        client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+
+        e = Envelope()
+        topics = []
+        topics.append(client_topic)
+        e.message.dict['topictag'] = topics
+        e.message.dict['body'] = client_body
+        e.message.dict['subject'] = client_subject
+        
+        #Instantiate the user who's currently logged in
+        user = server.mongo['users'].find_one({"username":self.username})        
+        u = User(mongo=server.mongo,mongoload = user['pubkey'])
+        
+        
+        
+        e.message.dict['author'] = OrderedDict()
+        e.message.dict['author']['from'] = u.UserSettings['pubkey']
+        
+        e.message.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        if client_include_loc == "on":
+            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            ip = self.request.remote_ip
+            
+            #Don't check from home.
+            if ip == "127.0.0.1":
+                ip = "126.170.76.219"
+                
+            gir = gi.record_by_name(ip)
+            e.message.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+        
+        #Sign this bad boy
+        usersig = u.Keys.signstring(e.message.text())
+        e.dict['sender_signature'] = usersig
+        
+        #Send to the server
+        server.receiveEnvelope(e.text())
+        
 def main():
     tornado.options.parse_command_line()
     # timeout in seconds
@@ -254,6 +308,7 @@ def main():
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 
+        (r"/newmessage" ,NewmessageHandler), 
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     
