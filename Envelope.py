@@ -46,7 +46,9 @@ class Envelope(object):
                 
     def __init__(self,importmongo=None,importfile=None,importstring=None,mongoconnection=None):
         if importmongo != None:
-            self.loadmongo(mongo_id=importmongo,mongo_connection=mongoconnection)
+            self.loadmongo(mongo_id=importmongo)
+            self.mongo = mongoconnection
+            
         else: 
             if importfile != None:
                 self.loadfile(importfile)        
@@ -77,8 +79,8 @@ class Envelope(object):
         self.dict = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()
         
-    def loadmongo(self,mongo_connection,mongo_id):
-        env = mongo_connection['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
+    def loadmongo(self,mongo_id):
+        env = self.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
         self.dict = env
 
         
@@ -93,7 +95,7 @@ class Envelope(object):
         newstr = json.dumps(self.dict,indent=2,separators=(', ',': '))
         return newstr 
         
-    def tofile(self):
+    def savefile(self):
         #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(),dictionary=27,fastBytes=255)
 
@@ -105,7 +107,7 @@ class Envelope(object):
         filehandle.write(compressed)
         filehandle.close()
         
-    def toMongo(self,mongo):
+    def saveMongo(self):
         self.dict['_id'] = self.message.hash()
-        print mongo['envelopes'].save(self.dict)
+        print self.mongo['envelopes'].save(self.dict)
     

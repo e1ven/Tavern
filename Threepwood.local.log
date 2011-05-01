@@ -257,3 +257,559 @@ WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
 WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
 WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
 WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET /register (127.0.0.1) 0.86ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.36ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+ERROR:root:templates/header.html code:
+ 1  def _execute():
+ 2      _buffer = []
+ 3      _buffer.append('<!doctype html>\n<html lang="en">\n<head>\n<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">\n<meta name="keywords" content="Pluric, Plurist, Forum">\n<link rel="stylesheet" href="/static/style.css" media="screen">\n<!-- Hey, Source Reader!\nWelcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I\'d love to hear them.\nEmail me - colin@pluric.com\nAnyway, Enjoy the site, eh?"\n-->\n<title>\n')
+ 4      if len(title) > 1:
+ 5          _buffer.append('\nPluric :: ')
+ 6          _tmp = title
+ 7          if isinstance(_tmp, str): _buffer.append(_tmp)
+ 8          elif isinstance(_tmp, unicode): _buffer.append(_tmp.encode('utf-8'))
+ 9          else: _buffer.append(str(_tmp))
+10          _buffer.append('\n')
+11      _buffer.append('\n')
+12      if len(title) < 2:
+13          _buffer.append('\nPluric :: A distributed discussion\n')
+14      _buffer.append('\n</title>\n<script type="text/javascript">\nvar _gaq = _gaq || [];\n_gaq.push([\'_setAccount\', \'UA-17094384-2\']);\n_gaq.push([\'_trackPageview\']);\n(function() {\nvar ga = document.createElement(\'script\'); ga.type = \'text/javascript\'; ga.async = true;\nga.src = (\'https:\' == document.location.protocol ? \'https://ssl\' : \'http://www\') + \'.google-analytics.com/ga.js\';\nvar s = document.getElementsByTagName(\'script\')[0]; s.parentNode.insertBefore(ga, s);\n})();\n</script>\n<script type="text/javascript" src="/static/jquery.min.js"></script>\n<script type="text/javascript" src="/static/json2.js"></script>\n<script type="text/javascript" src="/static/jquery.blockUI.js"></script>\n</head>\n<p>\n')
+15      if hasattr(self, 'username'):
+16          _buffer.append('\nYour UserName: ')
+17          _tmp = username
+18          if isinstance(_tmp, str): _buffer.append(_tmp)
+19          elif isinstance(_tmp, unicode): _buffer.append(_tmp.encode('utf-8'))
+20          else: _buffer.append(str(_tmp))
+21          _buffer.append('\n')
+22      _buffer.append('\n</p>\n<body>\n')
+23      return ''.join(_buffer)
+ERROR:root:Uncaught exception GET /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304206731.1; __utmb=96992031.4.10.1304206731; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715', 'Cache-Control': 'max-age=0', 'If-None-Match': '"52d1a03beaf557e02e7c8df1922cde9e7863805e"'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 174, in get
+    self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username))
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 529, in render_string
+    return t.generate(**args)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 129, in generate
+    return execute()
+  File "templates/header.html", line 15, in _execute
+    <title>
+NameError: global name 'self' is not defined
+ERROR:root:500 GET /register (127.0.0.1) 6.16ms
+INFO:root:304 GET / (127.0.0.1) 3.30ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 GET /register (127.0.0.1) 0.99ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET /register (127.0.0.1) 0.54ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.39ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:200 GET /register (127.0.0.1) 6.80ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.23ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 179, in post
+    self.write(self.render_string('header.html',title='Register for an account',username=""))
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 516, in render_string
+    t = RequestHandler._templates[template_path].load(template_name)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 192, in load
+    f = open(path, "r")
+IOError: [Errno 2] No such file or directory: '/Users/e1ven/proj/Pluric/header.html'
+ERROR:root:500 POST /register (127.0.0.1) 1.55ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 181, in post
+    client_newuser =  unicode(tornado.escape.xhtml_escape(self.get_argument("username")),'utf8')
+TypeError: decoding Unicode is not supported
+ERROR:root:500 POST /register (127.0.0.1) 4.05ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 181, in post
+    client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
+TypeError: decoding Unicode is not supported
+ERROR:root:500 POST /register (127.0.0.1) 0.82ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 203, in post
+    u = User(username=client_newuser,hasedpass=hashedpass,email=client_newemail)
+TypeError: __init__() got an unexpected keyword argument 'hasedpass'
+ERROR:root:500 POST /register (127.0.0.1) 311.33ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 204, in post
+    u.savemongo()
+  File "/Users/e1ven/proj/Pluric/server.py", line 57, in savemongo
+    self.dict['_id'] = self.UserSettings['pubkey']
+AttributeError: 'User' object has no attribute 'dict'
+ERROR:root:500 POST /register (127.0.0.1) 5112.24ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 204, in post
+    u.savemongo()
+  File "/Users/e1ven/proj/Pluric/server.py", line 58, in savemongo
+    self.mongo[users].save(self.UserSettings)
+AttributeError: 'User' object has no attribute 'mongo'
+ERROR:root:500 POST /register (127.0.0.1) 4828.79ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 203, in post
+    u = User(mongo=Server.mongo,username=client_newuser,hashedpass=hashedpass,email=client_newemail)
+NameError: global name 'Server' is not defined
+ERROR:root:500 POST /register (127.0.0.1) 307.62ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 203, in post
+    u = User(mongo=server.mongo,username=client_newuser,hashedpass=hashedpass,email=client_newemail)
+  File "/Users/e1ven/proj/Pluric/server.py", line 16, in __init__
+    if mongoconnection != None:
+NameError: global name 'mongoconnection' is not defined
+ERROR:root:500 POST /register (127.0.0.1) 307.82ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.4.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 206, in post
+    cur.execute("insert into usr# s (name,password,email) values (%s,%s,%s) returning usrid;",[client_newuser,hashed,client_newemail])
+NameError: global name 'cur' is not defined
+ERROR:root:500 POST /register (127.0.0.1) 1107.38ms
+INFO:root:302 POST /register (127.0.0.1) 3534.23ms
+INFO:root:304 GET / (127.0.0.1) 0.63ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.22ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:302 POST /register (127.0.0.1) 2827.86ms
+INFO:root:304 GET / (127.0.0.1) 0.60ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.39ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:302 POST /register (127.0.0.1) 1924.07ms
+INFO:root:304 GET / (127.0.0.1) 0.60ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.7.10.1304209247', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 193, in post
+    print mongo['users'].find({"email":"colin@sq7.org"}).count()
+NameError: global name 'mongo' is not defined
+ERROR:root:500 POST /register (127.0.0.1) 4.25ms
+INFO:root:302 POST /register (127.0.0.1) 5341.87ms
+INFO:root:304 GET / (127.0.0.1) 0.61ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.37ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 POST /register (127.0.0.1) 3.94ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.40ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.28ms
+INFO:root:302 POST /register (127.0.0.1) 1897.94ms
+INFO:root:304 GET / (127.0.0.1) 0.59ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.43ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 POST /register (127.0.0.1) 1.00ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:302 POST /register (127.0.0.1) 2814.42ms
+INFO:root:200 GET / (127.0.0.1) 0.68ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.26ms
+INFO:root:304 GET / (127.0.0.1) 3.55ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.26ms
+INFO:root:200 GET /register (127.0.0.1) 1.10ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.14.10.1304209247; username=ZTF2ZW4=|1304211701|6fcae7fe683f5a74f3f7ca479356b88348e740f7', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 205, in post
+    self.set_secure_cookie("username",client_newuser,httponly=True,fdfdf=True)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 325, in set_secure_cookie
+    expires_days=expires_days, **kwargs)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 302, in set_cookie
+    new_cookie[name][k] = v
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/Cookie.py", line 439, in __setitem__
+    raise CookieError("Invalid Attribute %s" % K)
+CookieError: Invalid Attribute fdfdf
+ERROR:root:500 POST /register (127.0.0.1) 7278.64ms
+ERROR:root:Uncaught exception POST /register (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='POST', uri='/register', version='HTTP/1.1', remote_ip='127.0.0.1', body='_xsrf=c7b8daa4161f40ed83609636c3447715&username=e1ven&email=colin%40sq7.org&pass=mass5comp&pass2=mass5comp', headers={'Content-Length': '106', 'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/register', 'Cache-Control': 'max-age=0', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.14.10.1304209247; username=ZTF2ZW4=|1304212577|a9a9d642df8fdfc6e4ffa4a830c075c796342966', 'Content-Type': 'application/x-www-form-urlencoded'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 205, in post
+    self.set_secure_cookie("username",client_newuser,httponly=True)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 325, in set_secure_cookie
+    expires_days=expires_days, **kwargs)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 302, in set_cookie
+    new_cookie[name][k] = v
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/Cookie.py", line 439, in __setitem__
+    raise CookieError("Invalid Attribute %s" % K)
+CookieError: Invalid Attribute fdfdf
+ERROR:root:500 POST /register (127.0.0.1) 6962.52ms
+INFO:root:302 POST /register (127.0.0.1) 1585.21ms
+INFO:root:304 GET / (127.0.0.1) 0.67ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:304 GET / (127.0.0.1) 3.55ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.32ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+INFO:root:200 GET /login (127.0.0.1) 1.07ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.40ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.27ms
+INFO:root:200 POST /login (127.0.0.1) 1.71ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.28ms
+INFO:root:200 POST /login (127.0.0.1) 1.04ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:304 GET / (127.0.0.1) 3.48ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+INFO:root:304 GET /register (127.0.0.1) 1.43ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.25ms
+INFO:root:302 POST /register (127.0.0.1) 4927.66ms
+INFO:root:304 GET / (127.0.0.1) 0.42ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 POST /login (127.0.0.1) 306.38ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 POST /login (127.0.0.1) 305.04ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 POST /login (127.0.0.1) 305.86ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 GET / (127.0.0.1) 5.50ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.45ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET / (127.0.0.1) 3.75ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.31ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET / (127.0.0.1) 3.66ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 GET / (127.0.0.1) 0.49ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.22ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.22ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 GET / (127.0.0.1) 3.78ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.30ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+WARNING:root:405 POST /logout (127.0.0.1) 0.87ms
+INFO:root:304 GET / (127.0.0.1) 3.66ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.36ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.21ms
+WARNING:root:404 POST /logout (127.0.0.1): Missing argument username
+WARNING:root:404 POST /logout (127.0.0.1) 0.87ms
+INFO:root:200 GET /logout (127.0.0.1) 1.05ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.24ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.35ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:304 GET /logout (127.0.0.1) 0.49ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+WARNING:root:404 POST /logout (127.0.0.1): Missing argument username
+WARNING:root:404 POST /logout (127.0.0.1) 0.99ms
+WARNING:root:405 GET /logout (127.0.0.1) 0.51ms
+INFO:root:304 GET / (127.0.0.1) 3.52ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.41ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.34ms
+INFO:root:302 POST /logout (127.0.0.1) 1.81ms
+INFO:root:200 GET / (127.0.0.1) 0.34ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.27ms
+INFO:root:302 POST /logout (127.0.0.1) 0.44ms
+INFO:root:304 GET / (127.0.0.1) 0.33ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+ERROR:root:Uncaught exception GET / (127.0.0.1)
+HTTPRequest(protocol='http', host='127.0.0.1:8080', method='GET', uri='/', version='HTTP/1.1', remote_ip='127.0.0.1', body='', headers={'Host': '127.0.0.1:8080', 'Accept-Language': 'en-us,en;q=0.5', 'Accept-Encoding': 'gzip, deflate', 'Keep-Alive': '115', 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8', 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1', 'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7', 'Connection': 'keep-alive', 'Referer': 'http://127.0.0.1:8080/', 'Cache-Control': 'max-age=0', 'If-None-Match': '"54cff5997afcdc8262db75835bcbe79f585e5df0"', 'Cookie': '__utma=96992031.334130249.1304206731.1304206731.1304209247.2; __utmc=96992031; __utmz=96992031.1304206731.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); _xsrf=c7b8daa4161f40ed83609636c3447715; __utmb=96992031.36.10.1304209247'})
+Traceback (most recent call last):
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 861, in _execute
+    getattr(self, self.request.method.lower())(*args, **kwargs)
+  File "webfront.py", line 167, in get
+    self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/web.py", line 516, in render_string
+    t = RequestHandler._templates[template_path].load(template_name)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 193, in load
+    self.templates[name] = Template(f.read(), name=name, loader=self)
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 105, in __init__
+    self.file = _File(_parse(reader))
+  File "/opt/local/Library/Frameworks/Python.framework/Versions/2.7/lib/python2.7/site-packages/tornado-1.2.1-py2.7.egg/tornado/template.py", line 504, in _parse
+    raise ParseError("Missing end block %%} on line %d" % line)
+ParseError: Missing end block %} on line 43
+ERROR:root:500 GET / (127.0.0.1) 1.66ms
+INFO:root:200 GET / (127.0.0.1) 6.25ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.25ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:200 GET / (127.0.0.1) 4.22ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.19ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.20ms
+INFO:root:200 GET /login (127.0.0.1) 1.17ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.21ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:302 POST /login (127.0.0.1) 307.34ms
+INFO:root:200 GET / (127.0.0.1) 0.45ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.28ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.26ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:302 POST /logout (127.0.0.1) 0.69ms
+INFO:root:200 GET / (127.0.0.1) 0.65ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.29ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.18ms
+INFO:root:304 GET /login (127.0.0.1) 0.43ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.20ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms
+INFO:root:200 POST /login (127.0.0.1) 305.83ms
+WARNING:root:404 GET /static/style.css (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.17ms
+WARNING:root:404 GET /static/jquery.min.js (127.0.0.1) 0.27ms
+WARNING:root:404 GET /static/json2.js (127.0.0.1) 0.18ms
+WARNING:root:404 GET /static/jquery.blockUI.js (127.0.0.1) 0.19ms

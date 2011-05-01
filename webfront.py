@@ -176,73 +176,64 @@ class RegisterHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html',newmail=0,title='Register for an account',uid=self.uid,user=self.name,ustatus=self.ustatus))
-        client_newuser =  unicode(tornado.escape.xhtml_escape(self.get_argument("name")),'utf8')
-        client_newpass =  unicode(tornado.escape.xhtml_escape(self.get_argument("pass")),'utf8')
-        client_newpass2 =  unicode(tornado.escape.xhtml_escape(self.get_argument("pass2")),'utf8')
-        client_newemail = unicode(tornado.escape.xhtml_escape(self.get_argument("email")),'utf8')
+        self.write(self.render_string('templates/header.html',title='Register for an account',username=""))
+
+        client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
+        client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
+        client_newpass2 = tornado.escape.xhtml_escape(self.get_argument("pass2"))
+        client_newemail = tornado.escape.xhtml_escape(self.get_argument("email"))
 
         if client_newpass != client_newpass2:
             self.write("I'm sorry, your passwords don't match.") 
             return
 
-        db = psycopg2.connect("dbname='lonava' user='YOURUSER' host='localhost' password='YOURPASS'")
-        cur = db.cursor(cursor_factory=psycopg2.extras.DictCursor)
-        #Make sure this email is unused
-        cur.execute("select count(*) as count from usrs where upper(email) = upper(%s);",[client_newemail])
-        count = cur.fetchone()['count']
-
-        if count != 0:
+        
+        users_with_this_email = server.mongo['users'].find({"email":client_newemail})
+        if users_with_this_email.count() > 0:
             self.write("I'm sorry, this email address has already been used.")  
             return
+            
+        users_with_this_username = server.mongo['users'].find({"username":client_newuser})
+        if users_with_this_username.count() > 0:
+            self.write("I'm sorry, this username has already been taken.")  
+            return    
+            
         else:
-            hashed = bcrypt.hashpw(client_newpass, bcrypt.gensalt())
-            cur.execute("insert into usrs (name,password,email) values (%s,%s,%s) returning usrid;",[client_newuser,hashed,client_newemail])
-            ## Copy in Default Channels
-            newid = cur.fetchone()[0]
-    
-            #defaultchans = ({"usr":str(newid), "chan":"1"})    
-            cur.execute("select subbedchan from usrsubs where usr = 0")
-            rows = cur.fetchall()
-            for row in rows:
-                cur.execute("insert into usrsubs(usr,subbedchan) values (%s,%s)",[newid,row['subbedchan']])
-            self.write("User# " + str(newid) + " Created. You are now logged in. <br><a href='/' class='ul'>Return to main page</a>.")  
-    
-            #Go Ahead and Log you in by default
-
-            usrid = str(newid)
-            self.set_secure_cookie("usrid", usrid)
-            cur.execute('select name FROM usrs WHERE usrid = %s;', [usrid])
-            row = cur.fetchone()
-            self.set_secure_cookie("name", row['name'])
-            self.name = row['name']
-
-            #set cookie with hidden story votes
-            cur.execute('select * from storyvotes where usr = %s order by storyvoteid desc limit 100;',[self.uid])
-            rows = cur.fetchall()
-            cookiearry = "["
-            for row in rows:
-                cookiearry = cookiearry + '"' + "storyid||" + str(row['story']) + "||" + str(row['pointchange']) + '",'
-
-            #set cookie for replies
-            cur.execute('select * from replyvotes where usr = %s order by replyvoteid desc limit 100;',[self.uid])
-            rows = cur.fetchall()
-            for row in rows:
-                cookiearry = cookiearry + '"' + "replyid||" + str(row['reply']) + "||" + str(row['pointchange']) + '",'
-
-            cookiearry = cookiearry + '"storyid||0||1"]'
-
-            self.set_cookie("hidden-post-votes",cookiearry)
+            hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
+            u = User(mongo=server.mongo,username=client_newuser,hashedpass=hashedpass,email=client_newemail)
+            u.savemongo()
+            self.set_secure_cookie("username",client_newuser,httponly=True)
             self.redirect("/")
 
 
+class LoginHandler(BaseHandler):
+    def get(self):
+        self.getvars()
+        self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username))
+        self.write(self.render_string('templates/loginform.html'))
+        self.write(self.render_string('templates/footer.html'))
+    def post(self):
+        self.getvars()
+        self.write(self.render_string('templates/header.html',title='Login to your account',username=""))
 
-            db.commit() 
-            db.close()
-            self.redirect("/")
+        client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
+        client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
+        print server.mongo['users'].find({"username":client_username}).count()
+        user = server.mongo['users'].find_one({"username":client_username})
+        
+        if user is not None:
+            if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
+                self.set_secure_cookie("username",user['username'],httponly=True)
+                self.redirect("/")
+                return
 
+        self.write("I'm sorry, we don't have that username/password combo on file.")
 
+class LogoutHandler(BaseHandler):
+     def post(self):
+         self.clear_cookie("username")
+         self.redirect("/")
 
 
 def main():
@@ -261,6 +252,8 @@ def main():
     application = tornado.web.Application([
         (r"/" ,FrontPageHandler),
         (r"/register" ,RegisterHandler),
+        (r"/login" ,LoginHandler),
+        (r"/logout" ,LogoutHandler), 
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

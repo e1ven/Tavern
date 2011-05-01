@@ -12,12 +12,15 @@ import pymongo
 class User(object):
   
           
-    def __init__(self,filename=None,username=None,password=None):
-        
+    def __init__(self,filename=None,username=None,password=None,mongo=None,email=None,hashedpass=None):
+        if mongo != None:
+            self.mongo = mongo
+            
         if filename == None:
             self.UserSettings = OrderedDict()
             self.UserSettings['username'] = username
-            self.UserSettings['hashedPassword'] = bcrypt.hashpw(password, bcrypt.gensalt(12))
+            self.UserSettings['email'] = email
+            self.UserSettings['hashedpass'] = hashedpass
             self.Keys = Keys()
             self.Keys.generate()
             self.UserSettings['privkey'] = self.Keys.privkey
@@ -31,20 +34,30 @@ class User(object):
         else:
             self.loaduser(filename)
             
-    def loaduser(self,filename):
+    def loadfile(self,filename):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
         self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()    
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
         
-    def saveuser(self,filename=None):
+    def savefile(self,filename=None):
         if filename == None:
             filename = self.UserSettings['username'] + ".PluricUser"                
         filehandle = open(filename,'w')   
         filehandle.write(json.dumps(self.UserSettings,ensure_ascii=False,separators=(u',',u':'))) 
         filehandle.close()
-        
+    
+    def loadmongo(self):
+        self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
+        filehandle.close()    
+        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
+
+    def savemongo(self):
+        self.UserSettings['_id'] = self.UserSettings['pubkey']
+        self.mongo['users'].save(self.UserSettings) 
+            
+                    
 class Server(object):
 
     def __init__(self,settingsfile=None):            
