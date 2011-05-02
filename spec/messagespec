@@ -1,11 +1,11 @@
 <PLURIC_CONTAINER>
 <SERVERS>
 	<SERVER>
-		<TIME_SEEN>2011-04-01T01:53Z</TIME_SEEN>
+		<TIME_SEEN>1304318238.34</TIME_SEEN>
 		<SIGNATURE>hsfgdafsyzfrseurszxfdsaEafwyd...</SIGNATURE>
 	</SERVER>
 	<SERVER>
-		<TIME_SEEN>2011-04-01T02:01Z</TIME_SEEN>
+		<TIME_SEEN>1304318238.34</TIME_SEEN>
 		<SIGNATURE>ABCDEFG...</SIGNATURE>
 	</SERVER>
 </SERVERS>
@@ -47,9 +47,7 @@
 
 
 
-The "time_seen" format is ISO 8601, and should be the GMT time the message was processed.
-Use the specific ISO8601 format of YYYY-MM-DDTHH:MM:SSZ
-	Where YYYY = 4 digit year, MM 2 digit month, DD 2 digit day. T is a literal T, then HH is 2 digit hour, a literal color, 2 digit minute, and a Z, indicating Zulu-time, or GMT.
+The "time_seen" format is the number of seconds since the epoch, expressed in UTC.
 
 The 'MESSAGE_SHA512' should be the SHA-512 hash of the 'Message' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
 SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
