@@ -161,7 +161,7 @@ class NotFoundHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))
 
 
-class FrontPageHandler(BaseHandler):
+class FrontPageHandler(BaseHandler):        
     def get(self):
         self.getvars()
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
