@@ -1,11 +1,5 @@
-import datetime
-import pymongo
-from bson.code import Code
-from server import server,User
-
-
-map = Code("""
-function() {
+mr = db.runCommand({"mapreduce" : "envelopes",
+"map" : function() {
         for (var i =0; i < this.pluric_envelope.message.topictag.length; i++) 
     	{ 
     	    var timestamp = Number(new Date()/1000);
@@ -17,17 +11,11 @@ function() {
                 }
     	}
                                               
-}
-""")
-
-reduce = Code("""
-function(key, values) {
+},  
+"reduce" :  function(key, values) {
     var count = 0;
     values.forEach(function(v) {
         count += v['count'];
-        });
-        return {count: count};
-        }
-""")
-
-server.mongo['envelopes'].map_reduce(map, reduce, "topiclist")
+    });
+    return {count: count};
+},out: { inline : 1} }) 
