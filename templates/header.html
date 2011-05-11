@@ -44,6 +44,7 @@
 {% if username == "Guest" %}	
 	Why not <a href="/login">Login</a>, or <a href="/register">Register</a>?
 {% end %}
+<a href="/newmessage">Post new Message</a>
 {% if username != "Guest" %}	
 	Your UserName:  {{username}} || <form action="/logout" method="post">   {{ xsrf_form_html() }} <input style="border: 1px solid #006;" type="submit" value="logout"></form>
 	

@@ -1,0 +1,6 @@
+Top Topics:
+<ul>
+{% for topic in toptopics %}
+       <li><a href="/topictag/{{escape(topic['_id']['tag'])}}">{{escape(topic['_id']['tag'])}}</a></li>
+{% end %}
+</ul>

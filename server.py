@@ -9,64 +9,14 @@ import bcrypt
 from collections import OrderedDict
 import pymongo
 
-class User(object):
-  
-          
-    def __init__(self,filename=None,username=None,password=None,mongo=None,email=None,hashedpass=None,mongoload=None):
-        if mongo != None:
-            self.mongo = mongo
-        if mongoload != None:
-            self.loadmongo(mongo,mongoload)
-        else:
-            if filename == None:
-                self.UserSettings = OrderedDict()
-                self.UserSettings['username'] = username
-                self.UserSettings['email'] = email
-                self.UserSettings['hashedpass'] = hashedpass
-                self.Keys = Keys()
-                self.Keys.generate()
-                self.UserSettings['privkey'] = self.Keys.privkey
-                self.UserSettings['pubkey'] = self.Keys.pubkey
-            
-                gmttime = time.gmtime()
-                gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
-            
-                self.UserSettings['time_created'] = gmtstring
-            
-            else:
-                self.loaduser(filename)
-            
-    def loadfile(self,filename):
-        filehandle = open(filename, 'r')
-        filecontents = filehandle.read()
-        self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-        filehandle.close()    
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-        
-    def savefile(self,filename=None):
-        if filename == None:
-            filename = self.UserSettings['username'] + ".PluricUser"                
-        filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.UserSettings,ensure_ascii=False,separators=(u',',u':'))) 
-        filehandle.close()
-    
-    def loadmongo(self,mongo,pubkey):
-        user = server.mongo['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
-        self.UserSettings = user
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
 
-    def savemongo(self):
-        self.UserSettings['_id'] = self.UserSettings['pubkey']
-        self.mongo['users'].save(self.UserSettings) 
-            
-                    
 class Server(object):
 
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
-                #Load Default file(hostname)
+                #Load Default file(hostnamestname)
                 self.loadconfig()
             else:
                 #Generate New config   
@@ -155,3 +105,4 @@ class Server(object):
         c.saveMongo(self.mongo)
         
 server = Server()
+from User import User

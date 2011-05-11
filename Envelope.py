@@ -8,7 +8,6 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 
-
 class Envelope(object):
 
     class Message(object):

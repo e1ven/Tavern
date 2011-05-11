@@ -1,0 +1,27 @@
+Top Topics:
+<ul>
+{% for envelope in envelopes %}
+<p> ---
+Topics:<br>
+
+	{% set length = len(envelope['pluric_envelope']['message']['topictag']) %}
+	{% set count = 1 %} 
+	{% for topic in envelope['pluric_envelope']['message']['topictag'] %}
+	        {{topic}}
+			{% if count != length %}
+				,
+			{% end %}
+			{% set count = count + 1 %}
+	{% end %}
+</p>
+<p>Subject: <a href="/message/{{envelope['pluric_envelope']['message_sha512']}}">
+	{{envelope['pluric_envelope']['message']['subject']}}
+	</a>
+</p>
+<hr>
+
+<hr>
+
+
+{% end %}
+</ul>

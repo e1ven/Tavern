@@ -22,10 +22,11 @@ from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
-from server import server,User
+from server import server
 import GeoIP
 import pprint
 from keys import *
+from User import User
 
 import re
 try: 
@@ -112,7 +113,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.username = self.get_secure_cookie("username")
         if self.username is None:
             self.username = "Guest"
-        
+        self.maxposts = self.get_secure_cookie("maxposts")
+        if self.maxposts is None:
+            self.maxposts = 20
+        else:
+            self.maxposts = int(self.maxposts)
+            
         return str(self.username)
            
     
@@ -164,9 +170,42 @@ class NotFoundHandler(BaseHandler):
 class FrontPageHandler(BaseHandler):        
     def get(self):
         self.getvars()
+        toptopics = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
-        self.write("Hello, world")
+
+        #db.topiclist.find().sort({value : 1})
+        for topic in server.mongo['topiclist'].find(limit=10).sort('value',-1):
+            toptopics.append(topic)
+            
+        self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
         self.write(self.render_string('templates/footer.html'))
+
+class TopicHandler(BaseHandler):        
+    def get(self,topic):
+        self.getvars()
+        client_topic = tornado.escape.xhtml_escape(topic)
+        envelopes = []
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username))
+       
+        for envelope in server.mongo['envelopes'].find({'pluric_envelope.message.topictag' : client_topic },limit=self.maxposts):
+                envelopes.append(envelope)
+        self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
+        self.write(self.render_string('templates/footer.html'))
+        
+class MessageHandler(BaseHandler):        
+    def get(self,message):
+        self.getvars()
+        client_message_id = tornado.escape.xhtml_escape(message)
+        
+        envelope = server.mongo['envelopes'].find_one({'pluric_envelope.message_sha512' : client_message_id })
+                                        
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['pluric_envelope']['message']['subject'],username=self.username))
+
+        self.write(self.render_string('templates/single-message.html',envelope=envelope))
+        self.write(self.render_string('templates/footer.html'))
+
+
+
 
 class RegisterHandler(BaseHandler):
     def get(self):
@@ -200,15 +239,20 @@ class RegisterHandler(BaseHandler):
             
         else:
             hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
-            u = User(mongo=server.mongo,username=client_newuser,hashedpass=hashedpass,email=client_newemail)
+            u = User()
+            u.generate(hashedpass=hashedpass,username=client_newuser,email=client_newemail)
+            u.UserSettings['maxposts'] = 20
             u.savemongo()
+            
             self.set_secure_cookie("username",client_newuser,httponly=True)
+            self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+            
             self.redirect("/")
 
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.getvars()
+        self.getvars()        
         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username))
         self.write(self.render_string('templates/loginform.html'))
         self.write(self.render_string('templates/footer.html'))
@@ -222,9 +266,13 @@ class LoginHandler(BaseHandler):
         print server.mongo['users'].find({"username":client_username}).count()
         user = server.mongo['users'].find_one({"username":client_username})
         
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+                
         if user is not None:
             if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
                 self.set_secure_cookie("username",user['username'],httponly=True)
+                self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
                 self.redirect("/")
                 return
 
@@ -264,7 +312,8 @@ class NewmessageHandler(BaseHandler):
         
         #Instantiate the user who's currently logged in
         user = server.mongo['users'].find_one({"username":self.username})        
-        u = User(mongo=server.mongo,mongoload = user['pubkey'])
+        u = User()
+        u.load_mongo_by_pubkey(user['pubkey'])
         
         
         
@@ -309,6 +358,8 @@ def main():
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 
         (r"/newmessage" ,NewmessageHandler), 
+        (r"/topictag/(.*)" ,TopicHandler), 
+        (r"/message/(.*)" ,MessageHandler),    
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

@@ -1,0 +1,24 @@
+Top Topics:
+<ul>
+<p> ---
+Topics:<br>
+
+	{% set length = len(envelope['pluric_envelope']['message']['topictag']) %}
+	{% set count = 1 %} 
+	{% for topic in envelope['pluric_envelope']['message']['topictag'] %}
+	        {{topic}}
+			{% if count != length %}
+				,
+			{% end %}
+			{% set count = count + 1 %}
+	{% end %}
+</p>
+<p>Subject: {{envelope['pluric_envelope']['message']['subject']}}</p>
+<p>Body: {{envelope['pluric_envelope']['message']['body']}}</p>
+
+
+{% if envelope['pluric_envelope']['message'].has_key('coords')  %}
+	<p>Coords: {{envelope['pluric_envelope']['message']['coords']}}</p>
+{% end %}
+
+</ul>
