@@ -5,16 +5,16 @@
 # It is necessary for linking the library.
 
 # The name that we can dlopen(3).
-dlname='libGeoIPUpdate.0.dylib'
+dlname='libGeoIPUpdate.so.0'
 
 # Names of this library.
-library_names='libGeoIPUpdate.0.dylib libGeoIPUpdate.dylib'
+library_names='libGeoIPUpdate.so.0.0.0 libGeoIPUpdate.so.0 libGeoIPUpdate.so'
 
 # The name of the static archive.
 old_library='libGeoIPUpdate.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=' '
+inherited_linker_flags=''
 
 # Libraries that this one depends upon.
 dependency_libs=' -lz /usr/local/lib/libGeoIP.la'

@@ -5,19 +5,19 @@
 # It is necessary for linking the library.
 
 # The name that we can dlopen(3).
-dlname='libGeoIPUpdate.0.dylib'
+dlname='libGeoIPUpdate.so.0'
 
 # Names of this library.
-library_names='libGeoIPUpdate.0.dylib libGeoIPUpdate.dylib'
+library_names='libGeoIPUpdate.so.0.0.0 libGeoIPUpdate.so.0 libGeoIPUpdate.so'
 
 # The name of the static archive.
 old_library='libGeoIPUpdate.a'
 
 # Linker flags that can not go in dependency_libs.
-inherited_linker_flags=' '
+inherited_linker_flags=''
 
 # Libraries that this one depends upon.
-dependency_libs=' -lz /Users/e1ven/proj/Pluric/libs/GeoIP-1.4.7/libGeoIP/libGeoIP.la'
+dependency_libs=' -lz /opt/Pluric/libs/GeoIP-1.4.7/libGeoIP/libGeoIP.la'
 
 # Names of additional weak libraries provided by this library
 weak_library_names=''
@@ -39,4 +39,4 @@ dlpreopen=''
 
 # Directory that this library needs to be installed in:
 libdir='/usr/local/lib'
-relink_command=""
+relink_command="(cd /opt/Pluric/libs/GeoIP-1.4.7/libGeoIP; /bin/bash /opt/Pluric/libs/GeoIP-1.4.7/libtool  --tag CC --mode=relink gcc -g -O2 -o libGeoIPUpdate.la -rpath /usr/local/lib GeoIPUpdate.lo md5.lo -lz libGeoIP.la @inst_prefix_dir@)"
