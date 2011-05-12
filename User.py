@@ -10,7 +10,6 @@ from collections import OrderedDict
 import pymongo
 from server import server
 
-
 class User(object):
       
     def __init__(self):

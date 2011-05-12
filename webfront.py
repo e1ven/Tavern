@@ -265,11 +265,9 @@ class LoginHandler(BaseHandler):
 
         print server.mongo['users'].find({"username":client_username}).count()
         user = server.mongo['users'].find_one({"username":client_username})
-        
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-                
         if user is not None:
+            u = User()
+            u.load_mongo_by_username(username=client_username)
             if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
                 self.set_secure_cookie("username",user['username'],httponly=True)
                 self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
