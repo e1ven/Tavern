@@ -2,6 +2,16 @@ apt-get install libpcre3-dev
 apt-get install g++
 apt-get install zlib1g-dev
 apt-get install libssl-dev
+apt-get install python-dev
+apt-get install swig
+
+
+sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
+echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" >> /etc/apt/sources.list
+
+apt-get update
+apt-get install mongodb-10gen
+
 
 cd /usr/local/src
 wget http://nginx.org/download/nginx-1.0.2.tar.gz
@@ -22,9 +32,43 @@ cp nginx.conf /opt/nginx/conf/
 
 
 cd /opt/Pluric/libs
+
 cd GeoIP-1.4.7/
 make
 ./configure 
 make
 make install
 cp GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
+
+cd /opt/Pluric/libs/GeoIP-Python-1.2.4
+python setup.py install
+
+cd /opt/Pluric/libs/Markdown-2.0
+python setup.py install
+
+cd /opt/Pluric/libs/mongo-driver
+wget http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11-py2.7.egg
+python setup.py install
+
+cd /opt/Pluric/libs/ordereddict-1.1
+python setup.py install
+
+cd /opt/Pluric/libs/py-bcrypt-0.2
+python setup.py install
+
+cd /opt/Pluric/libs/pylzma-0.4.4
+python setup.py install
+
+cd /opt/Pluric/libs/tornado-1.2.1
+python setup.py install
+
+cd /opt/Pluric/libs/M2Crypto-0.21.1
+python setup.py install
+
+echo "/usr/bin/python /opt/pluric/topiclist.py" > /etc/cron.hourly/generatetopics
+
+cd cd /opt/Pluric/
+/etc/init.d/mongodb start
+/opt/nginx/sbin/nginx
+python ./webfront.py
+
