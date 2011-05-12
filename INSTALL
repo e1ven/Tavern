@@ -65,7 +65,7 @@ python setup.py install
 cd /opt/Pluric/libs/M2Crypto-0.21.1
 python setup.py install
 
-echo "/usr/bin/python /opt/pluric/topiclist.py" > /etc/cron.hourly/generatetopics
+echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
 cd cd /opt/Pluric/
 /etc/init.d/mongodb start
