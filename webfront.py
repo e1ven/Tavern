@@ -27,7 +27,6 @@ import GeoIP
 import pprint
 from keys import *
 from User import User
-import urllib
 
 import re
 try: 
