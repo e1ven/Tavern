@@ -1,0 +1,30 @@
+apt-get install libpcre3-dev
+apt-get install g++
+apt-get install zlib1g-dev
+apt-get install libssl-dev
+
+cd /usr/local/src
+wget http://nginx.org/download/nginx-1.0.2.tar.gz
+tar -zxvf nginx-1.0.2.tar.gz
+cd nginx-1.0.2
+wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
+
+./configure --add-module=/usr/local/src/nginx-0.8.53/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx
+
+
+mkdir /opt/uploads
+chmod 777 /opt/uploads/
+
+cd /opt
+git clone git@github.com:e1ven/Pluric.git
+cd /opt/Pluric/nginx
+cp nginx.conf /opt/nginx/conf/
+
+
+cd /opt/Pluric/libs
+cd GeoIP-1.4.7/
+make
+./configure 
+make
+make install
+cp GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
