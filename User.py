@@ -49,6 +49,7 @@ class User(object):
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
 
+
     def load_mongo_by_username(self,username):
         #Local Only
         user = server.mongo['users'].find_one({"username":username},as_class=OrderedDict)
