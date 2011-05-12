@@ -358,6 +358,7 @@ def main():
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 
         (r"/newmessage" ,NewmessageHandler), 
+        (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/topictag/(.*)" ,TopicHandler), 
         (r"/message/(.*)" ,MessageHandler),    
         (r"/(.*)", NotFoundHandler)
