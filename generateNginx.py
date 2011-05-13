@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from server import server
-import os,sys
+import os,sys,socket
 
 f = open('nginx/pluric.site', 'w')
 
@@ -9,7 +9,7 @@ nginxfile = """
     server {
         listen 80;
 
-        server_name""" +  server.ServerSettings['hostname'] + ";" + """
+        server_name """ +  server.ServerSettings['hostname'] + ";" + """
         location / {
                 proxy_pass http://tornados/;
                 }
@@ -37,9 +37,11 @@ nginxfile = """
         }
         location /binaries/ {
                 gridfs """ + server.ServerSettings['bin-mongo-db'] + """ field=filename type=string;
-                mongo """ + server.ServerSettings['bin-mongo-hostname'] + ":" + str(server.ServerSettings['bin-mongo-port']) + ";" +"""
+                mongo """ + socket.gethostbyaddr(server.ServerSettings['bin-mongo-hostname'])[2][0] + ":" + str(server.ServerSettings['bin-mongo-port']) + ";" +"""
         }
   }
 """
+
+# We do the whole socket.gethostbyaddr thing because the nginx GridFS config doesn't allow lookups by DNS name. JSYK.
 f.write(nginxfile)
 f.close()
