@@ -1,8 +1,15 @@
+#!/usr/bin/env python
+from server import server
+import os,sys
 
+f = open('nginx/pluric.site', 'w')
+
+
+nginxfile = """
     server {
         listen 80;
 
-        server_namethreepwood.home;
+        server_name""" +  server.ServerSettings['hostname'] + ";" + """
         location / {
                 proxy_pass http://tornados/;
                 }
@@ -29,7 +36,10 @@
                 proxy_pass   http://tornados;
         }
         location /binaries/ {
-                gridfs test field=filename type=string;
-                mongo localhost:27017;
+                gridfs """ + server.ServerSettings['bin-mongo-db'] + """ field=filename type=string;
+                mongo """ + server.ServerSettings['bin-mongo-hostname'] + ":" + str(server.ServerSettings['bin-mongo-port']) + ";" +"""
         }
   }
+"""
+f.write(nginxfile)
+f.close()

@@ -323,7 +323,7 @@ class NewmessageHandler(BaseHandler):
                      sha512.update(chunk)
             newname =  sha512.hexdigest()
             
-            fs = GridFS(server.mongo)
+            fs = GridFS(server.bin_mongo)
             if not fs.exists(filename=newname):
                 with open(fullpath) as localfile:
                     oid = fs.put(localfile, filename=newname)

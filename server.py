@@ -31,9 +31,14 @@ class Server(object):
                 self.ServerSettings['mongo-hostname'] = 'localhost'
                 self.ServerSettings['mongo-port'] = 27017            
                 self.ServerSettings['mongo-db'] = 'test'  
+                self.ServerSettings['bin-mongo-hostname'] = 'localhost'
+                self.ServerSettings['bin-mongo-port'] = 27017
+                self.ServerSettings['bin-mongo-db'] = 'test'
                 self.ServerSettings['uplaod-dir'] = '/opt/uploads'
                 self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongo = self.connection[self.ServerSettings['mongo-db']]             
+                self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
+                self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
                 self.saveconfig()   
         else:
             self.loadconfig(settingsfile)
@@ -52,6 +57,12 @@ class Server(object):
         self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
         self.mongo = self.connection[self.ServerSettings['mongo-db']]
         self.ServerSettings['upload-dir'] = '/opt/uploads'
+        self.ServerSettings['bin-mongo-hostname'] = 'localhost'
+        self.ServerSettings['bin-mongo-port'] = 27017
+        self.ServerSettings['bin-mongo-db'] = 'test'
+
+        self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
+        self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
         filehandle.close()
         self.saveconfig()
 
