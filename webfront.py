@@ -27,6 +27,8 @@ import GeoIP
 import pprint
 from keys import *
 from User import User
+from gridfs import GridFS
+
 
 import re
 try: 
@@ -300,7 +302,10 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
-
+        client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
+        
+        print client_filepath
+        
         e = Envelope()
         topics = []
         topics.append(client_topic)
