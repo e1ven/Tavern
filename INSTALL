@@ -67,8 +67,11 @@ python setup.py install
 
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
-cd cd /opt/Pluric/
+ln -s /opt/Pluric/libs/pluric /etc/init.d/
+
+cd /opt/Pluric/
 /etc/init.d/mongodb start
 /opt/nginx/sbin/nginx
-python ./webfront.py
+
+/etc/init.d/pluric start
 
