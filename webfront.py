@@ -303,7 +303,9 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_fspath = tornado.escape.xhtml_escape(self.get_argument("include_location"))
-        
+
+        #Use this flag to know if we successfully stored or not.
+        stored = False        
         try:
             #I've testing including this var via the page directly. 
             #It's safe to trust this path, it seems.
@@ -319,12 +321,15 @@ class NewmessageHandler(BaseHandler):
             with open(fullpath,'rb') as f: 
                 for chunk in iter(lambda: f.read(128 * sha512.block_size), ''): 
                      sha512.update(chunk)
-            newname =  sha512.hexdigset()
+            newname =  sha512.hexdigest()
             
-            fs = GridFS(server.mongo['binaries'])
-            with open(fullpath) as localfile:
-                oid = fs.put(localfile, filename=newname)
-                
+            fs = GridFS(server.mongo)
+            if not fs.exists(newname):
+                with open(fullpath) as localfile:
+                    oid = fs.put(localfile, filename=newname)
+                    stored = True
+            else:
+                stored = True
         except:
             client_filepath = None
                     
