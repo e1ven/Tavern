@@ -324,7 +324,7 @@ class NewmessageHandler(BaseHandler):
             newname =  sha512.hexdigest()
             
             fs = GridFS(server.mongo)
-            if not fs.exists(newname):
+            if not fs.exists(filename=newname):
                 with open(fullpath) as localfile:
                     oid = fs.put(localfile, filename=newname)
                     stored = True

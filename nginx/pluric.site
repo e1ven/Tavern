@@ -28,4 +28,8 @@
         location @uploads {
                 proxy_pass   http://tornados;
         }
+	location /binaries/ {
+    		gridfs test field=filename type=string;
+		mongo 127.0.0.1:27017;
+	}
   }
