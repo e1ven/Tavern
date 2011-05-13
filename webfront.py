@@ -302,8 +302,12 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
-        client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
         
+        try:
+            client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
+        except:
+            client_filepath = None
+            
         print client_filepath
         
         e = Envelope()
