@@ -31,6 +31,7 @@ class Server(object):
                 self.ServerSettings['mongo-hostname'] = 'localhost'
                 self.ServerSettings['mongo-port'] = 27017            
                 self.ServerSettings['mongo-db'] = 'test'  
+                self.ServerSettings['uplaod-dir'] = '/opt/uploads'
                 self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongo = self.connection[self.ServerSettings['mongo-db']]             
                 self.saveconfig()   
@@ -50,7 +51,9 @@ class Server(object):
         self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],priv=self.ServerSettings['privkey'])
         self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
         self.mongo = self.connection[self.ServerSettings['mongo-db']]
+        self.ServerSettings['upload-dir'] = '/opt/uploads'
         filehandle.close()
+        self.saveconfig()
 
         
     def saveconfig(self,filename=None):

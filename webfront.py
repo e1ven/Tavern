@@ -28,6 +28,7 @@ import pprint
 from keys import *
 from User import User
 from gridfs import GridFS
+import hashlib
 
 
 import re
@@ -301,15 +302,32 @@ class NewmessageHandler(BaseHandler):
         client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-        client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        client_fspath = tornado.escape.xhtml_escape(self.get_argument("include_location"))
         
         try:
+            #I've testing including this var via the page directly. 
+            #It's safe to trust this path, it seems.
+            #All the same, let's strip out all but the basename.
+            fs_basename = os.path.basename(client_fspath)
+            
             client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
+            fullpath = server.ServerSettings['upload-dir'] + "/" + client_filepath
+        
+            #Hash the file in chunks
+            sha512 = hashlib.sha512()
+            with open(fullpath,'rb') as f: 
+                for chunk in iter(lambda: f.read(128 * sha512.block_size), ''): 
+                     sha512.update(chunk)
+            newname =  sha512.digset()
+            print "Filename: " + newname
+            
+            fs = GridFS(server.mongo['binaries'])
+            with open(fullpath) as localfile:
+                oid = fs.put(localfile, filename=newname)
+                
         except:
             client_filepath = None
-            
-        print client_filepath
-        
+                    
         e = Envelope()
         topics = []
         topics.append(client_topic)
