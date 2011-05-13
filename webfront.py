@@ -319,8 +319,7 @@ class NewmessageHandler(BaseHandler):
             with open(fullpath,'rb') as f: 
                 for chunk in iter(lambda: f.read(128 * sha512.block_size), ''): 
                      sha512.update(chunk)
-            newname =  sha512.digset()
-            print "Filename: " + newname
+            newname =  sha512.hexdigset()
             
             fs = GridFS(server.mongo['binaries'])
             with open(fullpath) as localfile:
