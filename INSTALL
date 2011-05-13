@@ -18,9 +18,8 @@ wget http://nginx.org/download/nginx-1.0.2.tar.gz
 tar -zxvf nginx-1.0.2.tar.gz
 cd nginx-1.0.2
 wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
-
-./configure --add-module=/usr/local/src/nginx-0.8.53/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx
-
+git clone https://github.com/mdirolf/nginx-gridfs.git
+./configure --add-module=/usr/local/src/nginx-1.0.2/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.0.2/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
 
 mkdir /opt/uploads
 chmod 777 /opt/uploads/
