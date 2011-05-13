@@ -312,7 +312,7 @@ class NewmessageHandler(BaseHandler):
             client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
-
+            print fullpath
         
             #Hash the file in chunks
             sha512 = hashlib.sha512()
