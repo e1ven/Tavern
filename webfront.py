@@ -330,6 +330,9 @@ class NewmessageHandler(BaseHandler):
                     stored = True
             else:
                 stored = True
+            #Don't keep spare copies on the webservers    
+            os.remove(fullpath)
+            
         except:
             client_filepath = None
                     
