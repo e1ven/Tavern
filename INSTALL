@@ -75,6 +75,8 @@ echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopic
 ln -s /opt/Pluric/libs/pluric /etc/init.d/
 
 cd /opt/Pluric/
+python ./generateNginx.py 
+
 /etc/init.d/mongodb start
 /opt/nginx/sbin/nginx
 
