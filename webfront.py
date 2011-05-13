@@ -302,7 +302,7 @@ class NewmessageHandler(BaseHandler):
         client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-        client_fspath = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
 
         #Use this flag to know if we successfully stored or not.
         stored = False        
