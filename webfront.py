@@ -308,10 +308,11 @@ class NewmessageHandler(BaseHandler):
             #I've testing including this var via the page directly. 
             #It's safe to trust this path, it seems.
             #All the same, let's strip out all but the basename.
-            fs_basename = os.path.basename(client_fspath)
             
             client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
-            fullpath = server.ServerSettings['upload-dir'] + "/" + client_filepath
+            fs_basename = os.path.basename(client_filepath)
+            fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
+
         
             #Hash the file in chunks
             sha512 = hashlib.sha512()
