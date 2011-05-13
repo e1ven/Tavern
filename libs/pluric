@@ -1,0 +1,22 @@
+#!/bin/bash
+cd /opt/Pluric/
+case $1 in 
+
+start)
+	/opt/nginx/sbin/nginx
+	nohup python ./webfront.py &
+	exit
+;;
+stop)
+	ps aux | grep ngin[x] | kill `awk {'print $2'}`
+	ps aux | grep webfron[t]| kill `awk  {'print $2'}`
+	exit
+;;
+restart)
+	/etc/init.d/pluric stop
+	/etc/init.d/pluric start	
+	exit
+debug)
+	/etc/init.d/pluric restart
+	tail -f /opt/Pluric/`hostname`.log
+esac
