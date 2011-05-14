@@ -2,7 +2,7 @@
     server {
         listen 80;
 
-        server_namethreepwood.home;
+        server_name li289-9;
         location / {
                 proxy_pass http://tornados/;
                 }
@@ -30,6 +30,6 @@
         }
         location /binaries/ {
                 gridfs test field=filename type=string;
-                mongo localhost:27017;
+                mongo 127.0.0.1:27017;
         }
   }
