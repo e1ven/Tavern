@@ -46,6 +46,8 @@ Using the following Libraries:
 
 	10Gen's Mongo (AGPL) - Only applies to changes to MongoS and MongoD.
 		http://www.mongodb.org/display/DOCS/Licensing
+	PrettyDateFormat (Apache)
+		http://code.activestate.com/recipes/576880-convert-datetime-in-python-to-user-friendly-repres/
 		
 --- yENC license ---
 
