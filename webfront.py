@@ -312,25 +312,37 @@ class NewmessageHandler(BaseHandler):
             #All the same, let's strip out all but the basename.
             
             client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
+            client_filetype =  tornado.escape.xhtml_escape(self.get_argument("attached_file.content_type"))
+            client_filename =  tornado.escape.xhtml_escape(self.get_argument("attached_file.name"))
+            client_filesize =  tornado.escape.xhtml_escape(self.get_argument("attached_file.size"))
+            
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
-            print fullpath
         
             #Hash the file in chunks
             sha512 = hashlib.sha512()
             with open(fullpath,'rb') as f: 
                 for chunk in iter(lambda: f.read(128 * sha512.block_size), ''): 
                      sha512.update(chunk)
-            newname =  sha512.hexdigest()
+            digest =  sha512.hexdigest()
             
-            fs = GridFS(server.bin_mongo)
-            if not fs.exists(filename=newname):
+            
+            if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath) as localfile:
-                    oid = fs.put(localfile, filename=newname)
+                    oid = server.bin_GridFS.put(localfile, filename=newname)
                     stored = True
             else:
                 stored = True
-            #Don't keep spare copies on the webservers    
+                
+            #Create a message binary.    
+            bin = Envelope.binary(hash=digest)
+            #Set the Filesize. Clients can't trust it, but oh-well.
+            bin.dict['filesize_hint'] =  client_filesize
+            bin.dict['content_type'] = client_filetype
+            bin.dict['filename'] = client_filename
+            
+            
+            #Don't keep spare copies on the webservers
             os.remove(fullpath)
             
         except:
@@ -348,8 +360,8 @@ class NewmessageHandler(BaseHandler):
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
-        
-        
+        if digest is not None:
+            e.message.dict['binary'] = bin.dict
         e.message.dict['author'] = OrderedDict()
         e.message.dict['author']['from'] = u.UserSettings['pubkey']
         
@@ -360,7 +372,7 @@ class NewmessageHandler(BaseHandler):
             
             #Don't check from home.
             if ip == "127.0.0.1":
-                ip = "126.170.76.219"
+                ip = "8.8.8.8"
                 
             gir = gi.record_by_name(ip)
             e.message.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])

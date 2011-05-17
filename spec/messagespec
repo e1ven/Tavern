@@ -1,4 +1,4 @@
-<PLURIC_CONTAINER>
+<ENVELOPE>
 <SERVERS>
 	<SERVER>
 		<TIME_SEEN>1304318238.34</TIME_SEEN>
@@ -12,8 +12,8 @@
 
 <MESSAGE_SHA512>3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54</MESSAGE_SHA512>
 
-<AUTHORITY> 400993485910747473038382868614...</AUTHORITY>
-<AUTHORITY> 991921353197822591619597987982...</AUTHORITY>
+<STAMP> 400993485910747473038382868614...</STAMP>
+<STAMP> 991921353197822591619597987982...</STAMP>
 
 <SENDER_SIGNATURE>ZYXABC...</SENDER_SIGNATURE>
 <MESSAGE>
@@ -36,13 +36,20 @@
 	<SUBJECT>Need more Trek!!</SUBJECTT>
 	<BODY>When are they going to create a *new* series? I think the movies have re...</BODY>
 
-	<BINARY>8f5454abbdb17c3ad4b98228eab1ff5e9f0ad6d298a2fa4b5100c744cab0741d5eb11e558fb8604b8a5d5ad60d80b6e3a208c7139a7a4d9614690455467f0b9e</BINARY>
-	<BINARY>d2a0d25b624638797e4e34be9cef1a8ed58699406af9366764049073a33f14001a0a2fe9e954876c3680752a56add5b7da2038c8dc8bb7820e72f4c255b64348</BINARY>
-
-
+	<BINARY>
+		<SHA_512>8f5454abbdb17c3ad4b98228eab1ff5e9f0ad6d298a2fa4b5100c744cab0741d5eb11e558fb8604b8a5d5ad60d80b6e3a208c7139a7a4d9614690455467f0b9e</SHA_512>
+		<FILESIZE_HINT>10000</FILESIZE_HINT>
+	</BINARY>
+	<BINARY>
+		<SHA_512>d2a0d25b624638797e4e34be9cef1a8ed58699406af9366764049073a33f14001a0a2fe9e954876c3680752a56add5b7da2038c8dc8bb7820e72f4c255b64348</SHA_512>
+		<FILESIZE_HINT>20480</FILESIZE_HINT>
+	</BINARY>
 </MESSAGE>
 
-</PLURIC_CONTAINER>
+<LOCAL>
+
+
+</ENVELOPE>
 ---
 
 
@@ -53,12 +60,12 @@ The 'MESSAGE_SHA512' should be the SHA-512 hash of the 'Message' portion. This i
 SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
 
 
-The Authority section allows an authority to sign the "message" portion of the message, to verify that some criteria has been satisfied. 
+The SERVER_STAMP section allows an authority to sign the "message" portion of the message, to verify that some criteria has been satisfied. 
 Exactly what criteria this is depends on the Authority- Examples might be 'completed a captcha', or 'Authenticated with a FB username/password'
 
 
 
-The 'sender_signature' should be a RSA signature of the 'Message' portion. This is the initial signature on any message. The sender_signature uses a SHA256 hash of the message.
+The 'sender_signature' should be a RSA signature of the 'Message' portion. This is the initial signature on any message. The sender_signature uses a SHA512 hash of the message.
 
 The server's signature should also be of the "Message" portion, not the entire container.
 
@@ -82,41 +89,18 @@ The 'from' field should contain the RSA public key of the author. This is used a
 The optional 'About' field may contain a POSTID-SHA512 linking to the author's most-recent about-me Post.
 The optional 'picture' field may contain a binary-control-file linking to a picture or avatar of the author. While this could be included in the 'about' section, it is included here for quick reference, so that a client may display a picture without having to pull and parse the 'about' section.
 
-The client string is intentionally free-form- While it would be tempting to use a client signature here, it is ultimately useless, and should not be trusted.
+The client string is intentionally free-form- While it would be tempting to use a client signature here to 'prove' what client it is, it is ultimately untrustworthy.
 Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.
 Since this is impossible to secure, it's best to treat this like a web browser's USER-AGENT. Interesting to know, but Entirely untrusted.
-If you *really* want to sign a message, include a 'AUTHORITY' signature by the server, or, if you really, really, really want to, the client.
+If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.
 
 
 The "Subject" should contain the subject of the message. If you are replying to an existing message, it's fine to import from that message. DO NOT change the subject to add a "RE: "-whatever. Just set the "regarding" field.
 The "Body" section should be plaintext. Github-flavored markdown could be a potential option, but there aren't parsing libraries for every platform, and linebreaks/etc are overkill for simple message exchange.
 
 
-Any binaries that are to be included should have a link to the SHA512 of their Binary-Control-File.
+Any binaries that are to be included should have a the SHA512 of their uploaded file.
 
-****
-When a Binary is uploaded to the server, the server will generate a binary-control-file for it.
-This is necessary to track the transfer of binaries across servers, and to add the other control information that is in every message.
-
-After an upload (ex: a POST request), the server will generate a  binary-control-file and reply with it's SHA512 hash.
-
-Note- The default Pluric server will limit the number of binaries that can be uploaded by any given user in a time period, but any number of binary control file can be referenced in a message.
-
-Binary control files follow the same control structures as a Message, but replace the "Message" section with 
-<BINARY>
-	<BYTES>947449</BYTES>
-	<FILENAME>IMG_0081.JPG</FILENAME>
-	<MIME>image/jpeg</MIME>
-	<COORDS>29.199505,-90.041242</COORDS>
-	<FILE_SHA512>ce7f20a3d91b60b561beeba6bd301e23544074496982e6db408940297ea25c2f2f8d28833dc5db2329822542be68ec37429405b548345f8f2771f084992b43e9</FILE_SHA512>
-</BINARY>
-The "POSTID_SHA512" field should be the SHA512 of the "BINARY" field, rather than a message, in this case.
-
-
-The FILE_SHA512 should be the SHA_512 sum of the actual binary.
-A server should not pass along a binary or control file if the data does not match- In particular- Verify the Size, since some clients may use this to determine if it should be displayed inline. 
-
-****
 The 'Message' section may alternatively be replaced by 'ENCRYPTED_MESSAGE'.
 
 

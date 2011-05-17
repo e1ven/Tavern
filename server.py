@@ -1,7 +1,6 @@
 import os,json
 import M2Crypto
 import platform
-from Envelope import *
 import time
 from keys import *
 import logging
@@ -39,6 +38,7 @@ class Server(object):
                 self.mongo = self.connection[self.ServerSettings['mongo-db']]             
                 self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
                 self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
+                self.bin_GridFS = GridFS(self.bin_mongo)
                 self.saveconfig()   
         else:
             self.loadconfig(settingsfile)
@@ -63,6 +63,8 @@ class Server(object):
 
         self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
         self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
+        self.bin_GridFS = GridFS(self.bin_mongo)
+        
         filehandle.close()
         self.saveconfig()
 
@@ -120,3 +122,4 @@ class Server(object):
         
 server = Server()
 from User import User
+from Envelope import *

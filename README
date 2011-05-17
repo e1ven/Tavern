@@ -46,7 +46,9 @@ Using the following Libraries:
 
 	10Gen's Mongo (AGPL) - Only applies to changes to MongoS and MongoD.
 		http://www.mongodb.org/display/DOCS/Licensing
-		
+			
+	FancyDateTimeDelta (MIT)
+		Charlie Clark 
 --- yENC license ---
 
 Hi Colin,
@@ -113,5 +115,15 @@ THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WAR
 Our goal with using AGPL is to preserve the concept of copyleft with MongoDB. With traditional GPL, copyleft was associated with the concept of distribution of software. The problem is that nowadays, distribution of software is rare: things tend to run in the cloud. AGPL fixes this “loophole” in GPL by saying that if you use the software over a network, you are bound by the copyleft. Other than that, the license is virtually the same as GPL v3.
 
 Note however that it is never required that applications using mongo be published. The copyleft applies only to the mongod and mongos database programs. This is why Mongo DB drivers are all licensed under an Apache license. Your application, even though it talks to the database, is a separate program and “work”.
+
+--- Pretty Date Formatting ---
+
+
+Dear Colin,
+
+thank you very much for the e-mail - I'm flattered. Of course, you may use the code. Consider it under the same MIT licence as the original.
+
+Charlie
+-- 
 
 

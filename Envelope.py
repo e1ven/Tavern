@@ -7,6 +7,8 @@ import collections
 from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
+from server import server
+
 
 class Envelope(object):
 
@@ -42,11 +44,17 @@ class Envelope(object):
                 if hasattr(self.dict['author'],'from') == False:
                     print "No From line"
                     return False
+                    
+    class binary(object):
+            def __init__(self,hash):
+                self.dict = OrderedDict()
+                self.dict['sha_512'] = hash
+            
                 
-    def __init__(self,importmongo=None,importfile=None,importstring=None,mongoconnection=None):
+                
+    def __init__(self,importmongo=None,importfile=None,importstring=None):
         if importmongo != None:
-            self.loadmongo(mongo_id=importmongo)
-            self.mongo = mongoconnection
+            self.loadmongo()
             
         else: 
             if importfile != None:
@@ -79,7 +87,7 @@ class Envelope(object):
         filehandle.close()
         
     def loadmongo(self,mongo_id):
-        env = self.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
+        env = server.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
         self.dict = env
 
         
@@ -108,5 +116,5 @@ class Envelope(object):
         
     def saveMongo(self,mongo):
         self.dict['_id'] = self.message.hash()
-        mongo['envelopes'].save(self.dict)
+        server.mongo['envelopes'].save(self.dict)
     
