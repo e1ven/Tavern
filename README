@@ -49,6 +49,10 @@ Using the following Libraries:
 			
 	FancyDateTimeDelta (MIT)
 		Charlie Clark 
+
+	PrettyDateFormat (Apache)
+		http://code.activestate.com/recipes/576880-convert-datetime-in-python-to-user-friendly-repres/
+		
 --- yENC license ---
 
 Hi Colin,
