@@ -311,7 +311,6 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
-
         #Use this flag to know if we successfully stored or not.
         stored = False        
         try:
@@ -326,7 +325,7 @@ class NewmessageHandler(BaseHandler):
             
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
-        
+       
             #Hash the file in chunks
             sha512 = hashlib.sha512()
             with open(fullpath,'rb') as f: 
@@ -334,21 +333,18 @@ class NewmessageHandler(BaseHandler):
                      sha512.update(chunk)
             digest =  sha512.hexdigest()
             
-            
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath) as localfile:
-                    oid = server.bin_GridFS.put(localfile, filename=newname)
+                    oid = server.bin_GridFS.put(localfile, filename=digest)
                     stored = True
             else:
                 stored = True
-                
             #Create a message binary.    
             bin = Envelope.binary(hash=digest)
             #Set the Filesize. Clients can't trust it, but oh-well.
             bin.dict['filesize_hint'] =  client_filesize
             bin.dict['content_type'] = client_filetype
             bin.dict['filename'] = client_filename
-            
             
             #Don't keep spare copies on the webservers
             os.remove(fullpath)
@@ -368,8 +364,9 @@ class NewmessageHandler(BaseHandler):
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
-        if digest is not None:
+        if stored is True:
             e.message.dict['binary'] = bin.dict
+
         e.message.dict['author'] = OrderedDict()
         e.message.dict['author']['from'] = u.UserSettings['pubkey']
         
