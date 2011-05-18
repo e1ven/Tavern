@@ -1,7 +1,8 @@
 import datetime
 import pymongo
 from bson.code import Code
-from server import server,User
+from server import server
+from User import User
 
 
 map = Code("""

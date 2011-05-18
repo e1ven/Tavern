@@ -7,7 +7,6 @@ import collections
 from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
-from server import server
 
 
 class Envelope(object):
@@ -87,6 +86,7 @@ class Envelope(object):
         filehandle.close()
         
     def loadmongo(self,mongo_id):
+	from server import server
         env = server.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
         self.dict = env
 
@@ -115,6 +115,7 @@ class Envelope(object):
         filehandle.close()
         
     def saveMongo(self,mongo):
+	from server import server
         self.dict['_id'] = self.message.hash()
         server.mongo['envelopes'].save(self.dict)
     
