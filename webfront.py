@@ -204,12 +204,13 @@ class MessageHandler(BaseHandler):
         
         showAttachment = None
         if envelope['pluric_envelope']['message'].has_key('binary'):
-            if envelope['pluric_envelope']['message']['binary'][0].has_key('sha_512'):
-                attachment = server.bin_GridFS.get(filename=envelope['pluric_envelope']['message']['binary'][0]['sha_512'])
+            if envelope['pluric_envelope']['message']['binary'].has_key('sha_512'):
+                fname = envelope['pluric_envelope']['message']['binary']['sha_512']
+                attachment = server.bin_GridFS.get_version(filename=fname)
                 if attachment.length < 512000:
-                    if envelope['pluric_envelope']['message']['binary']['0'].haskey('content_type'):
-          	            if ['pluric_envelope']['message']['binary']['0']['content_type'].rsplit('/')[0].lower() == "image":
-          	                showAttachment = envelope['pluric_envelope']['message']['binary'][0]['sha_512']
+                    if envelope['pluric_envelope']['message']['binary'].has_key('content_type'):
+                        if envelope['pluric_envelope']['message']['binary']['content_type'].rsplit('/')[0].lower() == "image":
+          	                showAttachment = envelope['pluric_envelope']['message']['binary']['sha_512']
               
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['pluric_envelope']['message']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',showAttachment=showAttachment,envelope=envelope))
@@ -335,7 +336,7 @@ class NewmessageHandler(BaseHandler):
             
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath) as localfile:
-                    oid = server.bin_GridFS.put(localfile, filename=digest)
+                    oid = server.bin_GridFS.put(localfile,filename=digest)
                     stored = True
             else:
                 stored = True
