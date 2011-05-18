@@ -201,10 +201,18 @@ class MessageHandler(BaseHandler):
         client_message_id = tornado.escape.xhtml_escape(message)
         
         envelope = server.mongo['envelopes'].find_one({'pluric_envelope.message_sha512' : client_message_id })
-                                        
+        
+        showAttachment = None
+        if envelope['pluric_envelope']['message'].has_key('binary'):
+            if envelope['pluric_envelope']['message']['binary'][0].has_key('sha_512'):
+                attachment = server.bin_GridFS.get(filename=envelope['pluric_envelope']['message']['binary'][0]['sha_512'])
+                if attachment.length < 512000:
+                    if envelope['pluric_envelope']['message']['binary']['0'].haskey('content_type'):
+          	            if ['pluric_envelope']['message']['binary']['0']['content_type'].rsplit('/')[0].lower() == "image":
+          	                showAttachment = envelope['pluric_envelope']['message']['binary'][0]['sha_512']
+              
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['pluric_envelope']['message']['subject'],username=self.username))
-
-        self.write(self.render_string('templates/single-message.html',envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',showAttachment=showAttachment,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
