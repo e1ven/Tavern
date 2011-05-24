@@ -202,18 +202,19 @@ class MessageHandler(BaseHandler):
         
         envelope = server.mongo['envelopes'].find_one({'pluric_envelope.message_sha512' : client_message_id })
         
-        showAttachment = None
-        if envelope['pluric_envelope']['message'].has_key('binary'):
-            if envelope['pluric_envelope']['message']['binary'].has_key('sha_512'):
-                fname = envelope['pluric_envelope']['message']['binary']['sha_512']
-                attachment = server.bin_GridFS.get_version(filename=fname)
-                if attachment.length < 512000:
-                    if envelope['pluric_envelope']['message']['binary'].has_key('content_type'):
-                        if envelope['pluric_envelope']['message']['binary']['content_type'].rsplit('/')[0].lower() == "image":
-          	                showAttachment = envelope['pluric_envelope']['message']['binary']['sha_512']
+        attachmentList = []
+        if envelope['pluric_envelope']['message'].has_key('binaries'):
+            for binary in envelope['pluric_envelope']['message']['binaries']:
+                if binary.has_key('sha_512'):
+                    fname = binary['sha_512']
+                    attachment = server.bin_GridFS.get_version(filename=fname)
+                    if attachment.length < 512000:
+                        if binary.has_key('content_type'):
+                            if binary['content_type'].rsplit('/')[0].lower() == "image":
+                                attachmentList.append(binary['sha_512'])
               
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['pluric_envelope']['message']['subject'],username=self.username))
-        self.write(self.render_string('templates/single-message.html',showAttachment=showAttachment,envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
@@ -312,14 +313,16 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
-        filelist = {}
+        filelist = []
         for argument in self.request.arguments:
             if argument.startswith("attached_file"):
-                filelist.append(argument)
-                
+                filelist.append(argument.rsplit('.')[0])
+        #Uniquify list
+        filelist = dict(map(lambda i: (i,1),filelist)).keys()
         #Use this flag to know if we successfully stored or not.
         stored = False   
         client_filepath = None     
+        envelopebinarylist = []
         for attached_file in filelist:
             #I've testing including this var via the page directly. 
             #It's safe to trust this path, it seems.
@@ -329,7 +332,8 @@ class NewmessageHandler(BaseHandler):
             client_filetype =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".content_type"))
             client_filename =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".name"))
             client_filesize =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".size"))
-            
+           
+            print "Trying client_filepath" 
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
        
@@ -352,10 +356,10 @@ class NewmessageHandler(BaseHandler):
             bin.dict['filesize_hint'] =  client_filesize
             bin.dict['content_type'] = client_filetype
             bin.dict['filename'] = client_filename
-            
+            envelopebinarylist.append(bin.dict)
             #Don't keep spare copies on the webservers
             os.remove(fullpath)
-            
+             
                         
         e = Envelope()
         topics = []
@@ -370,7 +374,7 @@ class NewmessageHandler(BaseHandler):
         u.load_mongo_by_pubkey(user['pubkey'])
         
         if stored is True:
-            e.message.dict['binary'] = bin.dict
+            e.message.dict['binaries'] = envelopebinarylist
 
         e.message.dict['author'] = OrderedDict()
         e.message.dict['author']['from'] = u.UserSettings['pubkey']

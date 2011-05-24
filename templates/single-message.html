@@ -21,8 +21,10 @@ Topics:<br>
 	<p>Coords: {{envelope['pluric_envelope']['message']['coords']}}</p>
 {% end %}
 
-{% if showAttachment is not None %}
-	<img src="/binaries/{{showAttachment}}"> 
+{% if len(attachmentList) > 0 %}
+    {% for attachment in attachmentList %}
+	    <img src="/binaries/{{attachment}}"> <br>
+    {% end %}
 {% end %}
 
 
