@@ -312,17 +312,23 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        filelist = {}
+        for argument in self.request.arguments:
+            if argument.startswith("attached_file"):
+                filelist.append(argument)
+                
         #Use this flag to know if we successfully stored or not.
-        stored = False        
-        try:
+        stored = False   
+        client_filepath = None     
+        for attached_file in filelist:
             #I've testing including this var via the page directly. 
             #It's safe to trust this path, it seems.
             #All the same, let's strip out all but the basename.
             
-            client_filepath =  tornado.escape.xhtml_escape(self.get_argument("attached_file.path"))
-            client_filetype =  tornado.escape.xhtml_escape(self.get_argument("attached_file.content_type"))
-            client_filename =  tornado.escape.xhtml_escape(self.get_argument("attached_file.name"))
-            client_filesize =  tornado.escape.xhtml_escape(self.get_argument("attached_file.size"))
+            client_filepath =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".path"))
+            client_filetype =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".content_type"))
+            client_filename =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".name"))
+            client_filesize =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".size"))
             
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
@@ -350,9 +356,7 @@ class NewmessageHandler(BaseHandler):
             #Don't keep spare copies on the webservers
             os.remove(fullpath)
             
-        except:
-            client_filepath = None
-                    
+                        
         e = Envelope()
         topics = []
         topics.append(client_topic)
