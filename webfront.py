@@ -190,7 +190,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username))
        
-        for envelope in server.mongo['envelopes'].find({'pluric_envelope.message.topictag' : client_topic },limit=self.maxposts):
+        for envelope in server.mongo['envelopes'].find({'envelope.message.topictag' : client_topic },limit=self.maxposts):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
@@ -200,11 +200,11 @@ class MessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
         
-        envelope = server.mongo['envelopes'].find_one({'pluric_envelope.message_sha512' : client_message_id })
+        envelope = server.mongo['envelopes'].find_one({'envelope.message_sha512' : client_message_id })
         
         attachmentList = []
-        if envelope['pluric_envelope']['message'].has_key('binaries'):
-            for binary in envelope['pluric_envelope']['message']['binaries']:
+        if envelope['envelope']['message'].has_key('binaries'):
+            for binary in envelope['envelope']['message']['binaries']:
                 if binary.has_key('sha_512'):
                     fname = binary['sha_512']
                     attachment = server.bin_GridFS.get_version(filename=fname)
@@ -213,7 +213,7 @@ class MessageHandler(BaseHandler):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 attachmentList.append(binary['sha_512'])
               
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['pluric_envelope']['message']['subject'],username=self.username))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['message']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 

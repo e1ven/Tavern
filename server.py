@@ -111,14 +111,14 @@ class Server(object):
         utctime = time.time()
 
         #Store a message hash in the message itself.
-        c.dict['pluric_envelope']['message_sha512'] = c.message.hash()
+        c.dict['envelope']['message_sha512'] = c.message.hash()
 
         #Sign the message to saw we saw it.
         signedmessage = self.ServerKeys.signstring(c.message.text())
         myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':utctime,u'signature':signedmessage,u'pubkey': self.ServerKeys.pubkey}
     
         serverlist.append(myserverinfo)
-        c.dict['pluric_envelope']['servers'] = serverlist
+        c.dict['envelope']['servers'] = serverlist
         #print c.prettytext()
         #logging.debug(c.prettytext())
         c.saveMongo(self.mongo)

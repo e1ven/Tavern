@@ -63,10 +63,10 @@ class Envelope(object):
                     self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
                 else:
                     self.dict = OrderedDict()
-                    self.dict['pluric_envelope'] = OrderedDict()
-                    self.dict['pluric_envelope']['message'] = OrderedDict()
+                    self.dict['envelope'] = OrderedDict()
+                    self.dict['envelope']['message'] = OrderedDict()
         
-        self.message = Envelope.Message(self.dict['pluric_envelope']['message'])
+        self.message = Envelope.Message(self.dict['envelope']['message'])
    
    
     def loadfile(self,filename):
