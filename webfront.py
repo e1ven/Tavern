@@ -18,6 +18,7 @@ import random
 import socket
 import pymongo
 import json
+from PIL import Image
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
@@ -164,7 +165,6 @@ class FancyDateTimeDelta(object):
 class NotFoundHandler(BaseHandler):
     def get(self,whatever):
         self.getvars()
-        print ("---")
         self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username))
         self.write(self.render_string('templates/404.html'))
         self.write(self.render_string('templates/footer.html'))
@@ -202,6 +202,7 @@ class MessageHandler(BaseHandler):
         
         envelope = server.mongo['envelopes'].find_one({'envelope.message_sha512' : client_message_id })
         
+        #Create two lists- One of all attachments, and one of images.
         attachmentList = []
         displayableAttachmentList = []
         if envelope['envelope']['message'].has_key('binaries'):
@@ -211,13 +212,28 @@ class MessageHandler(BaseHandler):
                     attachment = server.bin_GridFS.get_version(filename=fname)
                     if not binary.has_key('filename'):
                         binary['filename'] = "unknown_file"
+                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
+                    #Python and be a valid image.
                     attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
                     attachmentList.append(attachmentdesc)
                     if attachment.length < 512000:
                         if binary.has_key('content_type'):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                displayableAttachmentList.append(binary['sha_512'])
-              
+                                imagetype = imghdr.what('ignoreme',h=attachment.read())
+                                acceptable_images = ['gif','jpeg','jpg','png','bmp']
+                                if imagetype in acceptable_images:
+                                    #If we pass -all- the tests, create a thumb once.
+                                    if not server.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
+                                        attachment.seek(0) 
+                                        im = Image.open(attachment)
+                                        img_width, img_height = im.size
+                                        if ((img_width > 150) or (img_height > 150)): 
+                                            im.thumbnail((150, 150), Image.ANTIALIAS)
+                                        thumbnail = server.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
+                                        im.save(thumbnail,format='png')    
+                                        thumbnail.close()
+                                    displayableAttachmentList.append(binary['sha_512'])
+                                 
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['message']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))

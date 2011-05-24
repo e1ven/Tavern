@@ -1,9 +1,14 @@
 Upapt-get install libpcre3-dev
-apt-get install g++
+apt-get install g++ 
 apt-get install zlib1g-dev
 apt-get install libssl-dev
 apt-get install python-dev
 apt-get install swig
+apt-get install libfreetype6 libfreetype6-dev
+apt-get install libjpeg8-dev
+apt-get install libzzip-dev
+#On 64 bit
+apt-get install lib32z1
 
 
 sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
@@ -32,6 +37,7 @@ chmod 777 /opt/uploads/
 
 cd /opt
 git clone git@github.com:e1ven/Pluric.git
+
 cd /opt/Pluric/nginx
 cp nginx.conf /opt/nginx/conf/
 
@@ -69,6 +75,14 @@ python setup.py install
 
 cd /opt/Pluric/libs/M2Crypto-0.21.1
 python setup.py install
+
+
+/opt/Pluric/libs/zlib-1.2.5
+./configure; make; make install
+
+cd /opt/Pluric/libs/Imaging-1.1.7
+python setup.py  install
+
 
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 

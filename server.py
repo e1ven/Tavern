@@ -11,7 +11,7 @@ import collections
 import pymongo
 from gridfs import GridFS
 from Envelope import Envelope
-
+import sys
 class Server(object):
 
     def __init__(self,settingsfile=None):            
@@ -46,8 +46,8 @@ class Server(object):
         else:
             self.loadconfig(settingsfile)
             
-        logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
-        #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
+        #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
+        logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
  
     def loadconfig(self,filename=None):
         print "Loading config from file."
