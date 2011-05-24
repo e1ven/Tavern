@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # Copyright 2011 Pluric
-
+    
 
 import tornado.httpserver
 import tornado.ioloop
@@ -203,18 +203,23 @@ class MessageHandler(BaseHandler):
         envelope = server.mongo['envelopes'].find_one({'envelope.message_sha512' : client_message_id })
         
         attachmentList = []
+        displayableAttachmentList = []
         if envelope['envelope']['message'].has_key('binaries'):
             for binary in envelope['envelope']['message']['binaries']:
                 if binary.has_key('sha_512'):
                     fname = binary['sha_512']
                     attachment = server.bin_GridFS.get_version(filename=fname)
+                    if not binary.has_key('filename'):
+                        binary['filename'] = "unknown_file"
+                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
+                    attachmentList.append(attachmentdesc)
                     if attachment.length < 512000:
                         if binary.has_key('content_type'):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                attachmentList.append(binary['sha_512'])
+                                displayableAttachmentList.append(binary['sha_512'])
               
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['message']['subject'],username=self.username))
-        self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 

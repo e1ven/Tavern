@@ -21,9 +21,15 @@ Topics:<br>
 	<p>Coords: {{envelope['envelope']['message']['coords']}}</p>
 {% end %}
 
+{% if len(displayableAttachmentList) > 0 %}
+    {% for attachment in displayableAttachmentList %}
+	    <img src="/binaries/{{attachment}}"> <br>
+    {% end %}
+{% end %}
+
 {% if len(attachmentList) > 0 %}
     {% for attachment in attachmentList %}
-	    <img src="/binaries/{{attachment}}"> <br>
+            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a> (            {{float(attachment['filesize'] / 1024.0 /1024.0 ) }} MB)<br>
     {% end %}
 {% end %}
 
