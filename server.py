@@ -85,13 +85,17 @@ class Server(object):
     
 
     def receiveEnvelope(self,envelope):
-        c = Envelope(importstring=envelope)
+        c = Envelope()
+        c.loadstring(importstring=envelope)
         
         if c.dict.has_key('servers'):
             serverlist = c.dict['servers']
         else:
             serverlist = []
             
+        #### Validate-
+        ## Ensure that if we have a regarding, it exists?? Or not, to allow for OoO?
+        ## How free-form should we be?
         
         #Search the server list to look for ourselves. Don't double-receive.
         for server in serverlist:            
@@ -119,9 +123,21 @@ class Server(object):
     
         serverlist.append(myserverinfo)
         c.dict['envelope']['servers'] = serverlist
-        #print c.prettytext()
-        #logging.debug(c.prettytext())
-        c.saveMongo(self.mongo)
+        
+        #If the message referenes anyone, mark the original, for ease of finding it later.
+        #Do this in the [local] block, so we don't waste bits passing this on.
+        #If the message doesn't exist, don't mark it ;)
+        if c.dict['envelope']['message'].has_key('regarding'):
+            repliedTo = Envelope()
+            if repliedTo.loadmongo(mongo_id=c.dict['envelope']['message']['regarding']):
+                
+                repliedTo.dict['envelope']['local']['citedby'].append(c.message.hash())
+                print "Adding messagehash " + c.message.hash() + " to " + c.dict['envelope']['message']['regarding']
+                print "NewHash: " + repliedTo.message.hash()
+    
+                repliedTo.saveMongo()
+        #Store our file
+        c.saveMongo()
         
 server = Server()
 from User import User

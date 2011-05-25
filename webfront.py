@@ -233,7 +233,7 @@ class MessageHandler(BaseHandler):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-                                 
+        pprint.pprint(envelope)                         
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['message']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
@@ -334,9 +334,18 @@ class NewmessageHandler(BaseHandler):
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        if "regarding" in self.request.arguments:
+            client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
+            if client_regarding == "":
+                client_regarding = None
+        else:
+            client_regarding = None
+   
+        #Build a list of all the variables that come in with attached_fileX, 
+        #so we can parse them later on. attached_fileXXXX.path
         filelist = []
         for argument in self.request.arguments:
-            if argument.startswith("attached_file"):
+            if argument.startswith("attached_file") and argument.endswith('.path'):
                 filelist.append(argument.rsplit('.')[0])
         #Uniquify list
         filelist = dict(map(lambda i: (i,1),filelist)).keys()
@@ -367,7 +376,8 @@ class NewmessageHandler(BaseHandler):
             
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath) as localfile:
-                    oid = server.bin_GridFS.put(localfile,filename=digest)
+                    
+                    oid = server.bin_GridFS.put(localfile,filename=digest, content_type=client_filetype)
                     stored = True
             else:
                 stored = True
@@ -388,7 +398,10 @@ class NewmessageHandler(BaseHandler):
         e.message.dict['topictag'] = topics
         e.message.dict['body'] = client_body
         e.message.dict['subject'] = client_subject
-        
+        if client_regarding is not None:
+            print "Adding Regarding - " + client_regarding
+            e.message.dict['regarding'] = client_regarding
+            
         #Instantiate the user who's currently logged in
         user = server.mongo['users'].find_one({"username":self.username})        
         u = User()

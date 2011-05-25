@@ -51,23 +51,18 @@ class Envelope(object):
             
                 
                 
-    def __init__(self,importmongo=None,importfile=None,importstring=None):
-        if importmongo != None:
-            self.loadmongo()
-            
-        else: 
-            if importfile != None:
-                self.loadfile(importfile)        
-            else:
-                if importstring != None:
-                    self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-                else:
-                    self.dict = OrderedDict()
-                    self.dict['envelope'] = OrderedDict()
-                    self.dict['envelope']['message'] = OrderedDict()
-        
+    def __init__(self):
+        self.dict = OrderedDict()
+        self.dict['envelope'] = OrderedDict()
+        self.dict['envelope']['message'] = OrderedDict()
+        self.dict['envelope']['local'] = OrderedDict()
+        self.dict['envelope']['local']['citedby'] = []
+
         self.message = Envelope.Message(self.dict['envelope']['message'])
    
+    def loadstring(self,importstring):
+        self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
+        
    
     def loadfile(self,filename):
         
@@ -86,9 +81,13 @@ class Envelope(object):
         filehandle.close()
         
     def loadmongo(self,mongo_id):
-	from server import server
+        from server import server
         env = server.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
-        self.dict = env
+        if env == None:
+            return False
+        else:
+            self.dict = env
+            return True
 
         
     def reloadfile(self):
@@ -114,8 +113,8 @@ class Envelope(object):
         filehandle.write(compressed)
         filehandle.close()
         
-    def saveMongo(self,mongo):
-	from server import server
+    def saveMongo(self):
+        from server import server
         self.dict['_id'] = self.message.hash()
         server.mongo['envelopes'].save(self.dict)
     
