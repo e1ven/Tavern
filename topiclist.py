@@ -7,13 +7,13 @@ from User import User
 
 map = Code("""
 function() {
-        for (var i =0; i < this.envelope.message.topictag.length; i++) 
+        for (var i =0; i < this.envelope.payload.topictag.length; i++) 
     	{ 
     	    var timestamp = Number(new Date()/1000);
     	    mtime = this.envelope.servers[0].time_seen;
     	    if ((mtime + 86400) > timestamp )
     	        {
-                    singletag = this.envelope.message.topictag[i];
+                    singletag = this.envelope.payload.topictag[i];
                     emit({tag:singletag},{count:1}); 
                 }
     	}

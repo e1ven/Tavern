@@ -12,6 +12,7 @@ import pymongo
 from gridfs import GridFS
 from Envelope import Envelope
 import sys
+import pprint
 class Server(object):
 
     def __init__(self,settingsfile=None):            
@@ -87,55 +88,54 @@ class Server(object):
     def receiveEnvelope(self,envelope):
         c = Envelope()
         c.loadstring(importstring=envelope)
-        
         if c.dict.has_key('servers'):
             serverlist = c.dict['servers']
         else:
             serverlist = []
-            
-        #### Validate-
-        ## Ensure that if we have a regarding, it exists?? Or not, to allow for OoO?
-        ## How free-form should we be?
-        
+        if not c.validate():
+            print "Validation Error"
+            return False
+                
         #Search the server list to look for ourselves. Don't double-receive.
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:
                 logging.debug("Found potential us. Let's verify.")
                 Envelopekey = Keys(pub=self.ServerKeys.pubkey)
-                if Envelopekey.verifystring(stringtoverify=c.message.text(),signature=server['signature']) == True:
-                    #If we've gotten here, we've received the same message twice
+                if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=server['signature']) == True:
                     logging.debug("It's a Me!")
                     #return
                 else:
                     #Someone is imitating us. Bastards.
                     logging.error("It's a FAAAAAAKE!")
+                    return False
         
-        
-                    
         utctime = time.time()
-
-        #Store a message hash in the message itself.
-        c.dict['envelope']['message_sha512'] = c.message.hash()
-
         #Sign the message to saw we saw it.
-        signedmessage = self.ServerKeys.signstring(c.message.text())
-        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':utctime,u'signature':signedmessage,u'pubkey': self.ServerKeys.pubkey}
-    
+        signedpayload = self.ServerKeys.signstring(c.payload.text())
+        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':utctime,u'signature':signedpayload,u'pubkey': self.ServerKeys.pubkey}
+
         serverlist.append(myserverinfo)
         c.dict['envelope']['servers'] = serverlist
+        #Determine Message type, by which primary key it has. 
+        #While there is no *technical* reason you couldn't have more than one message per envelope, or a message and a vote, it is invalid.
+        #The reason for this is that envelopes are low-overhead, and make splitting it up by other servers later, easier.
+        #So, we only allow one, to ensure cleanness of the echosystem.
         
-        #If the message referenes anyone, mark the original, for ease of finding it later.
-        #Do this in the [local] block, so we don't waste bits passing this on.
-        #If the message doesn't exist, don't mark it ;)
-        if c.dict['envelope']['message'].has_key('regarding'):
-            repliedTo = Envelope()
-            if repliedTo.loadmongo(mongo_id=c.dict['envelope']['message']['regarding']):
+        if c.dict['envelope']['payload']['payload_type'] == "message":       
+            #If the message referenes anyone, mark the original, for ease of finding it later.
+            #Do this in the [local] block, so we don't waste bits passing this on.
+            #If the message doesn't exist, don't mark it ;)
+            if c.dict['envelope']['payload'].has_key('regarding'):
+                repliedTo = Envelope()
+                if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
                 
-                repliedTo.dict['envelope']['local']['citedby'].append(c.message.hash())
-                print "Adding messagehash " + c.message.hash() + " to " + c.dict['envelope']['message']['regarding']
-                print "NewHash: " + repliedTo.message.hash()
-    
-                repliedTo.saveMongo()
+                    repliedTo.dict['envelope']['local']['citedby'].append(c.message.hash())
+                    print "Adding messagehash " + c.payload.hash() + " to " + c.dict['envelope']['payload']['regarding']
+                    print "NewHash: " + repliedTo.payload.hash()   
+                    repliedTo.saveMongo()
+                    
+        if c.dict['envelope']['payload']['payload_type'] == "messagerating":   
+            print "This is a rating"    
         #Store our file
         c.saveMongo()
         

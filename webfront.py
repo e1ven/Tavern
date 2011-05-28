@@ -190,7 +190,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username))
        
-        for envelope in server.mongo['envelopes'].find({'envelope.message.topictag' : client_topic },limit=self.maxposts):
+        for envelope in server.mongo['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
@@ -200,13 +200,13 @@ class MessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
         
-        envelope = server.mongo['envelopes'].find_one({'envelope.message_sha512' : client_message_id })
+        envelope = server.mongo['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
         
         #Create two lists- One of all attachments, and one of images.
         attachmentList = []
         displayableAttachmentList = []
-        if envelope['envelope']['message'].has_key('binaries'):
-            for binary in envelope['envelope']['message']['binaries']:
+        if envelope['envelope']['payload'].has_key('binaries'):
+            for binary in envelope['envelope']['payload']['binaries']:
                 if binary.has_key('sha_512'):
                     fname = binary['sha_512']
                     attachment = server.bin_GridFS.get_version(filename=fname)
@@ -234,7 +234,7 @@ class MessageHandler(BaseHandler):
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
         pprint.pprint(envelope)                         
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['message']['subject'],username=self.username))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
@@ -395,12 +395,13 @@ class NewmessageHandler(BaseHandler):
         e = Envelope()
         topics = []
         topics.append(client_topic)
-        e.message.dict['topictag'] = topics
-        e.message.dict['body'] = client_body
-        e.message.dict['subject'] = client_subject
+        e.payload.dict['payload_type'] = "message"
+        e.payload.dict['topictag'] = topics
+        e.payload.dict['body'] = client_body
+        e.payload.dict['subject'] = client_subject
         if client_regarding is not None:
             print "Adding Regarding - " + client_regarding
-            e.message.dict['regarding'] = client_regarding
+            e.payload.dict['regarding'] = client_regarding
             
         #Instantiate the user who's currently logged in
         user = server.mongo['users'].find_one({"username":self.username})        
@@ -408,12 +409,12 @@ class NewmessageHandler(BaseHandler):
         u.load_mongo_by_pubkey(user['pubkey'])
         
         if stored is True:
-            e.message.dict['binaries'] = envelopebinarylist
+            e.payload.dict['binaries'] = envelopebinarylist
 
-        e.message.dict['author'] = OrderedDict()
-        e.message.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author'] = OrderedDict()
+        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
         
-        e.message.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
         if client_include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
@@ -423,10 +424,10 @@ class NewmessageHandler(BaseHandler):
                 ip = "8.8.8.8"
                 
             gir = gi.record_by_name(ip)
-            e.message.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
         
         #Sign this bad boy
-        usersig = u.Keys.signstring(e.message.text())
+        usersig = u.Keys.signstring(e.payload.text())
         e.dict['sender_signature'] = usersig
         
         #Send to the server
