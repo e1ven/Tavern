@@ -34,8 +34,8 @@ class Keys(object):
         self.Keys.save_pub_key_bio(self.pubkey_bio)
         
         #TODO- use __get_addr__ to calc these OnDemand
-        self.privkey = self.privkey_bio.read()        
-        self.pubkey = self.pubkey_bio.read()
+        self.privkey = self.privkey_bio.read().encode('utf8')         
+        self.pubkey = self.pubkey_bio.read().encode('utf8') 
         
         self.combinedkey = self.privkey + '\n' + self.pubkey
         self.combinedkey = self.combinedkey.encode('utf8')    

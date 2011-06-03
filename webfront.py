@@ -122,7 +122,9 @@ class BaseHandler(tornado.web.RequestHandler):
             self.maxposts = 20
         else:
             self.maxposts = int(self.maxposts)
-            
+        #Toggle this.
+        self.include_loc = "on"  
+           
         return str(self.username)
            
     
@@ -233,7 +235,6 @@ class MessageHandler(BaseHandler):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-        pprint.pprint(envelope)                         
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username))
         self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
@@ -315,6 +316,117 @@ class LogoutHandler(BaseHandler):
          self.clear_cookie("username")
          self.redirect("/")
 
+class RatingHandler(BaseHandler):
+    def get(self,posthash):
+        self.getvars()
+        #Calculate the votes for that post. 
+         
+    def post(self):    
+        self.getvars()
+
+        #So you may be asking yourself.. Self, why did we do this as a POST, rather than
+        #Just a GET value, of the form server.com/msg123/voteup
+        #The answer is xsrf protection.
+        #We don't want people to link to the upvote button and trick you into voting up.
+
+        if self.username == "Guest":
+            self.write("You must be logged in to rate a message.")
+            return
+        
+        client_hash =  tornado.escape.xhtml_escape(self.get_argument("hash"))        
+        client_rating =  tornado.escape.xhtml_escape(self.get_argument("rating"))
+        rating_val = int(client_rating)
+        if rating_val not in [-1,0,1]:
+            self.write("Invalid Rating.")
+            return -1
+        
+        e = Envelope()
+        e.payload.dict['payload_type'] = "rating"
+        e.payload.dict['rating'] = rating_val
+        e.payload.dict['regarding'] = client_hash
+            
+        #Instantiate the user who's currently logged in
+        user = server.mongo['users'].find_one({"username":self.username})        
+        u = User()
+        u.load_mongo_by_pubkey(user['pubkey'])
+        
+        e.payload.dict['author'] = OrderedDict()
+        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        if self.include_loc == "on":
+            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            ip = self.request.remote_ip
+            
+            #Don't check from home.
+            if ip == "127.0.0.1":
+                ip = "8.8.8.8"
+                
+            gir = gi.record_by_name(ip)
+            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+        
+        #Sign this bad boy
+        usersig = u.Keys.signstring(e.payload.text())
+        e.dict['sender_signature'] = usersig
+        
+        #Send to the server
+        server.receiveEnvelope(e.text())
+
+
+class UserTrustHandler(BaseHandler):
+    def get(self,user):
+        self.getvars()
+        #Calculate the trust for a user. 
+
+    def post(self):    
+        self.getvars()
+        if self.username == "Guest":
+            self.write("You must be logged in to trust or distrust a user.")
+            return
+
+        client_pubkey =  tornado.escape.xhtml_escape(self.get_argument("pubkey"))        
+        client_trust =  tornado.escape.xhtml_escape(self.get_argument("trust"))
+        trust_val = int(client_trust)
+        if trust_val not in [-100,0,100]:
+            self.write("Invalid Trust Score.")
+            return -1
+
+        e = Envelope()
+        e.payload.dict['payload_type'] = "usertrust"
+        e.payload.dict['trust'] = trust_val
+        e.payload.dict['pubkey'] = client_pubkey
+
+        #Instantiate the user who's currently logged in
+        user = server.mongo['users'].find_one({"username":self.username})        
+        u = User()
+        u.load_mongo_by_pubkey(user['pubkey'])
+
+        e.payload.dict['author'] = OrderedDict()
+        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+
+        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        if self.include_loc == "on":
+            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            ip = self.request.remote_ip
+
+            #Don't check from home.
+            if ip == "127.0.0.1":
+                ip = "8.8.8.8"
+
+            gir = gi.record_by_name(ip)
+            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+
+        #Sign this bad boy
+        usersig = u.Keys.signstring(e.payload.text())
+        e.dict['sender_signature'] = usersig
+
+        #Send to the server
+        server.receiveEnvelope(e.text())
+
+
+
+      
 class NewmessageHandler(BaseHandler):
     def get(self):
          self.getvars()
@@ -333,7 +445,7 @@ class NewmessageHandler(BaseHandler):
         client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-        client_include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
         if "regarding" in self.request.arguments:
             client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
             if client_regarding == "":
@@ -413,9 +525,9 @@ class NewmessageHandler(BaseHandler):
 
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['from'] = u.UserSettings['pubkey']
-        
+        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
-        if client_include_loc == "on":
+        if self.include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
             
@@ -432,6 +544,15 @@ class NewmessageHandler(BaseHandler):
         
         #Send to the server
         server.receiveEnvelope(e.text())
+
+class FormTestHandler(BaseHandler):
+    def get(self):
+        #Generate a test form to manually submit trust and votes
+        self.getvars()
+        self.write(self.render_string('templates/header.html',title="Seeeecret form tests",username=self.username))
+        self.write(self.render_string('templates/formtest.html'))
+        self.write(self.render_string('templates/footer.html'))
+
         
 def main():
     tornado.options.parse_command_line()
@@ -453,8 +574,12 @@ def main():
         (r"/logout" ,LogoutHandler), 
         (r"/newmessage" ,NewmessageHandler), 
         (r"/uploadnewmessage" ,NewmessageHandler), 
+        (r"/vote" ,RatingHandler),
+        (r"/usertrust",UserTrustHandler),  
         (r"/topictag/(.*)" ,TopicHandler), 
         (r"/message/(.*)" ,MessageHandler),    
+        (r"/formtest" ,FormTestHandler),    
+        
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

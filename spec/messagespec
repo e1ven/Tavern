@@ -29,9 +29,9 @@
 
 	<AUTHOR>
 		<FROM>rsa AAAAB3NzaC1yc2EAAAA...</FROM>
+		<FRIENDLYNAME>E1ven</FRIENDLYNAME>
 		<ABOUT>0cb128a753dec8d8d56eedc41e43083d02ec365407ca827fac7b18745eefa282ab6df1c8b97ddaed8b57ba87225bc6a0096c03effd71f8c68aea87db9fea4a43</ABOUT>	
-		<PICTURE>84bf48ec3c1260b500919534e644608c513d2661ff6c43e93851bfb19826ce6949f59a438876fef752843823510e02c4eef8bf6b393b7879a1c28b3fef159df7</PICTURE>
-		<CLIENT>Pluric for Android</CLIENT>
+		<CLIENT>Pluric for Android 1.0</CLIENT>
 	</AUTHOR>
 
 	<SUBJECT>Need more Trek!!</SUBJECT>
@@ -92,7 +92,8 @@ You may omit a "TO" tag- Most messages shouldn't carry one!
 The "Author" fields are included to positively tie a message with an author. This is included inside of the 'Message' block so that it is signed, along with the rest of the message.
 The 'from' field should contain the RSA public key of the author. This is used as the author's primary identity. A client might include a "Follow User" button using this.
 The optional 'About' field may contain a POSTID-SHA512 linking to the author's most-recent about-me Post.
-The optional 'picture' field may contain a binary-control-file linking to a picture or avatar of the author. While this could be included in the 'about' section, it is included here for quick reference, so that a client may display a picture without having to pull and parse the 'about' section.
+The 'friendlyname' is a friendly-short name, that is not necessarily unique across services. We don't call it a username, since that implies uniqueness.
+
 
 The client string is intentionally free-form- While it would be tempting to use a client signature here to 'prove' what client it is, it is ultimately untrustworthy.
 Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.

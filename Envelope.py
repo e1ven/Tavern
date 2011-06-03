@@ -52,19 +52,32 @@ class Envelope(object):
                     return False
             return True  
             
-    class MessageRating(Payload):
+    class Rating(Payload):
          def validate(self):
              if not Envelope.Payload(self.dict).validate():
                  return False
              if not self.dict.has_key('rating'):
                  print "No rating number"
+                 pprint.pprint(self.dict)
                  return False
-             rvalue = self.dict['message_rating']
-             if ((rvalue != 1 ) and (rvalue != -1)):
-                 print "Message ratings must be either -1 or 1 "
+             rvalue = self.dict['rating']
+             if rvalue not in [-1,0,1]:
+                 print "Evelope ratings must be either -1, 1, or 0."
                  return False
-             return true
+             return True
              
+    class UserTrust(Payload):
+        def validate(self):
+              if not Envelope.Payload(self.dict).validate():
+                  return False
+              if not self.dict.has_key('pubkey'):
+                  print "No pubkey to set trust for."
+                  return False
+              tvalue = self.dict['trust']
+              if tvalue not in [-100,0,100]:
+                  print "Message ratings must be either -100, 0, or 100"
+                  return False
+              return True             
                      
                   
     def validate(self):
@@ -103,9 +116,11 @@ class Envelope(object):
             if self.dict['envelope']['payload'].has_key('payload_type'):
                 if self.dict['envelope']['payload']['payload_type'] == "message":
                     self.payload = Envelope.Message(self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['payload_type'] == "message_rating":
-                    self.payload = Envelope.MessageRating(self.dict['envelope']['payload'])
-        
+                elif self.dict['envelope']['payload']['payload_type'] == "rating":
+                    self.payload = Envelope.Rating(self.dict['envelope']['payload'])
+                elif self.dict['envelope']['payload']['payload_type'] == "usertrust":
+                    self.payload = Envelope.UserTrust(self.dict['envelope']['payload'])
+                
     def loadstring(self,importstring):
         self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         self.registerpayload()

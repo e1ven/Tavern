@@ -17,6 +17,10 @@ class User(object):
 
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
         self.UserSettings['username'] = username
+        self.UserSettings['friendlyname'] = username
+        #username is specific to this service.
+        #Move it to <local> ?
+        #Friendlyname is the displayedname
         self.UserSettings['email'] = email
         self.UserSettings['hashedpass'] = hashedpass
         self.Keys = Keys()
@@ -50,7 +54,7 @@ class User(object):
 
 
     def load_mongo_by_username(self,username):
-        #Local Only
+        #Local server Only
         user = server.mongo['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])

@@ -1,0 +1,21 @@
+VOTES:
+<form action="/vote" method="post">
+  {{ xsrf_form_html() }}
+Hash: <input type="text" name="hash">
+<br>
+Vote: <input type="text" name="rating">
+<br>
+<input type="submit" value="Submit Manual Vote">
+</form>
+
+<br>
+<p>
+USER TRUST:
+<form action="/usertrust" method="post">
+  {{ xsrf_form_html() }}
+Pubkey: <input type="text" name="pubkey">
+<br>
+Trust: <input type="text" name="trust">
+<br>
+<input type="submit" value="Submit Manual User Trust">
+</form>
