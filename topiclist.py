@@ -31,4 +31,4 @@ function(key, values) {
         }
 """)
 
-server.mongo['envelopes'].map_reduce(map, reduce, "topiclist")
+server.mongos['default']['envelopes'].map_reduce(map, reduce, "topiclist")

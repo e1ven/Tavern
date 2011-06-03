@@ -179,7 +179,7 @@ class FrontPageHandler(BaseHandler):
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
 
         #db.topiclist.find().sort({value : 1})
-        for topic in server.mongo['topiclist'].find(limit=10).sort('value',-1):
+        for topic in server.mongos['default']['topiclist'].find(limit=10).sort('value',-1):
             toptopics.append(topic)
             
         self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
@@ -192,7 +192,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username))
        
-        for envelope in server.mongo['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
@@ -202,7 +202,7 @@ class MessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
         
-        envelope = server.mongo['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
         
         #Create two lists- One of all attachments, and one of images.
         attachmentList = []
@@ -255,19 +255,24 @@ class RegisterHandler(BaseHandler):
         client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
         client_newpass2 = tornado.escape.xhtml_escape(self.get_argument("pass2"))
-        client_newemail = tornado.escape.xhtml_escape(self.get_argument("email"))
-
+        if "email" in self.request.arguments:
+            client_email = tornado.escape.xhtml_escape(self.get_argument("email"))
+            if client_email == "":
+                client_email = None
+        else:
+            client_email = None     
+            
         if client_newpass != client_newpass2:
             self.write("I'm sorry, your passwords don't match.") 
             return
 
-        
-        users_with_this_email = server.mongo['users'].find({"email":client_newemail})
-        if users_with_this_email.count() > 0:
-            self.write("I'm sorry, this email address has already been used.")  
-            return
+        if client_email is not None:
+            users_with_this_email = server.mongos['default']['users'].find({"email":client_email})
+            if users_with_this_email.count() > 0:
+                self.write("I'm sorry, this email address has already been used.")  
+                return
             
-        users_with_this_username = server.mongo['users'].find({"username":client_newuser})
+        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser})
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")  
             return    
@@ -275,7 +280,10 @@ class RegisterHandler(BaseHandler):
         else:
             hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
             u = User()
-            u.generate(hashedpass=hashedpass,username=client_newuser,email=client_newemail)
+            u.generate(hashedpass=hashedpass,username=client_newuser)
+            if client_email is not None:
+                u.UserSettings['email'] = client_email
+            
             u.UserSettings['maxposts'] = 20
             u.savemongo()
             
@@ -298,8 +306,8 @@ class LoginHandler(BaseHandler):
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
-        print server.mongo['users'].find({"username":client_username}).count()
-        user = server.mongo['users'].find_one({"username":client_username})
+        print server.mongos['default']['users'].find({"username":client_username}).count()
+        user = server.mongos['default']['users'].find_one({"username":client_username})
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username)
@@ -346,7 +354,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['regarding'] = client_hash
             
         #Instantiate the user who's currently logged in
-        user = server.mongo['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username})        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
@@ -397,7 +405,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['pubkey'] = client_pubkey
 
         #Instantiate the user who's currently logged in
-        user = server.mongo['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username})        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
 
@@ -516,7 +524,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['regarding'] = client_regarding
             
         #Instantiate the user who's currently logged in
-        user = server.mongo['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username})        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         

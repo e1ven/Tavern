@@ -48,19 +48,19 @@ class User(object):
         filehandle.close()
     
     def load_mongo_by_pubkey(self,pubkey):
-        user = server.mongo['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
+        user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
 
 
     def load_mongo_by_username(self,username):
         #Local server Only
-        user = server.mongo['users'].find_one({"username":username},as_class=OrderedDict)
+        user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
  
 
     def savemongo(self):
         self.UserSettings['_id'] = self.UserSettings['pubkey']
-        server.mongo['users'].save(self.UserSettings) 
+        server.mongos['default']['users'].save(self.UserSettings) 
             

@@ -145,7 +145,7 @@ class Envelope(object):
         
     def loadmongo(self,mongo_id):
         from server import server
-        env = server.mongo['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
+        env = server.mongos['default']['envelopes'].find_one({'_id':mongo_id},as_class=OrderedDict)
         if env == None:
             return False
         else:
@@ -192,5 +192,5 @@ class Envelope(object):
         
         from server import server
         self.dict['_id'] = self.payload.hash()
-        server.mongo['envelopes'].save(self.dict)
+        server.mongos['default']['envelopes'].save(self.dict)
     

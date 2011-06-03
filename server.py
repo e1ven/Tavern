@@ -17,6 +17,9 @@ class Server(object):
 
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
+        self.mongocons = OrderedDict()
+        self.mongos = OrderedDict()
+        
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
                 #Load Default file(hostnamestname)
@@ -38,11 +41,11 @@ class Server(object):
                 self.ServerSettings['bin-mongo-port'] = 27017
                 self.ServerSettings['bin-mongo-db'] = 'test'
                 self.ServerSettings['uplaod-dir'] = '/opt/uploads'
-                self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-                self.mongo = self.connection[self.ServerSettings['mongo-db']]             
-                self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
-                self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
-                self.bin_GridFS = GridFS(self.bin_mongo)
+                self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
+                self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
+                self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
+                self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+                self.bin_GridFS = GridFS(self.mongos['binaries'])
                 self.saveconfig()   
         else:
             self.loadconfig(settingsfile)
@@ -59,15 +62,16 @@ class Server(object):
         self.ServerSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],priv=self.ServerSettings['privkey'])
         self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-        self.mongo = self.connection[self.ServerSettings['mongo-db']]
         self.ServerSettings['upload-dir'] = '/opt/uploads'
         self.ServerSettings['bin-mongo-hostname'] = 'localhost'
         self.ServerSettings['bin-mongo-port'] = 27017
         self.ServerSettings['bin-mongo-db'] = 'test'
 
-        self.bin_connection = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
-        self.bin_mongo = self.connection[self.ServerSettings['bin-mongo-db']]
-        self.bin_GridFS = GridFS(self.bin_mongo)
+        self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
+        self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
+        self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
+        self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+        self.bin_GridFS = GridFS(self.mongos['binaries'])
         
         filehandle.close()
         self.saveconfig()
