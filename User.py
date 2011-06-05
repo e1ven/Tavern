@@ -15,6 +15,82 @@ class User(object):
     def __init__(self):
         self.UserSettings = OrderedDict()
 
+
+    def gatherTrust(self,askingabout,incomingtrust=250):
+        #Rating of myself = 250
+        #Direct Rating = 100
+        #Friend's Rating = 40
+        #FoF Rating = 16
+        #FoFoF Rating = 6
+        #FoFoFoF (etc) Rating = Not Counted.
+        
+        
+        #Our opinion of everyone starts off Neutral
+        trust = 0 
+        #The Max trust we can return goes down by 40% each time.
+        #I trust my self implicly, and I trust each FoF link 40% less.
+        maxtrust = .4 * incomingtrust     
+
+        #Check mongo to see if we've recently computed this trust value.
+        #Don't keep computing it over and over and over.
+        #We can probably bring this cache to be a pretty high number. 60+ secs
+        cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
+        if cache is not None:
+            if time.time() - cache['time'] < 20:
+                print "Using cached trust"
+                return cache['calculatedtrust']
+                
+        #We trust ourselves implicitly       
+        if askingabout == self.Keys.pubkey:
+            print "I trust me."
+            return round(incomingtrust)
+
+        #Don't recurse forever, please.  
+        #Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0 etc     
+        if incomingtrust <= 2:
+            return 0
+
+        divideby = 1
+        #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
+        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.payload_type" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.from" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+        
+        foundtrust = False
+        if trustrow is not None:
+                trust = int(trustrow['envelope']['payload']['trust'])
+                foundtrust = True
+                
+        if foundtrust == False:
+            #If we didn't directly rate the user, let's see if any of our friends have rated him.
+            #First, find the people WE'VE trusted.
+            
+            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.from" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+            combinedFriendTrust = 0
+            friendcount = 0
+            #Now, iterate through each of those people. This will be slow, which is why we cache.
+            for trusted in alltrusted:
+                friendcount += 1
+                print "BTW- I trust" + trusted['envelope']['payload']['pubkey'] +" \n\n\n\n"
+                u = User()
+                u.load_mongo_by_pubkey(trusted['envelope']['payload']['pubkey'])
+                combinedFriendTrust += u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)
+                print "My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust))
+            if friendcount > 0:    
+                trust = combinedFriendTrust / friendcount
+            print "total friend average" + str(trust)
+
+        #Add up the trusts from our friends, and cap at MaxTrust
+        if trust > maxtrust:
+            trust = maxtrust
+        if trust < (-1 * maxtrust):
+            trust = (-1 * maxtrust)
+
+        cachedict = OrderedDict()
+        cachedict = {"_id": askingabout + str(incomingtrust), "askingabout":askingabout,"incomingtrust":incomingtrust,"calculatedtrust":trust,"time":time.time()}
+        server.mongos['cache']['usertrusts'].save(cachedict)
+        return round(trust)
+                
+                
+                
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
         self.UserSettings['username'] = username
         self.UserSettings['friendlyname'] = username
@@ -39,6 +115,8 @@ class User(object):
         self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         filehandle.close()    
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
+        self.UserSettings['privkey'] = self.Keys.privkey
+        self.UserSettings['pubkey'] = self.Keys.pubkey
         
     def savefile(self,filename=None):
         if filename == None:
@@ -51,14 +129,16 @@ class User(object):
         user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-
+        self.UserSettings['privkey'] = self.Keys.privkey
+        self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def load_mongo_by_username(self,username):
         #Local server Only
         user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
- 
+        self.UserSettings['privkey'] = self.Keys.privkey
+        self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def savemongo(self):
         self.UserSettings['_id'] = self.UserSettings['pubkey']

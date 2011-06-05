@@ -117,6 +117,9 @@ class BaseHandler(tornado.web.RequestHandler):
         self.username = self.get_secure_cookie("username")
         if self.username is None:
             self.username = "Guest"
+            self.loggedin = False
+        else:
+            self.loggedin = True
         self.maxposts = self.get_secure_cookie("maxposts")
         if self.maxposts is None:
             self.maxposts = 20
@@ -167,7 +170,7 @@ class FancyDateTimeDelta(object):
 class NotFoundHandler(BaseHandler):
     def get(self,whatever):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username))
+        self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/404.html'))
         self.write(self.render_string('templates/footer.html'))
 
@@ -176,7 +179,7 @@ class FrontPageHandler(BaseHandler):
     def get(self):
         self.getvars()
         toptopics = []
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username))
+        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
 
         #db.topiclist.find().sort({value : 1})
         for topic in server.mongos['default']['topiclist'].find(limit=10).sort('value',-1):
@@ -190,7 +193,7 @@ class TopicHandler(BaseHandler):
         self.getvars()
         client_topic = tornado.escape.xhtml_escape(topic)
         envelopes = []
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin))
        
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
                 envelopes.append(envelope)
@@ -203,6 +206,13 @@ class MessageHandler(BaseHandler):
         client_message_id = tornado.escape.xhtml_escape(message)
         
         envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
+
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        print "Gathering trust about - " + repr(envelope['envelope']['payload']['author']['from'])
+        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['from'])
+        
+        
         
         #Create two lists- One of all attachments, and one of images.
         attachmentList = []
@@ -235,8 +245,11 @@ class MessageHandler(BaseHandler):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username))
-        self.write(self.render_string('templates/single-message.html',attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
+                                    
+                                
+                            
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('templates/single-message.html',usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
@@ -245,7 +258,7 @@ class MessageHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username))
+        self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/registerform.html'))
         self.write(self.render_string('templates/footer.html'))
     def post(self):
@@ -296,7 +309,7 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         self.getvars()        
-        self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username))
+        self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/loginform.html'))
         self.write(self.render_string('templates/footer.html'))
     def post(self):
@@ -337,7 +350,7 @@ class RatingHandler(BaseHandler):
         #The answer is xsrf protection.
         #We don't want people to link to the upvote button and trick you into voting up.
 
-        if self.username == "Guest":
+        if not self.loggedin:
             self.write("You must be logged in to rate a message.")
             return
         
@@ -388,11 +401,11 @@ class UserTrustHandler(BaseHandler):
 
     def post(self):    
         self.getvars()
-        if self.username == "Guest":
+        if not self.loggedin:
             self.write("You must be logged in to trust or distrust a user.")
             return
 
-        client_pubkey =  tornado.escape.xhtml_escape(self.get_argument("pubkey"))        
+        client_pubkey =  self.get_argument("pubkey")    
         client_trust =  tornado.escape.xhtml_escape(self.get_argument("trust"))
         trust_val = int(client_trust)
         if trust_val not in [-100,0,100]:
@@ -402,7 +415,9 @@ class UserTrustHandler(BaseHandler):
         e = Envelope()
         e.payload.dict['payload_type'] = "usertrust"
         e.payload.dict['trust'] = trust_val
-        e.payload.dict['pubkey'] = client_pubkey
+                
+        k = Keys(pub=client_pubkey)
+        e.payload.dict['pubkey'] = k.pubkey
 
         #Instantiate the user who's currently logged in
         user = server.mongos['default']['users'].find_one({"username":self.username})        
@@ -438,13 +453,13 @@ class UserTrustHandler(BaseHandler):
 class NewmessageHandler(BaseHandler):
     def get(self):
          self.getvars()
-         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username))
+         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
          self.write(self.render_string('templates/newmessageform.html'))
          self.write(self.render_string('templates/footer.html'))
 
     def post(self):
         self.getvars()
-        if self.username == "Guest":
+        if not self.loggedin:
             self.write("You must be logged in to do this.")
             return
         
@@ -557,7 +572,7 @@ class FormTestHandler(BaseHandler):
     def get(self):
         #Generate a test form to manually submit trust and votes
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Seeeecret form tests",username=self.username))
+        self.write(self.render_string('templates/header.html',title="Seeeecret form tests",username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/formtest.html'))
         self.write(self.render_string('templates/footer.html'))
 

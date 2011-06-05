@@ -5,6 +5,8 @@ import time
 from keys import *
 import logging
 import bcrypt
+import string
+import random
 import collections
 from collections import OrderedDict
 import collections
@@ -40,13 +42,36 @@ class Server(object):
                 self.ServerSettings['bin-mongo-hostname'] = 'localhost'
                 self.ServerSettings['bin-mongo-port'] = 27017
                 self.ServerSettings['bin-mongo-db'] = 'test'
+                self.ServerSettings['cache-mongo-hostname'] = 'localhost'
+                self.ServerSettings['cache-mongo-port'] = 27017
+                self.ServerSettings['cache-mongo-db'] = 'test'
+                
                 self.ServerSettings['uplaod-dir'] = '/opt/uploads'
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
                 self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+                self.mongocons['cache'] = pymongo.Connection(self.ServerSettings['cache-mongo-hostname'], self.ServerSettings['cache-mongo-port'])
+                self.mongos['cache'] = self.mongocons['cache'][self.ServerSettings['cache-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
                 self.saveconfig()   
+        
+            #Ensure we have a "Guest" user
+            #We can un-logged-in settings in this acct.
+            users_with_this_username = self.mongos['default']['users'].find({"username":"Guest"})
+            if users_with_this_username.count() < 1:
+                guest = OrderedDict()
+                guest['username'] = "Guest"
+                guest['friendlyname'] = "Guest"
+                guest['hashedpass'] = bcrypt.hashpw(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(100)), bcrypt.gensalt(12))
+                
+                gkeys = Keys()
+                gkeys.generate()
+                guest['privkey'] = gkeys.privkey
+                guest['pubkey'] = gkeys.pubkey  
+                guest['_id'] = guest['pubkey']
+                self.mongos['default']['users'].save(guest)
+        
         else:
             self.loadconfig(settingsfile)
             
@@ -66,11 +91,15 @@ class Server(object):
         self.ServerSettings['bin-mongo-hostname'] = 'localhost'
         self.ServerSettings['bin-mongo-port'] = 27017
         self.ServerSettings['bin-mongo-db'] = 'test'
-
+        self.ServerSettings['cache-mongo-hostname'] = 'localhost'
+        self.ServerSettings['cache-mongo-port'] = 27017
+        self.ServerSettings['cache-mongo-db'] = 'test'
         self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
         self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
         self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
         self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+        self.mongocons['cache'] = pymongo.Connection(self.ServerSettings['cache-mongo-hostname'], self.ServerSettings['cache-mongo-port'])
+        self.mongos['cache'] = self.mongocons['cache'][self.ServerSettings['cache-mongo-db']]
         self.bin_GridFS = GridFS(self.mongos['binaries'])
         
         filehandle.close()
