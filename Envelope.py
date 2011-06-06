@@ -28,8 +28,8 @@ class Envelope(object):
                 print "No Author Information"
                 return False
             else:
-                if not self.dict['author'].has_key('from'):
-                    print "No From line"
+                if not self.dict['author'].has_key('pubkey'):
+                    print "No Pubkey line in Author info"
                     return False
             return True                
                           

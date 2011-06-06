@@ -52,7 +52,7 @@ class User(object):
 
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
-        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.payload_type" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.from" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.payload_type" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
         
         foundtrust = False
         if trustrow is not None:
@@ -63,7 +63,7 @@ class User(object):
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
             #First, find the people WE'VE trusted.
             
-            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.from" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
             combinedFriendTrust = 0
             friendcount = 0
             #Now, iterate through each of those people. This will be slow, which is why we cache.
@@ -94,7 +94,7 @@ class User(object):
         allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
         combinedrating = 0
         for vote in allvotes:
-            author = vote['envelope']['payload']['author']['from']
+            author = vote['envelope']['payload']['author']['pubkey']
             rating = vote['envelope']['payload']['rating']
             authorTrust = self.gatherTrust(askingabout=author)
             if authorTrust > 0:

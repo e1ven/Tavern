@@ -152,7 +152,7 @@ class Server(object):
         #Determine Message type, by which primary key it has. 
         #While there is no *technical* reason you couldn't have more than one message per envelope, or a message and a vote, it is invalid.
         #The reason for this is that envelopes are low-overhead, and make splitting it up by other servers later, easier.
-        #So, we only allow one, to ensure cleanness of the echosystem.
+        #So, we only allow one, to ensure cleanness of the ecosystem.
         
         if c.dict['envelope']['payload']['payload_type'] == "message":       
             #If the message referenes anyone, mark the original, for ease of finding it later.

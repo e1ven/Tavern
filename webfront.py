@@ -209,8 +209,8 @@ class MessageHandler(BaseHandler):
 
         u = User()
         u.load_mongo_by_username(username=self.username)
-        print "Gathering trust about - " + repr(envelope['envelope']['payload']['author']['from'])
-        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['from'])
+        print "Gathering trust about - " + repr(envelope['envelope']['payload']['author']['pubkey'])
+        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
         messagerating = u.getRatings(client_message_id)
         
         
@@ -263,7 +263,7 @@ class RegisterHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title='Register for an account',username=""))
+        self.write(self.render_string('templates/header.html',title='Register for an account',username="",loggedin=False))
 
         client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -372,7 +372,7 @@ class RatingHandler(BaseHandler):
         u.load_mongo_by_pubkey(user['pubkey'])
         
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
@@ -425,7 +425,7 @@ class UserTrustHandler(BaseHandler):
         u.load_mongo_by_pubkey(user['pubkey'])
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
 
         e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
@@ -547,7 +547,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['from'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
