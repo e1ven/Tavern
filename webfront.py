@@ -211,7 +211,7 @@ class MessageHandler(BaseHandler):
         u.load_mongo_by_username(username=self.username)
         print "Gathering trust about - " + repr(envelope['envelope']['payload']['author']['from'])
         usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['from'])
-        
+        messagerating = u.getRatings(client_message_id)
         
         
         #Create two lists- One of all attachments, and one of images.
@@ -249,7 +249,7 @@ class MessageHandler(BaseHandler):
                                 
                             
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/single-message.html',usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
@@ -314,7 +314,7 @@ class LoginHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title='Login to your account',username=""))
+        self.write(self.render_string('templates/header.html',loggedin=False,title='Login to your account',username=""))
 
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))

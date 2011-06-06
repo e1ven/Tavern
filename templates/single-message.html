@@ -1,5 +1,7 @@
 
 Message posted by: <acronym title="{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['payload']['author']['from']}}">{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['payload']['author']['from'][28:44]}}</acronym>... [ Trusted at level: {{usertrust}} ]<br>
+<br>
+Message Rating of: {{messagerating}}<br><br>
 
 Topics:<br>
 
@@ -60,14 +62,14 @@ Topics:<br>
 
 <form action="/vote" method="post">
   {{ xsrf_form_html() }}
-<input type="hidden" name="rating" value="1">
+<input type="hidden" name="rating" value="-1">
 <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 <input type="submit" value="Thumbs Down on this post">
 </form>
 
 <form action="/vote" method="post">
   {{ xsrf_form_html() }}
-<input type="hidden" name="rating" value="-1">
+<input type="hidden" name="rating" value="1">
 <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 <input type="submit" value="Thumbs Up on this post">
 </form>

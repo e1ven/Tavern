@@ -88,8 +88,19 @@ class User(object):
         cachedict = {"_id": askingabout + str(incomingtrust), "askingabout":askingabout,"incomingtrust":incomingtrust,"calculatedtrust":trust,"time":time.time()}
         server.mongos['cache']['usertrusts'].save(cachedict)
         return round(trust)
-                
-                
+    
+    def getRatings(self,postInQuestion):            
+        #Move this. Maybe to Server??
+        allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
+        combinedrating = 0
+        for vote in allvotes:
+            author = vote['envelope']['payload']['author']['from']
+            rating = vote['envelope']['payload']['rating']
+            authorTrust = self.gatherTrust(askingabout=author)
+            if authorTrust > 0:
+                combinedrating += rating
+        
+        return combinedrating     
                 
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
         self.UserSettings['username'] = username
