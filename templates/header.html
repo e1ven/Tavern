@@ -47,7 +47,8 @@
 <a href="/newmessage">Post new Message</a>
 {% if loggedin %}	
 	Your UserName:  {{username}} || <form action="/logout" method="post">   {{ xsrf_form_html() }} <input style="border: 1px solid #006;" type="submit" value="logout"></form>
-	
+	<br>
+	<a href="/showprivates">Show private messages</a>
 {% end %}
 
 </p>

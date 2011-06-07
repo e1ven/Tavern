@@ -31,7 +31,7 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-
+import TopicList
 
 import re
 try: 
@@ -776,7 +776,9 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
-            
+    #####TAKE ME OUT IN PRODUCTION!!!!@! #####
+    
+    tl = TopicList.TopicList()        
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
