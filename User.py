@@ -14,7 +14,9 @@ class User(object):
       
     def __init__(self):
         self.UserSettings = OrderedDict()
-
+        self.UserSettings['local'] = OrderedDict()
+        self.UserSettings['local']['followUser'] = []
+        self.UserSettings['local']['followTopic'] = []
 
     def gatherTrust(self,askingabout,incomingtrust=250):
         #Rating of myself = 250
@@ -100,7 +102,24 @@ class User(object):
             if authorTrust > 0:
                 combinedrating += rating
         
-        return combinedrating     
+        return combinedrating  
+    
+    def followUser(self,pubkey):
+        if pubkey not in self.UserSettings['local']['followUser']:
+            self.UserSettings['local']['followUser'].append(pubkey)
+            
+    def followTopic(self,topictag):
+        if pubkey not in self.UserSettings['local']['followTopic']:
+            self.UserSettings['local']['followTopic'].append(topictag)
+
+    def noFollowUser(self,pubkey):
+        if pubkey in self.UserSettings['local']['followUser']:
+            self.UserSettings['local']['followUser'].remove(pubkey)
+
+    def noFollowTopic(self,topictag):
+        if pubkey in self.UserSettings['local']['followTopic']:
+            self.UserSettings['local']['followTopic'].remove(topictag)    
+       
                 
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
         self.UserSettings['username'] = username

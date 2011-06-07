@@ -30,6 +30,7 @@ from keys import *
 from User import User
 from gridfs import GridFS
 import hashlib
+import urllib
 
 
 import re
@@ -76,37 +77,39 @@ def autolink(html):
     return html
 
 # Github flavored Markdown, from http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
+#Modified to have more newlines. I like newlines.
 def gfm(text):
-    # Extract pre blocks.
+    # Extract pre blocks
     extractions = {}
     def pre_extraction_callback(matchobj):
-        digest = md5(matchobj.group(0)).hexdigest()
-        extractions[digest] = matchobj.group(0)
-        return "{gfm-extraction-%s}" % digest
-        pattern = re.compile(r'<pre>.*?</pre>', re.MULTILINE | re.DOTALL)
-        text = re.sub(pattern, pre_extraction_callback, text)
+        hash = md5_func(matchobj.group(0)).hexdigest()
+        extractions[hash] = matchobj.group(0)
+        return "{gfm-extraction-%s}" % hash
+    pre_extraction_regex = re.compile(r'{gfm-extraction-338ad5080d68c18b4dbaf41f5e3e3e08}', re.MULTILINE | re.DOTALL)
+    text = re.sub(pre_extraction_regex, pre_extraction_callback, text)
 
-    # Prevent foo_bar_baz from ending up with an italic word in the middle.
+    # prevent foo_bar_baz from ending up with an italic word in the middle
     def italic_callback(matchobj):
-        s = matchobj.group(0)
-        if list(s).count('_') >= 2:
-            return s.replace('_', '\_')
-        return s
-        text = re.sub(r'^(?! {4}|\t)\w+_\w+_\w[\w_]*', italic_callback, text)
-
-    # In very clear cases, let newlines become <br /> tags.
+        if len(re.sub(r'[^_]', '', matchobj.group(1))) > 1:
+            return matchobj.group(1).replace('_', '\_')
+        else:
+            return matchobj.group(1)
+    text = re.sub(r'(^(?! {4}|\t)\w+_\w+_\w[\w_]*)', italic_callback, text)
+    
+    
+    # in very clear cases, let newlines become <br /> tags
     def newline_callback(matchobj):
         if len(matchobj.group(1)) == 1:
             return matchobj.group(0).rstrip() + '  \n'
         else:
             return matchobj.group(0)
-        pattern = re.compile(r'^[\w\<][^\n]*(\n+)', re.MULTILINE)
-        text = re.sub(pattern, newline_callback, text)
-
-    # Insert pre block extractions.
+    # text = re.sub(r'^[\w\<][^\n]*(\n+)', newline_callback, text)
+    text = re.sub(r'[^\n]*(\n+)', newline_callback, text)
+    
+    # Insert pre block extractions
     def pre_insert_callback(matchobj):
-        return '\n\n' + extractions[matchobj.group(1)]
-        text = re.sub(r'{gfm-extraction-([0-9a-f]{32})\}', pre_insert_callback, text)
+        return extractions[matchobj.group(1)]
+    text = re.sub(r'{gfm-extraction-([0-9a-f]{40})\}', pre_insert_callback, text)
 
     return text
 
@@ -246,10 +249,11 @@ class MessageHandler(BaseHandler):
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
                                     
-                                
-                            
+        print repr(envelope['envelope']['payload']['body'])                        
+        formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
+        print repr(formattedbody)                    
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/single-message.html',messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
@@ -280,12 +284,12 @@ class RegisterHandler(BaseHandler):
             return
 
         if client_email is not None:
-            users_with_this_email = server.mongos['default']['users'].find({"email":client_email})
+            users_with_this_email = server.mongos['default']['users'].find({"email":client_email.lower()})
             if users_with_this_email.count() > 0:
                 self.write("I'm sorry, this email address has already been used.")  
                 return
             
-        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser})
+        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser.lower()})
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")  
             return    
@@ -293,14 +297,14 @@ class RegisterHandler(BaseHandler):
         else:
             hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
             u = User()
-            u.generate(hashedpass=hashedpass,username=client_newuser)
+            u.generate(hashedpass=hashedpass,username=client_newuser.lower())
             if client_email is not None:
-                u.UserSettings['email'] = client_email
+                u.UserSettings['email'] = client_email.lower()
             
             u.UserSettings['maxposts'] = 20
             u.savemongo()
             
-            self.set_secure_cookie("username",client_newuser,httponly=True)
+            self.set_secure_cookie("username",client_newuser.lower(),httponly=True)
             self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
             
             self.redirect("/")
@@ -319,13 +323,12 @@ class LoginHandler(BaseHandler):
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
-        print server.mongos['default']['users'].find({"username":client_username}).count()
-        user = server.mongos['default']['users'].find_one({"username":client_username})
+        user = server.mongos['default']['users'].find_one({"username":client_username.lower()})
         if user is not None:
             u = User()
-            u.load_mongo_by_username(username=client_username)
+            u.load_mongo_by_username(username=client_username.lower())
             if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
-                self.set_secure_cookie("username",user['username'],httponly=True)
+                self.set_secure_cookie("username",user['username'].lower(),httponly=True)
                 self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
                 self.redirect("/")
                 return
@@ -336,6 +339,90 @@ class LogoutHandler(BaseHandler):
      def post(self):
          self.clear_cookie("username")
          self.redirect("/")
+
+class ShowUserPosts(BaseHandler):
+    def get(self,pubkey):
+        self.getvars()
+        
+        #Unquote it, then convert it to a PluricKey object so we can rebuild it.
+        #Quoting destroys the newlines.
+        pubkey = urllib.unquote(pubkey)
+        k = Keys(pub=pubkey)
+        k.formatkeys()
+        pubkey = k.pubkey
+        
+        
+        messages = []
+        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,).sort('value',-1):
+            messages.append(message)
+
+        self.write(self.render_string('templates/showuserposts.html',messages=messages))
+        self.write(self.render_string('templates/footer.html'))
+                 
+                 
+class FollowUserHandler(BaseHandler):
+    def get(self,pubkey):
+        self.getvars()
+        #Calculate the votes for that post. 
+
+    def post(self):    
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to follow a user.")
+            return 0
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        u.followUser(pubkey)
+        u.savemongo()
+        
+class NoFollowUserHandler(BaseHandler):
+    def get(self,topictag):
+        self.getvars()
+     #Calculate the votes for that post. 
+
+    def post(self):    
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to follow a topic.")
+            return 0
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        u.noFollowUser(topictag)
+        u.savemongo()
+
+
+class FollowTopicHandler(BaseHandler):
+    def get(self,pubkey):
+        self.getvars()
+
+    def post(self):    
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to follow a user.")
+            return 0
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        u.followTopic(pubkey)
+        u.savemongo()
+
+class NoFollowTopicHandler(BaseHandler):
+    def get(self,topictag):
+        self.getvars()
+        
+    def post(self):       
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to follow a topic.")
+            return 0
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        u.noFollowTopic(topictag)
+        u.savemongo()
+    
+            
+            
+        
 
 class RatingHandler(BaseHandler):
     def get(self,posthash):
@@ -601,7 +688,11 @@ def main():
         (r"/usertrust",UserTrustHandler),  
         (r"/topictag/(.*)" ,TopicHandler), 
         (r"/message/(.*)" ,MessageHandler),    
-        (r"/formtest" ,FormTestHandler),    
+        (r"/followuser/(.*)" ,FollowUserHandler),  
+        (r"/followtopic/(.*)" ,FollowTopicHandler),  
+        (r"/showuserposts/(.*)" ,ShowUserPosts),  
+        (r"/formtest" ,FormTestHandler),  
+          
         
         (r"/(.*)", NotFoundHandler)
     ], **settings)
