@@ -52,6 +52,8 @@ class Keys(object):
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]            
             self.privkey = "-----BEGIN RSA PRIVATE KEY-----\n" + withLinebreaks + "\n-----END RSA PRIVATE KEY-----"
+            self.privkey_bio = M2Crypto.BIO.MemoryBuffer(self.privkey.encode('utf8'))
+        
         else:
             print "No PRIVKEY"
             
@@ -64,11 +66,15 @@ class Keys(object):
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PUBLIC KEY-----\n" + withLinebreaks + "\n-----END PUBLIC KEY-----" 
+            self.pubkey_bio = M2Crypto.BIO.MemoryBuffer(self.pubkey.encode('utf8'))
         
         if self.privkey != None and self.pubkey != None:
               self.combinedkey = self.privkey + '\n' + self.pubkey
               self.combinedkey = self.combinedkey.encode('utf8')
               self.combinedkey_bio = M2Crypto.BIO.MemoryBuffer(self.combinedkey)
+     
+     
+     
      
             
     def generate(self):
@@ -103,4 +109,18 @@ class Keys(object):
             return True
         else:
             return False
+    
+    def encryptToSelf(self,encryptstring):
+        self.formatkeys()
+        WriteRSA = M2Crypto.RSA.load_pub_key_bio(self.pubkey_bio)
+        CipherText = WriteRSA.public_encrypt(encryptstring, M2Crypto.RSA.pkcs1_oaep_padding)
+        return CipherText.encode('base64')
+        
+    def decryptToSelf(self,decryptstring):
+        self.formatkeys()
+        ReadRSA = M2Crypto.RSA.load_key_bio (self.privkey_bio)
+        unsafebytes = decryptstring.decode('base64')
+        PlainText = ReadRSA.private_decrypt (unsafebytes, M2Crypto.RSA.pkcs1_oaep_padding)
+        return PlainText
+            
         

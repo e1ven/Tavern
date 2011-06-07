@@ -212,7 +212,6 @@ class MessageHandler(BaseHandler):
 
         u = User()
         u.load_mongo_by_username(username=self.username)
-        print "Gathering trust about - " + repr(envelope['envelope']['payload']['author']['pubkey'])
         usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
         messagerating = u.getRatings(client_message_id)
         
@@ -249,11 +248,28 @@ class MessageHandler(BaseHandler):
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
                                     
-        print repr(envelope['envelope']['payload']['body'])                        
         formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
-        print repr(formattedbody)                    
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
+        self.write(self.render_string('templates/footer.html'))
+
+class PrivateMessageHandler(BaseHandler):        
+    def get(self,message):
+        self.getvars()
+        client_message_id = tornado.escape.xhtml_escape(message)
+
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
+
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
+        
+        envelope['envelope']['payload']['body'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['body'])
+        envelope['envelope']['payload']['subject'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['subject'])
+
+        formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('templates/singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 
@@ -655,6 +671,96 @@ class NewmessageHandler(BaseHandler):
         #Send to the server
         server.receiveEnvelope(e.text())
 
+class MyPrivateMessagesHandler(BaseHandler):
+    def get(self):
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to do this.")
+            return
+            
+        messages = []
+        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        u = User()
+        u.load_mongo_by_pubkey(user['pubkey'])
+        
+        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,).sort('value',-1):
+            message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
+            messages.append(message)
+
+        self.write(self.render_string('templates/showprivatemessages.html',messages=messages))
+        self.write(self.render_string('templates/footer.html'))
+
+
+class NewPrivateMessageHandler(BaseHandler):
+    def get(self,urlto=None):
+         self.getvars()
+         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
+         self.write(self.render_string('templates/privatemessageform.html',urlto=urlto))
+         self.write(self.render_string('templates/footer.html'))
+
+    def post(self,urlto=None):
+        self.getvars()
+        if not self.loggedin:
+            self.write("You must be logged in to do this.")
+            return
+
+        client_to =  tornado.escape.xhtml_escape(self.get_argument("to"))
+        if urlto is not None:
+            client_to = tornado.escape.xhtml_escape(urlto)
+            
+        client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
+        client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
+        self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+        if "regarding" in self.request.arguments:
+            client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
+            if client_regarding == "":
+                client_regarding = None
+        else:
+            client_regarding = None
+
+        #Instantiate the user who's currently logged in
+        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        u = User()
+        u.load_mongo_by_pubkey(user['pubkey'])
+        
+        #Instantiate the key of the user who we're sending to
+        toKey = Keys(pub=client_to)
+        toKey.formatkeys()
+
+
+        e = Envelope()
+        topics = []
+        e.payload.dict['payload_type'] = "privatemessage"
+        e.payload.dict['to'] = toKey.pubkey
+        e.payload.dict['body'] = toKey.encryptToSelf(client_body)
+        e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)
+        if client_regarding is not None:
+            print "Adding Regarding - " + client_regarding
+            e.payload.dict['regarding'] = client_regarding
+
+        e.payload.dict['author'] = OrderedDict()
+        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        if self.include_loc == "on":
+            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            ip = self.request.remote_ip
+
+            #Don't check from home.
+            if ip == "127.0.0.1":
+                ip = "8.8.8.8"
+
+            gir = gi.record_by_name(ip)
+            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+
+        #Sign this bad boy
+        usersig = u.Keys.signstring(e.payload.text())
+        e.dict['sender_signature'] = usersig
+
+        #Send to the server
+        server.receiveEnvelope(e.text())
+
 class FormTestHandler(BaseHandler):
     def get(self):
         #Generate a test form to manually submit trust and votes
@@ -691,6 +797,11 @@ def main():
         (r"/followuser/(.*)" ,FollowUserHandler),  
         (r"/followtopic/(.*)" ,FollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  
+        (r"/showprivates" ,MyPrivateMessagesHandler),    
+        (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
+        (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
+        (r"/privatemessage/(.*)" ,PrivateMessageHandler),  
+          
         (r"/formtest" ,FormTestHandler),  
           
         

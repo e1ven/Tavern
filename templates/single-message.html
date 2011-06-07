@@ -33,6 +33,9 @@ Topics:<br>
 <br>
 <a href="/showuserposts/{{envelope['envelope']['payload']['author']['pubkey']}}">Show all posts by this user.</a>
 <br>
+<br>
+<a href="/uploadprivatemessage/{{envelope['envelope']['payload']['author']['pubkey']}}">Send This user a Private Message.</a>
+<br>
 
 <p>Subject: {{envelope['envelope']['payload']['subject']}}</p>
 <p>Body: {{formattedbody}}</p>

@@ -51,6 +51,20 @@ class Envelope(object):
                     print "List too long"
                     return False
             return True  
+    
+    
+    class PrivateMessage(Payload):
+        def validate(self):
+            if not Envelope.Payload(self.dict).validate():
+                print "Super does not Validate"
+                return False
+            if not self.dict.has_key('to'):
+                print "No 'to' field"
+                return False
+            if self.dict.has_key('topictag_list'):
+                print "Topictag not allowed in privmessage."
+                return False
+            return True
             
     class Rating(Payload):
          def validate(self):
@@ -120,6 +134,8 @@ class Envelope(object):
                     self.payload = Envelope.Rating(self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['payload_type'] == "usertrust":
                     self.payload = Envelope.UserTrust(self.dict['envelope']['payload'])
+                elif self.dict['envelope']['payload']['payload_type'] == "privatemessage":
+                    self.payload = Envelope.PrivateMessage(self.dict['envelope']['payload'])
                 
     def loadstring(self,importstring):
         self.dict = json.loads(importstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
