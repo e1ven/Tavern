@@ -31,7 +31,6 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import postmarkup
 
 import re
 try: 
@@ -42,76 +41,7 @@ import NofollowExtension
 
 
 define("port", default=8080, help="run on the given port", type=int)
-postmarkup = postmarkup.create(use_pygments=False)
-            
 
-#Autolink from http://greaterdebater.com/blog/gabe/post/4
-def autolink(html):
-    # match all the urls
-    # this returns a tuple with two groups
-    # if the url is part of an existing link, the second element
-    # in the tuple will be "> or </a>
-    # if not, the second element will be an empty string
-    urlre = re.compile("(\(?https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|])(\">|</a>)?")
-    urls = urlre.findall(html)
-    clean_urls = []
-
-    # remove the duplicate matches
-    # and replace urls with a link
-    for url in urls:
-        # ignore urls that are part of a link already
-        if url[1]: continue
-        c_url = url[0]
-        # ignore parens if they enclose the entire url
-        if c_url[0] == '(' and c_url[-1] == ')':
-            c_url = c_url[1:-1]
-
-        if c_url in clean_urls: continue # We've already linked this url
-
-        clean_urls.append(c_url)
-        # substitute only where the url is not already part of a
-        # link element.
-        html = re.sub("(?<!(=\"|\">))" + re.escape(c_url), 
-                      "<a rel=\"nofollow\" href=\"" + c_url + "\">" + c_url + "</a>",
-                      html)
-    return html
-
-# Github flavored Markdown, from http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
-#Modified to have more newlines. I like newlines.
-def gfm(text):
-    # Extract pre blocks
-    extractions = {}
-    def pre_extraction_callback(matchobj):
-        hash = md5_func(matchobj.group(0)).hexdigest()
-        extractions[hash] = matchobj.group(0)
-        return "{gfm-extraction-%s}" % hash
-    pre_extraction_regex = re.compile(r'{gfm-extraction-338ad5080d68c18b4dbaf41f5e3e3e08}', re.MULTILINE | re.DOTALL)
-    text = re.sub(pre_extraction_regex, pre_extraction_callback, text)
-
-    # prevent foo_bar_baz from ending up with an italic word in the middle
-    def italic_callback(matchobj):
-        if len(re.sub(r'[^_]', '', matchobj.group(1))) > 1:
-            return matchobj.group(1).replace('_', '\_')
-        else:
-            return matchobj.group(1)
-    text = re.sub(r'(^(?! {4}|\t)\w+_\w+_\w[\w_]*)', italic_callback, text)
-    
-    
-    # in very clear cases, let newlines become <br /> tags
-    def newline_callback(matchobj):
-        if len(matchobj.group(1)) == 1:
-            return matchobj.group(0).rstrip() + '  \n'
-        else:
-            return matchobj.group(0)
-    # text = re.sub(r'^[\w\<][^\n]*(\n+)', newline_callback, text)
-    text = re.sub(r'[^\n]*(\n+)', newline_callback, text)
-    
-    # Insert pre block extractions
-    def pre_insert_callback(matchobj):
-        return extractions[matchobj.group(1)]
-    text = re.sub(r'{gfm-extraction-([0-9a-f]{40})\}', pre_insert_callback, text)
-
-    return text
 
 
 
@@ -248,15 +178,11 @@ class MessageHandler(BaseHandler):
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
         if envelope['envelope']['payload'].has_key('formatting'):
-            if envelope['envelope']['payload']['formatting'] == "bbcode":
-                formattedbody = postmarkup(envelope['envelope']['payload']['body'])
-            if envelope['envelope']['payload']['formatting'] == "markdown":
-                formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
-            if envelope['envelope']['payload']['formatting'] == "plaintext":
-                formattedbody = "<pre>" + envelope['envelope']['payload']['body'] + "</pre>"
-        else:
-            formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
-            
+                formattedbody = server.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
+        else:    
+                formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
+                
+
             
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
@@ -642,7 +568,7 @@ class NewmessageHandler(BaseHandler):
         e = Envelope()
         topics = []
         topics.append(client_topic)        
-        e.payload.dict['formatting'] = "bbcode"
+        e.payload.dict['formatting'] = "markdown"
         e.payload.dict['payload_type'] = "message"
         e.payload.dict['topictag'] = topics
         e.payload.dict['body'] = client_body
