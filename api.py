@@ -32,6 +32,7 @@ import hashlib
 import urllib
 import TopicList
 
+
 import re
 try: 
    from hashlib import md5 as md5_func
@@ -40,95 +41,24 @@ except ImportError:
 import NofollowExtension
 
 
-define("port", default=8080, help="run on the given port", type=int)
-
-
-
+define("port", default=8090, help="run on the given port", type=int)
 
 class BaseHandler(tornado.web.RequestHandler):
-    def getvars(self):
-        self.username = self.get_secure_cookie("username")
-        if self.username is None:
-            self.username = "Guest"
-            self.loggedin = False
-        else:
-            self.loggedin = True
-        self.maxposts = self.get_secure_cookie("maxposts")
-        if self.maxposts is None:
-            self.maxposts = 20
-        else:
-            self.maxposts = int(self.maxposts)
-        #Toggle this.
-        self.include_loc = "on"  
-           
-        return str(self.username)
-           
-    
-class FancyDateTimeDelta(object):
-    """
-    Format the date / time difference between the supplied date and
-    the current time using approximate measurement boundaries
-    """
-
-    def __init__(self, dt):
-        now = datetime.datetime.now()
-        delta = now - dt
-        self.year = delta.days / 365
-        self.month = delta.days / 30 - (12 * self.year)
-        if self.year > 0:
-            self.day = 0
-        else: 
-            self.day = delta.days % 30
-        self.hour = delta.seconds / 3600
-        self.minute = delta.seconds / 60 - (60 * self.hour)
-        self.second = delta.seconds - ( self.hour * 3600) - (60 * self.minute) 
-        self.millisecond = delta.microseconds / 1000
-
-    def format(self):
-        #Round down. People don't want the exact time.
-        #For exact time, reverse array.
-        fmt = ""
-        for period in ['millisecond','second','minute','hour','day','month','year']:
-            value = getattr(self, period)
-            if value:
-                if value > 1:
-                    period += "s"
-
-                fmt = str(value) + " " + period
-        return fmt + " ago"
-    
-
+    pass
+	def error(self,errortext):
+	    self.write("***ERROR***")
+	    self.write(errortext)
+	    self.write("***END ERROR***")
 
 
 class NotFoundHandler(BaseHandler):
     def get(self,whatever):
-        self.getvars()
-        self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/404.html'))
-        self.write(self.render_string('templates/footer.html'))
+        self.error("Endpoint Not found.")
 
 
-class FrontPageHandler(BaseHandler):        
-    def get(self):
-        self.getvars()
-        toptopics = []
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-
-        #db.topiclist.find().sort({value : 1})
-        for topic in server.mongos['default']['topiclist'].find(limit=10).sort('value',-1):
-            toptopics.append(topic)
-            
-        self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
-        self.write(self.render_string('templates/footer.html'))
-
-class TopicHandler(BaseHandler):        
-    def get(self,topic):
-        self.getvars()
-        client_topic = tornado.escape.xhtml_escape(topic)
-        envelopes = []
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin))
-       
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
+class ListActiveTopics(BaseHandler):        
+    def get(self,topic):       
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic }):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))

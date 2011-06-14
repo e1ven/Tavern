@@ -16,8 +16,11 @@ class Envelope(object):
             self.dict = OrderedDict()
             self.dict = initialdict
         def format(self):
-            sortedkeys = self.dict.keys().sorted()
-            self.dict = sortedkeys
+            keylist = self.dict.keys()
+            newdict = OrderedDict()
+            for key in sorted(keylist):
+                newdict[key] = self.dict[key]
+            self.dict = newdict
         def hash(self):
             self.format()
             h = hashlib.sha512()
@@ -100,9 +103,7 @@ class Envelope(object):
                      
                   
     def validate(self):
-        #Validate an Envelope
-        
-        
+        #Validate an Envelope    
         if not self.dict.has_key('envelope'):
             print "Invalid Evelope. No Header"
             return False

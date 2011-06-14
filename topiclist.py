@@ -10,15 +10,18 @@ class TopicList(object):
         #This allows me to create one at Runtime if nec. 
         map = Code("""
         function() {
-                for (var i =0; i < this.envelope.payload.topictag.length; i++) 
-            	{ 
-            	    var timestamp = Number(new Date()/1000);
-            	    mtime = this.envelope.servers[0].time_seen;
-            	    if ((mtime + 86400) > timestamp )
-            	        {
-                            singletag = this.envelope.payload.topictag[i];
-                            emit({tag:singletag},{count:1}); 
-                        }
+                if (this.envelope.payload.payload_type == 'message')
+                {
+                    for (var i =0; i < this.envelope.payload.topictag.length; i++) 
+                	{ 
+                	    var timestamp = Number(new Date()/1000);
+                	    mtime = this.envelope.servers[0].time_seen;
+                	    if ((mtime + 86400) > timestamp )
+                	        {
+                                singletag = this.envelope.payload.topictag[i];
+                                emit({tag:singletag},{count:1}); 
+                            }
+                	}
             	}
                                               
         }
@@ -35,3 +38,4 @@ class TopicList(object):
         """)
 
         server.mongos['default']['envelopes'].map_reduce(map, reduce, "topiclist")
+T = TopicList()
