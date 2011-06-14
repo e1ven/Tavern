@@ -76,6 +76,8 @@ python setup.py install
 cd /opt/Pluric/libs/M2Crypto-0.21.1
 python setup.py install
 
+cd /opt/Pluric/libs/postmarkup-1.1.4/
+python setup.py install
 
 /opt/Pluric/libs/zlib-1.2.5
 ./configure; make; make install

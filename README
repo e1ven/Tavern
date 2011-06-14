@@ -33,7 +33,11 @@ Using the following Libraries:
 
 	Auto-linked Markdown (BSD)
 		http://greaterdebater.com/blog/gabe/post/4
-	
+
+
+	PostMarkup (Politeness)
+		http://code.google.com/p/postmarkup/	
+
 	MaxMind GeoIP used for GeoLocation (LGPL)
 		http://www.maxmind.com/app/c
 		http://www.maxmind.com/app/python

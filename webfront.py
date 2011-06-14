@@ -31,7 +31,7 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import TopicList
+import postmarkup
 
 import re
 try: 
@@ -42,7 +42,7 @@ import NofollowExtension
 
 
 define("port", default=8080, help="run on the given port", type=int)
-
+postmarkup = postmarkup.create(use_pygments=False)
             
 
 #Autolink from http://greaterdebater.com/blog/gabe/post/4
@@ -247,8 +247,17 @@ class MessageHandler(BaseHandler):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-                                    
-        formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
+        if envelope['envelope']['payload'].has_key('formatting'):
+            if envelope['envelope']['payload']['formatting'] == "bbcode":
+                formattedbody = postmarkup(envelope['envelope']['payload']['body'])
+            if envelope['envelope']['payload']['formatting'] == "markdown":
+                formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
+            if envelope['envelope']['payload']['formatting'] == "plaintext":
+                formattedbody = "<pre>" + envelope['envelope']['payload']['body'] + "</pre>"
+        else:
+            formattedbody = autolink(markdown.markdown(gfm(envelope['envelope']['payload']['body'])))
+            
+            
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
         self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
@@ -632,7 +641,8 @@ class NewmessageHandler(BaseHandler):
                         
         e = Envelope()
         topics = []
-        topics.append(client_topic)
+        topics.append(client_topic)        
+        e.payload.dict['formatting'] = "bbcode"
         e.payload.dict['payload_type'] = "message"
         e.payload.dict['topictag'] = topics
         e.payload.dict['body'] = client_body
@@ -778,7 +788,7 @@ def main():
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
     #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
-    tl = TopicList.TopicList()        
+    #tl = TopicList.TopicList()        
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
