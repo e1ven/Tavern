@@ -8,92 +8,24 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import pprint
-import postmarkup
-
 
 class Envelope(object):
-    postmarkup = postmarkup.create(use_pygments=False)
-
-
-    #Autolink from http://greaterdebater.com/blog/gabe/post/4
-    def autolink(html):
-        # match all the urls
-        # this returns a tuple with two groups
-        # if the url is part of an existing link, the second element
-        # in the tuple will be "> or </a>
-        # if not, the second element will be an empty string
-        urlre = re.compile("(\(?https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|])(\">|</a>)?")
-        urls = urlre.findall(html)
-        clean_urls = []
-
-        # remove the duplicate matches
-        # and replace urls with a link
-        for url in urls:
-            # ignore urls that are part of a link already
-            if url[1]: continue
-            c_url = url[0]
-            # ignore parens if they enclose the entire url
-            if c_url[0] == '(' and c_url[-1] == ')':
-                c_url = c_url[1:-1]
-
-            if c_url in clean_urls: continue # We've already linked this url
-
-            clean_urls.append(c_url)
-            # substitute only where the url is not already part of a
-            # link element.
-            html = re.sub("(?<!(=\"|\">))" + re.escape(c_url), 
-                          "<a rel=\"nofollow\" href=\"" + c_url + "\">" + c_url + "</a>",
-                          html)
-        return html
-
-    # Github flavored Markdown, from http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
-    #Modified to have more newlines. I like newlines.
-    def gfm(text):
-        # Extract pre blocks
-        extractions = {}
-        def pre_extraction_callback(matchobj):
-            hash = md5_func(matchobj.group(0)).hexdigest()
-            extractions[hash] = matchobj.group(0)
-            return "{gfm-extraction-%s}" % hash
-        pre_extraction_regex = re.compile(r'{gfm-extraction-338ad5080d68c18b4dbaf41f5e3e3e08}', re.MULTILINE | re.DOTALL)
-        text = re.sub(pre_extraction_regex, pre_extraction_callback, text)
-
-        # prevent foo_bar_baz from ending up with an italic word in the middle
-        def italic_callback(matchobj):
-            if len(re.sub(r'[^_]', '', matchobj.group(1))) > 1:
-                return matchobj.group(1).replace('_', '\_')
-            else:
-                return matchobj.group(1)
-        text = re.sub(r'(^(?! {4}|\t)\w+_\w+_\w[\w_]*)', italic_callback, text)
-
-
-        # in very clear cases, let newlines become <br /> tags
-        def newline_callback(matchobj):
-            if len(matchobj.group(1)) == 1:
-                return matchobj.group(0).rstrip() + '  \n'
-            else:
-                return matchobj.group(0)
-        # text = re.sub(r'^[\w\<][^\n]*(\n+)', newline_callback, text)
-        text = re.sub(r'[^\n]*(\n+)', newline_callback, text)
-
-        # Insert pre block extractions
-        def pre_insert_callback(matchobj):
-            return extractions[matchobj.group(1)]
-        text = re.sub(r'{gfm-extraction-([0-9a-f]{40})\}', pre_insert_callback, text)
-
-        return text
-
         
     class Payload(object):
         def __init__(self,initialdict):
             self.dict = OrderedDict()
             self.dict = initialdict
+        def format(self):
+            sortedkeys = self.dict.keys().sorted()
+            self.dict = sortedkeys
         def hash(self):
+            self.format()
             h = hashlib.sha512()
             h.update(self.text())
             #print "Hashing " + self.text()
             return h.hexdigest()
         def text(self): 
+            self.format()
             newstr = json.dumps(self.dict,ensure_ascii=False,separators=(',',':'))
             return newstr  
         def validate(self):
@@ -247,7 +179,7 @@ class Envelope(object):
         self.loadfile(self.payload.hash() + ".7zPluricEnvelope")
         self.registerpayload()
         
-            
+                
     def text(self):
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
