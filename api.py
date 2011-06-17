@@ -31,7 +31,7 @@ from gridfs import GridFS
 import hashlib
 import urllib
 import TopicList
-
+import uuid
 
 import re
 try: 
@@ -44,12 +44,18 @@ import NofollowExtension
 define("port", default=8090, help="run on the given port", type=int)
 
 class BaseHandler(tornado.web.RequestHandler):
-    pass
-	def error(self,errortext):
+    def error(self,errortext):
 	    self.write("***ERROR***")
 	    self.write(errortext)
 	    self.write("***END ERROR***")
-
+	    
+    def getvars(self):
+        if "endpointauth" in self.request.arguments:
+            endpointauth = self.get_argument("endpointauth")
+            self.sessionid = server.mongos['sessions']['sessions'].find_one({'endpoint-session' : endpointauth })
+        else:
+            self.sessionid = None
+                
 
 class NotFoundHandler(BaseHandler):
     def get(self,whatever):
@@ -57,24 +63,32 @@ class NotFoundHandler(BaseHandler):
 
 
 class ListActiveTopics(BaseHandler):        
-    def get(self,topic):       
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic }):
-                envelopes.append(envelope)
-        self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
-        self.write(self.render_string('templates/footer.html'))
-        
+    def get(self):       
+        topics = OrderedDict()
+        for topicrow in server.mongos['default']['topiclist'].find({}):
+            topics[topicrow['_id']['tag']] = topicrow['value']['count']
+        self.write(json.dumps(topics,ensure_ascii=False,separators=(u',',u':')))
+
+
 class MessageHandler(BaseHandler):        
-    def get(self,message):
-        self.getvars()
+    def get(self,message,persp=None):
+        
         client_message_id = tornado.escape.xhtml_escape(message)
+        if persp is not None:
+            client_perspective = tornado.escape.xhtml_escape(persp)
+        else: 
+            client_perspective = None
         
         envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
 
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
-        messagerating = u.getRatings(client_message_id)
-        
+        if client_perspective is not None:
+            u = User()
+            u.load_mongo_by_pubkey(pubkey=client_perspective)
+            usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
+            messagerating = u.getRatings(client_message_id)
+        else:
+            usertrust = 100
+            messagerating = 1
         
         #Create two lists- One of all attachments, and one of images.
         attachmentList = []
@@ -113,11 +127,24 @@ class MessageHandler(BaseHandler):
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
                 
 
-            
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
-        self.write(self.render_string('templates/footer.html'))
+        envelope['envelope']['local']['formattedbody'] = formattedbody    
+        envelope['envelope']['local']['calculatedrating'] = messagerating    
+        envelope['envelope']['local']['attachmentlist'] = attachmentList    
+        envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList    
+        self.write(json.dumps(envelope,ensure_ascii=False,separators=(u',',u':')))
 
+
+class UnfilteredTopicHandler(BaseHandler):        
+    def get(self,topic,offset=0,include=100):
+        
+        envelopes = []
+        client_topic = tornado.escape.xhtml_escape(topic)
+        
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=include,skip=offset):
+                envelopes.append(envelope)
+        self.write(json.dumps(envelopes,ensure_ascii=False,separators=(u',',u':')))
+                
+                        
 class PrivateMessageHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -144,56 +171,16 @@ class PrivateMessageHandler(BaseHandler):
 
 
 
-class RegisterHandler(BaseHandler):
-    def get(self):
-        self.getvars()
-        self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/registerform.html'))
-        self.write(self.render_string('templates/footer.html'))
-    def post(self):
-        self.getvars()
-        self.write(self.render_string('templates/header.html',title='Register for an account',username="",loggedin=False))
-
-        client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
-        client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
-        client_newpass2 = tornado.escape.xhtml_escape(self.get_argument("pass2"))
-        if "email" in self.request.arguments:
-            client_email = tornado.escape.xhtml_escape(self.get_argument("email"))
-            if client_email == "":
-                client_email = None
-        else:
-            client_email = None     
-            
-        if client_newpass != client_newpass2:
-            self.write("I'm sorry, your passwords don't match.") 
-            return
-
-        if client_email is not None:
-            users_with_this_email = server.mongos['default']['users'].find({"email":client_email.lower()})
-            if users_with_this_email.count() > 0:
-                self.write("I'm sorry, this email address has already been used.")  
-                return
-            
-        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser.lower()})
-        if users_with_this_username.count() > 0:
-            self.write("I'm sorry, this username has already been taken.")  
-            return    
-            
-        else:
-            hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
-            u = User()
-            u.generate(hashedpass=hashedpass,username=client_newuser.lower())
-            if client_email is not None:
-                u.UserSettings['email'] = client_email.lower()
-            
-            u.UserSettings['maxposts'] = 20
-            u.savemongo()
-            
-            self.set_secure_cookie("username",client_newuser.lower(),httponly=True)
-            self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-            
-            self.redirect("/")
-
+class RegisterEndpointHandler(BaseHandler):
+    def get(self,pubkey):
+        client_pubkey =  tornado.escape.xhtml_escape(pubkey)
+        u = uuid.uuid4()
+        endpoint = OrderedDict()
+        endpoint['pubkey'] = client_pubkey
+        endpoint['_id'] = client_pubkey
+        endpoint['token'] = str(u)
+        server.mongos['sessions']['endpoint-session'].save(endpoint)
+        self.write(str(u))
 
 class LoginHandler(BaseHandler):
     def get(self):
@@ -239,8 +226,8 @@ class ShowUserPosts(BaseHandler):
         
         messages = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,).sort('value',-1):
-            messages.append(message)
+        # for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,).sort('value',-1):
+        #     messages.append(message)
 
         self.write(self.render_string('templates/showuserposts.html',messages=messages))
         self.write(self.render_string('templates/footer.html'))
@@ -554,9 +541,9 @@ class MyPrivateMessagesHandler(BaseHandler):
         u.load_mongo_by_pubkey(user['pubkey'])
         
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,).sort('value',-1):
-            message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
-            messages.append(message)
+        # for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,).sort('value',-1):
+        #     message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
+        #     messages.append(message)
 
         self.write(self.render_string('templates/showprivatemessages.html',messages=messages))
         self.write(self.render_string('templates/footer.html'))
@@ -656,26 +643,13 @@ def main():
         "xsrf_cookies": True,
     }
     application = tornado.web.Application([
-        (r"/" ,FrontPageHandler),
-        (r"/register" ,RegisterHandler),
-        (r"/login" ,LoginHandler),
-        (r"/logout" ,LogoutHandler), 
-        (r"/newmessage" ,NewmessageHandler), 
-        (r"/uploadnewmessage" ,NewmessageHandler), 
-        (r"/vote" ,RatingHandler),
-        (r"/usertrust",UserTrustHandler),  
-        (r"/topictag/(.*)" ,TopicHandler), 
-        (r"/message/(.*)" ,MessageHandler),    
-        (r"/followuser/(.*)" ,FollowUserHandler),  
-        (r"/followtopic/(.*)" ,FollowTopicHandler),  
-        (r"/showuserposts/(.*)" ,ShowUserPosts),  
-        (r"/showprivates" ,MyPrivateMessagesHandler),    
-        (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
-        (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
-        (r"/privatemessage/(.*)" ,PrivateMessageHandler),  
-          
-        (r"/formtest" ,FormTestHandler),  
-          
+        (r"/ListActiveTopics" ,ListActiveTopics),
+        (r"/Message/(.*)" ,MessageHandler),
+        (r"/Message/(.*)/(.*)", MessageHandler),
+        (r"/UnfilteredTopic/(.*)", UnfilteredTopicHandler),
+        (r"/UnfilteredTopic/(.*)/(.*)", UnfilteredTopicHandler),
+        (r"/UnfilteredTopic/(.*)/(.*)/(.*)", UnfilteredTopicHandler),
+        (r"/RegisterEndpoint/(.*)", RegisterEndpointHandler),
         
         (r"/(.*)", NotFoundHandler)
     ], **settings)
