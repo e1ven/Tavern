@@ -123,6 +123,7 @@ class Server(object):
         return newstr
     
 
+
     def receiveEnvelope(self,envelope):
         c = Envelope()
         c.loadstring(importstring=envelope)
@@ -189,6 +190,51 @@ class Server(object):
                 formatted = self.autolink(markdown.markdown(self.gfm(text)))
                 
         return formatted
+        
+    def formatEnvelope(self,envelope):
+        attachmentList = []
+        displayableAttachmentList = []
+        if envelope['envelope']['payload'].has_key('binaries'):
+            for binary in envelope['envelope']['payload']['binaries']:
+                if binary.has_key('sha_512'):
+                    fname = binary['sha_512']
+                    attachment = self.bin_GridFS.get_version(filename=fname)
+                    if not binary.has_key('filename'):
+                        binary['filename'] = "unknown_file"
+                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
+                    #Python and be a valid image.
+                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
+                    attachmentList.append(attachmentdesc)
+                    if attachment.length < 512000:
+                        if binary.has_key('content_type'):
+                            if binary['content_type'].rsplit('/')[0].lower() == "image":
+                                imagetype = imghdr.what('ignoreme',h=attachment.read())
+                                acceptable_images = ['gif','jpeg','jpg','png','bmp']
+                                if imagetype in acceptable_images:
+                                    #If we pass -all- the tests, create a thumb once.
+                                    if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
+                                        attachment.seek(0) 
+                                        im = Image.open(attachment)
+                                        img_width, img_height = im.size
+                                        if ((img_width > 150) or (img_height > 150)): 
+                                            im.thumbnail((150, 150), Image.ANTIALIAS)
+                                        thumbnail = self.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
+                                        im.save(thumbnail,format='png')    
+                                        thumbnail.close()
+                                    displayableAttachmentList.append(binary['sha_512'])
+        if envelope['envelope']['payload'].has_key('formatting'):
+                formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
+        else:    
+                formattedbody = self.formatText(text=envelope['envelope']['payload']['body'])
+
+
+        envelope['envelope']['local']['formattedbody'] = formattedbody    
+        envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList            
+        return envelope
+
+
+
+
 
     #Autolink from http://greaterdebater.com/blog/gabe/post/4
     def autolink(self,html):

@@ -144,48 +144,11 @@ class MessageHandler(BaseHandler):
         u.load_mongo_by_username(username=self.username)
         usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
         messagerating = u.getRatings(client_message_id)
-        
-        
-        #Create two lists- One of all attachments, and one of images.
-        attachmentList = []
-        displayableAttachmentList = []
-        if envelope['envelope']['payload'].has_key('binaries'):
-            for binary in envelope['envelope']['payload']['binaries']:
-                if binary.has_key('sha_512'):
-                    fname = binary['sha_512']
-                    attachment = server.bin_GridFS.get_version(filename=fname)
-                    if not binary.has_key('filename'):
-                        binary['filename'] = "unknown_file"
-                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
-                    #Python and be a valid image.
-                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
-                    attachmentList.append(attachmentdesc)
-                    if attachment.length < 512000:
-                        if binary.has_key('content_type'):
-                            if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                imagetype = imghdr.what('ignoreme',h=attachment.read())
-                                acceptable_images = ['gif','jpeg','jpg','png','bmp']
-                                if imagetype in acceptable_images:
-                                    #If we pass -all- the tests, create a thumb once.
-                                    if not server.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
-                                        attachment.seek(0) 
-                                        im = Image.open(attachment)
-                                        img_width, img_height = im.size
-                                        if ((img_width > 150) or (img_height > 150)): 
-                                            im.thumbnail((150, 150), Image.ANTIALIAS)
-                                        thumbnail = server.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
-                                        im.save(thumbnail,format='png')    
-                                        thumbnail.close()
-                                    displayableAttachmentList.append(binary['sha_512'])
-        if envelope['envelope']['payload'].has_key('formatting'):
-                formattedbody = server.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
-        else:    
-                formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
-                
+        envelope = server.formatEnvelope(envelope)
 
             
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/single-message.html',formattedbody=formattedbody,messagerating=messagerating,usertrust=usertrust,attachmentList=attachmentList,displayableAttachmentList=displayableAttachmentList,envelope=envelope))
+        self.write(self.render_string('templates/single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
 
 class PrivateMessageHandler(BaseHandler):        
