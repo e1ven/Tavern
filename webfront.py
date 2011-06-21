@@ -391,7 +391,7 @@ class RatingHandler(BaseHandler):
         
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['sender_signature'] = usersig
+        e.dict['envelope']['sender_signature'] = usersig
         
         #Send to the server
         server.receiveEnvelope(e.text())
@@ -445,7 +445,7 @@ class UserTrustHandler(BaseHandler):
 
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['sender_signature'] = usersig
+        e.dict['envelope']['sender_signature'] = usersig
 
         #Send to the server
         server.receiveEnvelope(e.text())
@@ -567,7 +567,7 @@ class NewmessageHandler(BaseHandler):
         
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['sender_signature'] = usersig
+        e.dict['envelope']['sender_signature'] = usersig
         
         #Send to the server
         server.receiveEnvelope(e.text())
@@ -657,7 +657,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['sender_signature'] = usersig
+        e.dict['enveope']['sender_signature'] = usersig
 
         #Send to the server
         server.receiveEnvelope(e.text())
