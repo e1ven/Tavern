@@ -153,7 +153,7 @@ class Server(object):
         utctime = time.time()
         #Sign the message to saw we saw it.
         signedpayload = self.ServerKeys.signstring(c.payload.text())
-        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':utctime,u'signature':signedpayload,u'pubkey': self.ServerKeys.pubkey}
+        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':int(utctime),u'signature':signedpayload,u'pubkey': self.ServerKeys.pubkey}
 
         serverlist.append(myserverinfo)
         c.dict['envelope']['servers'] = serverlist
