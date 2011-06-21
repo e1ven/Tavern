@@ -33,8 +33,10 @@ class Keys(object):
             self.combinedkey_bio = M2Crypto.BIO.MemoryBuffer(self.combinedkey)
     
         self.formatkeys()
+        if pub != None and priv != None:
+            if not self.dokeysmatch():
+                raise "Bad Keys"
         
-    
     def formatkeys(self):
         #Format the priv and pub keys
         #Make sure we have proper linebreaks every 64 characters, and a header/footer
@@ -122,5 +124,7 @@ class Keys(object):
         unsafebytes = decryptstring.decode('base64')
         PlainText = ReadRSA.private_decrypt (unsafebytes, M2Crypto.RSA.pkcs1_oaep_padding)
         return PlainText
-            
-        
+
+    def dokeysmatch(self):
+        self.formatkeys()
+        return self.verifystring(stringtoverify="ABCD1234",signature=self.signstring("ABCD1234"))            

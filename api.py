@@ -182,31 +182,30 @@ class RegisterEndpointHandler(BaseHandler):
         server.mongos['sessions']['endpoint-session'].save(endpoint)
         self.write(str(u))
 
-class LoginHandler(BaseHandler):
-    def get(self):
-        self.getvars()        
-        self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/loginform.html'))
-        self.write(self.render_string('templates/footer.html'))
-    def post(self):
-        self.getvars()
-        self.write(self.render_string('templates/header.html',loggedin=False,title='Login to your account',username=""))
+class SubscribeToTopic(BaseHandler):
+    def get(self,topictag):
+        if self.getvars() is None:
+            self.error("This requires a registered endpoint")
+            return -1
+        else:
+            topics = server.mongos['sessions'][self.sessionid]['topics']
+            if topictag not in topics:
+                topics.append(topictag)
+                server.mongos['sessions'][self.sessionid].save(topics)
+            
+                
+class NoFollowTopicHandler(BaseHandler):
+    def get(self,topictag):
+        if self.getvars() is None:
+            self.error("This requires a registered endpoint")
+            return -1
+        else:
+            topics = server.mongos['sessions'][self.sessionid]['topics']
+            if topictag in topics:
+                topics.remove(topictag)
+                server.mongos['sessions'][self.sessionid].save(topics)
 
-        client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
-        client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
-
-        user = server.mongos['default']['users'].find_one({"username":client_username.lower()})
-        if user is not None:
-            u = User()
-            u.load_mongo_by_username(username=client_username.lower())
-            if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
-                self.set_secure_cookie("username",user['username'].lower(),httponly=True)
-                self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-                self.redirect("/")
-                return
-
-        self.write("I'm sorry, we don't have that username/password combo on file.")
-
+                                
 class LogoutHandler(BaseHandler):
      def post(self):
          self.clear_cookie("username")
@@ -232,66 +231,7 @@ class ShowUserPosts(BaseHandler):
         self.write(self.render_string('templates/showuserposts.html',messages=messages))
         self.write(self.render_string('templates/footer.html'))
                  
-                 
-class FollowUserHandler(BaseHandler):
-    def get(self,pubkey):
-        self.getvars()
-        #Calculate the votes for that post. 
 
-    def post(self):    
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a user.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.followUser(pubkey)
-        u.savemongo()
-        
-class NoFollowUserHandler(BaseHandler):
-    def get(self,topictag):
-        self.getvars()
-     #Calculate the votes for that post. 
-
-    def post(self):    
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a topic.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.noFollowUser(topictag)
-        u.savemongo()
-
-
-class FollowTopicHandler(BaseHandler):
-    def get(self,pubkey):
-        self.getvars()
-
-    def post(self):    
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a user.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.followTopic(pubkey)
-        u.savemongo()
-
-class NoFollowTopicHandler(BaseHandler):
-    def get(self,topictag):
-        self.getvars()
-        
-    def post(self):       
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a topic.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.noFollowTopic(topictag)
-        u.savemongo()
-    
             
             
         
