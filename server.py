@@ -1,8 +1,10 @@
 import os,json
 import M2Crypto
+import imghdr
 import platform
 import time
 from keys import *
+from PIL import Image
 import logging
 import bcrypt
 import string
@@ -53,7 +55,7 @@ class Server(object):
                 self.ServerSettings['sessions-mongo-port'] = 27017
                 self.ServerSettings['sessions-mongo-db'] = 'test'
                 
-                self.ServerSettings['uplaod-dir'] = '/opt/uploads'
+                self.ServerSettings['upload-dir'] = '/opt/uploads'
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
@@ -230,6 +232,9 @@ class Server(object):
 
         envelope['envelope']['local']['formattedbody'] = formattedbody    
         envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList            
+        #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
+        #But since the file is IN the payload, we can't modify that one, either!
+        envelope['envelope']['local']['attachmentlist'] = attachmentList            
         return envelope
 
 

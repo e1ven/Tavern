@@ -12,12 +12,10 @@ import bcrypt
 import time
 import datetime
 import os
-import imghdr 
 import random
 import socket
 import pymongo
 import json
-from PIL import Image
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
@@ -30,7 +28,7 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import TopicList
+#import TopicList
 
 import re
 try: 
@@ -681,7 +679,7 @@ def main():
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
     #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
-    tl = TopicList.TopicList()        
+    #tl = TopicList.TopicList()        
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
