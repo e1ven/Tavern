@@ -136,7 +136,14 @@ class Server(object):
         if not c.validate():
             print "Validation Error"
             return False
-                
+            
+        Envelopekey = Keys(pub=c.dict['envelope']['payload']['author']['pubkey'])
+        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature']) != True:
+                logger.debug("Signature Failed to verify")
+                return False
+        else:
+            print "||--||" + c.payload.text() + "||--||"
+            print "((--))" + repr(c.dict['envelope']['sender_signature'])  + "((--))"
         #Search the server list to look for ourselves. Don't double-receive.
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:
