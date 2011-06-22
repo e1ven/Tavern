@@ -107,7 +107,7 @@ class Envelope(object):
         if not self.dict.has_key('envelope'):
             print "Invalid Evelope. No Header"
             return False
-        if not self.dict.has_key('sender_signature'):
+        if not self.dict['envelope'].has_key('sender_signature'):
             print "No sender signature. Invalid."
             return False        
         if not self.payload.validate():
