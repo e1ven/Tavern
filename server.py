@@ -117,11 +117,11 @@ class Server(object):
         if filename == None:
             filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
         filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.ServerSettings,ensure_ascii=False,separators=(u',',u':'))) 
+        filehandle.write(json.dumps(self.ServerSettings,separators=(u',',u':'))) 
         filehandle.close()
 
     def prettytext(self):
-        newstr = json.dumps(self.ServerSettings,ensure_ascii=False,indent=2,separators=(u', ',u': '))
+        newstr = json.dumps(self.ServerSettings,indent=2,separators=(u', ',u': '))
         return newstr
     
 
@@ -138,12 +138,13 @@ class Server(object):
             return False
             
         Envelopekey = Keys(pub=c.dict['envelope']['payload']['author']['pubkey'])
-        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature']) != True:
+        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature'].encode('utf8')) != True:
                 logger.debug("Signature Failed to verify")
                 return False
         else:
-            print "||--||" + c.payload.text() + "||--||"
+            print "||--||" + repr(c.payload.text()) + "||--||"
             print "((--))" + repr(c.dict['envelope']['sender_signature'])  + "((--))"
+            
         #Search the server list to look for ourselves. Don't double-receive.
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:

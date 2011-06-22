@@ -29,7 +29,7 @@ class Envelope(object):
             return h.hexdigest()
         def text(self): 
             self.format()
-            newstr = json.dumps(self.dict,ensure_ascii=False,separators=(',',':'))
+            newstr = json.dumps(self.dict,separators=(',',':'))
             return newstr  
         def validate(self):
             if not self.dict.has_key('author'):

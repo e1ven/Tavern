@@ -152,7 +152,7 @@ class User(object):
         if filename == None:
             filename = self.UserSettings['username'] + ".PluricUser"                
         filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.UserSettings,ensure_ascii=False,separators=(u',',u':'))) 
+        filehandle.write(json.dumps(self.UserSettings,separators=(u',',u':'))) 
         filehandle.close()
     
     def load_mongo_by_pubkey(self,pubkey):

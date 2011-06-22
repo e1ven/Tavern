@@ -67,7 +67,7 @@ class ListActiveTopics(BaseHandler):
         topics = OrderedDict()
         for topicrow in server.mongos['default']['topiclist'].find({}):
             topics[topicrow['_id']['tag']] = topicrow['value']['count']
-        self.write(json.dumps(topics,ensure_ascii=False,separators=(u',',u':')))
+        self.write(json.dumps(topics,separators=(u',',u':')))
 
 
 class MessageHandler(BaseHandler):        
@@ -92,7 +92,7 @@ class MessageHandler(BaseHandler):
         
         envelope = server.formatEnvelope(envelope)
         envelope['envelope']['local']['calculatedrating'] = messagerating    
-        self.write(json.dumps(envelope,ensure_ascii=False,separators=(u',',u':')))
+        self.write(json.dumps(envelope,separators=(u',',u':')))
 
 
 class TopicHandler(BaseHandler):        
@@ -117,7 +117,7 @@ class TopicHandler(BaseHandler):
             envelope = server.formatEnvelope(envelope)
             envelopes.append(envelope)
                    
-        self.write(json.dumps(envelopes,ensure_ascii=False,separators=(u',',u':')))
+        self.write(json.dumps(envelopes,separators=(u',',u':')))
                 
 
 
@@ -271,7 +271,7 @@ class PrivateMessagesHandler(BaseHandler):
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
 
-        self.write(json.dumps(envelopes,ensure_ascii=False,separators=(u',',u':')))
+        self.write(json.dumps(envelopes,separators=(u',',u':')))
         
 
 class SubmitMessageHandler(BaseHandler):
