@@ -98,6 +98,10 @@ class Keys(object):
         SignEVP.sign_init()
         SignEVP.sign_update(signstring)
         StringSignature = SignEVP.sign_final().encode('base64')
+        
+        print "Signing.--- " + signstring
+        print "pubkey..-" + self.pubkey
+        print "sig..--" +  StringSignature
         return StringSignature
         
     def verifystring(self,stringtoverify,signature):

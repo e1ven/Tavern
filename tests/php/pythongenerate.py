@@ -30,17 +30,17 @@ print "---"
 print SignatureBytes.encode('base64')
 
 
-# pubkey_bio = M2Crypto.BIO.MemoryBuffer(pubkey.encode('utf8'))
-# PubKey = M2Crypto.RSA.load_pub_key_bio(pubkey_bio)
-# VerifyEVP = M2Crypto.EVP.PKey()
-# VerifyEVP.assign_rsa(PubKey)
-# VerifyEVP.verify_init()
-# VerifyEVP.verify_update(plaintext)
-# # if VerifyEVP.verify_final(Signature.decode('base64')) == 1:
-# #         print "Verifies"
-# # else:
-# #         print "Fails to Verify"
-# #         
+pubkey_bio = M2Crypto.BIO.MemoryBuffer(pubkey.encode('utf8'))
+PubKey = M2Crypto.RSA.load_pub_key_bio(pubkey_bio)
+VerifyEVP = M2Crypto.EVP.PKey()
+VerifyEVP.assign_rsa(PubKey)
+VerifyEVP.verify_init()
+VerifyEVP.verify_update(plaintext)
+if VerifyEVP.verify_final(Signature.decode('base64')) == 1:
+        print "Verifies"
+else:
+        print "Fails to Verify"
+        
     
 print "Pubkey - ###" + pubkey + "###"
 print "B64Sig - ###" + Signature + "###"
