@@ -113,7 +113,7 @@ class FrontPageHandler(BaseHandler):
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
 
         #db.topiclist.find().sort({value : 1})
-        for topic in server.mongos['default']['topiclist'].find(limit=10).sort('value',-1):
+        for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
             
         self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
@@ -126,7 +126,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin))
        
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
@@ -136,7 +136,7 @@ class MessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
         
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
 
         u = User()
         u.load_mongo_by_username(username=self.username)
@@ -154,7 +154,7 @@ class PrivateMessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
 
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
 
         u = User()
         u.load_mongo_by_username(username=self.username)
@@ -200,12 +200,12 @@ class RegisterHandler(BaseHandler):
             return
 
         if client_email is not None:
-            users_with_this_email = server.mongos['default']['users'].find({"email":client_email.lower()})
+            users_with_this_email = server.mongos['default']['users'].find({"email":client_email.lower()},as_class=OrderedDict)
             if users_with_this_email.count() > 0:
                 self.write("I'm sorry, this email address has already been used.")  
                 return
             
-        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser.lower()})
+        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser.lower()},as_class=OrderedDict)
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")  
             return    
@@ -239,7 +239,7 @@ class LoginHandler(BaseHandler):
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
-        user = server.mongos['default']['users'].find_one({"username":client_username.lower()})
+        user = server.mongos['default']['users'].find_one({"username":client_username.lower()},as_class=OrderedDict)
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
@@ -270,7 +270,7 @@ class ShowUserPosts(BaseHandler):
         
         messages = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,).sort('value',-1):
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             messages.append(message)
 
         self.write(self.render_string('templates/showuserposts.html',messages=messages))
@@ -370,7 +370,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['regarding'] = client_hash
             
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
@@ -423,7 +423,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['pubkey'] = k.pubkey
 
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
 
@@ -543,7 +543,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['regarding'] = client_regarding
             
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
@@ -580,12 +580,12 @@ class MyPrivateMessagesHandler(BaseHandler):
             return
             
         messages = []
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,).sort('value',-1):
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
 
@@ -621,7 +621,7 @@ class NewPrivateMessageHandler(BaseHandler):
             client_regarding = None
 
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         

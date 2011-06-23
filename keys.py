@@ -102,13 +102,18 @@ class Keys(object):
         
     def verifystring(self,stringtoverify,signature):
         decodedSignature = signature.decode('base64')
-        PubKey = M2Crypto.RSA.load_pub_key_bio(self.pubkey_bio)
+        pubkey_bio = M2Crypto.BIO.MemoryBuffer(self.pubkey.encode('utf8'))
+        PubKey = M2Crypto.RSA.load_pub_key_bio(pubkey_bio)
         VerifyEVP = M2Crypto.EVP.PKey()
         VerifyEVP.assign_rsa(PubKey)
         VerifyEVP.verify_init()
         VerifyEVP.verify_update(stringtoverify)
         if VerifyEVP.verify_final(decodedSignature) == 1:
+            print "Pubkey - ###" + self.pubkey.encode('utf8') + "###"
+            print "B64Sig - ###" + signature + "###"
+            print "Plaintext - ###" + stringtoverify + "###"
             return True
+    
         else:
             return False
     

@@ -69,7 +69,7 @@ class Server(object):
         
             #Ensure we have a "Guest" user
             #We can un-logged-in settings in this acct.
-            users_with_this_username = self.mongos['default']['users'].find({"username":"Guest"})
+            users_with_this_username = self.mongos['default']['users'].find({"username":"Guest"},as_class=OrderedDict)
             if users_with_this_username.count() < 1:
                 guest = OrderedDict()
                 guest['username'] = "Guest"
@@ -138,12 +138,9 @@ class Server(object):
             return False
             
         Envelopekey = Keys(pub=c.dict['envelope']['payload']['author']['pubkey'])
-        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature'].encode('utf8')) != True:
-                logger.debug("Signature Failed to verify")
+        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature']) != True:
+                print "Signature Failed to verify"
                 return False
-        else:
-            print "||--||" + repr(c.payload.text()) + "||--||"
-            print "((--))" + repr(c.dict['envelope']['sender_signature'])  + "((--))"
             
         #Search the server list to look for ourselves. Don't double-receive.
         for server in serverlist:            
@@ -243,7 +240,7 @@ class Server(object):
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!
         envelope['envelope']['local']['attachmentlist'] = attachmentList            
-        del(envelope['_id'])
+        del(envelope['_id'])        
         return envelope
 
 

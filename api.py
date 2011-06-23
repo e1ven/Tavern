@@ -52,7 +52,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def getvars(self):
         if "clientauth" in self.request.arguments:
             clientauth = self.get_argument("clientauth")
-            self.sessionid = server.mongos['sessions']['sessions'].find_one({'client-session' : clientauth })
+            self.sessionid = server.mongos['sessions']['sessions'].find_one({'client-session' : clientauth },as_class=OrderedDict)
         else:
             self.sessionid = None
                 
@@ -65,7 +65,7 @@ class NotFoundHandler(BaseHandler):
 class ListActiveTopics(BaseHandler):        
     def get(self):       
         topics = OrderedDict()
-        for topicrow in server.mongos['default']['topiclist'].find({}):
+        for topicrow in server.mongos['default']['topiclist'].find({},as_class=OrderedDict):
             topics[topicrow['_id']['tag']] = topicrow['value']['count']
         self.write(json.dumps(topics,separators=(u',',u':')))
 
@@ -78,9 +78,8 @@ class MessageHandler(BaseHandler):
             client_perspective = tornado.escape.xhtml_escape(persp)
         else: 
             client_perspective = None
-        
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id })
-
+            
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -91,7 +90,7 @@ class MessageHandler(BaseHandler):
             messagerating = 1
         
         envelope = server.formatEnvelope(envelope)
-        envelope['envelope']['local']['calculatedrating'] = messagerating    
+        envelope['envelope']['local']['calculatedrating'] = messagerating   
         self.write(json.dumps(envelope,separators=(u',',u':')))
 
 
@@ -106,7 +105,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
         
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=include,skip=offset):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
             if client_perspective is not None:
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -177,7 +176,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['regarding'] = client_hash
             
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
@@ -230,7 +229,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['pubkey'] = k.pubkey
 
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username})        
+        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
 
@@ -266,7 +265,7 @@ class PrivateMessagesHandler(BaseHandler):
         client_pubkey =  tornado.escape.xhtml_escape(pubkey)             
         envelopes = []
 
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.to':client_pubkey}):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.to':client_pubkey},as_class=OrderedDict):
             formattedtext = server.formatText(envelope)
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
@@ -296,7 +295,7 @@ class RegisterClientHandler(BaseHandler):
 class RegisterClientUsersHandler(BaseHandler):
     def get(self,token):
         client_token =  tornado.escape.xhtml_escape(token) 
-        client = server.mongos['default']['api-clients'].find_one({"token":client_serverpubkey})        
+        client = server.mongos['default']['api-clients'].find_one({"token":client_serverpubkey},as_class=OrderedDict)        
         client_userpublickeylist =  tornado.escape.xhtml_escape(self.get_argument("userpublickeylist"))
         client['users'] = client_userpublickeylist
         server.mongos['default']['api-clients'].save(client)

@@ -25,7 +25,7 @@ class Envelope(object):
             self.format()
             h = hashlib.sha512()
             h.update(self.text())
-            #print "Hashing " + self.text()
+            print "Hashing --" + self.text() + "--"
             return h.hexdigest()
         def text(self): 
             self.format()
@@ -182,18 +182,21 @@ class Envelope(object):
         
                 
     def text(self):
+        self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict,separators=(',',':'),encoding='utf8')
         return newstr
 
-    def prettytext(self): 
+    def prettytext(self):
+        self.payload.format() 
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict,indent=2,separators=(', ',': '))
         return newstr 
         
     def savefile(self):
+        self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         
@@ -209,6 +212,7 @@ class Envelope(object):
         filehandle.close()
         
     def saveMongo(self):
+        self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         
