@@ -98,10 +98,10 @@ class Keys(object):
         SignEVP.sign_init()
         SignEVP.sign_update(signstring)
         StringSignature = SignEVP.sign_final().encode('base64')
-        
-        print "Signing.--- " + signstring
-        print "pubkey..-" + self.pubkey
-        print "sig..--" +  StringSignature
+        # 
+        # print "Signing.--- " + signstring
+        # print "pubkey..-" + self.pubkey
+        # print "sig..--" +  StringSignature
         return StringSignature
         
     def verifystring(self,stringtoverify,signature):
@@ -113,9 +113,9 @@ class Keys(object):
         VerifyEVP.verify_init()
         VerifyEVP.verify_update(stringtoverify)
         if VerifyEVP.verify_final(decodedSignature) == 1:
-            print "Pubkey - ###" + self.pubkey.encode('utf8') + "###"
-            print "B64Sig - ###" + signature + "###"
-            print "Plaintext - ###" + stringtoverify + "###"
+            # print "Pubkey - ###" + self.pubkey.encode('utf8') + "###"
+            # print "B64Sig - ###" + signature + "###"
+            # print "Plaintext - ###" + stringtoverify + "###"
             return True
     
         else:
