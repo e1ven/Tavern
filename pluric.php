@@ -1,5 +1,33 @@
 <?php
 
+class User
+{
+	function __construct() 
+	{
+		$this->usersettings = array(  );
+		$this->usersettings['friendlyname'] = "Unnamed User";
+		$this->usersettings['client'] = "PHP client 1.0";
+	}
+	
+	function generatekeys()
+	{
+		$config = array('private_key_bits' => 4096, 'digest_alg' => 'sha1','private_key_type' => OPENSSL_KEYTYPE_RSA);
+		$res = openssl_pkey_new($config);
+		openssl_pkey_export($res, $privkey);
+		
+		//We need to do this little dance, since it returns a pubkey object, and we just want the key itself.
+		$pubkey= openssl_pkey_get_details($res);
+		$pubkey=$pubkey["key"];
+		
+		$this->usersettings['privkey'] = $privkey;
+		$this->usersettings['pubkey'] = $pubkey;
+		
+	}
+		
+}
+
+
+	
 class Stack
 {
 	//A Stack of Envelopes
@@ -62,6 +90,29 @@ class Envelope
 	{
 		// Basic dict, which will store the envelope values
 		$this->dict = array(  );
+	}
+	
+	
+	function text() 
+	{
+		$mytext = json_encode($this->dict);
+		$mytext = str_replace('\/','/',$mytext);
+		return $mytext;
+	}
+	
+	function payload_hash() 
+	{
+		print_r($this->dict['envelope']['payload']);
+		$payloadtext = json_encode($this->dict['envelope']['payload']);
+		$payloadtext = str_replace('\/','/',$payloadtext);
+		$hash = hash("sha512",$payloadtext);
+		return $hash;
+	}
+	function payload_txt() 
+	{
+		$payloadtext = json_encode($this->dict['envelope']['payload']);
+		$payloadtext = str_replace('\/','/',$payloadtext);
+		return $payloadtext;
 	}
 	
 	
@@ -173,6 +224,58 @@ foreach($s->Envelopes as $e)
 {
 	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
 }
+
+
+////////////////////////////////////////Insert a message ///////////////////////////
+//Create a test user
+//Set the timezone.
+date_default_timezone_set('UTC');
+
+
+$u = new User();
+$u->generatekeys();
+$u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
+
+//Create a new test Message.
+$TestMessage = array(  );
+
+$TestMessage['envelope']['payload']['topics'] = array('ClientTest');
+$TestMessage['envelope']['payload']['payload_type'] = "message";
+$TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
+$TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
+
+//Stick the user settings into the message
+//We can't just copy the whole dict in, since we don't want the privkey
+$TestMessage['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
+$TestMessage['envelope']['payload']['author']['client'] = $u->usersettings['client'];
+$TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
+
+//Generate the envelope, and stick the Message into it.
+$e = new Envelope();
+$e->dict = $TestMessage;
+
+//Add the SHA512 hash, so we know it hasn't been modified later.
+$e->dict['envelope']['payload_sha512'] = $e->payload_hash();
+
+
+//Get the text we want to sign.
+$payloadtxt = $e->payload_txt();
+
+//Create an empty sig; This will be filled in in a moment.
+$binary_signature = "";
+
+//Sign the message. If the signature process works (as it should)
+//Then insert the signature into the envelope.
+$ok = openssl_sign($payloadtxt,$binary_signature,$u->usersettings['privkey'],OPENSSL_ALGO_SHA1);
+$ok = openssl_verify($payloadtxt, $binary_signature,$u->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
+if ($ok == 1)
+{
+	print "Signature worked.";
+	$e->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
+}
+print($e->text());
+
+
 ?>
 
 
