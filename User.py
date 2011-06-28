@@ -158,11 +158,14 @@ class User(object):
     def load_mongo_by_pubkey(self,pubkey):
         user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         self.UserSettings = user
-        if self.UserSettings.has_key('privkey'):
+        if self.UserSettings is None:
+            #If the user doesn't exist in our service, he's only heard about.
+            #We won't know their privkey, so just return their pubkey back out.
+            self.Keys = Keys(pub=pubkey) 
+        else:    
+            #If we *do* find you locally, load in both Priv and Pubkeys
             self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-        else:
-            self.Keys = Keys(pub=self.UserSettings['pubkey'])
-        self.UserSettings['privkey'] = self.Keys.privkey
+            self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def load_mongo_by_username(self,username):
