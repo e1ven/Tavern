@@ -184,6 +184,9 @@ class Server(object):
                     
         if c.dict['envelope']['payload']['payload_type'] == "messagerating":   
             print "This is a rating"    
+        #If we don't have a local section, add one.s
+        if not c.dict['envelope'].has_key('local'):
+            c.dict['envelope']['local'] = OrderedDict()    
         #Store our file
         c.saveMongo()
         
