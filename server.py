@@ -1,4 +1,5 @@
 import os,json
+import hashlib
 import M2Crypto
 import imghdr
 import platform
@@ -139,6 +140,7 @@ class Server(object):
             
         Envelopekey = Keys(pub=c.dict['envelope']['payload']['author']['pubkey'])
         if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature']) != True:
+                print "#########\n" + c.payload.text() + "\n#########";
                 print "Signature Failed to verify"
                 return False
             
