@@ -325,8 +325,8 @@ def main():
         (r"/topictag/(.*)", TopicHandler),
         (r"/topictag/(.*)/(.*)", TopicHandler),
         (r"/topictag/(.*)/(.*)/(.*)", TopicHandler),
-        
-        
+        (r"/vote" ,RatingHandler),
+        (r"/usertrust",UserTrustHandler),          
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

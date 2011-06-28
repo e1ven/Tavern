@@ -158,7 +158,10 @@ class User(object):
     def load_mongo_by_pubkey(self,pubkey):
         user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         self.UserSettings = user
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
+        if self.UserSettings.has_key('privkey'):
+            self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
+        else:
+            self.Keys = Keys(pub=self.UserSettings['pubkey'])
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
 

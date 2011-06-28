@@ -1,5 +1,18 @@
 <?php
 
+function sendpost($posturl, $fields)
+{
+	$ch = curl_init();
+	curl_setopt($ch, CURLOPT_URL, $posturl);
+	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+	curl_setopt($ch, CURLOPT_POST, 1);
+	curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+	$result = curl_exec($ch);
+	print_r($result);
+}
+
 
 class User
 {
@@ -197,11 +210,41 @@ class Envelope
 	}
 
 
+	function uploadenvelope($user)
+	{
+		//Add the SHA512 hash to ourselves, so we know it hasn't been changed.
+		$this->dict['envelope']['payload_sha512'] = $this->payload_hash();
+
+
+		//Get the text we want to sign.
+		$payloadtxt = $this->payload_text();
+
+		//Create an empty sig; This will be filled in in a moment.
+		$binary_signature = "";
+
+		//Sign the message. If the signature process works (as it should)
+		//Then insert the signature into the envelope.
+		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],OPENSSL_ALGO_SHA1);
+		$ok = openssl_verify($payloadtxt, $binary_signature,$user->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
+		if ($ok == 1)
+		{
+			print "Signature worked.";
+			$this->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
+		}
+
+		$posturl = 'http://pluric.com:8090/newmessage';
+		$fields = array('message'=>$this->text());
+		sendpost($posturl,$fields);
+	}
+	
+	
+	
+
 }
 
 
-$EXAMPLE_MESSAGE_ID='7735eba5faf1bdeb19c603f0d579fddbb772902ffd9663db59f49075ac453444e25308ae77d319cdd2af42502c6d58e492b8c2fbc297029b815043cf996cd746';
-$EXAMPLE_TOPIC='ABCD';
+$EXAMPLE_MESSAGE_ID='98354a6cf21445226b3c2ce32d2b25b3680cf653d2accebc6af85f6603446c090336264666f86432fae6cdaa2185a0e5a4c6bc3a37a80eba5aade329d06f9cb4';
+$EXAMPLE_TOPIC='ClientTest';
 $EXAMPLE_SERVER='http://pluric.com:8090';
 $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $EXAMPLE_MESSAGE_ID;
 $EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
@@ -263,41 +306,35 @@ $TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings
 $e = new Envelope();
 $e->dict = $TestMessage;
 
-//Add the SHA512 hash, so we know it hasn't been modified later.
-$e->dict['envelope']['payload_sha512'] = $e->payload_hash();
+//Upload the message we just wrote.
+$e->uploadenvelope($u);
 
 
-//Get the text we want to sign.
-$payloadtxt = $e->payload_text();
 
-//Create an empty sig; This will be filled in in a moment.
-$binary_signature = "";
-
-//Sign the message. If the signature process works (as it should)
-//Then insert the signature into the envelope.
-$ok = openssl_sign($payloadtxt,$binary_signature,$u->usersettings['privkey'],OPENSSL_ALGO_SHA1);
-$ok = openssl_verify($payloadtxt, $binary_signature,$u->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
-if ($ok == 1)
-{
-	print "Signature worked.";
-	$e->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
-}
-
-print "#########\n"  . $e->payload_text() . "\n#########";
+//Save the Payload hash, so we can upvote it later.
+$ph = $e->payload_hash();
 
 
-$posturl = $EXAMPLE_SERVER . '/newmessage';
-$fields = array('message'=>$e->text());
-$ch = curl_init();
-curl_setopt($ch, CURLOPT_URL, $posturl);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-curl_setopt($ch, CURLOPT_POST, 1);
-curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);$result = curl_exec($ch);
+/// Create a Rating; That's a type of message, too!
 
+$TestRating = array(  );
 
-print_r($result);
+$TestRating['envelope']['payload']['payload_type'] = "rating";
+$TestRating['envelope']['payload']['rating'] = 1;
+$TestRating['envelope']['payload']['regarding'] = $ph;
+
+//Stick the user settings into the message
+//We can't just copy the whole dict in, since we don't want the privkey
+$TestRating['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
+$TestRating['envelope']['payload']['author']['client'] = $u->usersettings['client'];
+$TestRating['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
+
+//Generate the envelope, and stick the Message into it.
+$e = new Envelope();
+$e->dict = $TestRating;
+//Upload the rating we just wrote.
+$e->uploadenvelope($u);
+
 
 ?>
 
