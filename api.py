@@ -275,7 +275,7 @@ class PrivateMessagesHandler(BaseHandler):
 
 class SubmitMessageHandler(BaseHandler):
     def post(self):
-        client_message =  tornado.escape.xhtml_escape(self.get_argument("message"))
+        client_message = self.get_argument("message")
         server.receiveEnvelope(client_message)
 
         
@@ -315,7 +315,7 @@ def main():
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
         "login_url": "/login",
-        "xsrf_cookies": True,
+        "xsrf_cookies": False,
     }
     application = tornado.web.Application([
         (r"/ListActiveTopics" ,ListActiveTopics),

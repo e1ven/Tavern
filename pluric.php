@@ -1,5 +1,6 @@
 <?php
 
+
 class User
 {
 	function __construct() 
@@ -100,16 +101,24 @@ class Envelope
 		return $mytext;
 	}
 	
+	function payload_sort() 
+	{
+		$payload = $this->dict['envelope']['payload'];
+		ksort($payload);
+		$this->dict['envelope']['payload'] = $payload;
+	}
+	
 	function payload_hash() 
 	{
-		print_r($this->dict['envelope']['payload']);
+		$this->payload_sort();
 		$payloadtext = json_encode($this->dict['envelope']['payload']);
 		$payloadtext = str_replace('\/','/',$payloadtext);
 		$hash = hash("sha512",$payloadtext);
 		return $hash;
 	}
-	function payload_txt() 
+	function payload_text() 
 	{
+		$this->payload_sort();
 		$payloadtext = json_encode($this->dict['envelope']['payload']);
 		$payloadtext = str_replace('\/','/',$payloadtext);
 		return $payloadtext;
@@ -239,7 +248,7 @@ $u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
 //Create a new test Message.
 $TestMessage = array(  );
 
-$TestMessage['envelope']['payload']['topics'] = array('ClientTest');
+$TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
 $TestMessage['envelope']['payload']['payload_type'] = "message";
 $TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
 $TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
@@ -259,7 +268,7 @@ $e->dict['envelope']['payload_sha512'] = $e->payload_hash();
 
 
 //Get the text we want to sign.
-$payloadtxt = $e->payload_txt();
+$payloadtxt = $e->payload_text();
 
 //Create an empty sig; This will be filled in in a moment.
 $binary_signature = "";
@@ -274,20 +283,21 @@ if ($ok == 1)
 	$e->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
 }
 
+print "#########\n"  . $e->payload_text() . "\n#########";
 
-$url = 'http://pluric.com/newmessage';
-$options = array('protocol' => 'HTTP_VERSION_1_1');
-                
-//create the httprequest object                
-$httpRequest_OBJ = new httpRequest($url, HTTP_METH_POST, $options);
-//add the content type
-//$httpRequest_OBJ->setContentType = 'Content-Type: text/xml';
-//add the raw post data
-$httpRequest_OBJ->setRawPostData ($e->text());
-//send the http request
-$result = $httpRequest_OBJ->send();
-//print out the result
-echo "<pre>"; print_r($result); echo "</pre>";
+
+$posturl = $EXAMPLE_SERVER . '/newmessage';
+$fields = array('message'=>$e->text());
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $posturl);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);$result = curl_exec($ch);
+
+
+print_r($result);
 
 ?>
 
