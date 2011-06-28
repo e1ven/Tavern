@@ -30,7 +30,7 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import TopicList
+#import TopicList
 import uuid
 
 import re
@@ -275,7 +275,7 @@ class PrivateMessagesHandler(BaseHandler):
 
 class SubmitMessageHandler(BaseHandler):
     def post(self):
-        client_message = self.get_argument("message")
+        client_message =  self.get_argument("message")
         server.receiveEnvelope(client_message)
 
         
@@ -310,7 +310,7 @@ def main():
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
     #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
-    tl = TopicList.TopicList()        
+    #tl = TopicList.TopicList()        
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
