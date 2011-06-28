@@ -273,8 +273,21 @@ if ($ok == 1)
 	print "Signature worked.";
 	$e->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
 }
-print($e->text());
 
+
+$url = 'http://pluric.com/newmessage';
+$options = array('protocol' => 'HTTP_VERSION_1_1');
+                
+//create the httprequest object                
+$httpRequest_OBJ = new httpRequest($url, HTTP_METH_POST, $options);
+//add the content type
+//$httpRequest_OBJ->setContentType = 'Content-Type: text/xml';
+//add the raw post data
+$httpRequest_OBJ->setRawPostData ($e->text());
+//send the http request
+$result = $httpRequest_OBJ->send();
+//print out the result
+echo "<pre>"; print_r($result); echo "</pre>";
 
 ?>
 

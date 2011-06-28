@@ -321,6 +321,7 @@ def main():
         (r"/ListActiveTopics" ,ListActiveTopics),
         (r"/message/(.*)" ,MessageHandler),
         (r"/message/(.*)/(.*)", MessageHandler),
+        (r"/newmessage", SubmitMessageHandler),        
         (r"/topictag/(.*)", TopicHandler),
         (r"/topictag/(.*)/(.*)", TopicHandler),
         (r"/topictag/(.*)/(.*)/(.*)", TopicHandler),
