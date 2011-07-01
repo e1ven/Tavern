@@ -1,57 +1,83 @@
-<ENVELOPE>
-<SERVERS>
-	<SERVER>
-		<TIME_SEEN>1304318238.34</TIME_SEEN>
-		<SIGNATURE>hsfgdafsyzfrseurszxfdsaEafwyd...</SIGNATURE>
-	</SERVER>
-	<SERVER>
-		<TIME_SEEN>1304318238.34</TIME_SEEN>
-		<SIGNATURE>ABCDEFG...</SIGNATURE>
-	</SERVER>
-</SERVERS>
+{
+	'envelope':
+	{
+		'payload_sha512':
+	'3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54'
+	},
 
-<PAYLOAD_SHA512>3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54</PAYLOAD_SHA512>
 
-<STAMP> 400993485910747473038382868614...</STAMP>
-<STAMP> 991921353197822591619597987982...</STAMP>
+	{
+		'stamps':
+		[
+			{
+				'class': 'author',
+				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+				'signature': 'sdt634652364123523423423423',
+				'time_added' : 1304318238
+			}
+		]
+		[
+			{
+				'class': 'origin',
+				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+				'signature': 'sdt634652364123523423423423',
+				'time_added' : 1304318238
+			}
+		]
+		[
+			{
+				'class': 'server',
+				'hostname': 'pluric.com',
+				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+				'signature': 'sdt634652364123523423423423',
+				'time_added' : 1304318238
+			}
+		]
+	},
 
-<SENDER_SIGNATURE>ZYXABC...</SENDER_SIGNATURE>
-<PAYLOAD>
-	<PAYLOAD_TYPE>MESSAGE</PAYLOAD_TYPE>
+	{
+		'payload':
+		{
+			'formatting':'markdown',
+			'class':'message',
+			'topictag':
+			[
+				'Startrek',
+				'TV Shows'
+			],		
+			'to': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+			'regarding': 'fa200fc2bbb11cfb2349668826685b5ec481d3555895877b5dd60d9981f411c665b2867023c61838cb78caf020ec61517aa3880ee225784fce6c560ecafeafaa',
+			'coords': '29.199505,-90.041242',
+			'author':
+				{
+					'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+					'friendlyname': 'E1ven',
+					'about': '0cb128a753dec8d8d56eedc41e43083d02ec365407ca827fac7b18745eefa282ab6df1c8b97ddaed8b57ba87225bc6a0096c03effd71f8c68aea87db9fea4a43',
+					'useragent': 'Pluric for Android 1.0'
+				},
+				'subject': 'Need more Startrek',
+				'body': 'When are they going to create a *new* series? I think the movies have re...',
+				binaries:
+					[
+						{	
+						'sha_512' : 'c3132d34d5fcebd73b096c3e40e78b803040283d457b4d486c46ea8eade0d7ea8b4b5840273f123d2c45c52fa76d87c476d66dbcc93808d7561db1ead80c5d1b',
+						'filesize_hint' : 96375,
+						'content_type' : 'image/png',
+						'filename' : 'Screen Shot 2011-06-30 at 8.03.57 AM.png'
+						}
+					]
+	},
 	
-	<TOPICTAG>Startrek</TOPICTAG>
-	<TOPICTAG>TV Shows</TOPICTAG>
+	{
+		'local':
+		{
+			'cited_by':
+			[
+			'12sfhsdzhjdzfjhdxgj4'
+			]
+		}
+}
 
-	<TO>90751171059740188244</TO>
-	<REGARDING>fa200fc2bbb11cfb2349668826685b5ec481d3555895877b5dd60d9981f411c665b2867023c61838cb78caf020ec61517aa3880ee225784fce6c560ecafeafaa</REGARDING>
-
-	<COORDS>29.199505,-90.041242</COORDS>
-
-	<AUTHOR>
-		<PUBKEY>rsa AAAAB3NzaC1yc2EAAAA...</PUBKEY>
-		<FRIENDLYNAME>E1ven</FRIENDLYNAME>
-		<ABOUT>0cb128a753dec8d8d56eedc41e43083d02ec365407ca827fac7b18745eefa282ab6df1c8b97ddaed8b57ba87225bc6a0096c03effd71f8c68aea87db9fea4a43</ABOUT>	
-		<CLIENT>Pluric for Android 1.0</CLIENT>
-	</AUTHOR>
-
-	<SUBJECT>Need more Trek!!</SUBJECT>
-	<BODY>When are they going to create a *new* series? I think the movies have re...</BODY>
-
-	<BINARIES>
-		<SHA_512>8f5454abbdb17c3ad4b98228eab1ff5e9f0ad6d298a2fa4b5100c744cab0741d5eb11e558fb8604b8a5d5ad60d80b6e3a208c7139a7a4d9614690455467f0b9e</SHA_512>
-		<SHA_512>d2a0d25b624638797e4e34be9cef1a8ed58699406af9366764049073a33f14001a0a2fe9e954876c3680752a56add5b7da2038c8dc8bb7820e72f4c255b64348</SHA_512>
-		<FILESIZE_HINT>20480</FILESIZE_HINT>
-	</BINARIES>
-</PAYLOAD>
-
-<LOCAL>
-	<CITED_BY>
-	213123
-	</CITED_BY>
-</LOCAL>
-
-
-</ENVELOPE>
 ---
 
 

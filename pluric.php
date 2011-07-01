@@ -185,34 +185,53 @@ class Envelope
 		//Check to ensure the Payload is intact.
 		//To do this, we're going to dump the payload back out to JSON
 		//Then sure the JSON matched the same one that was signed.
-		$pubkey = $this->dict['envelope']['payload']['author']['pubkey'];
-		$pubkeyid = openssl_get_publickey($pubkey);
 
 		$payloaddict = $this->dict['envelope']['payload'];
 		$payloadjson = json_encode($payloaddict);
 		$payloadjson = str_replace('\/','/',$payloadjson);
 
-
-		$sig = $this->dict['envelope']['sender_signature'];
-		$signature = base64_decode($sig);
-
-		// state whether signature is okay or not
-		if (openssl_verify($payloadjson, $signature, $pubkeyid,OPENSSL_ALGO_SHA1) == 1)
+		#Let's make sure all of our stamps are intact.
+		#Including the Author we're signing.
+	
+		$listofstamps = $this->dict['envelope']['stamps'];	
+		foreach ($listofstamps as $stamp)
 		{
-			return True;
+			$signature = base64_decode($stamp['signature']);
+			$stampkey = $stamp['pubkey'];
+                	$pubkeyid = openssl_get_publickey($stampkey);
+
+			// state whether signature is okay or not
+			if (openssl_verify($payloadjson, $signature, $pubkeyid, OPENSSL_ALGO_SHA1) == 1)
+			{
+				return True;
+			}
+			else
+			{
+				return False;
+			}
+
+			// free the key from memory
+			openssl_free_key($pubkeyid);
 		}
-		else
-		{
-			return False;
-		}
-		// free the key from memory
-		openssl_free_key($pubkeyid);
 	}
 
 
 	function uploadenvelope($user)
 	{
-		//Add the SHA512 hash to ourselves, so we know it hasn't been changed.
+		//Add the SHA512 hash to ourselves, so we know it hasn't been changed
+		//Add this as a stamp.
+
+		//We probably don't already have a stamp array.
+		//But if we do, restore it. If not, create it.
+		if (array_key_exists('stamps',$this->dict['envelope']))
+		{
+			$stamparray = $this->dict['envelope']['stamps'];
+		}
+		else
+		{
+			$stamparray = array(  );
+		}
+		
 		$this->dict['envelope']['payload_sha512'] = $this->payload_hash();
 
 
@@ -229,11 +248,21 @@ class Envelope
 		if ($ok == 1)
 		{
 			print "Signature worked.";
-			$this->dict['envelope']['sender_signature'] = base64_encode($binary_signature);	
-		}
-
-		$posturl = 'http://pluric.com:8090/newmessage';
+			$sender_stamp['class'] = "author";
+			$sender_stamp['pubkey'] = $user->usersettings['pubkey'];
+			$sender_stamp['signature'] = base64_encode($binary_signature);	
+			$sender_stamp['time_added'] = (int)gmdate('U');
+ 		}
+		$this->dict['envelope']['stamps'][] = $sender_stamp;
+		
+		$posturl = 'http://127.0.0.1:8090/newmessage';
+		
+		
+		print $this->text();
+		// Now, get the text. We don't need to .save or anything, since it's all streaming.
 		$fields = array('message'=>$this->text());
+		
+		// Send 'er out.
 		sendpost($posturl,$fields);
 	}
 	
@@ -243,9 +272,9 @@ class Envelope
 }
 
 
-$EXAMPLE_MESSAGE_ID='98354a6cf21445226b3c2ce32d2b25b3680cf653d2accebc6af85f6603446c090336264666f86432fae6cdaa2185a0e5a4c6bc3a37a80eba5aade329d06f9cb4';
+$EXAMPLE_MESSAGE_ID='038eadb87ac822e4f7f8aea78099687c644f487b7388b00e38315540fb8f5662de1b786aadbea1fe08459d193d5acf30084a44f2f1f5904e95e01ee1e9599867';
 $EXAMPLE_TOPIC='ClientTest';
-$EXAMPLE_SERVER='http://pluric.com:8090';
+$EXAMPLE_SERVER='http://127.0.0.1:8090';
 $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $EXAMPLE_MESSAGE_ID;
 $EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
 
@@ -291,8 +320,10 @@ $u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
 //Create a new test Message.
 $TestMessage = array(  );
 
+$TestMessage['envelope']['payload']['class'] = "message";
 $TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
-$TestMessage['envelope']['payload']['payload_type'] = "message";
+$TestMessage['envelope']['payload']['formatting'] = "markdown";
+
 $TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
 $TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
 
@@ -319,7 +350,7 @@ $ph = $e->payload_hash();
 
 $TestRating = array(  );
 
-$TestRating['envelope']['payload']['payload_type'] = "rating";
+$TestRating['envelope']['payload']['class'] = "rating";
 $TestRating['envelope']['payload']['rating'] = 1;
 $TestRating['envelope']['payload']['regarding'] = $ph;
 

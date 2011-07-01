@@ -25,7 +25,7 @@ class Envelope(object):
             self.format()
             h = hashlib.sha512()
             h.update(self.text())
-            print "Hashing --" + self.text() + "--"
+            # print "Hashing --" + self.text() + "--"
             return h.hexdigest()
         def text(self): 
             self.format()
@@ -52,12 +52,15 @@ class Envelope(object):
             if not self.dict.has_key('body'):
                 print "No Body"
                 return False
-            if self.dict.has_key('topictag_list'):
-                #You are allowed to have no topictags.
-                #But you can have no more than 3.
-                if len(self.dict['topictag_list']) > 3:
-                    print "List too long"
-                    return False
+            if not self.dict.has_key('topictag'):
+                print "No Topictags"
+                return False
+            if len(self.dict['topictag']) > 3:
+                print "Topictag List too long"
+                return False                    
+            if not self.dict.has_key('formatting'):
+                print "No Formatting"
+                return False            
             return True  
     
     
@@ -77,10 +80,10 @@ class Envelope(object):
     class Rating(Payload):
          def validate(self):
              if not Envelope.Payload(self.dict).validate():
+                 print "Super fails"
                  return False
              if not self.dict.has_key('rating'):
                  print "No rating number"
-                 pprint.pprint(self.dict)
                  return False
              rvalue = self.dict['rating']
              if rvalue not in [-1,0,1]:
@@ -103,17 +106,49 @@ class Envelope(object):
                      
                   
     def validate(self):
-        #Validate an Envelope    
+        #Validate an Envelope   
+                
+        
+        #Check headers 
         if not self.dict.has_key('envelope'):
-            print "Invalid Evelope. No Header"
+            print "Invalid Envelope. No Header"
             return False
-        if not self.dict['envelope'].has_key('sender_signature'):
-            print "No sender signature. Invalid."
-            return False        
+        
+           
+        #Ensure we have 1 and only 1 author signature stamp        
+        stamps = self.dict['envelope']['stamps']
+        foundauthor = 0
+        for stamp in stamps:
+            if (stamp['class'] == "author"):
+                foundauthor += 1
+        if foundauthor == 0:
+            print "No author stamp."
+            return False    
+        if foundauthor > 1:
+            print "Too Many author stamps"
+            return False
+        
+        #Ensure Every stamp validates.
+        stamps = self.dict['envelope']['stamps']
+        for stamp in stamps:
+            stampkey = Keys(pub=stamp['pubkey'])
+            if stampkey.verifystring(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
+                    print "Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey']
+                    print "------------"
+                    print self.text()
+                    print "------------"
+                    return False
+        #Validate our Payload.
+        #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
-            print "Payload does not validate."
-            return False
+                print "Payload does not validate."
+                return False
         return True    
+
+
+        
+        
+        
     class binary(object):
             def __init__(self,hash):
                 self.dict = OrderedDict()
@@ -127,20 +162,21 @@ class Envelope(object):
         self.dict['envelope']['payload'] = OrderedDict()
         self.dict['envelope']['local'] = OrderedDict()
         self.dict['envelope']['local']['citedby'] = []
-
+        self.dict['envelope']['stamps'] = []
+        
         self.payload = Envelope.Payload(self.dict['envelope']['payload'])
    
    
     def registerpayload(self):
         if self.dict['envelope'].has_key('payload'):
-            if self.dict['envelope']['payload'].has_key('payload_type'):
-                if self.dict['envelope']['payload']['payload_type'] == "message":
+            if self.dict['envelope']['payload'].has_key('class'):
+                if self.dict['envelope']['payload']['class'] == "message":
                     self.payload = Envelope.Message(self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['payload_type'] == "rating":
+                elif self.dict['envelope']['payload']['class'] == "rating":
                     self.payload = Envelope.Rating(self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['payload_type'] == "usertrust":
+                elif self.dict['envelope']['payload']['class'] == "usertrust":
                     self.payload = Envelope.UserTrust(self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['payload_type'] == "privatemessage":
+                elif self.dict['envelope']['payload']['class'] == "privatemessage":
                     self.payload = Envelope.PrivateMessage(self.dict['envelope']['payload'])
                 
     def loadstring(self,importstring):
