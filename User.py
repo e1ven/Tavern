@@ -38,19 +38,17 @@ class User(object):
         #Don't keep computing it over and over and over.
         #We can probably bring this cache to be a pretty high number. 60+ secs
         cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
-<<<<<<< HEAD
+
         #if cache is not None:
         #    if time.time() - cache['time'] < 20:
         #        print "Using cached trust"
         #        return cache['calculatedtrust']
                 
-=======
         if cache is not None:
             if time.time() - cache['time'] < 20:
                 print "Using cached trust"
                 return cache['calculatedtrust']
                                 
->>>>>>> b0332d1e9c49cd61f941e7fffca25fbfb7a07bbd
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
             print "I trust me."
@@ -62,11 +60,6 @@ class User(object):
             return 0
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
-<<<<<<< HEAD
-=======
-        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.class" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
->>>>>>> b0332d1e9c49cd61f941e7fffca25fbfb7a07bbd
-        
         #TODO - Let's change this to get the most recent. 
 
         trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict)
