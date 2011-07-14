@@ -2,7 +2,7 @@ timeZone.lo: timeZone.c /usr/include/string.h /usr/include/features.h \
  /usr/include/bits/predefs.h /usr/include/sys/cdefs.h \
  /usr/include/bits/wordsize.h /usr/include/gnu/stubs.h \
  /usr/include/gnu/stubs-32.h \
- /usr/lib/i386-linux-gnu/gcc/i686-linux-gnu/4.5.2/include/stddef.h \
+ /usr/lib/gcc/i486-linux-gnu/4.4.3/include/stddef.h \
  /usr/include/xlocale.h /usr/include/bits/string.h \
  /usr/include/bits/string2.h /usr/include/endian.h \
  /usr/include/bits/endian.h /usr/include/bits/byteswap.h \
@@ -23,7 +23,7 @@ timeZone.lo: timeZone.c /usr/include/string.h /usr/include/features.h \
 
 /usr/include/gnu/stubs-32.h:
 
-/usr/lib/i386-linux-gnu/gcc/i686-linux-gnu/4.5.2/include/stddef.h:
+/usr/lib/gcc/i486-linux-gnu/4.4.3/include/stddef.h:
 
 /usr/include/xlocale.h:
 
