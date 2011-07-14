@@ -1,8 +1,13 @@
 
     server {
         listen 80;
+        proxy_set_header X-Real-IP $remote_addr;
+        server_name robohash.org;
 
-        server_name li289-9;
+        if ($host != 'robohash.org' ) {
+        rewrite  ^/(.*)$  http://robohash.org/$1  permanent;
+        }
+
         location / {
                 proxy_pass http://tornados/;
                 }

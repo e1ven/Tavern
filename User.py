@@ -19,6 +19,7 @@ class User(object):
         self.UserSettings['local']['followTopic'] = []
 
     def gatherTrust(self,askingabout,incomingtrust=250):
+        print "My Key------" +  self.Keys.pubkey
         #Rating of myself = 250
         #Direct Rating = 100
         #Friend's Rating = 40
@@ -37,10 +38,10 @@ class User(object):
         #Don't keep computing it over and over and over.
         #We can probably bring this cache to be a pretty high number. 60+ secs
         cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
-        if cache is not None:
-            if time.time() - cache['time'] < 20:
-                print "Using cached trust"
-                return cache['calculatedtrust']
+        #if cache is not None:
+        #    if time.time() - cache['time'] < 20:
+        #        print "Using cached trust"
+        #        return cache['calculatedtrust']
                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
@@ -51,16 +52,19 @@ class User(object):
         #Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0 etc     
         if incomingtrust <= 2:
             return 0
-
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
-        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.payload_type" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
         
+        #TODO - Let's change this to get the most recent. 
+
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict)
         foundtrust = False
         if trustrow is not None:
+                print "We trust this user directly."
                 trust = int(trustrow['envelope']['payload']['trust'])
                 foundtrust = True
-                
+        else:
+            print "We have not directly rated this user."
         if foundtrust == False:
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
             #First, find the people WE'VE trusted.
@@ -157,13 +161,14 @@ class User(object):
     
     def load_mongo_by_pubkey(self,pubkey):
         user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
-        self.UserSettings = user
-        if self.UserSettings is None:
+        if user is None:
             #If the user doesn't exist in our service, he's only heard about.
             #We won't know their privkey, so just return their pubkey back out.
             self.Keys = Keys(pub=pubkey) 
         else:    
             #If we *do* find you locally, load in both Priv and Pubkeys
+            #And load in the user settings.
+            self.UserSettings = user
             self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
             self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
@@ -175,7 +180,7 @@ class User(object):
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
-
+        print "Loaded username " + username + "..." + self.UserSettings['pubkey']
     def savemongo(self):
         self.UserSettings['_id'] = self.UserSettings['pubkey']
         server.mongos['default']['users'].save(self.UserSettings) 
