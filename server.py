@@ -20,7 +20,7 @@ import sys
 import pprint
 from postmarkup import render_bbcode
 import markdown
-
+import imghdr
 
 class Server(object):
 

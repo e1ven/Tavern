@@ -134,9 +134,6 @@ class Envelope(object):
             stampkey = Keys(pub=stamp['pubkey'])
             if stampkey.verifystring(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
                     print "Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey']
-                    print "------------"
-                    print self.text()
-                    print "------------"
                     return False
         #Validate our Payload.
         #Do this last, so we don't waste time if the stamps are bad.
