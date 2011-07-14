@@ -365,7 +365,7 @@ class RatingHandler(BaseHandler):
             return -1
         
         e = Envelope()
-        e.payload.dict['payload_type'] = "rating"
+        e.payload.dict['class'] = "rating"
         e.payload.dict['rating'] = rating_val
         e.payload.dict['regarding'] = client_hash
             
@@ -377,7 +377,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
@@ -391,7 +391,16 @@ class RatingHandler(BaseHandler):
         
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['envelope']['sender_signature'] = usersig
+        
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist
         
         #Send to the server
         server.receiveEnvelope(e.text())
@@ -416,7 +425,7 @@ class UserTrustHandler(BaseHandler):
             return -1
 
         e = Envelope()
-        e.payload.dict['payload_type'] = "usertrust"
+        e.payload.dict['class'] = "usertrust"
         e.payload.dict['trust'] = trust_val
                 
         k = Keys(pub=client_pubkey)
@@ -431,7 +440,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
 
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
@@ -445,8 +454,18 @@ class UserTrustHandler(BaseHandler):
 
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['envelope']['sender_signature'] = usersig
-
+        
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist
+        
+        
         #Send to the server
         server.receiveEnvelope(e.text())
 
@@ -534,7 +553,7 @@ class NewmessageHandler(BaseHandler):
         topics = []
         topics.append(client_topic)        
         e.payload.dict['formatting'] = "markdown"
-        e.payload.dict['payload_type'] = "message"
+        e.payload.dict['class'] = "message"
         e.payload.dict['topictag'] = topics
         e.payload.dict['body'] = client_body
         e.payload.dict['subject'] = client_subject
@@ -553,7 +572,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
@@ -567,8 +586,17 @@ class NewmessageHandler(BaseHandler):
         
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['envelope']['sender_signature'] = usersig
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist
         
+                
         #Send to the server
         server.receiveEnvelope(e.text())
 
@@ -632,7 +660,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
         e = Envelope()
         topics = []
-        e.payload.dict['payload_type'] = "privatemessage"
+        e.payload.dict['class'] = "privatemessage"
         e.payload.dict['to'] = toKey.pubkey
         e.payload.dict['body'] = toKey.encryptToSelf(client_body)
         e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)
@@ -643,7 +671,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
             ip = self.request.remote_ip
@@ -657,7 +685,15 @@ class NewPrivateMessageHandler(BaseHandler):
 
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['enveope']['sender_signature'] = usersig
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist
 
         #Send to the server
         server.receiveEnvelope(e.text())

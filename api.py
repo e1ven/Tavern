@@ -171,7 +171,7 @@ class RatingHandler(BaseHandler):
             return -1
         
         e = Envelope()
-        e.payload.dict['payload_type'] = "rating"
+        e.payload.dict['class'] = "rating"
         e.payload.dict['rating'] = rating_val
         e.payload.dict['regarding'] = client_hash
             
@@ -197,8 +197,15 @@ class RatingHandler(BaseHandler):
         
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['envelope']['sender_signature'] = usersig
-        
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist        
         #Send to the server
         server.receiveEnvelope(e.text())
 
@@ -222,7 +229,7 @@ class UserTrustHandler(BaseHandler):
             return -1
 
         e = Envelope()
-        e.payload.dict['payload_type'] = "usertrust"
+        e.payload.dict['class'] = "usertrust"
         e.payload.dict['trust'] = trust_val
                 
         k = Keys(pub=client_pubkey)
@@ -251,8 +258,15 @@ class UserTrustHandler(BaseHandler):
 
         #Sign this bad boy
         usersig = u.Keys.signstring(e.payload.text())
-        e.dict['envelope']['sender_signature'] = usersig
-
+        stamp = OrderedDict()
+        stamp['class'] = 'author'
+        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['signature'] = usersig
+        utctime = time.time()
+        stamp['time_added'] = int(utctime)
+        stamplist = []
+        stamplist.append(stamp)
+        e.dict['envelope']['stamps'] = stamplist
         #Send to the server
         server.receiveEnvelope(e.text())
 

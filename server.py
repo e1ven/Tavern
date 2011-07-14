@@ -20,7 +20,7 @@ import sys
 import pprint
 from postmarkup import render_bbcode
 import markdown
-
+import imghdr
 
 class Server(object):
 
@@ -130,63 +130,58 @@ class Server(object):
     def receiveEnvelope(self,envelope):
         c = Envelope()
         c.loadstring(importstring=envelope)
-        if c.dict.has_key('servers'):
-            serverlist = c.dict['servers']
-        else:
-            serverlist = []
+        
+        #First, ensure we're dealing with a good Env, before we proceed
         if not c.validate():
             print "Validation Error"
             return False
-            
-        Envelopekey = Keys(pub=c.dict['envelope']['payload']['author']['pubkey'])
-        if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=c.dict['envelope']['sender_signature']) != True:
-                print "#########\n" + c.payload.text() + "\n#########";
-                print "Signature Failed to verify"
-                return False
-            
-        #Search the server list to look for ourselves. Don't double-receive.
+        
+        #If we don't have a local section, add one.
+        #This isn't inside of validation since it's legal not to have one.
+        if not c.dict['envelope'].has_key('local'):
+            c.dict['envelope']['local'] = OrderedDict()    
+        
+        #Pull out serverstamps.    
+        serverlist = []    
+        stamps = c.dict['envelope']['stamps']
+        for stamp in stamps:
+            if stamp['class'] == "server":
+                serverlist.append[stamp]
+
+        #Search the server list to look for ourselves. 
+        #If we find ourselves, abort. We don't want to double-process
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:
-                logging.debug("Found potential us. Let's verify.")
-                Envelopekey = Keys(pub=self.ServerKeys.pubkey)
-                if Envelopekey.verifystring(stringtoverify=c.payload.text(),signature=server['signature']) == True:
-                    logging.debug("It's a Me!")
-                    #return
+                #Potential Us. Let's Verify it really is.
+                if Keys(pub=self.ServerKeys.pubkey).verifystring(stringtoverify=c.payload.text(),signature=server['pubkey']) == True:
+                    #It's a Me!
+                    #Don't double-process. Abort.
+                    return False
                 else:
                     #Someone is imitating us. Bastards.
                     logging.error("It's a FAAAAAAKE!")
-                    return False
+                    #We should log this more, and look for trends, etc. For now, just suck it up, and process the message.
         
         utctime = time.time()
         #Sign the message to saw we saw it.
         signedpayload = self.ServerKeys.signstring(c.payload.text())
-        myserverinfo = {u'hostname':self.ServerSettings['hostname'],u'time_seen':int(utctime),u'signature':signedpayload,u'pubkey': self.ServerKeys.pubkey}
-
-        serverlist.append(myserverinfo)
-        c.dict['envelope']['servers'] = serverlist
-        #Determine Message type, by which primary key it has. 
-        #While there is no *technical* reason you couldn't have more than one message per envelope, or a message and a vote, it is invalid.
-        #The reason for this is that envelopes are low-overhead, and make splitting it up by other servers later, easier.
-        #So, we only allow one, to ensure cleanness of the ecosystem.
+        myserverinfo = {'class':'server','hostname':self.ServerSettings['hostname'],'time_added':int(utctime),'signature':signedpayload,'pubkey': self.ServerKeys.pubkey}
+        stamps.append(myserverinfo)
         
-        if c.dict['envelope']['payload']['payload_type'] == "message":       
+        c.dict['envelope']['stamps'] = stamps
+        
+        
+        if c.dict['envelope']['payload']['class'] == "message":       
             #If the message referenes anyone, mark the original, for ease of finding it later.
-            #Do this in the [local] block, so we don't waste bits passing this on.
-            #If the message doesn't exist, don't mark it ;)
+            #Do this in the {local} block, so we don't waste bits passing this on. 
+            #Partners can calculate this when they receive it.
+
             if c.dict['envelope']['payload'].has_key('regarding'):
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                
                     repliedTo.dict['envelope']['local']['citedby'].append(c.message.hash())
-                    print "Adding messagehash " + c.payload.hash() + " to " + c.dict['envelope']['payload']['regarding']
-                    print "NewHash: " + repliedTo.payload.hash()   
                     repliedTo.saveMongo()
                     
-        if c.dict['envelope']['payload']['payload_type'] == "messagerating":   
-            print "This is a rating"    
-        #If we don't have a local section, add one.s
-        if not c.dict['envelope'].has_key('local'):
-            c.dict['envelope']['local'] = OrderedDict()    
         #Store our file
         c.saveMongo()
         

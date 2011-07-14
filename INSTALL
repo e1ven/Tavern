@@ -1,4 +1,8 @@
-Upapt-get install libpcre3-dev
+
+#BE ON PYTHON 2.7!!!!
+#This will not work on 2.6.
+#If you are on Ubuntu, such as a Linode, upgrade to 11.4+
+
 apt-get install g++ 
 apt-get install zlib1g-dev
 apt-get install libssl-dev
@@ -6,6 +10,7 @@ apt-get install python-dev
 apt-get install swig
 apt-get install libfreetype6 libfreetype6-dev
 apt-get install libjpeg8-dev
+apt-get install libjpeg8
 apt-get install libzzip-dev
 #On 64 bit
 apt-get install lib32z1
@@ -23,10 +28,12 @@ wget http://nginx.org/download/nginx-1.0.2.tar.gz
 tar -zxvf nginx-1.0.2.tar.gz
 cd nginx-1.0.2
 wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
+tar -zxvf nginx_upload_module-2.2.0.tar.gz
 git clone https://github.com/mdirolf/nginx-gridfs.git
 cd nginx-gridfs
 git submodule init
 git submodule update
+cd ..
 ./configure --add-module=/usr/local/src/nginx-1.0.2/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.0.2/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
 make
 make install
@@ -45,7 +52,6 @@ cp nginx.conf /opt/nginx/conf/
 cd /opt/Pluric/libs
 
 cd GeoIP-1.4.7/
-make
 ./configure 
 make
 make install
@@ -79,7 +85,7 @@ python setup.py install
 cd /opt/Pluric/libs/postmarkup-1.1.4/
 python setup.py install
 
-/opt/Pluric/libs/zlib-1.2.5
+cd /opt/Pluric/libs/zlib-1.2.5
 ./configure; make; make install
 
 cd /opt/Pluric/libs/Imaging-1.1.7

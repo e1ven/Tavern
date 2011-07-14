@@ -112,13 +112,17 @@ class Keys(object):
         VerifyEVP.assign_rsa(PubKey)
         VerifyEVP.verify_init()
         VerifyEVP.verify_update(stringtoverify)
+        
+        # print "-----------------------------------------------"
+        #       print "Pubkey - ###" + self.pubkey.encode('utf8') + "###"
+        #       print "B64Sig - ###" + signature + "###"
+        #       print "Plaintext - ###" + stringtoverify + "###"
+        #       
         if VerifyEVP.verify_final(decodedSignature) == 1:
-            # print "Pubkey - ###" + self.pubkey.encode('utf8') + "###"
-            # print "B64Sig - ###" + signature + "###"
-            # print "Plaintext - ###" + stringtoverify + "###"
+            # print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Verifies."
             return True
-    
         else:
+            # print "@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ Fails to Verify."
             return False
     
     def encryptToSelf(self,encryptstring):

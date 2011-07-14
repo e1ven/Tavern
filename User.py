@@ -38,11 +38,19 @@ class User(object):
         #Don't keep computing it over and over and over.
         #We can probably bring this cache to be a pretty high number. 60+ secs
         cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
+<<<<<<< HEAD
         #if cache is not None:
         #    if time.time() - cache['time'] < 20:
         #        print "Using cached trust"
         #        return cache['calculatedtrust']
                 
+=======
+        if cache is not None:
+            if time.time() - cache['time'] < 20:
+                print "Using cached trust"
+                return cache['calculatedtrust']
+                                
+>>>>>>> b0332d1e9c49cd61f941e7fffca25fbfb7a07bbd
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
             print "I trust me."
@@ -54,6 +62,10 @@ class User(object):
             return 0
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
+<<<<<<< HEAD
+=======
+        trustrow = server.mongos['default']['envelopes'].find_one({"envelope.payload.class" : "usertrust", "envelope.payload.pubkey" : str(askingabout), "envelope.payload.trust" : {"$exists":"true"}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+>>>>>>> b0332d1e9c49cd61f941e7fffca25fbfb7a07bbd
         
         #TODO - Let's change this to get the most recent. 
 
@@ -69,7 +81,7 @@ class User(object):
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
             #First, find the people WE'VE trusted.
             
-            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
             combinedFriendTrust = 0
             friendcount = 0
             #Now, iterate through each of those people. This will be slow, which is why we cache.
@@ -97,7 +109,7 @@ class User(object):
     
     def getRatings(self,postInQuestion):            
         #Move this. Maybe to Server??
-        allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
+        allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
         combinedrating = 0
         for vote in allvotes:
             author = vote['envelope']['payload']['author']['pubkey']
