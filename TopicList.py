@@ -10,12 +10,12 @@ class TopicList(object):
         #This allows me to create one at Runtime if nec. 
         map = Code("""
         function() {
-                if (this.envelope.payload.payload_type == 'message')
+                if (this.envelope.payload.class == 'message')
                 {
                     for (var i =0; i < this.envelope.payload.topictag.length; i++) 
                 	{ 
                 	    var timestamp = Number(new Date()/1000);
-                	    mtime = this.envelope.servers[0].time_seen;
+                	    mtime = this.envelope.stamps[0].time_seen;
                 	    if ((mtime + 86400) > timestamp )
                 	        {
                                 singletag = this.envelope.payload.topictag[i];

@@ -43,11 +43,6 @@ class User(object):
         #    if time.time() - cache['time'] < 20:
         #        print "Using cached trust"
         #        return cache['calculatedtrust']
-                
-        if cache is not None:
-            if time.time() - cache['time'] < 20:
-                print "Using cached trust"
-                return cache['calculatedtrust']
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
@@ -61,10 +56,10 @@ class User(object):
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
-
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict,sort={"envelope.local.time_seen"})
+        print "Asking About -- " + askingabout
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_seen",pymongo.DESCENDING)
         foundtrust = False
-        if trustrow is not None:
+        if trustrow.count() > 0:
 		#Get the most recent trust
 		tr = trustrow[0] 	
                 print "We trust this user directly."
