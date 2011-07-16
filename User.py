@@ -62,11 +62,14 @@ class User(object):
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
 
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict)
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict,sort={"envelope.local.time_seen"})
         foundtrust = False
         if trustrow is not None:
+		#Get the most recent trust
+		tr = trustrow[0] 	
                 print "We trust this user directly."
-                trust = int(trustrow['envelope']['payload']['trust'])
+                pprint.pprint(tr)
+                trust = int(tr['envelope']['payload']['trust'])
                 foundtrust = True
         else:
             print "We have not directly rated this user."

@@ -169,7 +169,7 @@ class Server(object):
         stamps.append(myserverinfo)
         
         c.dict['envelope']['stamps'] = stamps
-        
+        c.dict['envelope']['local']['time_added']  = int(utctime) 
         
         if c.dict['envelope']['payload']['class'] == "message":       
             #If the message referenes anyone, mark the original, for ease of finding it later.
