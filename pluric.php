@@ -1,7 +1,13 @@
 <?php
 
+$EXAMPLE_SERVER='http://pluric.com:8090';
+$EXAMPLE_TOPIC='ClientTest';
+
+
+//SendPost is just a quick Method to send a POST request to the ForumLegion server.
 function sendpost($posturl, $fields)
 {
+
 	$ch = curl_init();
 	curl_setopt($ch, CURLOPT_URL, $posturl);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -13,7 +19,8 @@ function sendpost($posturl, $fields)
 	print_r($result);
 }
 
-
+//A User object is primarily used to manage keys.
+//You could extend this to store other information, such as the friendlyname, email, etc.
 class User
 {
 	function __construct() 
@@ -41,7 +48,8 @@ class User
 }
 
 
-	
+//A Stack is a collection of envelopes. Aka, a list of messages.. So a Stack might be all the messages in a single forum topic
+//Or a list of Private messages, etc.	
 class Stack
 {
 	//A Stack of Envelopes
@@ -96,6 +104,13 @@ class Stack
 	
 		
 }
+
+//An Envelope is the Basic class for ForumLegion messages. 
+//It contains a Payload, which is the meat of the message.
+//An envelope also contains stamps, which are authentication tokens.
+//An envelope can be a Rating, a UserTrust, a Message, or anything that occurs to us later.
+//We could also do Public User Profile as a Envelope, with the appropriate class.
+
 class Envelope
 {
 	// This class contains the basic Envelope contents.
@@ -106,7 +121,9 @@ class Envelope
 		$this->dict = array(  );
 	}
 	
-	
+	//Returns the JSON text of the envelope.
+	//Be sure to format it without escaping the backslash.
+	//We want this to match Python.
 	function text() 
 	{
 		$mytext = json_encode($this->dict);
@@ -114,6 +131,8 @@ class Envelope
 		return $mytext;
 	}
 	
+	//Alphabetize the Payload list. We should ALWAYS do this before generating the Hash.
+	//This way, it can be broken apart later, and then re-constructed.
 	function payload_sort() 
 	{
 		$payload = $this->dict['envelope']['payload'];
@@ -121,6 +140,9 @@ class Envelope
 		$this->dict['envelope']['payload'] = $payload;
 	}
 	
+	
+	//Generate a SHA-512 Hash of the Payload, so we can be sure it hasn't been tampered with.
+	//Also, so we have a primary-key to reference it by.
 	function payload_hash() 
 	{
 		$this->payload_sort();
@@ -129,6 +151,8 @@ class Envelope
 		$hash = hash("sha512",$payloadtext);
 		return $hash;
 	}
+	
+	//Generate the JSON of just the Payload, aka, the message/rating/etc
 	function payload_text() 
 	{
 		$this->payload_sort();
@@ -137,11 +161,9 @@ class Envelope
 		return $payloadtext;
 	}
 	
-	
+	// Load a JSON message in from a string.
 	function loadstring($string) 
 	{
-		// Load a Message from a string, using the JSON messagespec
-		
 		$this->dict = json_decode($string,$assoc=true);		
 		$verifystatus = $this->verify();
 		if ($verifystatus =! True)
@@ -153,7 +175,7 @@ class Envelope
 		else return True;
 	}
 	
-	
+	//Load a JSON message in from a URL.
 	function loadurl($url) 
 	{
 		// Load a Message from a URL, using the JSON messagespec
@@ -180,12 +202,13 @@ class Envelope
 		}
 	}
 	
+	
+	//Check to ensure the Payload is intact.
+	//To do this, we're going to dump the payload back out to JSON
+	//Then sure the JSON matched the same one that was signed.
+	//This will also ensure we can reconstruct them properly ;)
 	function verify()
 	{
-		//Check to ensure the Payload is intact.
-		//To do this, we're going to dump the payload back out to JSON
-		//Then sure the JSON matched the same one that was signed.
-
 		$payloaddict = $this->dict['envelope']['payload'];
 		$payloadjson = json_encode($payloaddict);
 		$payloadjson = str_replace('\/','/',$payloadjson);
@@ -216,10 +239,12 @@ class Envelope
 	}
 
 
+	//Have the Author of the message sign it. This uses the pub/priv key generated in the User obj.
+	//This is to prove that the message hasn't been tampered with, after sending. That's why it includes a signed copy of the payload.
+	//We then add this signature as a stamp, so other people can verify it on each step.
+	
 	function uploadenvelope($user)
 	{
-		//Add the SHA512 hash to ourselves, so we know it hasn't been changed
-		//Add this as a stamp.
 
 		//We probably don't already have a stamp array.
 		//But if we do, restore it. If not, create it.
@@ -257,8 +282,9 @@ class Envelope
 		
 		$posturl = 'http://pluric.com:8090/newmessage';
 		
-		
-		print $this->text();
+		//
+		// If we executed a 'print $this->text();', we'd see what we just wrote ;)
+		//
 		// Now, get the text. We don't need to .save or anything, since it's all streaming.
 		$fields = array('message'=>$this->text());
 		
@@ -271,55 +297,25 @@ class Envelope
 
 }
 
-
-$EXAMPLE_MESSAGE_ID='038eadb87ac822e4f7f8aea78099687c644f487b7388b00e38315540fb8f5662de1b786aadbea1fe08459d193d5acf30084a44f2f1f5904e95e01ee1e9599867';
-$EXAMPLE_TOPIC='ClientTest';
-$EXAMPLE_SERVER='http://pluric.com:8090';
-$EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $EXAMPLE_MESSAGE_ID;
-$EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
-
-$e = new Envelope();
-
-
-
-//Load from String
-$contents = file_get_contents($EXAMPLE_MESSAGE_URL);
-if ($e->loadstring($contents))
-	{
-		print "Subject via Stringload ::: " . $e->dict['envelope']['payload']['subject'];
-		print "\n";
-	}
-
-//Load from URL
-if ($e->loadurl($EXAMPLE_MESSAGE_URL))
-	{
-		print "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'];
-	}
-	
-//Load a whole Stack of Envelopes at once.
-print  "\n\nList of Messages in topic : " .  $EXAMPLE_TOPIC . "\n\n";
-$s =  new Stack();
-$s->loadurl($EXAMPLE_TOPIC_URL);
-
-foreach($s->Envelopes as $e)
-{
-	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
-}
+////Examples
 
 
 ////////////////////////////////////////Insert a message ///////////////////////////
 //Create a test user
-//Set the timezone.
+
+//Set the timezone. PHP requires this
 date_default_timezone_set('UTC');
 
-
+//Generate a new user, and set their user preferences.
 $u = new User();
 $u->generatekeys();
 $u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
 
+
 //Create a new test Message.
 $TestMessage = array(  );
 
+//Specify the message properties.
 $TestMessage['envelope']['payload']['class'] = "message";
 $TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
 $TestMessage['envelope']['payload']['formatting'] = "markdown";
@@ -341,12 +337,13 @@ $e->dict = $TestMessage;
 $e->uploadenvelope($u);
 
 
-
-//Save the Payload hash, so we can upvote it later.
+//Save the Payload hash, so we can upvote it in a later example.
 $ph = $e->payload_hash();
 
 
-/// Create a Rating; That's a type of message, too!
+/// Create a Rating for our message. We think the message we just wrote is great ;)
+// Upvote ourselves. 
+// Votes are a type of Envelope, too! See how similar they are to Messages?
 
 $TestRating = array(  );
 
@@ -365,6 +362,53 @@ $e = new Envelope();
 $e->dict = $TestRating;
 //Upload the rating we just wrote.
 $e->uploadenvelope($u);
+
+
+//Now that we've uploaded some messages to the server, let's try pulling them back down to us ;)
+//Let's start by pulling ALL the messages from a topic.
+//For instance, you'd do this when displaying a forum.
+
+$e = new Envelope();
+
+//Load a whole Stack of Envelopes at once.
+//This is what you're use to pull a Topic, aka, a Board.
+$EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
+print  "\n\nList of Messages in topic : " .  $EXAMPLE_TOPIC . "\n\n";
+$s =  new Stack();
+$s->loadurl($EXAMPLE_TOPIC_URL);
+
+
+foreach($s->Envelopes as $e)
+{
+	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
+}
+
+//Let's choose an item based on the list we just received.
+//Then, we'll pull a message, as if we just had the SHA directly.
+//We're re-using 3, to get the most recent one from the list we just pulled.
+
+$EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $e->dict['envelope']['payload_sha512'];
+
+//Let's test the  Load-via-URL method.
+//We should just be able to pass in a URL (generated above), and be happy.
+
+if ($e->loadurl($EXAMPLE_MESSAGE_URL))
+	{
+		print "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'];
+	}
+
+// Now that we see how that works, let's do a load via String.
+// This is basically the same thing, just with the file_get_contents outside.
+// This is useful so we can load ones we build, or load them from a file, or whatever!
+
+$contents = file_get_contents($EXAMPLE_MESSAGE_URL);
+if ($e->loadstring($contents))
+	{
+		print "Subject via Stringload ::: " . $e->dict['envelope']['payload']['subject'];
+		print "\n";
+	}
+
+
 
 
 ?>
