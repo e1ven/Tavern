@@ -33,8 +33,8 @@ class User
 		$pubkey= openssl_pkey_get_details($res);
 		$pubkey=$pubkey["key"];
 		
-		$this->usersettings['privkey'] = $privkey;
-		$this->usersettings['pubkey'] = $pubkey;
+		$this->usersettings['privkey'] = trim($privkey);
+		$this->usersettings['pubkey'] = trim($pubkey);
 		
 	}
 		
@@ -255,7 +255,7 @@ class Envelope
  		}
 		$this->dict['envelope']['stamps'][] = $sender_stamp;
 		
-		$posturl = 'http://127.0.0.1:8090/newmessage';
+		$posturl = 'http://pluric.com:8090/newmessage';
 		
 		
 		print $this->text();
@@ -274,7 +274,7 @@ class Envelope
 
 $EXAMPLE_MESSAGE_ID='038eadb87ac822e4f7f8aea78099687c644f487b7388b00e38315540fb8f5662de1b786aadbea1fe08459d193d5acf30084a44f2f1f5904e95e01ee1e9599867';
 $EXAMPLE_TOPIC='ClientTest';
-$EXAMPLE_SERVER='http://127.0.0.1:8090';
+$EXAMPLE_SERVER='http://pluric.com:8090';
 $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $EXAMPLE_MESSAGE_ID;
 $EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
 
