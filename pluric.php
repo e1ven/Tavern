@@ -172,7 +172,11 @@ class Envelope
 			echo "Error verifying message.";
 			return False;
 		}
-		else return True;
+		else //Looks good...
+		{ 
+			// Add more verifications here.
+			return True;
+		}	
 	}
 	
 	//Load a JSON message in from a URL.
@@ -184,17 +188,7 @@ class Envelope
 		//Don't load local files. 
 		{
 			$contents = file_get_contents($url);
-			$this->dict = json_decode($contents,$assoc=true);
-		
-		
-			$verifystatus = $this->verify();
-			if ($verifystatus =! True)
-			{
-				//For the record, it's stupid that I need to break this out to a variable.
-				echo "Error verifying message.";
-				return False;
-			}
-			else return True;
+			$this->loadstring($contents);
 		}
 		else
 		{
@@ -394,7 +388,10 @@ $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $e->dict['envelope']['payl
 
 if ($e->loadurl($EXAMPLE_MESSAGE_URL))
 	{
+		
 		print "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'];
+		print "Author Verification Image via URL load ::: " . "http://Static1.RoboHash.org/" +  hash("sha512",$e->dict['envelope']['payload']['author']['pubkey']);
+		
 	}
 
 // Now that we see how that works, let's do a load via String.
