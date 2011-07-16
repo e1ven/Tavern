@@ -188,12 +188,24 @@ class Envelope
 		//Don't load local files. 
 		{
 			$contents = file_get_contents($url);
-			$this->loadstring($contents);
+			if ( $this->loadstring($contents) == True )
+				{
+					print "Loaded!";
+					return True;
+				}
+			else 
+				{
+					print "Does not Load.";
+					return False;
+				}
 		}
 		else
 		{
 			print "Bad scheme " . $parsed_url['scheme'];
+			return False;
 		}
+		
+		
 	}
 	
 	
@@ -388,10 +400,8 @@ $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $e->dict['envelope']['payl
 
 if ($e->loadurl($EXAMPLE_MESSAGE_URL))
 	{
-		
-		print "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'];
-		print "Author Verification Image via URL load ::: " . "http://Static1.RoboHash.org/" +  hash("sha512",$e->dict['envelope']['payload']['author']['pubkey']);
-		
+		echo "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
+		echo "Author Verification Image via URL load ::: " . "http://Static1.RoboHash.org/" .  hash("sha512",$e->dict['envelope']['payload']['author']['pubkey']) . "?sets=1,2,3&bgset=any\n";;
 	}
 
 // Now that we see how that works, let's do a load via String.
