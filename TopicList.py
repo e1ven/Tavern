@@ -13,9 +13,11 @@ class TopicList(object):
                 if (this.envelope.payload.class == 'message')
                 {
                     for (var i =0; i < this.envelope.payload.topictag.length; i++) 
-                	{ 
+                	{
                 	    var timestamp = Number(new Date()/1000);
-                	    mtime = this.envelope.stamps[0].time_seen;
+                	    mtime = this.envelope.local.time_added;
+                	    print(mtime)
+                	    print(timestamp)
                 	    if ((mtime + 86400) > timestamp )
                 	        {
                                 singletag = this.envelope.payload.topictag[i];
