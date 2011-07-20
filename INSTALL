@@ -63,6 +63,8 @@ python setup.py install
 cd /opt/Pluric/libs/Markdown-2.0
 python setup.py install
 
+
+#We're only using this for the BSON driver. Primarily going through the asyncmongo driver
 cd /opt/Pluric/libs/mongo-driver
 wget http://pypi.python.org/packages/2.7/s/setuptools/setuptools-0.6c11-py2.7.egg
 python setup.py install
@@ -91,6 +93,12 @@ cd /opt/Pluric/libs/zlib-1.2.5
 cd /opt/Pluric/libs/Imaging-1.1.7
 python setup.py  install
 
+cd asyncmongo;
+python setup.py install
+
+#Swirl is a nice code-nicer-ifiier for Tornado
+cd enaeseth-swirl-cd68681
+python setup.py install
 
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
