@@ -32,9 +32,9 @@ import urllib
 
 import re
 try: 
-   from hashlib import md5 as md5_func
+    from hashlib import md5 as md5_func
 except ImportError:
-   from md5 import new as md5_func
+    from md5 import new as md5_func
 import NofollowExtension
 
 
