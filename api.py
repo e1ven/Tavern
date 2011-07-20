@@ -2,7 +2,7 @@
 #
 # Copyright 2011 Pluric
     
-
+import  asyncmongo
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -44,6 +44,12 @@ import NofollowExtension
 define("port", default=8090, help="run on the given port", type=int)
 
 class BaseHandler(tornado.web.RequestHandler):
+    @property
+    def db(self):
+        if not hasattr(self, '_db'):
+            self._db = asyncmongo.Client(pool_id='basepool', host=server.ServerSettings['mongo-hostname'], port=server.ServerSettings['mongo-port'], maxcached=10, maxconnections=50, dbname=server.ServerSettings['mongo-db'])
+        return self._db
+
     def error(self,errortext):
 	    self.write("***ERROR***")
 	    self.write(errortext)
@@ -62,13 +68,20 @@ class NotFoundHandler(BaseHandler):
         self.error("API endpoint Not found.")
 
 
-class ListActiveTopics(BaseHandler):        
+class ListActiveTopics(BaseHandler):  
+    @tornado.web.asynchronous      
     def get(self):       
-        topics = OrderedDict()
-        for topicrow in server.mongos['default']['topiclist'].find({},as_class=OrderedDict):
-            topics[topicrow['_id']['tag']] = topicrow['value']['count']
-        self.write(json.dumps(topics,separators=(u',',u':')))
+        self.db.topiclist.find({}, limit=1, callback=self._on_response)
 
+    def _on_response(self, response, error):
+        if error:
+          raise tornado.web.HTTPError(500)
+          
+        topics = OrderedDict()
+        for topicrow in response:
+              topics[topicrow['_id']['tag']] = topicrow['value']['count']
+        self.write(json.dumps(topics,separators=(u',',u':')))
+        self.finish()
 
 class MessageHandler(BaseHandler):        
     def get(self,message,persp=None):

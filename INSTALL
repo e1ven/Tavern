@@ -96,10 +96,6 @@ python setup.py  install
 cd asyncmongo;
 python setup.py install
 
-#Swirl is a nice code-nicer-ifiier for Tornado
-cd enaeseth-swirl-cd68681
-python setup.py install
-
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
 ln -s /opt/Pluric/libs/pluric /etc/init.d/
