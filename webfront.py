@@ -96,6 +96,15 @@ class FancyDateTimeDelta(object):
         return fmt + " ago"
     
 
+class FancyPantsTemplate(BaseHandler):
+    def write(self,text):
+        if callback is not None:
+            self.write("var mydiv = document.getElementById('" + tornado.escape.xhtml_escape(addto) + "'); mydiv.appendChild(document.createTextNode('" + tornado.escape.xhtml_escape(callback) + "'));")
+        if addto is None:
+            return
+        else:
+            self.write(text)
+
 
 
 class NotFoundHandler(BaseHandler):
@@ -740,6 +749,7 @@ def main():
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler),  
+        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
           
         (r"/formtest" ,FormTestHandler),  
           

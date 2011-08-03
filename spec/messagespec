@@ -82,18 +82,22 @@
 
 
 
-The "time_seen" format is the number of seconds since the epoch, expressed in UTC.
+The "time_added" format is the number of seconds since the epoch, expressed in UTC.
 
 The 'MESSAGE_SHA512' should be the SHA-512 hash of the 'Message' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
 SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
 
 
-The SERVER_STAMP section allows an authority to sign the "message" portion of the message, to verify that some criteria has been satisfied. 
+The stamps section allows an authority to sign the "message" portion of the message, to verify that some criteria has been satisfied. 
 Exactly what criteria this is depends on the Authority- Examples might be 'completed a captcha', or 'Authenticated with a FB username/password'
 
+We define two stamps in particular- 
+    One is class Author, which is signed with the public key of the person who submitted the message.
+    The second is class Server, which is signed by each server that touches the message.
+    Origin is the FIRST server to touch the message.
 
+Each stamp has a "signature" which should be an RSA signature of the 'Message' portion. The signature uses a SHA1 digest.
 
-The 'sender_signature' should be a RSA signature of the 'Message' portion. This is the initial signature on any message. The sender_signature uses a SHA512 hash of the message.
 
 The server's signature should also be of the "Message" portion, not the entire container.
 
@@ -130,6 +134,10 @@ The "Body" section should be plaintext. Github-flavored markdown could be a pote
 
 Any binaries that are to be included should have a the SHA512 of their uploaded file.
 
+
+
+
+--TODO LATER--
 The 'Message' section may alternatively be replaced by 'ENCRYPTED_MESSAGE'.
 
 

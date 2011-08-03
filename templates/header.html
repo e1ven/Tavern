@@ -1,9 +1,28 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+
 <head>
+<meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="author" content="" />
+	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+	<!--[if lt IE 9]>
+		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+		<script src="/static/scripts/innershiv.js"></script>
+	<![endif]-->
+	<!--[if IE 6]><script type="text/javascript" src="/static/scripts/DD_belatedPNG_0.0.8a-min.js"></script><![endif]-->
+	<!--[if lt IE 8]><script src="scripts/font.js"></script><![endif]-->
+	<script type="text/javascript" src="http://use.typekit.com/ufy1ccx.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+
 	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
 	<meta name="keywords" content="Pluric, Plurist, Forum">
-	<link rel="stylesheet" href="/static/style.css" media="screen">
 	
 	<!-- Hey, Source Reader!
 
@@ -11,7 +30,7 @@
 	Email me - colin@pluric.com
 	Anyway, Enjoy the site, eh?"
 
-	-->
+	-->.
 	<title>
 	{% if len(title) > 1 %}
 	Pluric :: {{title}}
@@ -34,22 +53,34 @@
 	  })();
 
 	</script>
-	
-	
-	<script type="text/javascript" src="/static/jquery.min.js"></script>
 	<script type="text/javascript" src="/static/json2.js"></script>
-	<script type="text/javascript" src="/static/jquery.blockUI.js"></script>
 </head>
-<p>
-{% if not loggedin %}	
-	Why not <a href="/login">Login</a>, or <a href="/register">Register</a>?
-{% end %}
-<a href="/newmessage">Post new Message</a>
-{% if loggedin %}	
-	Your UserName:  {{username}} || <form action="/logout" method="post">   {{ xsrf_form_html() }} <input style="border: 1px solid #006;" type="submit" value="logout"></form>
-	<br>
-	<a href="/showprivates">Show private messages</a>
-{% end %}
-
-</p>
 <body>
+<div id="limits">
+
+	<header id="top">
+		<a href="/"><img src="/static/images/logo.png" alt="Pluric" /></a>
+		<div id="menu">
+		    <div id="menu-text">
+            {% if not loggedin %}	
+                Why not <a href="/login">Login</a>, or <a href="/register">Register</a>?
+            {% end %}
+            <a href="/newmessage">Post new Message</a>
+            {% if loggedin %}	
+                Your UserName:  {{username}} || <form action="/logout" method="post">   {{ xsrf_form_html() }} <input style="border: 1px solid #006;" type="submit" value="logout"></form>
+                <br>
+                <a href="/showprivates">Show private messages</a>
+            {% end %}
+            </div> <!-- #menu-text -->
+        </div> <!-- #menu -->
+	</header>
+    
+    	
+		<div id="content">
+		
+
+		
+
+    
+    	
+

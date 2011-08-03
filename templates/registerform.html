@@ -1,14 +1,22 @@
+
+<div id="single">
+<h2>Register for an account</h2>
+<p></p>
+
 <form action="/register" method="post">
   {{ xsrf_form_html() }}
-Username (For Login): <input type="text" name="username"><p>
-<br>Note- Username is just for Logging in to Pluric.com, and has to be unique.<br>Once you are registered, you can change the name that shows up in posts to whatever you want.
+<p> Username (For Login): <input type="text" name="username"></p>
+<p>Note- Username is just for Logging in to Pluric.com, and has to be unique.<br>
+Once you are registered, you can change the name that shows up in posts to whatever you want.
 <br>
-<p><p>
-Email (Entirely Optional): <input type="text" name="email">
-<br>
+</p>
+<p>Email (Entirely Optional): <input type="text" name="email">
+</p><p>
 Password: <input type="password" name="pass">
-<br>
+</p><p>
 Verify Password: <input type="password" name="pass2">
 <input type="submit" value="Create Login">
+</p>
 </form>
 
+</div> <!-- #single -->

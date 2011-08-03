@@ -1,7 +1,16 @@
 {% import urllib %}
-Top Topics:
+
+
+<div id="single">
+<h2>Today's Top Topics</h2>
+<p></p>
+
+<p> Top Topics:</p>
 <ul>
 {% for topic in toptopics %}
        <li><a href="/topictag/{{urllib.quote(escape(topic['_id']['tag']))}}">{{escape(topic['_id']['tag'])}}</a></li>
 {% end %}
 </ul>
+
+</div> <!-- #single -->
+
