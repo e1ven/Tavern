@@ -38,7 +38,7 @@ except ImportError:
 import NofollowExtension
 
 
-define("port", default=8080, help="run on the given port", type=int)
+define("port", default=8020, help="run on the given port", type=int)
 
 
 
@@ -150,6 +150,7 @@ class MessageHandler(BaseHandler):
         u = User()
         u.load_mongo_by_username(username=self.username)
         usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
+
         messagerating = u.getRatings(client_message_id)
         envelope = server.formatEnvelope(envelope)
 
