@@ -28,6 +28,8 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
+import lxml.html
+
 #import TopicList
 
 import re
@@ -38,12 +40,41 @@ except ImportError:
 import NofollowExtension
 
 
-define("port", default=8020, help="run on the given port", type=int)
-
-
+define("port", default=8080, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    def sethtml(self,html):
+        self.html = html
+          
+    def gettext(self):
+    
+        ptext = ""
+        for a in self.pagetext:
+            ptext = ptext + a
+        self.write(ptext)
+        
+
+    def getty(self,div):
+        if "js" in self.request.arguments:
+            #if JS is set at all, go for it.
+            return(self.getjs(div))
+        else:
+            return(self.gethtml())    
+    
+    def getjs(self,element):
+        #Get the element text, remove all linebreaks, and escape it up.
+        parsedhtml = lxml.html.fromstring(self.html)
+        eletext = parsedhtml.get_element_by_id(element)
+        escapedtext = lxml.html.tostring(eletext).replace("\"","\\\"")
+        escapedtext = escapedtext.replace("\n","")
+        return ("document.getElementById('" + element + "').innerHTML=\"" + escapedtext + "\";")
+    
+    def gethtml(self):
+        return self.html
+
+
+
     def getvars(self):
         self.username = self.get_secure_cookie("username")
         if self.username is None:
