@@ -56,7 +56,7 @@ class Page(tornado.web.RequestHandler):
         self.write(ptext)
         
 
-    def finish(self,div='html',message=None):
+    def finish(self,div='limits',message=None):
         if "js" in self.request.arguments:
             #if JS is set at all, send the JS script version.
             super(Page, self).write(self.getjs(div))
@@ -68,6 +68,7 @@ class Page(tornado.web.RequestHandler):
     def getjs(self,element):
         #Get the element text, remove all linebreaks, and escape it up.
         #Then, send that as a document replacement
+        print self.html
         parsedhtml = lxml.html.fromstring(self.html)
         eletext = parsedhtml.get_element_by_id(element)
         escapedtext = lxml.html.tostring(eletext).replace("\"","\\\"")
@@ -81,10 +82,10 @@ def header():
             <title>Yo, Dawg</title>
             <script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" type="text/javascript"></script>
             <script src="default.js"></script>
-            <body>"""
+            <body><div id='limits'>"""
             
 def footer():
-    return """</body><br>Copyright &copy Testius. """ +  strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()) + """</body></html>"""
+    return """</div></body><br>Copyright &copy Testius. """ +  strftime("%a, %d %b %Y %H:%M:%S +0000", gmtime()) + """</body></html>"""
 
 
 class DefaultJSHandler(Page):
