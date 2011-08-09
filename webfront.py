@@ -44,36 +44,63 @@ define("port", default=8080, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    def sethtml(self,html):
-        self.html = html
-          
+
+    def __init__(self, *args, **kwargs):
+        #Ensure we have a html variable set.
+        self.html = ""
+        super(BaseHandler,self).__init__(*args,**kwargs)
+        
+    def write(self,html):
+        self.html = self.html + html
+
     def gettext(self):
-    
         ptext = ""
         for a in self.pagetext:
             ptext = ptext + a
         self.write(ptext)
         
 
-    def getty(self,div):
+    def finish(self,div='limits',message=None):
         if "js" in self.request.arguments:
-            #if JS is set at all, go for it.
-            return(self.getjs(div))
+            #if JS is set at all, send the JS script version.
+            super(BaseHandler, self).write(self.getjs(div))
         else:
-            return(self.gethtml())    
+            super(BaseHandler, self).write(self.html)
+        super(BaseHandler,self).finish(message) 
+   
     
     def getjs(self,element):
         #Get the element text, remove all linebreaks, and escape it up.
+        #Then, send that as a document replacement
+        #Also, rewrite the document history in the browser, so the URL looks normal.
+        
+        jsvar = self.request.uri.find("js=")
+        if jsvar > -1:
+            #This should always be true    
+            #But Are there other params?
+            nextvar = self.request.uri.find("&",jsvar)
+            if nextvar > 0:
+                #There are Additional Variables in this URL
+                finish = self.request.uri[nextvar,len(self.request.uri)]
+            else:
+                print "No Next variables"
+                #There are no other variables. Delete until End of string
+                finish = ""
+                
+            modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
+            
         parsedhtml = lxml.html.fromstring(self.html)
         eletext = parsedhtml.get_element_by_id(element)
         escapedtext = lxml.html.tostring(eletext).replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
-        return ("document.getElementById('" + element + "').innerHTML=\"" + escapedtext + "\";")
-    
-    def gethtml(self):
-        return self.html
-
-
+        return ( '''
+                var stateObj = {
+			        title: document.title,
+			        url: window.location.pathname 
+		        };
+                window.history.pushState(stateObj, "","''' + modifiedurl + '''");
+                document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
+                ''')
 
     def getvars(self):
         self.username = self.get_secure_cookie("username")
@@ -158,6 +185,7 @@ class FrontPageHandler(BaseHandler):
             
         self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
         self.write(self.render_string('templates/footer.html'))
+        self.finish("content")
 
 class TopicHandler(BaseHandler):        
     def get(self,topic):

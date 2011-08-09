@@ -42,13 +42,7 @@ class Page(tornado.web.RequestHandler):
         
     def write(self,html):
         self.html = self.html + html
-# 
-#     def finish(self,message=None):
-#         super(Page,self).write("----")
-#         super(Page,self).write(self.html)
-#         super(Page,self).write("????")
-#         super(Page,self).finish(message)
-#                   
+
     def gettext(self):
         ptext = ""
         for a in self.pagetext:
@@ -64,16 +58,38 @@ class Page(tornado.web.RequestHandler):
             super(Page, self).write(self.html)
         super(Page,self).finish(message) 
    
-    
     def getjs(self,element):
         #Get the element text, remove all linebreaks, and escape it up.
         #Then, send that as a document replacement
-        print self.html
+        #Also, rewrite the document history in the browser, so the URL looks normal.
+        
+        jsvar = self.request.uri.find("js=")
+        if jsvar > -1:
+            #This should always be true    
+            #But Are there other params?
+            nextvar = self.request.uri.find("&",jsvar)
+            if nextvar > 0:
+                #There are Additional Variables in this URL
+                finish = self.request.uri[nextvar,len(self.request.uri)]
+            else:
+                print "No Next variables"
+                #There are no other variables. Delete until End of string
+                finish = ""
+                
+            modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
+            
         parsedhtml = lxml.html.fromstring(self.html)
         eletext = parsedhtml.get_element_by_id(element)
         escapedtext = lxml.html.tostring(eletext).replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
-        return ("document.getElementById('" + element + "').innerHTML=\"" + escapedtext + "\";")
+        return ( '''
+                var stateObj = {
+			        title: document.title,
+			        url: window.location.pathname 
+		        };
+                window.history.pushState(stateObj, "","''' + modifiedurl + '''");
+                document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
+                ''')
     
 
 def header():

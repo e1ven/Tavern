@@ -17,8 +17,8 @@ $(document).ready(function() {
         $(this).click(function()
             {
                 include_dom($(this).attr('link-destination') + "?js=yes");
+                return false;
             });
         $(this).attr("link-destination",this.href);
-        this.href = 'javascript:;';
     });
 });
