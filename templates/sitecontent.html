@@ -1,0 +1,24 @@
+
+
+<div id="single">
+<h2> {{envelope['envelope']['payload']['subject']}}</h2>
+<p></p>
+
+
+<p>{{formattedbody}}</p>
+
+
+{% if len(displayableAttachmentList) > 0 %}
+    {% for attachment in displayableAttachmentList %}
+	    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
+    {% end %}
+{% end %}
+
+{% if envelope['envelope']['local'].has_key('attachmentlist') %}
+    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
+            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+    {% end %}
+{% end %}
+
+</div> <!-- #single -->

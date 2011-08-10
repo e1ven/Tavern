@@ -29,8 +29,7 @@ from gridfs import GridFS
 import hashlib
 import urllib
 import lxml.html
-
-#import TopicList
+import TopicList
 
 import re
 try: 
@@ -179,7 +178,8 @@ class FrontPageHandler(BaseHandler):
         toptopics = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
 
-        #db.topiclist.find().sort({value : 1})
+        #Disable the topiclist calc
+       #  db.topiclist.find().sort({value : 1})
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
             
@@ -192,7 +192,7 @@ class TopicHandler(BaseHandler):
         self.getvars()
         client_topic = tornado.escape.xhtml_escape(topic)
         envelopes = []
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin,canon="topictag/" + client_topic))
        
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
                 envelopes.append(envelope)
@@ -214,9 +214,25 @@ class MessageHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="message/" + envelope['envelope']['payload_sha512']))
         self.write(self.render_string('templates/single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
+        
+class SiteContentHandler(BaseHandler):        
+    def get(self,message):
+        self.getvars()
+        client_message_id = tornado.escape.xhtml_escape(message)
+        
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+
+        envelope = server.formatEnvelope(envelope)
+
+            
+        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512']))
+        self.write(self.render_string('templates/sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
+        self.write(self.render_string('templates/footer.html'))
+        
+        
 
 class PrivateMessageHandler(BaseHandler):        
     def get(self,message):
@@ -809,6 +825,8 @@ def main():
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler),  
+        (r"/sitecontent/(.*)" ,SiteContentHandler),  
+
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
           
         (r"/formtest" ,FormTestHandler),  

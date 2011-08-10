@@ -39,7 +39,7 @@ header a:hover {
 #menu { 
     position:relative;
     float:right;
-    width:80%;
+    width:20%;
     height:100%;
 }
 #menu-text {
@@ -65,12 +65,12 @@ header a:hover {
 /* ########## RIGHT COLUMN ########## */
 #single {
     top: 20px;
-    height: 50%;
+    height: 25%;
     margin-right: auto;
     margin-left: auto;
     margin-bottom: 50px;
     
-	width: 50%;
+	width: 75%;
 	background: #ffffff;
 	position:relative; 
 	overflow:hidden;
