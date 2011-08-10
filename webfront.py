@@ -199,6 +199,14 @@ class TopicHandler(BaseHandler):
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
         
+class TriPaneHandler(BaseHandler):        
+    def get(self,topic=None):
+        self.getvars()
+        
+        self.write(self.render_string('templates/header.html',title="abcd",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('templates/tripane.html'))
+        self.write(self.render_string('templates/footer.html'))        
+        
 class MessageHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -824,7 +832,10 @@ def main():
         (r"/showprivates" ,MyPrivateMessagesHandler),    
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
-        (r"/privatemessage/(.*)" ,PrivateMessageHandler),  
+        (r"/privatemessage/(.*)" ,PrivateMessageHandler),
+        (r"/tripane/(.*)" ,TriPaneHandler),   
+        (r"/tripane" ,TriPaneHandler),    
+ 
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),

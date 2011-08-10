@@ -84,10 +84,11 @@ header a:hover {
     padding-bottom: 0px;
 }	
 
-#single form,ul {
+#single form, #single ul {
     padding-left: 20px;
     padding-bottom: 10px;
 }	
+
 #single li {
     padding-left: 20px;
     padding-top: .5em;
