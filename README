@@ -5,6 +5,9 @@ Better to write code than a doc for a product no one will read for now ;)
 
 Using the following Libraries:
 
+	JQuery Splitter (Under LGPL)
+		http://plugins.jquery.com/project/splitter
+
 	yENC (under LGPL, see email below)
 		For converting Binaries to Text.
 		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.		

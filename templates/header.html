@@ -13,11 +13,10 @@
 <meta name="description" content="" />
 <meta name="author" content="" />
 
-<!-- 
-	<link href="http://dev4.staplewebdesign.com/style.css" rel="stylesheet" type="text/css" media="screen" />
- -->
 
 	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+	<link href="/static/css/splitter.css" rel="stylesheet" type="text/css" media="screen" />
+
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" type="text/javascript"></script>
 	<script src="/static/scripts/splitter.js">
 
@@ -60,34 +59,10 @@
 	  })();
 
 	</script>
+
 	<!--
 	<script type="text/javascript" src="/static/json2.js"></script> -->
 	
-<script type="text/javascript">
-    $().ready(function() {
-	    $(".tripanel").splitter();
-    });
-</script>
-
-
-$().ready(function() {
-
-	// Main vertical splitter, anchored to the browser window
-	$("#tripanel").splitter({
-		type: "v",
-		outline: true,
-		minLeft: 100, sizeLeft: 150, maxLeft: 250,
-		anchorToWindow: true,
-		accessKey: "L"
-	});
-	// Second vertical splitter, nested in the right pane of the main one.
-	$("#CenterAndRight").splitter({
-		type: "v",
-		outline: true,
-		minRight: 100, sizeRight: 150, maxRight: 250,
-		accessKey: "R"
-	});
-});
 
 </head>
 <body>
