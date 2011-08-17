@@ -95,7 +95,21 @@ header a:hover {
 
 }	
 
-
+.tripanel {
+	height: 800px;
+	width: 500px;
+	border: 5px solid #aaa;
+}
+.tripanel div {
+	overflow: auto;
+}
+.vsplitbar {
+	width: 5px;
+	background: #cab;
+	
+	
+	
+	
 #single .padder { background: #ffffff; }
 #single h2 {
 	font-size: 14px; 
