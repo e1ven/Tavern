@@ -1,0 +1,14 @@
+.SplitterPane {
+	background: #eef;
+	overflow: auto;
+}
+.vsplitbar {
+	width: 6px;
+	background: #29111b url(/static/images/vgrabber.gif) no-repeat center;
+}
+.vsplitbar.active, .vsplitbar:hover {
+	background-color: #29111b;
+	width: 6px;
+	opacity: 0.5;
+	filter: alpha(opacity=50); /* IE */
+}
