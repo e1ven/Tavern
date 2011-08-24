@@ -801,6 +801,7 @@ class FormTestHandler(BaseHandler):
 
         
 def main():
+
     tornado.options.parse_command_line()
     # timeout in seconds
     timeout = 10

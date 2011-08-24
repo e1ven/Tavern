@@ -1,73 +1,63 @@
+	<!-- Hey, Source Reader!
+	Welcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
+	Email me - colin@pluric.com
+	Anyway, Enjoy the site, eh?"
+	-->
+	
+	
 <!DOCTYPE html>
 <!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
 <!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
 <!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
 <!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
 <!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
-
 <head>
+
 {% if 'canon' in globals()%}
 <link rel=canonical href="http://Pluric.com/{{canon}}"/>
 {% end %}
 <meta charset="utf-8" />
-<meta name="description" content="" />
-<meta name="author" content="" />
-
-
-	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
-	<link href="/static/css/splitter.css" rel="stylesheet" type="text/css" media="screen" />
-
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js" type="text/javascript"></script>
-	<script src="/static/scripts/splitter.js">
-
-	<!--[if lt IE 9]>
-		<script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-		<script src="/static/scripts/innershiv.js"></script>
-	<![endif]-->
-	<!--[if IE 6]><script type="text/javascript" src="/static/scripts/DD_belatedPNG_0.0.8a-min.js"></script><![endif]-->
-	<!--[if lt IE 8]><script src="scripts/font.js"></script><![endif]-->
-    <script src="/static/scripts/default.js"></script>
-
-
-	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
-	<meta name="keywords" content="Pluric, Plurist, ForumLegion, Forum">
-	
-	<!-- Hey, Source Reader!
-	Welcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
-	Email me - colin@pluric.com
-	Anyway, Enjoy the site, eh?"
-	-->
-	<title>
+<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
+<meta name="keywords" content="Pluric, Plurist, ForumLegion, Forum">
+<title>
 	{% if len(title) > 1 %}
 	Pluric :: {{title}}
 	{% end %}
 	{% if len(title) < 2 %}
 	Pluric :: A distributed discussion
 	{% end %}
-	</title>
-	
-	<script type="text/javascript">
+</title>
 
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-17094384-2']);
-	  _gaq.push(['_trackPageview']);
+    <link href="/static/css/splitter.css" rel="stylesheet"/>
+	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
+	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
+	<script src="/static/scripts/splitter.js"></script>
 
-	  (function() {
-	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
+<script type="text/javascript">
+$().ready(function() {
 
-	</script>
+	// Main vertical splitter, anchored to the browser window
+	$("#content").splitter({
+		type: "v",
+		outline: true,
+		minLeft: 100, sizeLeft: 150,
+		anchorToWindow: true,
+		accessKey: "L"
+	});
+	// Second vertical splitter, nested in the right pane of the main one.
+	$("#centerandright").splitter({
+		type: "v",
+		outline: true,
+		minLeft: 100, sizeLeft: 250,
+		accessKey: "R"
+	});
+});
+</script>
 
-	<!--
-	<script type="text/javascript" src="/static/json2.js"></script> -->
-	
 
 </head>
 <body>
 <div id="limits">
-
 	<header id="top">
 		<a href="/"><img src="/static/images/logo.png" alt="Pluric" /></a>
 		<div id="menu">
@@ -84,13 +74,5 @@
             </div> <!-- #menu-text -->
         </div> <!-- #menu -->
 	</header>
-    
-    	
+	
 		<div id="content">
-		
-
-		
-
-    
-    	
-
