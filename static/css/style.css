@@ -32,7 +32,7 @@ header#top {
 #menu { 
     position:relative;
     float:right;
-    width:80%;
+    width:40%;
     height:100%;
 }
 #menu-text {
@@ -45,7 +45,7 @@ header#top {
 
 
 #content {
-	margin: 40px auto;
+	margin: 20px auto;
 	-moz-box-shadow: 0 0 10px #555;
 	-webkit-box-shadow: 0 0 10px #555;
 	box-shadow: 0 0 10px #555;
@@ -118,8 +118,8 @@ COLUMN WIDTH ELEMENTS
         width: 25%;
         height: 100%;
         padding: 0;
-    	padding-bottom: 32000px;
-    	margin-bottom: -32000px;
+        overflow:auto;
+
 }
 
 
@@ -127,6 +127,8 @@ COLUMN WIDTH ELEMENTS
 	float: left;
 	width: 50%;
 	background: #ffffff;
+	overflow:scroll;
+
 }
 
 #left h2, #center h2, #right h2 { padding: 3px 15px; }

@@ -42,15 +42,30 @@ $().ready(function() {
 		outline: true,
 		minLeft: 100, sizeLeft: 150,
 		anchorToWindow: true,
-		accessKey: "L"
 	});
 	// Second vertical splitter, nested in the right pane of the main one.
+
 	$("#centerandright").splitter({
 		type: "v",
 		outline: true,
-		minLeft: 100, sizeLeft: 250,
-		accessKey: "R"
+		minLeft: 100, sizeLeft: 150,
 	});
+
+
+/* 
+
+	$("#centerandright").splitter({
+		type: "h",
+		outline: true,
+		minTop: 100,
+		minBottom: 300,
+		anchorToWindow: true,
+
+	});
+
+ */
+
+
 });
 </script>
 
