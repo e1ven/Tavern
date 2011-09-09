@@ -252,6 +252,11 @@ class TriPaneHandler(BaseHandler):
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
         
+        dt_obj = datetime.datetime.fromtimestamp(long(displayenvelope['envelope']['local']['time_added']))
+        print "Fancydate- " + FancyDateTimeDelta(dt_obj).format()
+        displayenvelope['envelope']['local']['relativedate'] =  FancyDateTimeDelta(dt_obj).format()
+
+
         
         
         self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
@@ -419,7 +424,10 @@ class ShowUserPosts(BaseHandler):
         k.formatkeys()
         pubkey = k.pubkey
         
-        
+        print "---???---"
+        print pubkey
+        print "---XXX---"
+
         messages = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
@@ -858,6 +866,14 @@ class FormTestHandler(BaseHandler):
         self.write(self.render_string('templates/formtest.html'))
         self.write(self.render_string('templates/footer.html'))
 
+
+class TodoHandler(BaseHandler):
+    def get(self):
+        #TODO: Stuff
+        self.getvars()
+
+
+      
         
 def main():
 
@@ -876,6 +892,7 @@ def main():
     }
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),
+        (r"/user/(.*)" ,TodoHandler),  
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 

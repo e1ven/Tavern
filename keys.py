@@ -1,5 +1,5 @@
 import M2Crypto,os,re
-
+import string
 
  
  
@@ -45,6 +45,17 @@ class Keys(object):
         #Strip out the linebreaks
         #Re-Add the Linebreaks
         #Re-add the headers
+        
+        
+        #Check for compressed versions-
+        if self.privkey is not None:
+            self.privkey = string.replace(self.privkey,"-----BEGINRSAPRIVATEKEY-----","-----BEGIN RSA PRIVATE KEY-----")
+            self.privkey = string.replace(self.privkey,"-----ENDRSAPRIVATE KEY-----","-----END RSA PRIVATE KEY-----")
+
+        if self.pubkey is not None:
+            self.pubkey = string.replace(self.pubkey,"-----BEGINPUBLICKEY-----","-----BEGIN PUBLIC KEY-----")
+            self.pubkey = string.replace(self.pubkey,"-----ENDPUBLICKEY-----","-----END PUBLIC KEY-----")
+            
         if self.privkey is not None:
             if "-----BEGIN RSA PRIVATE KEY-----" in self.privkey:
                 noHeaders=self.privkey[self.privkey.find("-----BEGIN RSA PRIVATE KEY-----")+31:self.privkey.find("-----END RSA PRIVATE KEY-----")]

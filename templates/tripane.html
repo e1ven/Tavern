@@ -1,4 +1,4 @@
-{% import urllib %}
+{% import urllib,re %}
 			<div id="left">
 				<h2>Categories</h2>
 				
@@ -24,7 +24,7 @@
 				<h2>Topics by @user</h2>
 					<ul>
 					{% for subject in subjects %}
-					<li><a href="/message/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+					<li><a href="/message/{{subject['envelope']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a></li>
                     {% end %}
                     
 					</ul>				
@@ -38,13 +38,21 @@
 					
 						<div class="topic_title">
 							<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-							<p class="meta">4:59pm Today</p>
+							<p class="meta">{{envelope['envelope']['local']['relativedate']}}</p>
 						</div><!-- .topic_title -->
-						
+
+
+
 						<div class="thread_right">
-							<img class="avatar" src="/static/images/avatar.jpg" />
-							<a class="username" href="#">{{envelope['envelope']['payload']['author']['friendlyname']}}</a><br />
-							<a href="#">follow</a>
+							<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
+							    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
+							    <img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
+							    </a>
+							</acronym>
+							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
+							    <a class="username" href="#">{{envelope['envelope']['payload']['author']['friendlyname']}}</a><br />
+							</a>
+							<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 						</div><!-- .thread_right -->
 						
 						<div class="clear"></div>
