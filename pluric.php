@@ -1,6 +1,6 @@
 <?php
 
-$EXAMPLE_SERVER='http://pluric.com:80';
+$EXAMPLE_SERVER='http://pluric.com:8090';
 $EXAMPLE_TOPIC='ClientTest';
 
 
@@ -286,7 +286,7 @@ class Envelope
  		}
 		$this->dict['envelope']['stamps'][] = $sender_stamp;
 		
-		$posturl = 'http://pluric.com:80/newmessage';
+		$posturl = 'http://pluric.com:8090/newmessage';
 		
 		//
 		// If we executed a 'print $this->text();', we'd see what we just wrote ;)

@@ -8,7 +8,7 @@
 <p> Top Topics:</p>
 <ul>
 {% for topic in toptopics %}
-       <li><a class='internal' href="/topictag/{{urllib.quote(escape(topic['_id']['tag']))}}">{{escape(topic['_id']['tag'])}}</a></li>
+       <li><a class='internal' href="/topic/{{urllib.quote(escape(topic['_id']['tag']))}}">{{escape(topic['_id']['tag'])}}</a></li>
 {% end %}
 </ul>
 

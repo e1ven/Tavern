@@ -35,6 +35,9 @@ header#top {
     width:40%;
     height:100%;
 }
+
+
+
 #menu-text {
     position:absolute;
     bottom: 0;
@@ -42,7 +45,16 @@ header#top {
     text-align:right;
     width:100%;
 }
-
+#menu-text a:link {
+    color:#EEEEEE;
+    font-weight: bold;
+    text-decoration:none;
+}    
+#menu-text a:visited {  
+    color:#EEEEEE;
+    font-weight: bold;
+    text-decoration:none;
+}
 
 #content {
 	margin: 20px auto;

@@ -18,7 +18,7 @@ class TopicList(object):
                 	    mtime = this.envelope.local.time_added;
                 	    print(mtime)
                 	    print(timestamp)
-                	    if ((mtime + 86400) > timestamp )
+                	    if ((mtime + 1186400) > timestamp )
                 	        {
                                 singletag = this.envelope.payload.topictag[i];
                                 emit({tag:singletag},{count:1}); 

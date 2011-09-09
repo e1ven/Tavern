@@ -1,12 +1,12 @@
-
+{% import urllib %}
 			<div id="left">
 				<h2>Categories</h2>
+				
+
 					<ul>
-						<li><a href="#">#Egypt</a></li>
-						<li><a href="#">#Python</a></li>
-						<li><a href="#">#StarTrek</a></li>
-						<li><a href="#">#Apple</a></li>
-						<li><a href="#">#Linux</a></li>
+					{% for topic in toptopics %}
+                    <li><a class='internal' href="/topic/{{urllib.quote(escape(topic['_id']['tag']))}}">{{escape(topic['_id']['tag'])}}</a></li>
+                    {% end %}
 					</ul>
 				
 				<h2>Interesting People</h2>
@@ -23,11 +23,10 @@
 			<div id="center">
 				<h2>Topics by @user</h2>
 					<ul>
-						<li><a href="#">Topic Title Here</a></li>
-						<li class="active"><a href="#">Another Topic Title Here</a></li>
-						<li><a href="#">Yet Anotner Topic Title Here</a></li>
-						<li><a href="#">Nope, not this one</a></li>
-						<li><a href="#">I lied, That One too</a></li>
+					{% for subject in subjects %}
+					<li><a href="/message/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+                    {% end %}
+                    
 					</ul>				
 			
 			</div><!-- #center -->
@@ -38,22 +37,20 @@
 					<div class="padder">
 					
 						<div class="topic_title">
-							<h3>Another Topic Title Here</h3>
+							<h3>{{envelope['envelope']['payload']['subject']}}</h3>
 							<p class="meta">4:59pm Today</p>
 						</div><!-- .topic_title -->
 						
 						<div class="thread_right">
-							<img class="avatar" src="/images/avatar.jpg" />
-							<a class="username" href="#">@matt</a><br />
+							<img class="avatar" src="/static/images/avatar.jpg" />
+							<a class="username" href="#">{{envelope['envelope']['payload']['author']['friendlyname']}}</a><br />
 							<a href="#">follow</a>
 						</div><!-- .thread_right -->
 						
 						<div class="clear"></div>
 						
 						<div class="thread_start">
-							<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga.</p>
-
-							<p>Et harum quidem rerum facilis est et expedita distinctio. Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus.</p>
+				            {{envelope['envelope']['local']['formattedbody']}}
 						</div><!-- .thread_start -->
 					
 					</div><!-- .padder -->
@@ -61,34 +58,34 @@
 						<ul class="response">
 								<li>
 									<div class="comment_avatar">
-										<img class="avatar" src="/images/avatar.jpg" />
+										<img class="avatar" src="/static/images/avatar.jpg" />
 									</div><!-- .comment_avatar -->
 									
 									<div class="comment_body">
 										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a> </p>
+										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
 									</div>
 								</li>
 									<ul>
 										<li>
 											<div class="comment_avatar">
-												<img class="avatar" src="/images/avatar.jpg" />
+												<img class="avatar" src="/static/images/avatar.jpg" />
 											</div><!-- .comment_avatar -->
 											
 											<div class="comment_body">
 												<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-												<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a> </p>
+												<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
 											</div>
 											
 												<ul>
 													<li>
 														<div class="comment_avatar">
-															<img class="avatar" src="/images/avatar.jpg" />
+															<img class="avatar" src="/static/images/avatar.jpg" />
 														</div><!-- .comment_avatar -->
 														
 														<div class="comment_body">
 															<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-															<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a> </p>
+															<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
 														</div>
 													</li>
 												</ul>
@@ -98,23 +95,23 @@
 									
 								<li>
 									<div class="comment_avatar">
-										<img class="avatar" src="/images/avatar.jpg" />
+										<img class="avatar" src="/static/images/avatar.jpg" />
 									</div><!-- .comment_avatar -->
 									
 									<div class="comment_body">
 										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a> </p>
+										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
 									</div>
 								</li>
 								
 								<li>
 									<div class="comment_avatar">
-										<img class="avatar" src="/images/avatar.jpg" />
+										<img class="avatar" src="/static/images/avatar.jpg" />
 									</div><!-- .comment_avatar -->
 									
 									<div class="comment_body">
 										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a> </p>
+										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
 									</div>
 								</li>
 

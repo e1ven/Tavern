@@ -28,8 +28,9 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import lxml.html
 import TopicList
+import urllib
+from BeautifulSoup import BeautifulSoup
 
 import re
 try: 
@@ -88,10 +89,16 @@ class BaseHandler(tornado.web.RequestHandler):
                 
             modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
             
-        parsedhtml = lxml.html.fromstring(self.html)
-        eletext = parsedhtml.get_element_by_id(element)
-        escapedtext = lxml.html.tostring(eletext).replace("\"","\\\"")
+        soup = BeautifulSoup(self.html)
+        soupyelement = soup.find(id=element)
+        soupytxt = ""
+        for child in soupyelement.contents:
+            soupytxt += str(child)
+
+        escapedtext = soupytxt.replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
+        
+        print "----------- " + escapedtext + "---------"
         return ( '''
                 var stateObj = {
 			        title: document.title,
@@ -178,8 +185,6 @@ class FrontPageHandler(BaseHandler):
         toptopics = []
         self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
 
-        #Disable the topiclist calc
-       #  db.topiclist.find().sort({value : 1})
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
             
@@ -198,14 +203,67 @@ class TopicHandler(BaseHandler):
                 envelopes.append(envelope)
         self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
         self.write(self.render_string('templates/footer.html'))
-        
+
+
 class TriPaneHandler(BaseHandler):        
-    def get(self,topic=None):
+    def get(self,action=None,param=None):
         self.getvars()
+        self.write(self.render_string('templates/header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin))
         
-        self.write(self.render_string('templates/header.html',title="abcd",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/tripane.html'))
-        self.write(self.render_string('templates/footer.html'))        
+        #TODO KILL THIS!!
+        #THIS WILL WASTE CPU
+        tl = TopicList.TopicList()        
+        
+        toptopics = []
+        for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+            toptopics.append(topic)
+        
+        #Defaults     
+        client_message_id = "763c10f37ec90dd4329b33e9411d9f421f884c6c49a5f06ae445558330459231eb36472cf083c82e3d25a682012684b75900961fce7ad0fe69947e21718431d1"
+        client_topic = "sitecontent"
+        displayenvelope = None
+        
+    
+        if action is not None:
+            client_action = tornado.escape.xhtml_escape(action)
+        else:
+            client_action = None
+                
+        subjects = []   
+        if client_action == "topic":
+            client_topic = tornado.escape.xhtml_escape(param)
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
+                subjects.append(envelope)
+            displayenvelope = subjects[0]   
+            
+        if client_action == "message":
+            client_message_id = tornado.escape.xhtml_escape(param)
+
+
+               
+        if displayenvelope is None:     
+            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+
+
+        u = User()
+        u.load_mongo_by_username(username=self.username)
+        usertrust = u.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
+        messagerating = u.getRatings(client_message_id)
+        displayenvelope = server.formatEnvelope(displayenvelope)
+        displayenvelope['envelope']['local']['messagerating'] = messagerating
+        
+        
+        
+        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('templates/footer.html'))  
+           
+        if client_action == "message":
+            self.finish("right")
+        if client_action == "topic":
+            self.finish("center")
+            
+     
+ 
         
 class MessageHandler(BaseHandler):        
     def get(self,message):
@@ -225,7 +283,8 @@ class MessageHandler(BaseHandler):
         self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="message/" + envelope['envelope']['payload_sha512']))
         self.write(self.render_string('templates/single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
         self.write(self.render_string('templates/footer.html'))
-        
+        self.finish("right")
+
 class SiteContentHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -809,7 +868,6 @@ def main():
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
     #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
-    #tl = TopicList.TopicList()        
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
@@ -817,7 +875,7 @@ def main():
         "xsrf_cookies": True,
     }
     application = tornado.web.Application([
-        (r"/" ,FrontPageHandler),
+        (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 
@@ -825,24 +883,18 @@ def main():
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
-        (r"/topictag/(.*)" ,TopicHandler), 
-        (r"/message/(.*)" ,MessageHandler),    
         (r"/followuser/(.*)" ,FollowUserHandler),  
         (r"/followtopic/(.*)" ,FollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  
         (r"/showprivates" ,MyPrivateMessagesHandler),    
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
-        (r"/privatemessage/(.*)" ,PrivateMessageHandler),
-        (r"/tripane/(.*)" ,TriPaneHandler),   
-        (r"/tripane" ,TriPaneHandler),    
- 
+        (r"/privatemessage/(.*)" ,PrivateMessageHandler), 
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
-
+        (r"/(.*)/(.*)" ,TriPaneHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
-          
-        (r"/formtest" ,FormTestHandler),  
-          
+
+        (r"/(.*)" ,TriPaneHandler),           
         
         (r"/(.*)", NotFoundHandler)
     ], **settings)
