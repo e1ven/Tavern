@@ -65,6 +65,7 @@ class BaseHandler(tornado.web.RequestHandler):
             #if JS is set at all, send the JS script version.
             super(BaseHandler, self).write(self.getjs(div))
         else:
+            print "BLOW UP ALL DIE"
             super(BaseHandler, self).write(self.html)
         super(BaseHandler,self).finish(message) 
    
@@ -106,6 +107,15 @@ class BaseHandler(tornado.web.RequestHandler):
 		        };
                 window.history.pushState(stateObj, "","''' + modifiedurl + '''");
                 document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
+                $('a.internal').each( function ()
+                {            
+                    $(this).click(function()
+                        {
+                            include_dom($(this).attr('link-destination') + "?js=yes");
+                            return false;
+                        });
+                    $(this).attr("link-destination",this.href);
+                });
                 ''')
 
     def getvars(self):
@@ -218,16 +228,18 @@ class TriPaneHandler(BaseHandler):
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
         
-        #Defaults     
-        client_message_id = "763c10f37ec90dd4329b33e9411d9f421f884c6c49a5f06ae445558330459231eb36472cf083c82e3d25a682012684b75900961fce7ad0fe69947e21718431d1"
-        client_topic = "sitecontent"
+        #Assign Default Values     
+        client_message_id = None
+        client_topic = None
         displayenvelope = None
-        
-    
         if action is not None:
             client_action = tornado.escape.xhtml_escape(action)
         else:
-            client_action = None
+            client_action = "topic"
+            param="sitecontent"
+                
+                
+                
                 
         subjects = []   
         if client_action == "topic":
@@ -238,9 +250,11 @@ class TriPaneHandler(BaseHandler):
             
         if client_action == "message":
             client_message_id = tornado.escape.xhtml_escape(param)
-
-
-               
+            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+            client_topic = displayenvelope['envelope']['payload']   ['topictag'][0]
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
+                subjects.append(envelope)
+            
         if displayenvelope is None:     
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
 
@@ -263,10 +277,12 @@ class TriPaneHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))  
            
         if client_action == "message":
+            print "only update right"
             self.finish("right")
-        if client_action == "topic":
+        elif client_action == "topic":
             self.finish("center")
-            
+        else:
+            self.finish()
      
  
         
