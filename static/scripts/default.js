@@ -15,8 +15,13 @@ $(document).ready(function() {
     $('a.internal').each( function ()
     {            
         $(this).click(function()
-            {
+            {   
+                $('spinner').width($(content).width());
+                $('spinner').height($(content).height()); 
+                $('spinner').html("TEST!");
+                $('spinner').show();
                 include_dom($(this).attr('link-destination') + "?js=yes");
+                $('spinner').hide();
                 return false;
             });
         $(this).attr("link-destination",this.href);

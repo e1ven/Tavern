@@ -110,8 +110,14 @@ class BaseHandler(tornado.web.RequestHandler):
                 $('a.internal').each( function ()
                 {            
                     $(this).click(function()
-                        {
+                        {   
+                            $('spinner').width($(content).width()) ;
+                            $('spinner').height($(content).height()) ;
+                            $('spinner').html("TEST!");
+                            $('spinner').show();
+                            $('content').hide();
                             include_dom($(this).attr('link-destination') + "?js=yes");
+                            $('spinner').hide();
                             return false;
                         });
                     $(this).attr("link-destination",this.href);
@@ -235,12 +241,12 @@ class TriPaneHandler(BaseHandler):
         if action is not None:
             client_action = tornado.escape.xhtml_escape(action)
         else:
+            #If we don't submit an action, aka, just the base page, go to the topic 'sitecontent'
             client_action = "topic"
             param="sitecontent"
                 
                 
-                
-                
+            
         subjects = []   
         if client_action == "topic":
             client_topic = tornado.escape.xhtml_escape(param)
@@ -270,10 +276,14 @@ class TriPaneHandler(BaseHandler):
         print "Fancydate- " + FancyDateTimeDelta(dt_obj).format()
         displayenvelope['envelope']['local']['relativedate'] =  FancyDateTimeDelta(dt_obj).format()
 
-
-        
-        
-        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        #Gather up all the replies to this message, so we can send those to the template as well
+        replies = []
+        if displayenvelope['envelope']['local'].has_key('citedby'):
+            for replyid in displayenvelope['envelope']['local']['citedby']:
+                replyenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : replyid },as_class=OrderedDict)
+                replies.append(replyenvelope)
+                
+        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope,replies=replies))
         self.write(self.render_string('templates/footer.html'))  
            
         if client_action == "message":
