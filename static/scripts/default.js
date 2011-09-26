@@ -10,20 +10,21 @@ function include_dom(script_filename) {
 
 
 $(document).ready(function() {
-
-
     $('a.internal').each( function ()
     {            
         $(this).click(function()
             {   
-                $('spinner').width($(content).width());
-                $('spinner').height($(content).height()); 
-                $('spinner').html("TEST!");
-                $('spinner').show();
+                $("#spinner").size($("#content").size());
+                $("#spinner").offset($("#content").offset());
+                $('#spinner').css('zIndex', 999);
+                $('#spinner').css('background-color','#888888');
+                $('#spinner').html('<img src="/static/images/spinner.gif">');
+                $("#spinner").show()
+
                 include_dom($(this).attr('link-destination') + "?js=yes");
-                $('spinner').hide();
                 return false;
             });
         $(this).attr("link-destination",this.href);
     });
+$('#spinner').hide();
 });

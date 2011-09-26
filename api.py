@@ -41,7 +41,7 @@ except ImportError:
 import NofollowExtension
 
 
-define("port", default=80, help="run on the given port", type=int)
+define("port", default=8090, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
