@@ -100,26 +100,31 @@ class BaseHandler(tornado.web.RequestHandler):
         escapedtext = escapedtext.replace("\n","")
         
         print "----------- " + escapedtext + "---------"
-        return ( '''
-                var stateObj = {
-			        title: document.title,
-			        url: window.location.pathname 
-		        };
-                window.history.pushState(stateObj, "","''' + modifiedurl + '''");
-                document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
-                $('a.internal').each( function ()
-                {            
-                    $(this).click(function()
+        return ( '''var pluric_replace = function() 
+                {
+                    var stateObj = {
+	    		        title: document.title,
+	    		        url: window.location.pathname 
+	    	    };
+                    window.history.pushState(stateObj, "","''' + modifiedurl + '''");
+                    document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
+                    $('div#''' + element  + ''' a.internal').each( function ()
+                    {            
+                        $(this).unbind('click');
+                        $(this).click(function()
                         {   
                             $("#spinner").height($(this).parent().height());
                             $("#spinner").width($(this).parent().width());
-                            $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show()
+                            $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show();
                             include_dom($(this).attr('link-destination') + "?js=yes");
                             return false;
                         });
-                    $(this).attr("link-destination",this.href);
-                });
-                $('#spinner').hide();
+                        $(this).attr("link-destination",this.href);
+                    });
+                    $('#spinner').hide();
+                };
+                pluric_replace();
+                pluric_replace = null;
                 ''')
 
     def getvars(self):
