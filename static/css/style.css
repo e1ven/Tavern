@@ -131,7 +131,8 @@ COLUMN WIDTH ELEMENTS
         height: 100%;
         padding: 0;
         overflow:auto;
-
+    padding-bottom: 32000px;
+    margin-bottom: -32000px;
 }
 
 
@@ -234,16 +235,20 @@ img.imginline { vertical-align: middle;  }
 
 
 
-.black_overlay{
+#spinner{
 	display: none;
 	position: absolute;
+        background-color:black;
 	top: 0%;
 	left: 0%;
 	width: 100%;
 	height: 100%;
-	background-color: black;
 	z-index:1001;
-	-moz-opacity: 0.8;
-	opacity:.80;
-	filter: alpha(opacity=80);
+	-moz-opacity: 0.2;
+	opacity:.20;
+	filter: alpha(opacity=20);
+}
+
+#spinner img{
+    float:right;
 }

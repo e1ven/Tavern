@@ -111,13 +111,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 {            
                     $(this).click(function()
                         {   
-                            $("#spinner").size($("#content").size());
-                            $("#spinner").offset($("#content").offset());
-                            $('#spinner').css('zIndex', 999);
-                            $('#spinner').css('background-color','#888888');
-                            $('#spinner').html('<img src="/static/images/spinner.gif">');
-                            $("#spinner").show()
-
+                            $("#spinner").height($(this).parent().height());
+                            $("#spinner").width($(this).parent().width());
+                            $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show()
                             include_dom($(this).attr('link-destination') + "?js=yes");
                             return false;
                         });
