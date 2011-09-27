@@ -4,12 +4,15 @@ function include_dom(script_filename) {
     js.setAttribute('language', 'javascript');
     js.setAttribute('type', 'text/javascript');
     js.setAttribute('src', script_filename);
+    js.setAttribute('origin-id', "pluric");
+    // Remove any OTHER scripts by me
+    $('script[origin-id*=pluric]').remove();
     html_doc.appendChild(js);
     return false;
 }
 
 
-$(document).ready(function() {
+$(document).bind("ready", function() {
     $('a.internal').each( function ()
     {            
         $(this).click(function()
