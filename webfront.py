@@ -60,12 +60,13 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(ptext)
         
 
-    def finish(self,div='limits',message=None):
+    def finish(self,div='limits',div2=None,message=None):
         if "js" in self.request.arguments:
             #if JS is set at all, send the JS script version.
             super(BaseHandler, self).write(self.getjs(div))
+            if div2 is not None:
+                super(BaseHandler, self).write(self.getjs(div2))
         else:
-            print "BLOW UP ALL DIE"
             super(BaseHandler, self).write(self.html)
         super(BaseHandler,self).finish(message) 
    
@@ -292,7 +293,7 @@ class TriPaneHandler(BaseHandler):
             print "only update right"
             self.finish("right")
         elif client_action == "topic":
-            self.finish("center")
+            self.finish(div="center",div2="right")
         else:
             self.finish()
      
