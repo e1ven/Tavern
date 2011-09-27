@@ -14,7 +14,6 @@ function include_dom(script_filename) {
 $(document).bind("ready", function() {
     $('a.internal').each( function ()
     {            
-        $(this).unbind('click');
         $(this).click(function()
             {   
             $("#spinner").height($(this).parent().height());

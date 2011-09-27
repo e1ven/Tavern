@@ -110,7 +110,6 @@ class BaseHandler(tornado.web.RequestHandler):
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
                     $('div#''' + element  + ''' a.internal').each( function ()
                     {            
-                        $(this).unbind('click');
                         $(this).click(function()
                         {   
                             $("#spinner").height($(this).parent().height());
