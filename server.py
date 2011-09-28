@@ -21,8 +21,43 @@ import pprint
 from postmarkup import render_bbcode
 import markdown
 import imghdr
+import datetime
 
 class Server(object):
+    class FancyDateTimeDelta(object):
+        """
+        Format the date / time difference between the supplied date and
+        the current time using approximate measurement boundaries
+        """
+
+        def __init__(self, dt):
+            now = datetime.datetime.now()
+            delta = now - dt
+            self.year = delta.days / 365
+            self.month = delta.days / 30 - (12 * self.year)
+            if self.year > 0:
+                self.day = 0
+            else: 
+                self.day = delta.days % 30
+            self.hour = delta.seconds / 3600
+            self.minute = delta.seconds / 60 - (60 * self.hour)
+            self.second = delta.seconds - ( self.hour * 3600) - (60 * self.minute) 
+            self.millisecond = delta.microseconds / 1000
+
+        def format(self):
+            #Round down. People don't want the exact time.
+            #For exact time, reverse array.
+            fmt = ""
+            for period in ['millisecond','second','minute','hour','day','month','year']:
+                value = getattr(self, period)
+                if value:
+                    if value > 1:
+                        period += "s"
+
+                    fmt = str(value) + " " + period
+            return fmt + " ago"
+
+
 
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
@@ -179,10 +214,13 @@ class Server(object):
             if c.dict['envelope']['payload'].has_key('regarding'):
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                    repliedTo.dict['envelope']['local']['citedby'].append(c.message.hash())
+                    repliedTo.dict['envelope']['local']['citedby'].append(c.dict['envelope']['payload_sha512'])
                     repliedTo.saveMongo()
+                
+        #Create the HTML version, and store it in local        
+        c.dict = self.formatEnvelope(c.dict)
                     
-        #Store our file
+        #Store our Envelope
         c.saveMongo()
         
     def formatText(self,text=None,formatting='markdown'):    
@@ -239,8 +277,9 @@ class Server(object):
         envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList            
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!
-        envelope['envelope']['local']['attachmentlist'] = attachmentList            
-        del(envelope['_id'])        
+        envelope['envelope']['local']['attachmentlist'] = attachmentList
+        if envelope.has_key('_id'):            
+            del(envelope['_id'])        
         return envelope
 
 

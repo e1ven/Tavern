@@ -28,7 +28,7 @@ from User import User
 from gridfs import GridFS
 import hashlib
 import urllib
-import TopicList
+#import TopicList
 import urllib
 from BeautifulSoup import BeautifulSoup
 
@@ -145,39 +145,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return str(self.username)
            
     
-class FancyDateTimeDelta(object):
-    """
-    Format the date / time difference between the supplied date and
-    the current time using approximate measurement boundaries
-    """
 
-    def __init__(self, dt):
-        now = datetime.datetime.now()
-        delta = now - dt
-        self.year = delta.days / 365
-        self.month = delta.days / 30 - (12 * self.year)
-        if self.year > 0:
-            self.day = 0
-        else: 
-            self.day = delta.days % 30
-        self.hour = delta.seconds / 3600
-        self.minute = delta.seconds / 60 - (60 * self.hour)
-        self.second = delta.seconds - ( self.hour * 3600) - (60 * self.minute) 
-        self.millisecond = delta.microseconds / 1000
-
-    def format(self):
-        #Round down. People don't want the exact time.
-        #For exact time, reverse array.
-        fmt = ""
-        for period in ['millisecond','second','minute','hour','day','month','year']:
-            value = getattr(self, period)
-            if value:
-                if value > 1:
-                    period += "s"
-
-                fmt = str(value) + " " + period
-        return fmt + " ago"
-    
 
 class FancyPantsTemplate(BaseHandler):
     def write(self,text):
@@ -224,14 +192,17 @@ class TopicHandler(BaseHandler):
         self.write(self.render_string('templates/footer.html'))
 
 
-class TriPaneHandler(BaseHandler):        
+class TriPaneHandler(BaseHandler): 
+    #The TriPane Handler is the beefiest handler in the project.
+    #It renders the main tri-panel interface, and only pushes out the parts that are needed.
+                
     def get(self,action=None,param=None):
         self.getvars()
         self.write(self.render_string('templates/header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin))
         
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
-        tl = TopicList.TopicList()        
+        #tl = TopicList.TopicList()        
         
         toptopics = []
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
@@ -276,17 +247,10 @@ class TriPaneHandler(BaseHandler):
         displayenvelope['envelope']['local']['messagerating'] = messagerating
         
         dt_obj = datetime.datetime.fromtimestamp(long(displayenvelope['envelope']['local']['time_added']))
-        print "Fancydate- " + FancyDateTimeDelta(dt_obj).format()
-        displayenvelope['envelope']['local']['relativedate'] =  FancyDateTimeDelta(dt_obj).format()
+        displayenvelope['envelope']['local']['relativedate'] =  server.FancyDateTimeDelta(dt_obj).format()
 
         #Gather up all the replies to this message, so we can send those to the template as well
-        replies = []
-        if displayenvelope['envelope']['local'].has_key('citedby'):
-            for replyid in displayenvelope['envelope']['local']['citedby']:
-                replyenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : replyid },as_class=OrderedDict)
-                replies.append(replyenvelope)
-                
-        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope,replies=replies))
+        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('templates/footer.html'))  
            
         if client_action == "message":
@@ -296,9 +260,8 @@ class TriPaneHandler(BaseHandler):
             self.finish(div="center",div2="right")
         else:
             self.finish()
-     
- 
-        
+      
+       
 class MessageHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -939,10 +902,7 @@ def main():
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
         (r"/(.*)/(.*)" ,TriPaneHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
-
         (r"/(.*)" ,TriPaneHandler),           
-        
-        (r"/(.*)", NotFoundHandler)
     ], **settings)
     
     http_server = tornado.httpserver.HTTPServer(application)

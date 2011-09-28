@@ -46,11 +46,11 @@
 						<div class="thread_right">
 							<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
 							    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-							    <img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
+							    	<img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
 							    </a>
 							</acronym>
 							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-							    <a class="username" href="#">{{envelope['envelope']['payload']['author']['friendlyname']}}</a><br />
+							    {{envelope['envelope']['payload']['author']['friendlyname']}}<br />
 							</a>
 							<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 						</div><!-- .thread_right -->
@@ -77,73 +77,11 @@
 						</div>
 					
 					</div><!-- .padder -->
-					{% if len(replies) > 0 %}
-					<ul class="response">
-						{% for reply in replies %}
-						<ul>
-								<li>
-									<div class="comment_avatar">
-										<img class="avatar" src="/static/images/avatar.jpg" />
-									</div><!-- .comment_avatar -->
-									
-									<div class="comment_body">
-										<p> This is the body. Body. Body. Body. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
-									</div>
-								</li>
-						</ul>
+					{% if envelope['envelope']['local'].has_key('citedby') %}
+						{% for cite in envelope['envelope']['local']['citedby'] %}
+							{{ handler.render_string('reply.html',messageid=cite) }}
 						{% end %}
 					{% end %}
-									<ul>
-										<li>
-											<div class="comment_avatar">
-												<img class="avatar" src="/static/images/avatar.jpg" />
-											</div><!-- .comment_avatar -->
-											
-											<div class="comment_body">
-												<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-												<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
-											</div>
-											
-												<ul>
-													<li>
-														<div class="comment_avatar">
-															<img class="avatar" src="/static/images/avatar.jpg" />
-														</div><!-- .comment_avatar -->
-														
-														<div class="comment_body">
-															<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-															<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
-														</div>
-													</li>
-												</ul>
-											
-										</li>
-									</ul>
-									
-								<li>
-									<div class="comment_avatar">
-										<img class="avatar" src="/static/images/avatar.jpg" />
-									</div><!-- .comment_avatar -->
-									
-									<div class="comment_body">
-										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
-									</div>
-								</li>
-								
-								<li>
-									<div class="comment_avatar">
-										<img class="avatar" src="/static/images/avatar.jpg" />
-									</div><!-- .comment_avatar -->
-									
-									<div class="comment_body">
-										<p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. </p>
-										<p class="response_meta">5:01pm Today by @johnJones <a href="#"><img class="imginline" src="/static/images/t_up.png" alt="good comment" /></a> <a href="#"><img class="imginline" src="/static/images/t_down.png" alt="bad comment" /></a> </p>
-									</div>
-								</li>
-
-						</ul><!-- .response -->
 						
 				</div><!-- .thread -->
 				
