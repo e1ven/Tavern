@@ -224,7 +224,7 @@ class TriPaneHandler(BaseHandler):
         subjects = []   
         if client_action == "topic":
             client_topic = tornado.escape.xhtml_escape(param)
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
             displayenvelope = subjects[0]   
             
@@ -232,7 +232,7 @@ class TriPaneHandler(BaseHandler):
             client_message_id = tornado.escape.xhtml_escape(param)
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
             client_topic = displayenvelope['envelope']['payload']   ['topictag'][0]
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
             
         if displayenvelope is None:     
