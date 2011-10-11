@@ -25,6 +25,7 @@
                 upload_pass_form_field "topic";
                 upload_pass_form_field "subject";
                 upload_pass_form_field "body";
+                upload_pass_form_field "regarding";
                 upload_pass_form_field "include_location";
         }
 
