@@ -6,27 +6,26 @@
 {% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 <ul class='response'>
 	<li>
-    	<div class = "comment_avatar">
-	    	<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
-				<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-	        		<img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
-				</a>
+		
+		
+		<div class="thread_left">
+			<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
+			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
+			    	<img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
+			    </a>
 			</acronym>
-		</div><!-- .comment_avatar -->
-		<div class="comment_body">
-			<p>
-				{{envelope['envelope']['local']['formattedbody']}}
-			</p>
-			<p class="response_meta">
-				{% set dt_obj = datetime.datetime.fromtimestamp(long(envelope['envelope']['local']['time_added'])) %}
-		        {{server.FancyDateTimeDelta(dt_obj).format()}} by 
-					<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-				    {{envelope['envelope']['payload']['author']['friendlyname']}}
-					</a>
-					<a href="#"><img class="imginline" src="/images/t_up.png" alt="good comment" /></a>
-					<a href="#"><img class="imginline" src="/images/t_down.png" alt="bad comment" /></a>
-			</p>
-		</div> <!-- .comment_body -->
+			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
+			    {{envelope['envelope']['payload']['author']['friendlyname']}}<br />
+			</a>
+			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
+		</div><!-- .thread_right -->
+		
+		<div class="clear"></div>
+		
+		
+		<div class="thread_start">
+            {{envelope['envelope']['local']['formattedbody']}}
+		</div><!-- .thread_start -->
 		<div class="images">			
 			{% if envelope['envelope']['local'].has_key('displayableattachmentlist') %}
 			    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
@@ -42,9 +41,43 @@
 			    {% end %}
 			{% end %}
 		</div>
+		<div class="comment_bottom">
+		&nbsp; <a href="/message/{{envelope['envelope']['payload_sha512']}}">Permalink</a> 
+			<div id="votes">
+				<form action="/vote" method="post" id="upvote" class="vote">
+				  {{ xsrf_form_html() }}
+				<input type="hidden" name="rating" value="1">
+				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+				<input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post">
+				</form>
+
+				<form action="/vote" method="post" id="downvote" class="vote">
+				  {{ xsrf_form_html() }}
+				<input type="hidden" name="rating" value="-1" >
+				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+				<input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post">
+				</form>
+			</div>  <!-- votes -->
+		</div> <!-- comment_bottom -->
+		
+		<div class="images">			
+			{% if envelope['envelope']['local'].has_key('displayableattachmentlist') %}
+			    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
+				    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
+			    {% end %}
+			{% end %}
+		</div>
+		<div class="attachments">
+			{% if envelope['envelope']['local'].has_key('attachmentlist') %}
+			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+			            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
+			            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+			    {% end %}
+			{% end %}
+		</div> 
 		{% if envelope['envelope']['local'].has_key('citedby') %}
 			{% for cite in envelope['envelope']['local']['citedby'] %}
-				{{ handler.render_string('reply.html',messageid=cite) }}
+				{{ handler.render_string('reply.html',messageid=cite)}}
 			{% end %}
 		{% end %}		
 	</li>

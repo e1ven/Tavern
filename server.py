@@ -267,13 +267,13 @@ class Server(object):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-        if envelope['envelope']['payload'].has_key('formatting'):
-                formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
-        else:    
-                formattedbody = self.formatText(text=envelope['envelope']['payload']['body'])
-
-
-        envelope['envelope']['local']['formattedbody'] = formattedbody    
+        if envelope['envelope']['payload'].has_key('body'):                            
+            if envelope['envelope']['payload'].has_key('formatting'):
+                    formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
+            else:    
+                    formattedbody = self.formatText(text=envelope['envelope']['payload']['body'])
+            envelope['envelope']['local']['formattedbody'] = formattedbody
+                
         envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList            
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!

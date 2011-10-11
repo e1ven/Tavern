@@ -161,22 +161,22 @@ class FancyPantsTemplate(BaseHandler):
 class NotFoundHandler(BaseHandler):
     def get(self,whatever):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Page not Found",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/404.html'))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Page not Found",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('404.html'))
+        self.write(self.render_string('footer.html'))
 
 
 class FrontPageHandler(BaseHandler):        
     def get(self):
         self.getvars()
         toptopics = []
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
 
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
             
-        self.write(self.render_string('templates/frontpage.html',toptopics=toptopics))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('frontpage.html',toptopics=toptopics))
+        self.write(self.render_string('footer.html'))
         self.finish("content")
 
 class TopicHandler(BaseHandler):        
@@ -184,12 +184,12 @@ class TopicHandler(BaseHandler):
         self.getvars()
         client_topic = tornado.escape.xhtml_escape(topic)
         envelopes = []
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin,canon="topictag/" + client_topic))
+        self.write(self.render_string('header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin,canon="topictag/" + client_topic))
        
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
                 envelopes.append(envelope)
-        self.write(self.render_string('templates/messages-in-topic.html',envelopes=envelopes))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('messages-in-topic.html',envelopes=envelopes))
+        self.write(self.render_string('footer.html'))
 
 
 class TriPaneHandler(BaseHandler): 
@@ -198,7 +198,7 @@ class TriPaneHandler(BaseHandler):
                 
     def get(self,action=None,param=None):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin))
         
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
@@ -250,8 +250,8 @@ class TriPaneHandler(BaseHandler):
         displayenvelope['envelope']['local']['relativedate'] =  server.FancyDateTimeDelta(dt_obj).format()
 
         #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('templates/tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
-        self.write(self.render_string('templates/footer.html'))  
+        self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('footer.html'))  
            
         if client_action == "message":
             print "only update right"
@@ -277,9 +277,9 @@ class MessageHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="message/" + envelope['envelope']['payload_sha512']))
-        self.write(self.render_string('templates/single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="message/" + envelope['envelope']['payload_sha512']))
+        self.write(self.render_string('single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
+        self.write(self.render_string('footer.html'))
         self.finish("right")
 
 class SiteContentHandler(BaseHandler):        
@@ -292,9 +292,9 @@ class SiteContentHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512']))
-        self.write(self.render_string('templates/sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512']))
+        self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
+        self.write(self.render_string('footer.html'))
         
         
 
@@ -317,9 +317,9 @@ class PrivateMessageHandler(BaseHandler):
         else:    
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
 
-        self.write(self.render_string('templates/header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
+        self.write(self.render_string('footer.html'))
 
 
 
@@ -327,12 +327,12 @@ class PrivateMessageHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/registerform.html'))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('registerform.html'))
+        self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',title='Register for an account',username="",loggedin=False))
+        self.write(self.render_string('header.html',title='Register for an account',username="",loggedin=False))
 
         client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -378,12 +378,12 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         self.getvars()        
-        self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/loginform.html'))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('loginform.html'))
+        self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('templates/header.html',loggedin=False,title='Login to your account',username=""))
+        self.write(self.render_string('header.html',loggedin=False,title='Login to your account',username=""))
 
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -421,12 +421,12 @@ class ShowUserPosts(BaseHandler):
         print "---XXX---"
 
         messages = []
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             messages.append(message)
 
-        self.write(self.render_string('templates/showuserposts.html',messages=messages))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('showuserposts.html',messages=messages))
+        self.write(self.render_string('footer.html'))
                  
                  
 class FollowUserHandler(BaseHandler):
@@ -556,7 +556,8 @@ class RatingHandler(BaseHandler):
         
         #Send to the server
         server.receiveEnvelope(e.text())
-
+        
+        self.write("Your vote has been recorded. Thanks!")
 
 class UserTrustHandler(BaseHandler):
     def get(self,user):
@@ -627,9 +628,9 @@ class UserTrustHandler(BaseHandler):
 class NewmessageHandler(BaseHandler):
     def get(self):
          self.getvars()
-         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
-         self.write(self.render_string('templates/newmessageform.html'))
-         self.write(self.render_string('templates/footer.html'))
+         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
+         self.write(self.render_string('newmessageform.html'))
+         self.write(self.render_string('footer.html'))
 
     def post(self):
         self.getvars()
@@ -637,7 +638,7 @@ class NewmessageHandler(BaseHandler):
             self.write("You must be logged in to do this.")
             return
         
-        # self.write(self.render_string('templates/header.html',title='Post a new message',username=self.username))
+        # self.write(self.render_string('header.html',title='Post a new message',username=self.username))
 
         client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
@@ -764,21 +765,21 @@ class MyPrivateMessagesHandler(BaseHandler):
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
 
-        self.write(self.render_string('templates/showprivatemessages.html',messages=messages))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('showprivatemessages.html',messages=messages))
+        self.write(self.render_string('footer.html'))
 
 
 class NewPrivateMessageHandler(BaseHandler):
     def get(self,urlto=None):
          self.getvars()
-         self.write(self.render_string('templates/header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
-         self.write(self.render_string('templates/privatemessageform.html',urlto=urlto))
-         self.write(self.render_string('templates/footer.html'))
+         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
+         self.write(self.render_string('privatemessageform.html',urlto=urlto))
+         self.write(self.render_string('footer.html'))
 
     def post(self,urlto=None):
         self.getvars()
@@ -854,9 +855,9 @@ class FormTestHandler(BaseHandler):
     def get(self):
         #Generate a test form to manually submit trust and votes
         self.getvars()
-        self.write(self.render_string('templates/header.html',title="Seeeecret form tests",username=self.username,loggedin=self.loggedin))
-        self.write(self.render_string('templates/formtest.html'))
-        self.write(self.render_string('templates/footer.html'))
+        self.write(self.render_string('header.html',title="Seeeecret form tests",username=self.username,loggedin=self.loggedin))
+        self.write(self.render_string('formtest.html'))
+        self.write(self.render_string('footer.html'))
 
 
 class TodoHandler(BaseHandler):
@@ -881,6 +882,7 @@ def main():
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
         "login_url": "/login",
         "xsrf_cookies": True,
+        "template_path" : "templates",
     }
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),

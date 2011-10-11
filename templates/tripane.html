@@ -36,53 +36,10 @@
 					<h2>Thread Discussion</h2>
 					<div class="padder">
 					
-						<div class="topic_title">
-							<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-							<p class="meta">{{envelope['envelope']['local']['relativedate']}}</p>
-						</div><!-- .topic_title -->
-
-
-
-						<div class="thread_right">
-							<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
-							    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-							    	<img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
-							    </a>
-							</acronym>
-							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-							    {{envelope['envelope']['payload']['author']['friendlyname']}}<br />
-							</a>
-							<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
-						</div><!-- .thread_right -->
-						
-						<div class="clear"></div>
-						
-						<div class="thread_start">
-				            {{envelope['envelope']['local']['formattedbody']}}
-						</div><!-- .thread_start -->
-						<div class="images">			
-							{% if envelope['envelope']['local'].has_key('displayableattachmentlist') %}
-							    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
-								    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
-							    {% end %}
-							{% end %}
-						</div>
-						<div class="attachments">
-							{% if envelope['envelope']['local'].has_key('attachmentlist') %}
-							    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-							            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
-							            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
-							    {% end %}
-							{% end %}
-						</div>
-					
-					</div><!-- .padder -->
-					{% if envelope['envelope']['local'].has_key('citedby') %}
-						{% for cite in envelope['envelope']['local']['citedby'] %}
-							{{ handler.render_string('reply.html',messageid=cite) }}
+						{% if envelope['envelope'].has_key('payload_sha512') %}
+								{{ handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'])}}
 						{% end %}
-					{% end %}
-						
+					</div> <!-- .padder -->				
 				</div><!-- .thread -->
 				
 			</div><!-- #right -->

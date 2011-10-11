@@ -25,4 +25,26 @@ $(document).bind("ready", function() {
         $(this).attr("link-destination",this.href);
     });
 $('#spinner').hide();
+
+$(".vote").submit(function(event) {
+    voteref = $(this);
+    /* stop form from submitting normally */
+    event.preventDefault(); 
+        
+    /* get some values from elements on the page: */
+    var $form = $( this ),
+        rating = $form.find( 'input[name="rating"]' ).val(),
+        url = $form.attr( 'action' );
+
+    /* Send the data using post and put the results in a div */
+    $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
+                   '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
+                   'hash' : $form.find( 'input[name="hash"]' ).val() },
+      function( data ) {
+          voteref.parent().empty().append( data );
+      }
+    );
+});
+
+  
 });

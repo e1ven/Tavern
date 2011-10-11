@@ -64,8 +64,9 @@ header#top {
 	overflow: hidden;
 }
 
-
-
+form.vote { position:relative; float: left;}
+#commentbottom { position:relative; float: left;}
+#votes {float:left;}
 
 #single {
     top: 20px;
@@ -218,8 +219,13 @@ img.imginline { vertical-align: middle;  }
 .thread_right a.username { font-weight: bold; }
 .thread_right img.avatar { float: right; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
 
-.comment_avatar { float: left; width: 60px; }
-.comment_avatar img.avatar { float: left; width: 40px; padding: 2px; border: 1px solid #ccc; }
+
+.thread_left { float: left; width: 25%; text-align: left; }
+.thread_left a { color: #333333; text-decoration: none; }
+.thread_left a:hover { color: #602e4d; }
+.thread_left a.username { font-weight: bold; }
+.thread_left img.avatar { float: leftthread; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
+
 
 .clearfix:after {
         visibility: hidden;
