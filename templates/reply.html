@@ -3,12 +3,22 @@
 {% from collections import OrderedDict %}
 {% import datetime %}
 
+
 {% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
+
+{% if orient == "left" %}
 <ul class='response'>
 	<li>
-		
-		
-		<div class="thread_left">
+{% else %}
+	<div class="padder">
+		<div class="topic_title">
+		<h3>Welcome to Pluric</h3>
+		<p class="meta">13 days ago</p>
+		</div><!-- .topic_title -->		
+{% end %}		
+
+		<div class="thread_common">
+		<div class="thread_{{orient}}">
 			<acronym title="{{envelope['envelope']['payload']['author']['pubkey']}}">
 			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
 			    	<img class="avatar" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
@@ -18,7 +28,8 @@
 			    {{envelope['envelope']['payload']['author']['friendlyname']}}<br />
 			</a>
 			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
-		</div><!-- .thread_right -->
+		</div><!-- .thread_{{orient}} -->
+		</div>
 		
 		<div class="clear"></div>
 		
@@ -43,7 +54,7 @@
 		</div>
 		<div class="comment_bottom">
 		&nbsp; <a href="/message/{{envelope['envelope']['payload_sha512']}}">Permalink</a> 
-			<div id="votes">
+			<div class="votes">
 				<form action="/vote" method="post" id="upvote" class="vote">
 				  {{ xsrf_form_html() }}
 				<input type="hidden" name="rating" value="1">
@@ -59,26 +70,17 @@
 				</form>
 			</div>  <!-- votes -->
 		</div> <!-- comment_bottom -->
-		
-		<div class="images">			
-			{% if envelope['envelope']['local'].has_key('displayableattachmentlist') %}
-			    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
-				    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
-			    {% end %}
-			{% end %}
-		</div>
-		<div class="attachments">
-			{% if envelope['envelope']['local'].has_key('attachmentlist') %}
-			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-			            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
-			            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
-			    {% end %}
-			{% end %}
-		</div> 
+		{% if orient is not "left" %}
+		</div> <!-- .padder -->
+		{% end %}
+			
 		{% if envelope['envelope']['local'].has_key('citedby') %}
 			{% for cite in envelope['envelope']['local']['citedby'] %}
-				{{ handler.render_string('reply.html',messageid=cite)}}
+				{{ handler.render_string('reply.html',messageid=cite,orient="left")}}
 			{% end %}
-		{% end %}		
+		{% end %}	
+		
+{% if orient == "left" %}		
 	</li>
-</ul>
+</ul>			
+{% end %}

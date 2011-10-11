@@ -34,12 +34,11 @@
 			<div id="right">
 				<div class="thread">
 					<h2>Thread Discussion</h2>
-					<div class="padder">
-					
+
+						
 						{% if envelope['envelope'].has_key('payload_sha512') %}
-								{{ handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'])}}
+								{{ handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right")}}
 						{% end %}
-					</div> <!-- .padder -->				
 				</div><!-- .thread -->
 				
 			</div><!-- #right -->

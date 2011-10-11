@@ -65,8 +65,8 @@ header#top {
 }
 
 form.vote { position:relative; float: left;}
-#commentbottom { position:relative; float: left;}
-#votes {float:left;}
+.comment_bottom {padding-bottom: 12px;}
+.votes {float:left;}
 
 #single {
     top: 20px;
@@ -213,18 +213,16 @@ COLUMN WIDTH ELEMENTS
 img.imginline { vertical-align: middle;  }
 
 .topic_title { float: left; width: 75%; }
+
 .thread_right { float: left; width: 25%; text-align: right; }
-.thread_right a { color: #333333; text-decoration: none; }
-.thread_right a:hover { color: #602e4d; }
-.thread_right a.username { font-weight: bold; }
 .thread_right img.avatar { float: right; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
-
-
 .thread_left { float: left; width: 25%; text-align: left; }
-.thread_left a { color: #333333; text-decoration: none; }
-.thread_left a:hover { color: #602e4d; }
-.thread_left a.username { font-weight: bold; }
-.thread_left img.avatar { float: leftthread; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
+.thread_left img.avatar { float: left; padding: 2px; border: 1px solid #ccc; margin-right: 10px; }
+
+
+.thread_common a { color: #333333; text-decoration: none; }
+.thread_common a:hover { color: #602e4d; }
+.thread_common a.username { font-weight: bold; }
 
 
 .clearfix:after {
