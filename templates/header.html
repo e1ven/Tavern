@@ -28,50 +28,10 @@
 	{% end %}
 </title>
 
-    <link href="/static/css/splitter.css" rel="stylesheet"/>
 	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 	<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.2/jquery.min.js"></script>
 	<script src="/static/scripts/splitter.js"></script>
 	<script src="/static/scripts/default.js"></script>
-
-<script type="text/javascript">
-$().ready(function() {
-
-    if ($("#centerandright").length)
-    {
-    
-        // Main vertical splitter, anchored to the browser window
-        $("#content").splitter({
-            type: "v",
-            outline: true,
-            minLeft: 100, sizeLeft: 150,
-            anchorToWindow: true,
-        });
-        // Second vertical splitter, nested in the right pane of the main one.
-    
-        $("#centerandright").splitter({
-            type: "v",
-            outline: true,
-            minLeft: 100, sizeLeft: 150,
-        });
-    
-    
-    /* 
-    
-        $("#centerandright").splitter({
-            type: "h",
-            outline: true,
-            minTop: 100,
-            minBottom: 300,
-            anchorToWindow: true,
-    
-        });
-    
-     */
- 
- }
-
-
 });
 </script>
 

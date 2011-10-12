@@ -33,6 +33,7 @@
                 proxy_pass   http://tornados;
         }
         location /binaries/ {
+		expires max;
                 gridfs test field=filename type=string;
                 mongo 127.0.0.1:27017;
         }

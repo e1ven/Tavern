@@ -12,6 +12,45 @@ function include_dom(script_filename) {
 
 
 $(document).bind("ready", function() {
+
+
+    if ($("#centerandright").length)
+    {
+   
+        // Main vertical splitter, anchored to the browser window
+        $("#content").splitter({
+            type: "v",
+            outline: true,
+            minLeft: 100, sizeLeft: 150,
+            anchorToWindow: true,
+        });
+        // Second vertical splitter, nested in the right pane of the main one.
+   
+        $("#centerandright").splitter({
+            type: "v",
+            outline: true,
+            minLeft: 100, sizeLeft: 150,
+        });
+   
+   
+    /*
+
+        $("#centerandright").splitter({
+            type: "h",
+            outline: true,
+            minTop: 100,
+            minBottom: 300,
+            anchorToWindow: true,
+
+        });
+
+     */
+
+ }
+
+
+
+
     $('a.internal').each( function ()
     {            
         $(this).click(function()
