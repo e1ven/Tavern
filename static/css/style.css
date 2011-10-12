@@ -21,6 +21,12 @@ p { padding-bottom: 22px; }
 .padder { padding: 15px; }
 .clear { clear: both; }
 
+
+.thread_body strong, b, strong *, b * { font-weight: bold; }
+.thread_body em, i, em *, i * {font-style: italic; }
+.thread_body ul {list-style-type: circle;}
+.thread_body ol {list-style-type: decimal;}
+
 header#top { 
 	height: 100px;
 	width: 96%;
@@ -212,7 +218,9 @@ COLUMN WIDTH ELEMENTS
 
 img.imginline { vertical-align: middle;  }
 
-.topic_title { float: left; width: 75%; }
+.topic_right { float: left; width: 75%; }
+.topic_left { float: right; width: 75%;}
+
 
 .thread_right { float: left; width: 25%; text-align: right; }
 .thread_right img.avatar { float: right; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }

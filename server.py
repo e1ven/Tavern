@@ -222,6 +222,7 @@ class Server(object):
                     
         #Store our Envelope
         c.saveMongo()
+        return c.dict['envelope']['payload_sha512']
         
     def formatText(self,text=None,formatting='markdown'):    
         if formatting == 'bbcode':

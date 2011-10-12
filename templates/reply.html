@@ -11,11 +11,12 @@
 	<li>
 {% else %}
 	<div class="padder">
-		<div class="topic_title">
-		<h3>Welcome to Pluric</h3>
-		<p class="meta">13 days ago</p>
+		<div class="topic_{{orient}}">
+		<h3>{{envelope['envelope']['payload']['subject']}}</h3>
+		<p class="meta">Received {{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(long(envelope['envelope']['local']['time_added']))).format() }}.</p>
 		</div><!-- .topic_title -->		
 {% end %}		
+
 
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
@@ -32,9 +33,10 @@
 		</div>
 		
 		<div class="clear"></div>
-		
-		
-		<div class="thread_start">
+		{% if orient == "left" %}
+		<p class="meta">Received {{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(long(envelope['envelope']['local']['time_added']))).format() }}.</p>
+		{% end %}
+		<div class="thread_body">
             {{envelope['envelope']['local']['formattedbody']}}
 		</div><!-- .thread_start -->
 		<div class="images">			
@@ -53,7 +55,11 @@
 			{% end %}
 		</div>
 		<div class="comment_bottom">
-		&nbsp; <a href="/message/{{envelope['envelope']['payload_sha512']}}">Permalink</a> 
+		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
+		{% if envelope['envelope']['payload'].has_key('regarding') %}
+			&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
+		{% end %}
+		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload_sha512']}}/{{envelope['envelope']['payload']['topictag'][0]}}">Reply</a>
 			<div class="votes">
 				<form action="/vote" method="post" id="upvote" class="vote">
 				  {{ xsrf_form_html() }}
@@ -69,6 +75,7 @@
 				<input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post">
 				</form>
 			</div>  <!-- votes -->
+			<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
 		</div> <!-- comment_bottom -->
 		{% if orient is not "left" %}
 		</div> <!-- .padder -->

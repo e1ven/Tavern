@@ -24,27 +24,35 @@ $(document).bind("ready", function() {
             });
         $(this).attr("link-destination",this.href);
     });
-$('#spinner').hide();
+    $('#spinner').hide();
 
-$(".vote").submit(function(event) {
-    voteref = $(this);
-    /* stop form from submitting normally */
-    event.preventDefault(); 
+    $(".vote").submit(function(event) {
+        voteref = $(this);
+        /* stop form from submitting normally */
+        event.preventDefault(); 
         
-    /* get some values from elements on the page: */
-    var $form = $( this ),
-        rating = $form.find( 'input[name="rating"]' ).val(),
-        url = $form.attr( 'action' );
+        /* get some values from elements on the page: */
+        var $form = $( this ),
+            rating = $form.find( 'input[name="rating"]' ).val(),
+            url = $form.attr( 'action' );
 
-    /* Send the data using post and put the results in a div */
-    $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
-                   '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
-                   'hash' : $form.find( 'input[name="hash"]' ).val() },
-      function( data ) {
-          voteref.parent().empty().append( data );
-      }
-    );
-});
-
+        /* Send the data using post and put the results in a div */
+        $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
+                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
+                       'hash' : $form.find( 'input[name="hash"]' ).val() },
+          function( data ) {
+              voteref.parent().empty().append( data );
+          }
+        );
+    });
+    $(".reply").click(function(event) {
+        event.preventDefault();
+        var $msg = $(this).attr('message');
+        var $href = $(this).attr('href');
+        $.get($href + "?getonly=true",function(data) {
+          $('#reply_'+$msg).empty().append("<br>" + data);
+        });   
+        
+    });    
   
 });

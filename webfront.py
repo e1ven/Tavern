@@ -66,11 +66,22 @@ class BaseHandler(tornado.web.RequestHandler):
             super(BaseHandler, self).write(self.getjs(div))
             if div2 is not None:
                 super(BaseHandler, self).write(self.getjs(div2))
+        elif "getonly" in self.request.arguments:
+            #Get ONLY the div content marked
+            super(BaseHandler, self).write(self.getdiv(div))
         else:
             super(BaseHandler, self).write(self.html)
         super(BaseHandler,self).finish(message) 
    
-    
+    def getdiv(self,element):
+        soup = BeautifulSoup(self.html)
+        soupyelement = soup.find(id=element)
+        soupytxt = ""
+        if soupyelement is not None:
+            for child in soupyelement.contents:
+                soupytxt += str(child)
+        return soupytxt
+        
     def getjs(self,element):
         #Get the element text, remove all linebreaks, and escape it up.
         #Then, send that as a document replacement
@@ -83,7 +94,7 @@ class BaseHandler(tornado.web.RequestHandler):
             nextvar = self.request.uri.find("&",jsvar)
             if nextvar > 0:
                 #There are Additional Variables in this URL
-                finish = self.request.uri[nextvar,len(self.request.uri)]
+                finish = self.request.uri[nextvar:len(self.request.uri)]
             else:
                 print "No Next variables"
                 #There are no other variables. Delete until End of string
@@ -94,8 +105,9 @@ class BaseHandler(tornado.web.RequestHandler):
         soup = BeautifulSoup(self.html)
         soupyelement = soup.find(id=element)
         soupytxt = ""
-        for child in soupyelement.contents:
-            soupytxt += str(child)
+        if soupyelement is not None:
+            for child in soupyelement.contents:
+                soupytxt += str(child)
 
         escapedtext = soupytxt.replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
@@ -245,9 +257,7 @@ class TriPaneHandler(BaseHandler):
         messagerating = u.getRatings(client_message_id)
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
-        
-        dt_obj = datetime.datetime.fromtimestamp(long(displayenvelope['envelope']['local']['time_added']))
-        displayenvelope['envelope']['local']['relativedate'] =  server.FancyDateTimeDelta(dt_obj).format()
+    
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
@@ -626,11 +636,12 @@ class UserTrustHandler(BaseHandler):
 
       
 class NewmessageHandler(BaseHandler):
-    def get(self):
+    def get(self,regarding="",topic=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin))
-         self.write(self.render_string('newmessageform.html'))
+         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
          self.write(self.render_string('footer.html'))
+         self.finish('content')
 
     def post(self):
         self.getvars()
@@ -751,7 +762,8 @@ class NewmessageHandler(BaseHandler):
         
                 
         #Send to the server
-        server.receiveEnvelope(e.text())
+        newmsgid = server.receiveEnvelope(e.text())
+        self.redirect('/message/' + newmsgid, permanent=False)
 
 class MyPrivateMessagesHandler(BaseHandler):
     def get(self):
@@ -890,7 +902,8 @@ def main():
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
         (r"/logout" ,LogoutHandler), 
-        (r"/newmessage" ,NewmessageHandler), 
+        (r"/newmessage" ,NewmessageHandler),
+        (r"/reply/(.*)/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
