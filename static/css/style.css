@@ -10,7 +10,7 @@ body {
 	margin: 0 auto;
 	font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 	font-size: 12px;
-	line-height: 18px;
+	line-height: 15px;
 }
 
 h1,h2,h3,h4,h5,h6 { font-family: Helvetica, "Myriad Pro", Arial, sans-serif; }
@@ -245,7 +245,27 @@ img.imginline { vertical-align: middle;  }
 *:first-child+html .clearfix { zoom: 1; } /* IE7 */
 
 
-
+#toplinks{
+     position:relative;
+     float: left;
+}
+#userblock{
+     position:relative;
+     float: right;
+}
+.textbutton {
+     position:relative;
+     float: left;
+     border: 0px;
+     background-color: transparent;
+     padding: 0;
+     color:#EEEEEE;
+     font-weight: bold;
+     text-decoration:none; 	
+   	 font-size: 12px;
+     line-height: 18px;
+ 	 font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+}
 
 #spinner{
 	display: none;

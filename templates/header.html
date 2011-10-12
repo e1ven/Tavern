@@ -86,11 +86,21 @@ $().ready(function() {
             {% if not loggedin %}	
                 Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
             {% end %}
-            <a href="/newmessage">Post new Message</a>
+
             {% if loggedin %}	
-                Your UserName:  {{username}} || <form action="/logout" method="post">   {{ xsrf_form_html() }} <input style="border: 1px solid #006;" type="submit" value="logout"></form>
-                <br>
-                <a href="/showprivates">Show private messages</a>
+						<div id="toplinks">
+            				<a href="/newmessage">Post new Message</a><br>
+		                	<a href="/showprivates">Show private messages</a>
+						</div>
+						<div id="userblock">
+					    	<a href="/user/{{pubkey}}" alt="User Page">
+						    	<img class="avatar" src="http://RoboHash.org/{{pubkey}}.png?set=any&bgset=any&size=40x40"/>
+						    </a><br>
+							<a href="/user/{{pubkey}}" alt="User Page">
+						    	{{username}}
+							</a>
+	 						<form class = "logout" action="/logout" method="post">   {{ xsrf_form_html() }} <input type="submit" value="logout" class="textbutton"></form>
+						</div>
             {% end %}
             </div> <!-- #menu-text -->
         </div> <!-- #menu -->
