@@ -336,7 +336,7 @@ img.imginline { vertical-align: middle;  }
 }
 .vsplitbar {
         width: 6px;
-        background: #29111b url(/static/images/vgrabber.gif) no-repeat center;
+        background: #29111b url(/static/images/vgrabber.png) no-repeat center;
 }
 .vsplitbar.active, .vsplitbar:hover {
         background-color: #29111b;
@@ -347,7 +347,7 @@ img.imginline { vertical-align: middle;  }
 
 .vsplitbar {
         width: 6px;
-        background: #29111b url(/static/images/vgrabber.gif) no-repeat center;
+        background: #29111b url(/static/images/vgrabber.png) no-repeat center;
 }
 .vsplitbar.active, .vsplitbar:hover {
         background-color: #29111b;
@@ -357,9 +357,9 @@ img.imginline { vertical-align: middle;  }
 }
 .hsplitbar {
         height: 6px;
-        background: #29111b url(/static/images/hgrabber.gif) no-repeat center;
+        background: #29111b url(/static/images/hgrabber.png) no-repeat center;
         /* No margin, border, or padding allowed */
 }
 .hsplitbar.active, .hsplitbar:hover {
-        background: #29111b url(/static/images/hgrabber.gif) no-repeat center;
+        background: #29111b url(/static/images/hgrabber.png) no-repeat center;
 }
