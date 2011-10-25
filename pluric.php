@@ -209,7 +209,7 @@ class Envelope
 	}
 	function short_subject()
 	{
-        $temp_short = substr($this->dict['envelope']['payload']['subject'],0,75);
+        $temp_short = substr($this->dict['envelope']['payload']['subject'],0,50);
         $modified = ereg_replace('[^a-zA-Z0-9 ]', '', $temp_short);
         $final = join("-",split(" ",$modified));
         return $final;

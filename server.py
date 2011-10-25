@@ -243,8 +243,8 @@ class Server(object):
         displayableAttachmentList = []
         
         if envelope['envelope']['payload'].has_key('subject'):
-            #First 75 characters, in a URL-friendly-manner
-            temp_short = envelope['envelope']['payload']['subject'][:75]
+            #First 50 characters, in a URL-friendly-manner
+            temp_short = envelope['envelope']['payload']['subject'][:50]
             temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
             envelope['envelope']['local']['short_subject'] = "-".join(temp_short.split())
         if envelope['envelope']['payload'].has_key('binaries'):
