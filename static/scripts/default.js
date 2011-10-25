@@ -243,14 +243,14 @@ $(document).bind("ready", function() {
             type: "v",
             outline: true,
             minLeft: 100, sizeLeft: 150,
-            anchorToWindow: true,
+            anchorToWindow: true
         });
         // Second vertical splitter, nested in the right pane of the main one.
    
         $("#centerandright").splitter({
             type: "v",
             outline: true,
-            minLeft: 100, sizeLeft: 150,
+            minLeft: 100, sizeLeft: 150
         });
    
    
