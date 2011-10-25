@@ -207,7 +207,13 @@ class Envelope
 		
 		
 	}
-	
+	function short_subject()
+	{
+        $temp_short = substr($this->dict['envelope']['payload']['subject'],0,75);
+        $modified = ereg_replace('[^a-zA-Z0-9 ]', '', $temp_short);
+        $final = join("-",split(" ",$modified));
+        return $final;
+	}
 	
 	//Check to ensure the Payload is intact.
 	//To do this, we're going to dump the payload back out to JSON
@@ -386,7 +392,8 @@ $s->loadurl($EXAMPLE_TOPIC_URL);
 
 foreach($s->Envelopes as $e)
 {
-	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
+	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . " --- " . "\n";
+	print "\t\t\t" . "Canonical URL -" . "http://Pluric.com/message/" . $e->dict['envelope']['payload_sha512'] . "/"  . $e->short_subject();
 }
 
 //Let's choose an item based on the list we just received.
