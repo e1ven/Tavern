@@ -14,7 +14,7 @@ Topics:<br>
 			{% set count = count + 1 %}
 	{% end %}
 </p>
-<p>Subject: <a href="/message/{{envelope['envelope']['payload_sha512']/{{envelope['envelope']['local']['short-title']}}">
+<p>Subject: <a href="/message/{{envelope['envelope']['payload_sha512']/{{envelope['envelope']['local']['short_subject']}}">
 	{{envelope['envelope']['payload']['subject']}}
 	</a>
 </p>
