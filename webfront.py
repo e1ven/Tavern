@@ -245,7 +245,8 @@ class TriPaneHandler(BaseHandler):
                 subjects.append(envelope)
             displayenvelope = subjects[0]  
             canon="topictag/" + client_topic 
-            
+            title=client_topic
+ 
         if client_action == "message":
             client_message_id = tornado.escape.xhtml_escape(param)
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
@@ -253,12 +254,12 @@ class TriPaneHandler(BaseHandler):
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
             canon="message/" + displayenvelope['envelope']['payload_sha512'] + "/" + displayenvelope['envelope']['local']['short_subject']
-
+            title = displayenvelope['envelope']['payload']['subject']
             
             
         if displayenvelope is None:     
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-
+            title = "Welcome"
 
         u = User()
         u.load_mongo_by_username(username=self.username)
@@ -269,7 +270,7 @@ class TriPaneHandler(BaseHandler):
     
 
         #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
+        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
         self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
