@@ -22,6 +22,7 @@ from postmarkup import render_bbcode
 import markdown
 import imghdr
 import datetime
+import re
 
 class Server(object):
     class FancyDateTimeDelta(object):
@@ -222,7 +223,7 @@ class Server(object):
                     
         #Store our Envelope
         c.saveMongo()
-        return c.dict['envelope']['payload_sha512']
+        return  c.dict['envelope']['payload_sha512']
         
     def formatText(self,text=None,formatting='markdown'):    
         if formatting == 'bbcode':
@@ -240,6 +241,12 @@ class Server(object):
     def formatEnvelope(self,envelope):
         attachmentList = []
         displayableAttachmentList = []
+        
+        if envelope['envelope']['payload'].has_key('subject'):
+            #First 75 characters, in a URL-friendly-manner
+            temp_short = envelope['envelope']['payload']['subject'][:75]
+            temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
+            envelope['envelope']['local']['short-title'] = "-".join(temp_short.split())
         if envelope['envelope']['payload'].has_key('binaries'):
             for binary in envelope['envelope']['payload']['binaries']:
                 if binary.has_key('sha_512'):

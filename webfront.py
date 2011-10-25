@@ -214,9 +214,8 @@ class TriPaneHandler(BaseHandler):
     #The TriPane Handler is the beefiest handler in the project.
     #It renders the main tri-panel interface, and only pushes out the parts that are needed.
                 
-    def get(self,action=None,param=None):
+    def get(self,action=None,param=None,bulshit=None):
         self.getvars()
-        self.write(self.render_string('header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
         
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
@@ -225,7 +224,7 @@ class TriPaneHandler(BaseHandler):
         toptopics = []
         for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(topic)
-        
+        canon = None
         #Assign Default Values     
         client_message_id = None
         client_topic = None
@@ -238,13 +237,14 @@ class TriPaneHandler(BaseHandler):
             param="sitecontent"
                 
                 
-            
+        print "action = " + client_action    
         subjects = []   
         if client_action == "topic":
             client_topic = tornado.escape.xhtml_escape(param)
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
-            displayenvelope = subjects[0]   
+            displayenvelope = subjects[0]  
+            canon="topictag/" + client_topic 
             
         if client_action == "message":
             client_message_id = tornado.escape.xhtml_escape(param)
@@ -252,6 +252,8 @@ class TriPaneHandler(BaseHandler):
             client_topic = displayenvelope['envelope']['payload']   ['topictag'][0]
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
+            canon="message/" + displayenvelope['envelope']['sha_512'] + "/" + displayenvelope['envelope']['local']['short-title']
+            
             
         if displayenvelope is None:     
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
@@ -266,6 +268,7 @@ class TriPaneHandler(BaseHandler):
     
 
         #Gather up all the replies to this message, so we can send those to the template as well
+        self.write(self.render_string('header.html',title="Pluric Front Page",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
         self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
@@ -916,8 +919,9 @@ def main():
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler), 
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
-        (r"/(.*)/(.*)" ,TriPaneHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
+        (r"/(.*)/(.*)/(.*)" ,TriPaneHandler), 
+        (r"/(.*)/(.*)" ,TriPaneHandler),
         (r"/(.*)" ,TriPaneHandler),           
     ], **settings)
     

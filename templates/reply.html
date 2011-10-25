@@ -55,7 +55,7 @@
 			{% end %}
 		</div>
 		<div class="comment_bottom">
-		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
+		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload_sha512']}}/{{envelope['envelope']['local']['short-title']}}">Permalink</a>
 		{% if envelope['envelope']['payload'].has_key('regarding') %}
 			&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 		{% end %}
