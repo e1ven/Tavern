@@ -246,7 +246,7 @@ class Server(object):
             #First 75 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload']['subject'][:75]
             temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
-            envelope['envelope']['local']['short-title'] = "-".join(temp_short.split())
+            envelope['envelope']['local']['short_subject'] = "-".join(temp_short.split())
         if envelope['envelope']['payload'].has_key('binaries'):
             for binary in envelope['envelope']['payload']['binaries']:
                 if binary.has_key('sha_512'):

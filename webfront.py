@@ -253,6 +253,7 @@ class TriPaneHandler(BaseHandler):
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
             canon="message/" + displayenvelope['envelope']['payload_sha512'] + "/" + displayenvelope['envelope']['local']['short-title']
+
             
             
         if displayenvelope is None:     
