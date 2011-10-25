@@ -102,8 +102,10 @@ class BaseHandler(tornado.web.RequestHandler):
                 
             modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
             
-        soup = BeautifulSoup(self.html)
+        soup = BeautifulSoup(self.html)    
         soupyelement = soup.find(id=element)
+        newtitle = soup.html.head.title.string.rstrip().lstrip()
+        
         soupytxt = ""
         if soupyelement is not None:
             for child in soupyelement.contents:
@@ -112,13 +114,13 @@ class BaseHandler(tornado.web.RequestHandler):
         escapedtext = soupytxt.replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
         
-        print "----------- " + escapedtext + "---------"
         return ( '''var pluric_replace = function() 
                 {
                     var stateObj = {
 	    		        title: document.title,
 	    		        url: window.location.pathname 
 	    	    };
+	    	        document.title = "''' + newtitle + ''' ";
                     window.history.pushState(stateObj, "","''' + modifiedurl + '''");
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
                     $('div#''' + element  + ''' a.internal').each( function ()
