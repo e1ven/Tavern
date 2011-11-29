@@ -55,11 +55,11 @@
 			{% end %}
 		</div>
 		<div class="comment_bottom">
-		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload_sha512']}}/{{envelope['envelope']['local']['short_subject']}}">Permalink</a>
+		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
 		{% if envelope['envelope']['payload'].has_key('regarding') %}
 			&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 		{% end %}
-		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload_sha512']}}/{{envelope['envelope']['payload']['topictag'][0]}}">Reply</a>
+		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topictag'][0]}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
 			<div class="votes">
 				<form action="/vote" method="post" id="upvote" class="vote">
 				  {{ xsrf_form_html() }}

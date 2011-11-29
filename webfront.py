@@ -216,57 +216,82 @@ class TriPaneHandler(BaseHandler):
     #The TriPane Handler is the beefiest handler in the project.
     #It renders the main tri-panel interface, and only pushes out the parts that are needed.
                 
-    def get(self,action=None,param=None,bulshit=None):
+    def get(self,param1=None,param2=None,param3=None):
         self.getvars()
-        
+               
+        # We want to assign the parameters differently, depending on how many there are.
+        # Normally, we'd just say get(action=None,param=None,bullshit=None)
+        # But in this scenerio, we want the second param to be the text, if there are three, and have the ID as #3
+        # But if there are only two, the second param should be the ID.
+
+
+        # Count up our number of parameters.
+        if param3 == None:
+            if param2 == None:
+                if param1 == None:
+                    numparams = 0
+                else:
+                    numparams = 1
+            else:
+                numparams = 2
+        else:
+            numparams = 3
+            
+            
+        #Decide what to do, based on the number of incoming actions.    
+        if numparams < 1:
+            # Defaults all around
+            action = "topic"
+            topic = "sitecontent"
+        else:
+            if numparams >= 1:
+                action = tornado.escape.xhtml_escape(param1) 
+                
+            if action == "message":       
+                if numparams == 2:
+                    messageid = tornado.escape.xhtml_escape(param2)
+                if numparams == 3:
+                    messageid = tornado.escape.xhtml_escape(param3)
+            elif action == "topic":
+                topic = tornado.escape.xhtml_escape(param2)
+                    
+                                        
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
-        #tl = TopicList.TopicList()        
+        #tl = TopicList.TopicList()                
         
         toptopics = []
-        for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
-            toptopics.append(topic)
-        canon = None
-        #Assign Default Values     
-        client_message_id = None
-        client_topic = None
-        displayenvelope = None
-        if action is not None:
-            client_action = tornado.escape.xhtml_escape(action)
-        else:
-            #If we don't submit an action, aka, just the base page, go to the topic 'sitecontent'
-            client_action = "topic"
-            param="sitecontent"
-                
-                
-        print "action = " + client_action    
-        subjects = []   
-        if client_action == "topic":
-            client_topic = tornado.escape.xhtml_escape(param)
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+            toptopics.append(quicktopic)
+
+                                
+        if action == "topic":
+            subjects = []
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
-            displayenvelope = subjects[0]  
-            canon="topictag/" + client_topic 
-            title=client_topic
+            displayenvelope = subjects[0] 
+            messageid = subjects[0]['envelope']['payload_sha512'] 
+            canon="topic/" + topic 
+            title=topic
  
-        if client_action == "message":
-            client_message_id = tornado.escape.xhtml_escape(param)
-            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-            client_topic = displayenvelope['envelope']['payload']   ['topictag'][0]
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+        if action == "message":
+            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
+            topic = displayenvelope['envelope']['payload']['topictag'][0]
+            subjects = []
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
-            canon="message/" + displayenvelope['envelope']['payload_sha512'] + "/" + displayenvelope['envelope']['local']['short_subject']
+            canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
             title = displayenvelope['envelope']['payload']['subject']
             
             
-        if displayenvelope is None:     
-            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-            title = "Welcome"
+        # if displayenvelope is None:     
+        #     displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+        #     title = "Welcome"
 
         u = User()
         u.load_mongo_by_username(username=self.username)
         usertrust = u.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
-        messagerating = u.getRatings(client_message_id)
+        messagerating = u.getRatings(messageid)
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
     
@@ -276,10 +301,9 @@ class TriPaneHandler(BaseHandler):
         self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
-        if client_action == "message":
-            print "only update right"
+        if action == "message":
             self.finish("right")
-        elif client_action == "topic":
+        elif action == "topic":
             self.finish(div="center",div2="right")
         else:
             self.finish()
@@ -651,7 +675,7 @@ class UserTrustHandler(BaseHandler):
 
       
 class NewmessageHandler(BaseHandler):
-    def get(self,regarding="",topic=None):
+    def get(self,topic=None,regarding=""    ):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))

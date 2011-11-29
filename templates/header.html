@@ -17,6 +17,9 @@
 <link rel=canonical href="http://Pluric.com/{{canon}}"/>
 {% end %}
 <meta charset="utf-8" />
+{% if len('title') > 1 %}
+<meta NAME="Description" CONTENT="Pluric:: {{title}}">
+{% end %}
 <meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
 <meta name="keywords" content="Pluric, Plurist, ForumLegion, Forum">
 <title>
