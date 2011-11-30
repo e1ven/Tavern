@@ -1,23 +1,134 @@
 <?php
 
-$EXAMPLE_SERVER='http://pluric.com:8090';
-$EXAMPLE_TOPIC='ClientTest';
 
 
-//SendPost is just a quick Method to send a POST request to the ForumLegion server.
-function sendpost($posturl, $fields)
+
+//The main ForumLegion server class.
+//This contains the key interfaces for talking with the FL server.
+class FLServer
 {
+	public $SERVER_URL;
+	public $TOPIC;
+	
+	function __construct()
+	{
+		$this->SERVER_URL = 'http://pluric.com:8090';
+		$this->TOPIC = 'ClientTest';		
+	}
+	
+	//SendPost is just a quick Method to send a POST request to the ForumLegion server.
+	public function sendpost($posturl, $fields)
+	{
 
-	$ch = curl_init();
-	curl_setopt($ch, CURLOPT_URL, $posturl);
-	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-	curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-	curl_setopt($ch, CURLOPT_POST, 1);
-	curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
-	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-	$result = curl_exec($ch);
-	print_r($result);
+		$ch = curl_init();
+		curl_setopt($ch, CURLOPT_URL, $posturl);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+		curl_setopt($ch, CURLOPT_POST, 1);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		$result = curl_exec($ch);
+		print_r($result);
+	}
+	
+	public function status()
+	{
+		$contents = file_get_contents($this->SERVER_URL . "/status");
+		return json_decode($contents,$assoc=true);
+	}
+	
+	public function servertime()
+	{
+		$status = $this->status();
+		return $status['timestamp'];
+	}
+	public function pubkey()
+	{
+		$status = $this->status();
+		return $status['pubkey'];
+	}
 }
+
+
+
+class phpInserter
+{
+	function __construct() 
+	{
+		define('IN_PHPBB', true);
+		$phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
+		$phpEx = substr(strrchr(__FILE__, '.'), 1);
+		include($phpbb_root_path . 'common.' . $phpEx);
+		include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
+		include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
+		include($phpbb_root_path . 'includes/message_parser.' . $phpEx);
+		
+		$subject = "This is a test submission.";
+		$message = "This usually shouldn't be here. It likely means that someone did something not quite right...";
+		
+		//Load the User
+
+		$sql = 'SELECT * from ' . USERS_TABLE . ' where user_id = 2';
+		$result = $db->sql_query($sql);
+		$user->data = $db->sql_fetchrow($result);
+		$db->sql_freeresult($result);
+		
+		
+		$this->$data = array(
+		'forum_id' => 2, // Which forum
+		'topic_id' => 14, // Set if it's a reply
+		'icon_id' => 0, // This is the mandatory icon id
+		 				// Most forums don't use this, it's disabled by default.
+		
+		'enable_bbcode' => true,
+		'enable_smilies' => true,
+		'enable_urls' => true,
+		'enable_sig' => false,
+		'force_approved_state' => true, 
+
+		// Message Body
+		'bbcode_bitfield' => '',
+		'bbcode_uid' => '',
+
+		// Other Options
+		'post_edit_locked' => 0,
+		'topic_description' => '',
+
+		// Don't notify anyone!
+		'notify_set' => false,
+		'notify' => false,
+
+		// Indexing
+		'enable_indexing' => true, // Allow Searching
+		);	
+	}
+
+	function post($subject,$body,$reply = False)
+	{
+				
+		if ($reply != true)
+		{
+			$replystring = 'post';
+		}
+		else
+		{
+			$replystring = 'reply';
+		}
+		
+		
+		$this->$data['message'] = $body;
+		$this->$data['message_md5'] = md5($body);
+		$this->$data['topic_title'] = $subject;
+		
+		$poll = NULL;
+		submit_post($replystring, $subject, $user->data['username'], POST_NORMAL, $poll, $this->$data, true, true);	
+
+	}
+	
+
+	// submit and approve the post!
+}
+
 
 //A User object is primarily used to manage keys.
 //You could extend this to store other information, such as the friendlyname, email, etc.
@@ -302,127 +413,128 @@ class Envelope
 		
 		// Send 'er out.
 		sendpost($posturl,$fields);
-	}
-	
-	
-	
-
+	}	
 }
 
-////Examples
 
+$server = new FLServer;
+print $server->servertime();
 
-////////////////////////////////////////Insert a message ///////////////////////////
-//Create a test user
-
-//Set the timezone. PHP requires this
-date_default_timezone_set('UTC');
-
-//Generate a new user, and set their user preferences.
-$u = new User();
-$u->generatekeys();
-$u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
-
-
-//Create a new test Message.
-$TestMessage = array(  );
-
-//Specify the message properties.
-$TestMessage['envelope']['payload']['class'] = "message";
-$TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
-$TestMessage['envelope']['payload']['formatting'] = "markdown";
-
-$TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
-$TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
-
-//Stick the user settings into the message
-//We can't just copy the whole dict in, since we don't want the privkey
-$TestMessage['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
-$TestMessage['envelope']['payload']['author']['client'] = $u->usersettings['client'];
-$TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
-
-//Generate the envelope, and stick the Message into it.
-$e = new Envelope();
-$e->dict = $TestMessage;
-
-//Upload the message we just wrote.
-$e->uploadenvelope($u);
-
-
-//Save the Payload hash, so we can upvote it in a later example.
-$ph = $e->payload_hash();
-
-
-/// Create a Rating for our message. We think the message we just wrote is great ;)
-// Upvote ourselves. 
-// Votes are a type of Envelope, too! See how similar they are to Messages?
-
-$TestRating = array(  );
-
-$TestRating['envelope']['payload']['class'] = "rating";
-$TestRating['envelope']['payload']['rating'] = 1;
-$TestRating['envelope']['payload']['regarding'] = $ph;
-
-//Stick the user settings into the message
-//We can't just copy the whole dict in, since we don't want the privkey
-$TestRating['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
-$TestRating['envelope']['payload']['author']['client'] = $u->usersettings['client'];
-$TestRating['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
-
-//Generate the envelope, and stick the Message into it.
-$e = new Envelope();
-$e->dict = $TestRating;
-//Upload the rating we just wrote.
-$e->uploadenvelope($u);
-
-
-//Now that we've uploaded some messages to the server, let's try pulling them back down to us ;)
-//Let's start by pulling ALL the messages from a topic.
-//For instance, you'd do this when displaying a forum.
-
-$e = new Envelope();
-
-//Load a whole Stack of Envelopes at once.
-//This is what you're use to pull a Topic, aka, a Board.
-$EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topic/' . $EXAMPLE_TOPIC;
-print  "\n\nList of Messages in topic : " .  $EXAMPLE_TOPIC . "\n\n";
-$s =  new Stack();
-$s->loadurl($EXAMPLE_TOPIC_URL);
-
-
-foreach($s->Envelopes as $e)
-{
-	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . " --- " . "\n";
-	print "\t\t\t" . "Canonical URL -" . "http://Pluric.com/message/" . $e->dict['envelope']['payload_sha512'] . "/"  . $e->short_subject();
-}
-
-//Let's choose an item based on the list we just received.
-//Then, we'll pull a message, as if we just had the SHA directly.
-//We're re-using 3, to get the most recent one from the list we just pulled.
-
-$EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $e->dict['envelope']['payload_sha512'];
-
-//Let's test the  Load-via-URL method.
-//We should just be able to pass in a URL (generated above), and be happy.
-
-if ($e->loadurl($EXAMPLE_MESSAGE_URL))
-	{
-		echo "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
-		echo "Author Verification Image via URL load ::: " . "http://Static1.RoboHash.org/" .  hash("sha512",$e->dict['envelope']['payload']['author']['pubkey']) . "?sets=1,2,3&bgset=any\n";;
-	}
-
-// Now that we see how that works, let's do a load via String.
-// This is basically the same thing, just with the file_get_contents outside.
-// This is useful so we can load ones we build, or load them from a file, or whatever!
-
-$contents = file_get_contents($EXAMPLE_MESSAGE_URL);
-if ($e->loadstring($contents))
-	{
-		print "Subject via Stringload ::: " . $e->dict['envelope']['payload']['subject'];
-		print "\n";
-	}
-
-
+// 
+// ////Examples
+// 
+// 
+// ////////////////////////////////////////Insert a message ///////////////////////////
+// //Create a test user
+// 
+// //Set the timezone. PHP requires this
+// date_default_timezone_set('UTC');
+// 
+// //Generate a new user, and set their user preferences.
+// $u = new User();
+// $u->generatekeys();
+// $u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
+// 
+// 
+// //Create a new test Message.
+// $TestMessage = array(  );
+// 
+// //Specify the message properties.
+// $TestMessage['envelope']['payload']['class'] = "message";
+// $TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
+// $TestMessage['envelope']['payload']['formatting'] = "markdown";
+// 
+// $TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
+// $TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
+// 
+// //Stick the user settings into the message
+// //We can't just copy the whole dict in, since we don't want the privkey
+// $TestMessage['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
+// $TestMessage['envelope']['payload']['author']['client'] = $u->usersettings['client'];
+// $TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
+// 
+// //Generate the envelope, and stick the Message into it.
+// $e = new Envelope();
+// $e->dict = $TestMessage;
+// 
+// //Upload the message we just wrote.
+// $e->uploadenvelope($u);
+// 
+// 
+// //Save the Payload hash, so we can upvote it in a later example.
+// $ph = $e->payload_hash();
+// 
+// 
+// /// Create a Rating for our message. We think the message we just wrote is great ;)
+// // Upvote ourselves. 
+// // Votes are a type of Envelope, too! See how similar they are to Messages?
+// 
+// $TestRating = array(  );
+// 
+// $TestRating['envelope']['payload']['class'] = "rating";
+// $TestRating['envelope']['payload']['rating'] = 1;
+// $TestRating['envelope']['payload']['regarding'] = $ph;
+// 
+// //Stick the user settings into the message
+// //We can't just copy the whole dict in, since we don't want the privkey
+// $TestRating['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
+// $TestRating['envelope']['payload']['author']['client'] = $u->usersettings['client'];
+// $TestRating['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
+// 
+// //Generate the envelope, and stick the Message into it.
+// $e = new Envelope();
+// $e->dict = $TestRating;
+// //Upload the rating we just wrote.
+// $e->uploadenvelope($u);
+// 
+// 
+// //Now that we've uploaded some messages to the server, let's try pulling them back down to us ;)
+// //Let's start by pulling ALL the messages from a topic.
+// //For instance, you'd do this when displaying a forum.
+// 
+// $e = new Envelope();
+// 
+// //Load a whole Stack of Envelopes at once.
+// //This is what you're use to pull a Topic, aka, a Board.
+// $EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
+// print  "\n\nList of Messages in topic : " .  $EXAMPLE_TOPIC . "\n\n";
+// $s =  new Stack();
+// $s->loadurl($EXAMPLE_TOPIC_URL);
+// 
+// 
+// foreach($s->Envelopes as $e)
+// {
+// 	print "\t\t" . $e->dict['envelope']['payload']['subject'] . ", by " . $e->dict['envelope']['payload']['author']['friendlyname'] . " --- " . "\n";
+// 	print "\t\t\t" . "Canonical URL -" . "http://Pluric.com/message/" . $e->dict['envelope']['payload_sha512'] . "/"  . $e->short_subject();
+// }
+// 
+// //Let's choose an item based on the list we just received.
+// //Then, we'll pull a message, as if we just had the SHA directly.
+// //We're re-using 3, to get the most recent one from the list we just pulled.
+// 
+// $EXAMPLE_MESSAGE_URL= $EXAMPLE_SERVER . '/message/' . $e->dict['envelope']['payload_sha512'];
+// 
+// //Let's test the  Load-via-URL method.
+// //We should just be able to pass in a URL (generated above), and be happy.
+// 
+// if ($e->loadurl($EXAMPLE_MESSAGE_URL))
+// 	{
+// 		echo "Author name via URL load ::: " . $e->dict['envelope']['payload']['author']['friendlyname'] . "\n";
+// 		echo "Author Verification Image via URL load ::: " . "http://Static1.RoboHash.org/" .  hash("sha512",$e->dict['envelope']['payload']['author']['pubkey']) . "?sets=1,2,3&bgset=any\n";;
+// 	}
+// 
+// // Now that we see how that works, let's do a load via String.
+// // This is basically the same thing, just with the file_get_contents outside.
+// // This is useful so we can load ones we build, or load them from a file, or whatever!
+// 
+// $contents = file_get_contents($EXAMPLE_MESSAGE_URL);
+// if ($e->loadstring($contents))
+// 	{
+// 		print "Subject via Stringload ::: " . $e->dict['envelope']['payload']['subject'];
+// 		print "\n";
+// 	}
+// 
+// 
 
 
 ?>
