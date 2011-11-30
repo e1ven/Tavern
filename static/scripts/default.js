@@ -44,8 +44,7 @@ function include_dom(script_filename) {
  * @return jQuery
  * @author Dave Methvin (dave.methvin@gmail.com)
  */
- ;(function($){
- 
+head.ready(function() {
  $.fn.splitter = function(args){
     args = args || {};
     return this.each(function() {
@@ -224,17 +223,13 @@ function include_dom(script_filename) {
     });
 };
 
-})(jQuery);
+});
 
 
 
 
-
-
-
-$(document).bind("ready", function() {
-
-
+head.ready(function() {
+ 
     if ($("#centerandright").length)
     {
    
