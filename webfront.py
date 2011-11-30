@@ -121,10 +121,10 @@ class BaseHandler(tornado.web.RequestHandler):
 	    		        url: window.location.pathname 
 	    	    };
 	    	        document.title = "''' + newtitle + ''' ";
-                if (typeof history.pushState !== "undefined")
-                {
-                    window.history.pushState(stateObj, "","''' + modifiedurl + '''");
-                }
+                    if (typeof history.pushState !== "undefined")
+                    {
+                        window.history.pushState(stateObj, "","''' + modifiedurl + '''");
+                    }
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
                     $('div#''' + element  + ''' a.internal').each( function ()
                     {            
@@ -142,6 +142,37 @@ class BaseHandler(tornado.web.RequestHandler):
                 };
                 pluric_replace();
                 pluric_replace = null;
+                
+                $(".vote").submit(function(event) {
+                    voteref = $(this);
+                    /* stop form from submitting normally */
+                    event.preventDefault(); 
+
+                    /* get some values from elements on the page: */
+                    var $form = $( this ),
+                        rating = $form.find( 'input[name="rating"]' ).val(),
+                        url = $form.attr( 'action' );
+
+                    /* Send the data using post and put the results in a div */
+                    $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
+                                   '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
+                                   'hash' : $form.find( 'input[name="hash"]' ).val() },
+                      function( data ) {
+                          voteref.parent().empty().append( data );
+                      }
+                    );
+                });
+                $(".reply").click(function(event) {
+                    event.preventDefault();
+                    var $msg = $(this).attr('message');
+                    var $href = $(this).attr('href');
+                    $.get($href + "?getonly=true",function(data) {
+                      $('#reply_'+$msg).empty().append("<br>" + data);
+                    });   
+
+                });
+                
+                
                 ''')
 
     def getvars(self):
