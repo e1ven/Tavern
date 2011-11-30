@@ -121,7 +121,10 @@ class BaseHandler(tornado.web.RequestHandler):
 	    		        url: window.location.pathname 
 	    	    };
 	    	        document.title = "''' + newtitle + ''' ";
+                if (typeof history.pushState !== "undefined")
+                {
                     window.history.pushState(stateObj, "","''' + modifiedurl + '''");
+                }
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
                     $('div#''' + element  + ''' a.internal').each( function ()
                     {            
