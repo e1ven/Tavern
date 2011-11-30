@@ -20,7 +20,7 @@
 
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
-			<acronym title="{{envelope['envelope']['local']['author_pubkey_sha512']}}">
+			<acronym title="{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['local']['author_pubkey_sha512']}}">
 			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
 			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
 			    </a>
