@@ -139,9 +139,9 @@ class PrivateMessagesHandler(BaseHandler):
         self.write(json.dumps(envelopes,separators=(u',',u':')))
         
 
-class SubmitMessageHandler(BaseHandler):
+class SubmitEnvelopeHandler(BaseHandler):
     def post(self):
-        client_message =  self.get_argument("message")
+        client_message =  self.get_argument("envelope")
         server.receiveEnvelope(client_message)
 
 class ServerStatus(BaseHandler):
@@ -175,7 +175,7 @@ def main():
         (r"/status" ,ServerStatus),
         (r"/message/(.*)" ,MessageHandler),
         (r"/message/(.*)/(.*)", MessageHandler),
-        (r"/newmessage", SubmitMessageHandler),        
+        (r"/newenvelope", SubmitEnvelopeHandler),        
         (r"/topic/(.*)/(.*)/(.*)/(.*)/(.*)", TopicHandler),
         (r"/topic/(.*)/(.*)/(.*)/(.*)", TopicHandler),
         (r"/topic/(.*)/(.*)/(.*)", TopicHandler),

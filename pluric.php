@@ -1,10 +1,9 @@
 <?php
 
 
+// The main ForumLegion server class.
+// This contains the key interfaces for talking with the FL server.
 
-
-//The main ForumLegion server class.
-//This contains the key interfaces for talking with the FL server.
 class FLServer
 {
 	public $SERVER_URL;
@@ -16,10 +15,10 @@ class FLServer
 		$this->TOPIC = 'ClientTest';		
 	}
 	
-	//SendPost is just a quick Method to send a POST request to the ForumLegion server.
+	// SendPost is just a quick Method to send a POST request to a server.
+	// It is used by other methods in the class, but it is not specific to this service.
 	public function sendpost($posturl, $fields)
 	{
-
 		$ch = curl_init();
 		curl_setopt($ch, CURLOPT_URL, $posturl);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -28,149 +27,264 @@ class FLServer
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		$result = curl_exec($ch);
-		print_r($result);
 	}
 	
+	// Retrieve a dict with server status
 	public function status()
 	{
 		$contents = file_get_contents($this->SERVER_URL . "/status");
 		return json_decode($contents,$assoc=true);
 	}
 	
+	// Retrieve a timestamp with the current server-time
 	public function servertime()
 	{
 		$status = $this->status();
 		return $status['timestamp'];
 	}
+	
+	// Retrieves the public key of the server
 	public function pubkey()
 	{
 		$status = $this->status();
 		return $status['pubkey'];
 	}
+	
+	// Submits an envelope to the server for submission.
+	// The envelope should be signed and verified BEFORE this step!
+	public function submitenvelope($envelope)
+	{
+		$posturl = $this->SERVER_URL . '/newenvelope';
+		
+		// Retrieve the envelope, and store it in a dict, under 'envelope'
+		// This is the POST variable which the server is looking for the message in.
+		$fields = array('message'=>$envelope->json());		
+		
+		// Send it to the server.
+		$this->sendpost($posturl,$fields);
+	}
+
 }
 
 
 
-class phpInserter
+// An Envelope is the Basic class for ForumLegion messages. 
+// It contains a Payload, which is the meat of the message.
+// An envelope also contains stamps, which are authentication tokens.
+// An envelope can be a Rating, a UserTrust, a Message, or anything that occurs to us later.
+// We could also do Public User Profile as a Envelope, with the appropriate class.
+
+class Envelope
 {
+	public $dict;
+	
+	
 	function __construct() 
 	{
-		define('IN_PHPBB', true);
-		$phpbb_root_path = (defined('PHPBB_ROOT_PATH')) ? PHPBB_ROOT_PATH : './';
-		$phpEx = substr(strrchr(__FILE__, '.'), 1);
-		include($phpbb_root_path . 'common.' . $phpEx);
-		include($phpbb_root_path . 'includes/functions_posting.' . $phpEx);
-		include($phpbb_root_path . 'includes/functions_display.' . $phpEx);
-		include($phpbb_root_path . 'includes/message_parser.' . $phpEx);
+		// Basic dict, which will store the envelope values
+		$this->dict = array(  );
+	}
+	
+	
+	// Returns the JSON formatted version of an envelope.
+	// Of Note: We're formatting it WITHOUT escaping the backslash.
+	// This is necessary to match Python JSON exports. 
+	// The JSON spec allows either.
+	function json() 
+	{
+		$mytext = json_encode($this->dict);
+		$mytext = str_replace('\/','/',$mytext);
+		return $mytext;
+	}
+	
+	// Alphabetize the Payload.
+	// This is done so that it's always in the same order, no matter which client generates it.
+	// We need the order to match, so that when we create a SHA of it later, it's the same everywhere.
+	function sort_payload() 
+	{
+		$payload = $this->dict['envelope']['payload'];
+		ksort($payload);
+		$this->dict['envelope']['payload'] = $payload;
+	}
+	
+	// Generates a SHA-512 Hash of the Payload.
+	// This is used both as an identifier for the message, as well as a tamper-check.
+	function payload_hash() 
+	{
+		return hash("sha512",$this->payload_json());
+	}
+	
+	// Returns the JSON of just the Payload of the message.
+	function payload_json() 
+	{
+		$this->sort_payload();
+		$payloadtext = json_encode($this->dict['envelope']['payload']);
+		$payloadtext = str_replace('\/','/',$payloadtext);
+		return $payloadtext;
+	}
+	
+	// Load a JSON Envelope in from a string.
+	function loadstring($string) 
+	{
+		$this->dict = json_decode($string,$assoc=true);	
 		
-		$subject = "This is a test submission.";
-		$message = "This usually shouldn't be here. It likely means that someone did something not quite right...";
+		//Verify we're a valid Envelope.	
+		$verifystatus = $this->verify();
 		
-		//Load the User
-
-		$sql = 'SELECT * from ' . USERS_TABLE . ' where user_id = 2';
-		$result = $db->sql_query($sql);
-		$user->data = $db->sql_fetchrow($result);
-		$db->sql_freeresult($result);
-		
-		
-		$this->$data = array(
-		'forum_id' => 2, // Which forum
-		'topic_id' => 14, // Set if it's a reply
-		'icon_id' => 0, // This is the mandatory icon id
-		 				// Most forums don't use this, it's disabled by default.
-		
-		'enable_bbcode' => true,
-		'enable_smilies' => true,
-		'enable_urls' => true,
-		'enable_sig' => false,
-		'force_approved_state' => true, 
-
-		// Message Body
-		'bbcode_bitfield' => '',
-		'bbcode_uid' => '',
-
-		// Other Options
-		'post_edit_locked' => 0,
-		'topic_description' => '',
-
-		// Don't notify anyone!
-		'notify_set' => false,
-		'notify' => false,
-
-		// Indexing
-		'enable_indexing' => true, // Allow Searching
-		);	
+		if ($verifystatus =! True)
+		{
+			echo "Error verifying message.";
+			return False;
+		}
+		else //Looks good...
+		{ 
+			return True;
+		}	
 	}
 
-	function post($subject,$body,$reply = False)
+
+	// Load a JSON Evelope from a remote URL.
+	function loadurl($url) 
 	{
-				
-		if ($reply != true)
+		// Break apart the URL, to ensure we're loading remotely.
+		// We don't want to allow file:// URLs, which are a security risk.
+		
+		$parsed_url =  parse_url($url);
+		if  (in_array($parsed_url['scheme'], array('https', 'http')))
 		{
-			$replystring = 'post';
+			$contents = file_get_contents($url);
+			if ( $this->loadstring($contents) == True )
+				{	
+					// URL loaded successfully. 
+					return True;
+				}
+			else 
+				{
+					print "Could not load remote envelope.";
+					return False;
+				}
 		}
 		else
 		{
-			$replystring = 'reply';
+			print "Bad URL scheme " . $parsed_url['scheme'];
+			return False;
 		}
 		
 		
-		$this->$data['message'] = $body;
-		$this->$data['message_md5'] = md5($body);
-		$this->$data['topic_title'] = $subject;
-		
-		$poll = NULL;
-		submit_post($replystring, $subject, $user->data['username'], POST_NORMAL, $poll, $this->$data, true, true);	
-
 	}
 	
+	// The Short Subject is used as part of the URL, to make it visually clear what message it is.
+	// The value is cosmetic only; The Payload_SHA512 is used to identify the message.
+	// The server will reply with or without this value.
+	// This value is also used to set the canonical URL for any message.
+	
+	function short_subject()
+	{
+        $temp_short = substr($this->dict['envelope']['payload']['subject'],0,50);
+        $modified = ereg_replace('[^a-zA-Z0-9 ]', '', $temp_short);
+        $final = join("-",split(" ",$modified));
+        return $final;
+	}
+	
+	
+	// Verify our Envelope's integrity.
+	// This does several checks.. The most important is making sure the SHA_512 matches.
+	// We check this by dumping our to JSON, and taking a new Hash
+	// If they match, awesome. If not, rejection.
+	// We also verify each stamp, to ensure they're not forged.
+	
+	
+	function verify()
+	{
+		// Verify our Payload Hash matches the stored value.
+		$payloadhash = $this->payload_hash();
+		if ($payloadhash != $this->dict['envelope']['payload_sha512'])
+		{
+			print "Payload verification error. SHA doesn't match.";
+			return false;
+		}
+		
+		// Verify each Stamp, ensuring there are no forgeries. 
+		
+		$listofstamps = $this->dict['envelope']['stamps'];	
+		foreach ($listofstamps as $stamp)
+		{
+			$signature = base64_decode($stamp['signature']);
+			$stampkey = $stamp['pubkey'];
+            $pubkeyid = openssl_get_publickey($stampkey);
 
-	// submit and approve the post!
+			// Verify the signature, against the pubkey and the payload_json (which is what is signed)
+			if (! openssl_verify($this->payload_json(), $signature, $pubkeyid, OPENSSL_ALGO_SHA1) == 1)
+			{
+				print "Error verifying Stamp.";
+				return False;
+			}
+
+			// free the key from memory
+			openssl_free_key($pubkeyid);
+		}
+	}
+
+
+	// Uploads the envelope to the server.
+	function sign($user)
+	{
+		// We probably don't already have a stamp array.
+		// But if we do, restore it. If not, create it.
+		
+		if (array_key_exists('stamps',$this->dict['envelope']))
+		{
+			$stamparray = $this->dict['envelope']['stamps'];
+		}
+		else
+		{
+			$stamparray = array(  );
+		}
+		
+		// Store the hash into the envelope
+		$this->dict['envelope']['payload_sha512'] = $this->payload_hash();
+
+		// Get the text we want to sign.
+		$payloadtxt = $this->payload_json();
+
+		//Create an empty sig; This will be filled in in a moment.
+		$binary_signature = "";
+
+		// Generate and verify a signature for the message.
+		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],OPENSSL_ALGO_SHA1);
+		$ok = openssl_verify($payloadtxt, $binary_signature,$user->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
+		if ($ok != 1)
+		{
+			print "Failure to sign the Envelope. Aborting";
+			return False;
+		}
+		
+		// Stamp the message with our signature. 
+		
+		$sender_stamp['class'] = "author";
+		$sender_stamp['pubkey'] = $user->usersettings['pubkey'];
+		$sender_stamp['signature'] = base64_encode($binary_signature);	
+		$sender_stamp['time_added'] = (int)gmdate('U');
+		
+		$this->dict['envelope']['stamps'][] = $sender_stamp;
+	}	
+	
 }
 
 
-//A User object is primarily used to manage keys.
-//You could extend this to store other information, such as the friendlyname, email, etc.
-class User
-{
-	function __construct() 
-	{
-		$this->usersettings = array(  );
-		$this->usersettings['friendlyname'] = "Unnamed User";
-		$this->usersettings['client'] = "PHP client 1.0";
-	}
-	
-	function generatekeys()
-	{
-		$config = array('private_key_bits' => 4096, 'digest_alg' => 'sha1','private_key_type' => OPENSSL_KEYTYPE_RSA);
-		$res = openssl_pkey_new($config);
-		openssl_pkey_export($res, $privkey);
-		
-		//We need to do this little dance, since it returns a pubkey object, and we just want the key itself.
-		$pubkey= openssl_pkey_get_details($res);
-		$pubkey=$pubkey["key"];
-		
-		$this->usersettings['privkey'] = trim($privkey);
-		$this->usersettings['pubkey'] = trim($pubkey);
-		
-	}
-		
-}
+// A Stack is a collection of envelopes. 
+// Aka, a list of messages.. So a Stack might be all the messages in a single forum topic
+// Or a list of Private messages, etc.	
 
 
-//A Stack is a collection of envelopes. Aka, a list of messages.. So a Stack might be all the messages in a single forum topic
-//Or a list of Private messages, etc.	
 class Stack
 {
-	//A Stack of Envelopes
 	function __construct() 
 	{
 		// Basic dict, which will store the envelope values
 		$this->edicts = array(  );
 		//Envelopes is the array of actual Envelope objects
-		$this->Envelopes = array(  );
-		
+		$this->Envelopes = array(  );	
 	}
 	
 	function loadstring($string)
@@ -184,7 +298,7 @@ class Stack
 	//Load a stack in from a URL
 	{
 		$parsed_url =  parse_url($url);
-		if  (in_array       ($parsed_url['scheme'], array('https', 'http'))    )
+		if  (in_array($parsed_url['scheme'], array('https', 'http'))    )
 		//Don't load local files. 
 		{
 			$contents = file_get_contents($url);
@@ -216,247 +330,80 @@ class Stack
 		
 }
 
-//An Envelope is the Basic class for ForumLegion messages. 
-//It contains a Payload, which is the meat of the message.
-//An envelope also contains stamps, which are authentication tokens.
-//An envelope can be a Rating, a UserTrust, a Message, or anything that occurs to us later.
-//We could also do Public User Profile as a Envelope, with the appropriate class.
+// The User object is an abstraction primarily used to store public and private keys.
+// It also stores various user-settings, such as FriendlyName and Client ID
 
-class Envelope
+class User
 {
-	// This class contains the basic Envelope contents.
-	
 	function __construct() 
 	{
-		// Basic dict, which will store the envelope values
-		$this->dict = array(  );
+		$this->usersettings = array(  );
+		$this->usersettings['friendlyname'] = "Unnamed User";
+		$this->usersettings['client'] = "PHP client 1.0";
 	}
 	
-	//Returns the JSON text of the envelope.
-	//Be sure to format it without escaping the backslash.
-	//We want this to match Python.
-	function text() 
+	function generatekeys()
 	{
-		$mytext = json_encode($this->dict);
-		$mytext = str_replace('\/','/',$mytext);
-		return $mytext;
-	}
-	
-	//Alphabetize the Payload list. We should ALWAYS do this before generating the Hash.
-	//This way, it can be broken apart later, and then re-constructed.
-	function payload_sort() 
-	{
-		$payload = $this->dict['envelope']['payload'];
-		ksort($payload);
-		$this->dict['envelope']['payload'] = $payload;
-	}
-	
-	
-	//Generate a SHA-512 Hash of the Payload, so we can be sure it hasn't been tampered with.
-	//Also, so we have a primary-key to reference it by.
-	function payload_hash() 
-	{
-		$this->payload_sort();
-		$payloadtext = json_encode($this->dict['envelope']['payload']);
-		$payloadtext = str_replace('\/','/',$payloadtext);
-		$hash = hash("sha512",$payloadtext);
-		return $hash;
-	}
-	
-	//Generate the JSON of just the Payload, aka, the message/rating/etc
-	function payload_text() 
-	{
-		$this->payload_sort();
-		$payloadtext = json_encode($this->dict['envelope']['payload']);
-		$payloadtext = str_replace('\/','/',$payloadtext);
-		return $payloadtext;
-	}
-	
-	// Load a JSON message in from a string.
-	function loadstring($string) 
-	{
-		$this->dict = json_decode($string,$assoc=true);		
-		$verifystatus = $this->verify();
-		if ($verifystatus =! True)
-		{
-			//For the record, it's stupid that I need to break this out to a variable.
-			echo "Error verifying message.";
-			return False;
-		}
-		else //Looks good...
-		{ 
-			// Add more verifications here.
-			return True;
-		}	
-	}
-	
-	//Load a JSON message in from a URL.
-	function loadurl($url) 
-	{
-		// Load a Message from a URL, using the JSON messagespec
-		$parsed_url =  parse_url($url);
-		if  (in_array       ($parsed_url['scheme'], array('https', 'http'))    )
-		//Don't load local files. 
-		{
-			$contents = file_get_contents($url);
-			if ( $this->loadstring($contents) == True )
-				{
-					print "Loaded!";
-					return True;
-				}
-			else 
-				{
-					print "Does not Load.";
-					return False;
-				}
-		}
-		else
-		{
-			print "Bad scheme " . $parsed_url['scheme'];
-			return False;
-		}
+		$config = array('private_key_bits' => 4096, 'digest_alg' => 'sha1','private_key_type' => OPENSSL_KEYTYPE_RSA);
+		$res = openssl_pkey_new($config);
+		openssl_pkey_export($res, $privkey);
 		
+		//We need to do this little dance, since it returns a pubkey object, and we just want the key itself.
+		$pubkey= openssl_pkey_get_details($res);
+		$pubkey=$pubkey["key"];
+		
+		$this->usersettings['privkey'] = trim($privkey);
+		$this->usersettings['pubkey'] = trim($pubkey);
 		
 	}
-	function short_subject()
-	{
-        $temp_short = substr($this->dict['envelope']['payload']['subject'],0,50);
-        $modified = ereg_replace('[^a-zA-Z0-9 ]', '', $temp_short);
-        $final = join("-",split(" ",$modified));
-        return $final;
-	}
-	
-	//Check to ensure the Payload is intact.
-	//To do this, we're going to dump the payload back out to JSON
-	//Then sure the JSON matched the same one that was signed.
-	//This will also ensure we can reconstruct them properly ;)
-	function verify()
-	{
-		$payloaddict = $this->dict['envelope']['payload'];
-		$payloadjson = json_encode($payloaddict);
-		$payloadjson = str_replace('\/','/',$payloadjson);
-
-		#Let's make sure all of our stamps are intact.
-		#Including the Author we're signing.
-	
-		$listofstamps = $this->dict['envelope']['stamps'];	
-		foreach ($listofstamps as $stamp)
-		{
-			$signature = base64_decode($stamp['signature']);
-			$stampkey = $stamp['pubkey'];
-                	$pubkeyid = openssl_get_publickey($stampkey);
-
-			// state whether signature is okay or not
-			if (openssl_verify($payloadjson, $signature, $pubkeyid, OPENSSL_ALGO_SHA1) == 1)
-			{
-				return True;
-			}
-			else
-			{
-				return False;
-			}
-
-			// free the key from memory
-			openssl_free_key($pubkeyid);
-		}
-	}
-
-
-	//Have the Author of the message sign it. This uses the pub/priv key generated in the User obj.
-	//This is to prove that the message hasn't been tampered with, after sending. That's why it includes a signed copy of the payload.
-	//We then add this signature as a stamp, so other people can verify it on each step.
-	
-	function uploadenvelope($user)
-	{
-
-		//We probably don't already have a stamp array.
-		//But if we do, restore it. If not, create it.
-		if (array_key_exists('stamps',$this->dict['envelope']))
-		{
-			$stamparray = $this->dict['envelope']['stamps'];
-		}
-		else
-		{
-			$stamparray = array(  );
-		}
 		
-		$this->dict['envelope']['payload_sha512'] = $this->payload_hash();
-
-
-		//Get the text we want to sign.
-		$payloadtxt = $this->payload_text();
-
-		//Create an empty sig; This will be filled in in a moment.
-		$binary_signature = "";
-
-		//Sign the message. If the signature process works (as it should)
-		//Then insert the signature into the envelope.
-		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],OPENSSL_ALGO_SHA1);
-		$ok = openssl_verify($payloadtxt, $binary_signature,$user->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
-		if ($ok == 1)
-		{
-			print "Signature worked.";
-			$sender_stamp['class'] = "author";
-			$sender_stamp['pubkey'] = $user->usersettings['pubkey'];
-			$sender_stamp['signature'] = base64_encode($binary_signature);	
-			$sender_stamp['time_added'] = (int)gmdate('U');
- 		}
-		$this->dict['envelope']['stamps'][] = $sender_stamp;
-		
-		$posturl = 'http://pluric.com:8090/newmessage';
-		
-		//
-		// If we executed a 'print $this->text();', we'd see what we just wrote ;)
-		//
-		// Now, get the text. We don't need to .save or anything, since it's all streaming.
-		$fields = array('message'=>$this->text());
-		
-		// Send 'er out.
-		sendpost($posturl,$fields);
-	}	
 }
 
+
+
+
+date_default_timezone_set('UTC');
 
 $server = new FLServer;
 print $server->servertime();
 
-// 
-// ////Examples
-// 
-// 
-// ////////////////////////////////////////Insert a message ///////////////////////////
-// //Create a test user
-// 
-// //Set the timezone. PHP requires this
-// date_default_timezone_set('UTC');
-// 
-// //Generate a new user, and set their user preferences.
-// $u = new User();
-// $u->generatekeys();
-// $u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
-// 
-// 
-// //Create a new test Message.
-// $TestMessage = array(  );
-// 
-// //Specify the message properties.
-// $TestMessage['envelope']['payload']['class'] = "message";
-// $TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
-// $TestMessage['envelope']['payload']['formatting'] = "markdown";
-// 
-// $TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
-// $TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
-// 
-// //Stick the user settings into the message
-// //We can't just copy the whole dict in, since we don't want the privkey
-// $TestMessage['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
-// $TestMessage['envelope']['payload']['author']['client'] = $u->usersettings['client'];
-// $TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
-// 
-// //Generate the envelope, and stick the Message into it.
-// $e = new Envelope();
-// $e->dict = $TestMessage;
-// 
+
+// Generate a test user.
+
+$u = new User();
+$u->generatekeys();
+$u->usersettings['friendlyname'] = "Testius, the Smithy of Oregon.";
+
+// Create a test message
+$TestMessage = array(  );
+
+// Add the normal user-specified data.
+$TestMessage['envelope']['payload']['body'] = "This is an automated message, created on " . date('l jS \of F Y h:i:s A');
+$TestMessage['envelope']['payload']['subject'] = "Message inserted on " . date(DATE_RFC822);
+
+// Add the mandatory metadata
+$TestMessage['envelope']['payload']['class'] = "message";
+$TestMessage['envelope']['payload']['topictag'] = array('ClientTest');
+$TestMessage['envelope']['payload']['formatting'] = "markdown";
+
+// Add the Author information to the message
+$TestMessage['envelope']['payload']['author']['pubkey'] = $u->usersettings['pubkey'];
+$TestMessage['envelope']['payload']['author']['client'] = $u->usersettings['client'];
+$TestMessage['envelope']['payload']['author']['friendlyname'] = $u->usersettings['friendlyname'];
+
+
+// Create a new Envelope Object, and load in the Message we just created.
+$e = new Envelope();
+$e->dict = $TestMessage;
+
+// Sign our Message
+$e->sign($u);
+
+// Verify our message is valid.
+$e->verify();
+
+$server->submitenvelope($e);
+
 // //Upload the message we just wrote.
 // $e->uploadenvelope($u);
 // 
