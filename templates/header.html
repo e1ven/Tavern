@@ -40,9 +40,8 @@
             {% if not loggedin %}	
                 Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
             {% end %}
-
-            {% if loggedin %}	
-						<div id="toplinks">
+	    {% if loggedin %}	
+					<div id="toplinks">
             				<a ref="nofollow" href="/newmessage">Post new Message</a><br>
 		                	<a rel="nofollow" href="/showprivates">Show private messages</a>
 						</div>
@@ -57,6 +56,10 @@
 						</div>
             {% end %}
             </div> <!-- #menu-text -->
+                    <ul id="menubuttons">
+            <li><a href="#">Thing</a></li>
+            <li><a href="#">Thing2</a></li>
+            </ul>
         </div> <!-- #menu -->
 	</header>
 		<div id="spinner" class="black_overlay">

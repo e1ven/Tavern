@@ -7,7 +7,7 @@
 {% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 
 {% if orient == "left" %}
-<ul class='response'>
+<ul class='response' id="{{envelope['envelope']['payload_sha512']}}">
 	<li>
 {% else %}
 	<div class="padder">

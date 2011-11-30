@@ -1,4 +1,5 @@
 User-agent: *
+Sitemap: /static/sitemaps/sitemap_index.xml 
 Crawl-delay: 1
 Disallow: /register
 Disallow: /login
@@ -15,3 +16,4 @@ Disallow: /uploadnewmessage
 Disallow: /showuserposts
 Disallow: /uploadprivatemessage
 Disallow: /privatemessage
+

@@ -226,8 +226,6 @@ head.ready(function() {
 });
 
 
-
-
 head.ready(function() {
  
     if ($("#centerandright").length)
@@ -263,9 +261,8 @@ head.ready(function() {
      */
 
  }
-
-
-
+ 
+ 
 
     $('a.internal').each( function ()
     {            

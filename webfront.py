@@ -828,7 +828,12 @@ class NewmessageHandler(BaseHandler):
                 
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
-        self.redirect('/message/' + newmsgid, permanent=False)
+        if client_regarding is not None:
+            print '/message/' + client_regarding + "#" + newmsgid
+            self.redirect('/message/' + client_regarding + "#" + newmsgid, permanent=False)
+        else:
+            self.redirect('/message/' + newmsgid, permanent=False)
+                
 
 class MyPrivateMessagesHandler(BaseHandler):
     def get(self):
