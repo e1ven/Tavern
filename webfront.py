@@ -298,7 +298,7 @@ class TriPaneHandler(BaseHandler):
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
-        self.write(self.render_string('tripane.html',toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('tripane.html',topic=topic,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
         if action == "message":

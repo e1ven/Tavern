@@ -250,7 +250,7 @@ $(document).bind("ready", function() {
         $("#centerandright").splitter({
             type: "v",
             outline: true,
-            minLeft: 100, sizeLeft: 150
+            minLeft: 250, sizeLeft: 150
         });
    
    
