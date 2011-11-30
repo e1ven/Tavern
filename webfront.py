@@ -282,11 +282,7 @@ class TriPaneHandler(BaseHandler):
                 subjects.append(envelope)
             canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
             title = displayenvelope['envelope']['payload']['subject']
-            
-            
-        # if displayenvelope is None:     
-        #     displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-        #     title = "Welcome"
+        
 
         u = User()
         u.load_mongo_by_username(username=self.username)
@@ -465,10 +461,6 @@ class ShowUserPosts(BaseHandler):
         k.formatkeys()
         pubkey = k.pubkey
         
-        print "---???---"
-        print pubkey
-        print "---XXX---"
-
         messages = []
         self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):

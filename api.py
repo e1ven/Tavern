@@ -70,18 +70,11 @@ class NotFoundHandler(BaseHandler):
 
 
 class ListActiveTopics(BaseHandler):  
-    @tornado.web.asynchronous      
-    def get(self):       
-        self.db.topiclist.find({}, limit=1, callback=self._on_response)
-
-    def _on_response(self, response, error):
-        if error:
-          raise tornado.web.HTTPError(500)
-          
-        topics = OrderedDict()
-        for topicrow in response:
-              topics[topicrow['_id']['tag']] = topicrow['value']['count']
-        self.write(json.dumps(topics,separators=(u',',u':')))
+    def get(self):      
+        toptopics = []
+        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+            toptopics.append(quicktopic['_id']['tag']) 
+        self.write(json.dumps(toptopics,separators=(u',',u':')))
         self.finish()
 
 class MessageHandler(BaseHandler):        
@@ -109,17 +102,17 @@ class MessageHandler(BaseHandler):
 
 
 class TopicHandler(BaseHandler):        
-    def get(self,topic,persp=None,offset=0,include=100):
-                
+    def get(self,topic,since='1319068800',persp=None,offset=0,include=100):
         if persp is not None:
             client_perspective = tornado.escape.xhtml_escape(persp)
         else: 
-            client_perspective = None
+            client_perspective = None    
             
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
+        since = int(tornado.escape.xhtml_escape(since))
         
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.stamps.pubkey':server.ServerSettings['pubkey'],'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
             if client_perspective is not None:
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -131,162 +124,7 @@ class TopicHandler(BaseHandler):
             envelopes.append(envelope)
                    
         self.write(json.dumps(envelopes,separators=(u',',u':')))
-                
-
-
-                                
-class ShowUserPosts(BaseHandler):
-    def get(self,pubkey):
-        self.getvars()
-        
-        #Unquote it, then convert it to a PluricKey object so we can rebuild it.
-        #Quoting destroys the newlines.
-        pubkey = urllib.unquote(pubkey)
-        k = Keys(pub=pubkey)
-        k.formatkeys()
-        pubkey = k.pubkey
-        
-        
-        messages = []
-        self.write(self.render_string('templates/header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin))
-        # for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,).sort('value',-1):
-        #     messages.append(message)
-
-        self.write(self.render_string('templates/showuserposts.html',messages=messages))
-        self.write(self.render_string('templates/footer.html'))
-                 
-
             
-            
-        
-
-class RatingHandler(BaseHandler):
-    def get(self,posthash):
-        self.getvars()
-        #Calculate the votes for that post. 
-         
-    def post(self):    
-        self.getvars()
-
-        #So you may be asking yourself.. Self, why did we do this as a POST, rather than
-        #Just a GET value, of the form server.com/msg123/voteup
-        #The answer is xsrf protection.
-        #We don't want people to link to the upvote button and trick you into voting up.
-
-        if not self.loggedin:
-            self.write("You must be logged in to rate a message.")
-            return
-        
-        client_hash =  tornado.escape.xhtml_escape(self.get_argument("hash"))        
-        client_rating =  tornado.escape.xhtml_escape(self.get_argument("rating"))
-        rating_val = int(client_rating)
-        if rating_val not in [-1,0,1]:
-            self.write("Invalid Rating.")
-            return -1
-        
-        e = Envelope()
-        e.payload.dict['class'] = "rating"
-        e.payload.dict['rating'] = rating_val
-        e.payload.dict['regarding'] = client_hash
-            
-        #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
-        
-        e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
-        if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
-            ip = self.request.remote_ip
-            
-            #Don't check from home.
-            if ip == "127.0.0.1":
-                ip = "8.8.8.8"
-                
-            gir = gi.record_by_name(ip)
-            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
-        
-        #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist        
-        #Send to the server
-        server.receiveEnvelope(e.text())
-
-
-class UserTrustHandler(BaseHandler):
-    def get(self,user):
-        self.getvars()
-        #Calculate the trust for a user. 
-
-    def post(self):    
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to trust or distrust a user.")
-            return
-
-        client_pubkey =  self.get_argument("pubkey")    
-        client_trust =  tornado.escape.xhtml_escape(self.get_argument("trust"))
-        trust_val = int(client_trust)
-        if trust_val not in [-100,0,100]:
-            self.write("Invalid Trust Score.")
-            return -1
-
-        e = Envelope()
-        e.payload.dict['class'] = "usertrust"
-        e.payload.dict['trust'] = trust_val
-                
-        k = Keys(pub=client_pubkey)
-        e.payload.dict['pubkey'] = k.pubkey
-
-        #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
-
-        e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-
-        e.payload.dict['author']['client'] = "Pluric Web frontend Pre-release 0.1"
-        if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
-            ip = self.request.remote_ip
-
-            #Don't check from home.
-            if ip == "127.0.0.1":
-                ip = "8.8.8.8"
-
-            gir = gi.record_by_name(ip)
-            e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
-
-        #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist
-        #Send to the server
-        server.receiveEnvelope(e.text())
-
-
-
-      
 class PrivateMessagesHandler(BaseHandler):
     def get(self,pubkey):
 
@@ -306,27 +144,16 @@ class SubmitMessageHandler(BaseHandler):
         client_message =  self.get_argument("message")
         server.receiveEnvelope(client_message)
 
+class ServerStatus(BaseHandler):
+    def get(self):
+        status = OrderedDict()
         
-class RegisterClientHandler(BaseHandler):
-    def get(self,pubkey):
-        client_pubkey =  tornado.escape.xhtml_escape(pubkey)
-        u = uuid.uuid4()
-        endpoint = OrderedDict()
-        endpoint['pubkey'] = client_pubkey
-        endpoint['_id'] = client_pubkey
-        endpoint['token'] = str(u)
-        endpoint['users'] = []
-        server.mongos['default']['api-clients'].save(endpoint)
-        self.write(str(u))
+        status['timestamp'] = int(time.time())
+        status['pubkey'] = server.ServerKeys.pubkey
+        status['hostname'] = server.ServerSettings['hostname']
+        self.write(json.dumps(status,separators=(u',',u':')))
         
         
-class RegisterClientUsersHandler(BaseHandler):
-    def get(self,token):
-        client_token =  tornado.escape.xhtml_escape(token) 
-        client = server.mongos['default']['api-clients'].find_one({"token":client_serverpubkey},as_class=OrderedDict)        
-        client_userpublickeylist =  tornado.escape.xhtml_escape(self.get_argument("userpublickeylist"))
-        client['users'] = client_userpublickeylist
-        server.mongos['default']['api-clients'].save(client)
 
         
         
@@ -336,9 +163,7 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     print "Starting Web Frontend for " + server.ServerSettings['hostname']
-    #####TAKE ME OUT IN PRODUCTION!!!!@! #####
-    
-    #tl = TopicList.TopicList()        
+     
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
@@ -346,16 +171,16 @@ def main():
         "xsrf_cookies": False,
     }
     application = tornado.web.Application([
-        (r"/ListActiveTopics" ,ListActiveTopics),
+        (r"/topics" ,ListActiveTopics),
+        (r"/status" ,ServerStatus),
         (r"/message/(.*)" ,MessageHandler),
         (r"/message/(.*)/(.*)", MessageHandler),
         (r"/newmessage", SubmitMessageHandler),        
-        (r"/topictag/(.*)", TopicHandler),
-        (r"/topictag/(.*)/(.*)", TopicHandler),
-        (r"/topictag/(.*)/(.*)/(.*)", TopicHandler),
-        (r"/topictag/(.*)/(.*)/(.*)/(.*)", TopicHandler),
-        (r"/vote" ,RatingHandler),
-        (r"/usertrust",UserTrustHandler),          
+        (r"/topic/(.*)/(.*)/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/topic/(.*)/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/topic/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/topic/(.*)/(.*)", TopicHandler),
+        (r"/topic/(.*)", TopicHandler),   
         (r"/(.*)", NotFoundHandler)
     ], **settings)
     

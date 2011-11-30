@@ -23,7 +23,11 @@ class TopicList(object):
                 	    if ((mtime + 1186400) > timestamp )
                 	        {
                                 singletag = this.envelope.payload.topictag[i];
-                                emit({tag:singletag},{count:1}); 
+				if (singletag != 'sitecontent')
+				{
+                                	emit({tag:singletag},{count:1}); 
+				}
+
                             }
                 	}
             	}

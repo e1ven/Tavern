@@ -384,7 +384,7 @@ $e = new Envelope();
 
 //Load a whole Stack of Envelopes at once.
 //This is what you're use to pull a Topic, aka, a Board.
-$EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topictag/' . $EXAMPLE_TOPIC;
+$EXAMPLE_TOPIC_URL = $EXAMPLE_SERVER . '/topic/' . $EXAMPLE_TOPIC;
 print  "\n\nList of Messages in topic : " .  $EXAMPLE_TOPIC . "\n\n";
 $s =  new Stack();
 $s->loadurl($EXAMPLE_TOPIC_URL);
