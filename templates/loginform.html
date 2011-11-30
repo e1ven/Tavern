@@ -1,7 +1,17 @@
+<div id="single">
+	<h2>Login to Pluric</h2>
+	<p></p>
+
 <form action="/login" method="post">
   {{ xsrf_form_html() }}
-Username: <input type="text" name="username"><br>
+<p>
+Username: <input type="text" name="username">
+</p><p>
 Password: <input type="password" name="pass">
+</p>
+<p>
 <input type="submit" value="Login">
+</p>
 </form>
 
+</div> <!-- #single -->
