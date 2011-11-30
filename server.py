@@ -258,7 +258,7 @@ class Server(object):
                     #Python and be a valid image.
                     attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
                     attachmentList.append(attachmentdesc)
-                    if attachment.length < 512000:
+                    if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
                         if binary.has_key('content_type'):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 imagetype = imghdr.what('ignoreme',h=attachment.read())
