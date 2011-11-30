@@ -286,6 +286,10 @@ class Server(object):
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!
         envelope['envelope']['local']['attachmentlist'] = attachmentList
+        envelope['envelope']['local']['author_pubkey_sha512'] = hashlib.sha512(envelope['envelope']['payload']['author']['pubkey']).hexdigest()
+        
+        
+        
         if envelope.has_key('_id'):            
             del(envelope['_id'])        
         return envelope
