@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Html tidy &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#html-tidy">HTML Tidy</a></li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="html-tidy">HTML Tidy</h1>
+<p>Runs <a href="http://tidy.sourceforge.net/">HTML Tidy</a> on the output of Python-Markdown using the <a href="http://utidylib.berlios.de/">uTidylib</a>
+Python wrapper. Both libtidy and uTidylib must be installed on your system.</p>
+<p>This extension is available in the standard Markdown library since version 2.0.</p>
+<p>Note than any Tidy <a href="http://tidy.sourceforge.net/docs/quickref.html">options</a> can be passed in as extension configs. So, 
+for example, to output HTML rather than XHTML, set <code>output_xhtml=0</code>. To
+indent the output, set <code>indent=auto</code> and to have Tidy wrap the output in 
+<code>&lt;html&gt;</code> and <code>&lt;body&gt;</code> tags, set <code>show_body_only=0</code>. See Tidy's 
+<a href="http://tidy.sourceforge.net/docs/quickref.html">options</a> for a full list of the available options. The defaults are set to 
+most closely match Markdowns defaults with the exception that you get much
+better pretty-printing.</p>
+<p>Note that options set in this extension will override most any other settings
+passed on to Markdown (such as "output_format"). Unlike Markdown, this extension
+will also treat raw HTML no different than that output by Markdown. In other 
+words, it may munge a document authors carefully crafted HTML. Of course, it
+may also transform poorly formed raw HTML into nice, valid HTML. Take these
+things into consideration when electing to use this extension.</p>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

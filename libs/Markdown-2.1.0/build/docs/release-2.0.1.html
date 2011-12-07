@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Release-2.0.1 &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#python-markdown-201-release-notes">Python-Markdown 2.0.1 Release Notes</a><ul>
+<li><a href="#backwards-incompatible-changes">Backwards-incompatible Changes</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="python-markdown-201-release-notes">Python-Markdown 2.0.1 Release Notes</h1>
+<p>Python-Markdown 2.0.1 is a bug-fix release. No new features have been added.
+Most notably, various issues with the command line script have been fixed.
+There have also been a few fixes for minor parsing bugs in some edge cases.
+For a full list of changes, see the git log.</p>
+<h2 id="backwards-incompatible-changes">Backwards-incompatible Changes</h2>
+<p>Due to various complications in how Python handles command line scripts in 
+differance systems and with differant installation tools, we were forced to 
+rename the commandline script to <code>markdown</code> (no ".py"). A matching batch
+script will get installed on Windows. Any shell scripts which call 
+<code>markdown.py</code> will need to be altered to call <code>markdown</code> instead.</p>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

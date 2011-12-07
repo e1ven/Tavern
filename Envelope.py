@@ -1,6 +1,6 @@
 import json
 import hashlib
-import pylzma,sys
+import sys
 import os
 from keys import *
 import collections
@@ -16,7 +16,7 @@ class Envelope(object):
             self.dict = OrderedDict()
             self.dict = initialdict
         def format(self):
-            keylist = self.dict.keys()
+            keylist = list(self.dict.keys())
             newdict = OrderedDict()
             for key in sorted(keylist):
                 newdict[key] = self.dict[key]
@@ -32,34 +32,34 @@ class Envelope(object):
             newstr = json.dumps(self.dict,separators=(',',':'))
             return newstr  
         def validate(self):
-            if not self.dict.has_key('author'):
-                print "No Author Information"
+            if 'author' not in self.dict:
+                print("No Author Information")
                 return False
             else:
-                if not self.dict['author'].has_key('pubkey'):
-                    print "No Pubkey line in Author info"
+                if 'pubkey' not in self.dict['author']:
+                    print("No Pubkey line in Author info")
                     return False
             return True                
                           
     class Message(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                print "Super does not Validate"
+                print("Super does not Validate")
                 return False
-            if not self.dict.has_key('subject'):
-                print "No subject"
+            if 'subject' not in self.dict:
+                print("No subject")
                 return False
-            if not self.dict.has_key('body'):
-                print "No Body"
+            if 'body' not in self.dict:
+                print("No Body")
                 return False
-            if not self.dict.has_key('topictag'):
-                print "No Topictags"
+            if 'topictag' not in self.dict:
+                print("No Topictags")
                 return False
             if len(self.dict['topictag']) > 3:
-                print "Topictag List too long"
+                print("Topictag List too long")
                 return False                    
-            if not self.dict.has_key('formatting'):
-                print "No Formatting"
+            if 'formatting' not in self.dict:
+                print("No Formatting")
                 return False            
             return True  
     
@@ -67,27 +67,27 @@ class Envelope(object):
     class PrivateMessage(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                print "Super does not Validate"
+                print("Super does not Validate")
                 return False
-            if not self.dict.has_key('to'):
-                print "No 'to' field"
+            if 'to' not in self.dict:
+                print("No 'to' field")
                 return False
-            if self.dict.has_key('topictag_list'):
-                print "Topictag not allowed in privmessage."
+            if 'topictag_list' in self.dict:
+                print("Topictag not allowed in privmessage.")
                 return False
             return True
             
     class Rating(Payload):
          def validate(self):
              if not Envelope.Payload(self.dict).validate():
-                 print "Super fails"
+                 print("Super fails")
                  return False
-             if not self.dict.has_key('rating'):
-                 print "No rating number"
+             if 'rating' not in self.dict:
+                 print("No rating number")
                  return False
              rvalue = self.dict['rating']
              if rvalue not in [-1,0,1]:
-                 print "Evelope ratings must be either -1, 1, or 0."
+                 print("Evelope ratings must be either -1, 1, or 0.")
                  return False
              return True
              
@@ -95,12 +95,12 @@ class Envelope(object):
         def validate(self):
               if not Envelope.Payload(self.dict).validate():
                   return False
-              if not self.dict.has_key('pubkey'):
-                  print "No pubkey to set trust for."
+              if 'pubkey' not in self.dict:
+                  print("No pubkey to set trust for.")
                   return False
               tvalue = self.dict['trust']
               if tvalue not in [-100,0,100]:
-                  print "Message ratings must be either -100, 0, or 100"
+                  print("Message ratings must be either -100, 0, or 100")
                   return False
               return True             
                      
@@ -110,8 +110,8 @@ class Envelope(object):
                 
         
         #Check headers 
-        if not self.dict.has_key('envelope'):
-            print "Invalid Envelope. No Header"
+        if 'envelope' not in self.dict:
+            print("Invalid Envelope. No Header")
             return False
         
            
@@ -122,10 +122,10 @@ class Envelope(object):
             if (stamp['class'] == "author"):
                 foundauthor += 1
         if foundauthor == 0:
-            print "No author stamp."
+            print("No author stamp.")
             return False    
         if foundauthor > 1:
-            print "Too Many author stamps"
+            print("Too Many author stamps")
             return False
         
         #Ensure Every stamp validates.
@@ -133,12 +133,12 @@ class Envelope(object):
         for stamp in stamps:
             stampkey = Keys(pub=stamp['pubkey'])
             if stampkey.verifystring(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
-                    print "Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey']
+                    print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
         #Validate our Payload.
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
-                print "Payload does not validate."
+                print("Payload does not validate.")
                 return False
         return True    
 
@@ -165,8 +165,8 @@ class Envelope(object):
    
    
     def registerpayload(self):
-        if self.dict['envelope'].has_key('payload'):
-            if self.dict['envelope']['payload'].has_key('class'):
+        if 'payload' in self.dict['envelope']:
+            if 'class' in self.dict['envelope']['payload']:
                 if self.dict['envelope']['payload']['class'] == "message":
                     self.payload = Envelope.Message(self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "rating":

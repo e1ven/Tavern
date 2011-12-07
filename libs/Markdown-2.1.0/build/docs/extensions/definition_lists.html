@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Definition lists &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#definition-lists">Definition Lists</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h2 id="definition-lists">Definition Lists</h2>
+<h2 id="summary">Summary</h2>
+<p>The Definition List Extension adds the ability to create definition list in
+Markdown documents.</p>
+<p>This extension is included in the standard Markdown library.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Definition lists are defined using the syntax established in 
+<a href="http://www.michelf.com/projects/php-markdown/extra/#def-list">PHP Markdown Extra</a>.</p>
+<p>Thus, the following text (taken from the above referenced PHP documentation):</p>
+<pre><code>Apple
+:   Pomaceous fruit of plants of the genus Malus in 
+    the family Rosaceae.
+
+Orange
+:   The fruit of an evergreen tree of the genus Citrus.
+</code></pre>
+<p>will be rendered like so:</p>
+<pre><code>&lt;dl&gt;
+&lt;dt&gt;Apple&lt;/dt&gt;
+&lt;dd&gt;Pomaceous fruit of plants of the genus Malus in 
+the family Rosaceae.&lt;/dd&gt;
+
+&lt;dt&gt;Orange&lt;/dt&gt;
+&lt;dd&gt;The fruit of an evergreen tree of the genus Citrus.&lt;/dd&gt;
+&lt;/dl&gt;
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['def_list'])
+</code></pre>
+<p>To use with other extensions, just add them to the list, like this:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['def_list', 'footnotes'])
+</code></pre>
+<p>The extension can also be called from the command line using Markdown's <code>-x</code> 
+parameter:</p>
+<pre><code>markdown.py -x def_list source.txt &gt; output.html
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

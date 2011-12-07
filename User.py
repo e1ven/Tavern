@@ -1,5 +1,4 @@
 import os,json
-import M2Crypto
 import platform
 from Envelope import *
 import time
@@ -19,7 +18,7 @@ class User(object):
         self.UserSettings['local']['followTopic'] = []
 
     def gatherTrust(self,askingabout,incomingtrust=250):
-        print "My Key------" +  self.Keys.pubkey
+        print("My Key------" +  self.Keys.pubkey)
         #Rating of myself = 250
         #Direct Rating = 100
         #Friend's Rating = 40
@@ -46,7 +45,7 @@ class User(object):
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
-            print "I trust me."
+            print("I trust me.")
             return round(incomingtrust)
 
         #Don't recurse forever, please.  
@@ -56,18 +55,18 @@ class User(object):
         divideby = 1
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
-        print "Asking About -- " + askingabout
+        print("Asking About -- " + askingabout)
         trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_seen",pymongo.DESCENDING)
         foundtrust = False
         if trustrow.count() > 0:
-		#Get the most recent trust
-		tr = trustrow[0] 	
-                print "We trust this user directly."
-                pprint.pprint(tr)
-                trust = int(tr['envelope']['payload']['trust'])
-                foundtrust = True
+    		#Get the most recent trust
+            tr = trustrow[0] 	
+            print("We trust this user directly.")
+            pprint.pprint(tr)
+            trust = int(tr['envelope']['payload']['trust'])
+            foundtrust = True
         else:
-            print "We have not directly rated this user."
+            print("We have not directly rated this user.")
         if foundtrust == False:
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
             #First, find the people WE'VE trusted.
@@ -78,14 +77,14 @@ class User(object):
             #Now, iterate through each of those people. This will be slow, which is why we cache.
             for trusted in alltrusted:
                 friendcount += 1
-                print "BTW- I trust" + trusted['envelope']['payload']['pubkey'] +" \n\n\n\n"
+                print("BTW- I trust" + trusted['envelope']['payload']['pubkey'] +" \n\n\n\n")
                 u = User()
                 u.load_mongo_by_pubkey(trusted['envelope']['payload']['pubkey'])
                 combinedFriendTrust += u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)
-                print "My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust))
+                print("My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)))
             if friendcount > 0:    
                 trust = combinedFriendTrust / friendcount
-            print "total friend average" + str(trust)
+            print("total friend average" + str(trust))
 
         #Add up the trusts from our friends, and cap at MaxTrust
         if trust > maxtrust:
@@ -159,7 +158,7 @@ class User(object):
         if filename == None:
             filename = self.UserSettings['username'] + ".PluricUser"                
         filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.UserSettings,separators=(u',',u':'))) 
+        filehandle.write(json.dumps(self.UserSettings,separators=(',',':'))) 
         filehandle.close()
     
     def load_mongo_by_pubkey(self,pubkey):
@@ -178,12 +177,14 @@ class User(object):
 
     def load_mongo_by_username(self,username):
         #Local server Only
+        print(username)
         user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
+        print(self.UserSettings['pubkey'])
         self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
-        print "Loaded username " + username + "..." + self.UserSettings['pubkey']
+        print("Loaded username " + username + "..." + self.UserSettings['pubkey'])
     def savemongo(self):
         self.UserSettings['_id'] = self.UserSettings['pubkey']
         server.mongos['default']['users'].save(self.UserSettings) 

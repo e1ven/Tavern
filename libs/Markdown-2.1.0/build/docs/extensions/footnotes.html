@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Footnotes &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#footnotes">Footnotes</a><ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="footnotes">Footnotes</h1>
+<h2 id="summary">Summary</h2>
+<p>An extension to Python-Markdown that adds footnote syntax. This extension has 
+been included with Python-Markdown since 1.7 and should be available to anyone 
+who has a typical install of Python-Markdown.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Python-Markdown's Footnote syntax follows the generally accepted syntax of the 
+Markdown community at large and almost exactly matches <a href="http://michelf.com/projects/php-markdown/extra/#footnotes">PHP Markdown Extra</a>'s
+implementation of footnotes. The only differences involve a few subtleties in 
+the output.</p>
+<p>Example:</p>
+<pre><code>Footnotes[^1] have a label[^label] and a definition[^!DEF].
+
+[^1]: This is a footnote
+[^label]: A footnote on "label"
+[^!DEF]: The definition of a footnote.
+</code></pre>
+<p>A footnote definition may contain multiple lines, paragraphs, code blocks, 
+blockquotes and most any other markdown syntax. The additional line simply 
+must be indented at least an additional four spaces.</p>
+<pre><code>[^1]: The first paragraph of the definition.
+
+    Paragraph two of the definition.
+
+    &gt; A blockquote with
+    &gt; multiple lines.
+
+        a code block
+
+    A final paragraph.
+</code></pre>
+<p>By default, the footnote definitions are placed at the end of the resulting 
+HTML document. However, you may want the footnotes in another location within 
+the document. Simply place the following text at that location within your 
+markdown document (See how to configure this text below):</p>
+<pre><code>///Footnotes Go Here///
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['footnotes'])
+</code></pre>
+<p>To configure the place marker for footnote definitions (just be sure not to 
+use any existing markdown syntax):</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['footnotes(PLACE_MARKER=+++my marker+++)'])
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

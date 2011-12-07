@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Fenced code blocks &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#fenced-code-blocks">Fenced Code Blocks</a><ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="fenced-code-blocks">Fenced Code Blocks</h1>
+<h2 id="summary">Summary</h2>
+<p>This extension adds a secondary way to define code blocks which overcomes a few
+limitations of the indented code blocks.</p>
+<p>This extension is included in the standard Markdown library.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Fenced Code Blocks are defined using the syntax established in 
+<a href="http://www.michelf.com/projects/php-markdown/extra/#fenced-code-blocks">PHP Markdown Extra</a>.</p>
+<p>Thus, the following text (taken from the above referenced PHP documentation):</p>
+<pre><code>This is a paragraph introducing:
+
+~~~~~~~~~~~~~~~~~~~~
+a one-line code block
+~~~~~~~~~~~~~~~~~~~~
+</code></pre>
+<p>Fenced code blocks can have a blank line as the first  and/or last line of a 
+code block and they can also come immediately after a list item without becoming
+part of the list.</p>
+<p>In addition to PHP Extra's syntax, you can define the language of the code 
+block for use by syntax highlighters etc. The language will be assigned as a 
+class attribute of the <code>&lt;code&gt;</code> element in the output. Therefore, you should 
+define the language as you would a css class - <code>.language</code>. For consistency 
+with other markdown syntax, the language can <em>optionally</em> be wrapped in curly 
+brackets:</p>
+<pre><code>~~~~{.python}
+# python code
+~~~~
+
+~~~~.html
+&lt;p&gt;HTML Document&lt;/p&gt;
+~~~~
+</code></pre>
+<p>The above will output:</p>
+<pre><code>&lt;pre&gt;&lt;code class="python"&gt;# python code
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class="html"&gt;&amp;lt;p&amp;gt;HTML Document&amp;lt;/p&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['fenced_code'])
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

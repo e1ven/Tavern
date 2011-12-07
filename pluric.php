@@ -58,7 +58,7 @@ class FLServer
 		
 		// Retrieve the envelope, and store it in a dict, under 'envelope'
 		// This is the POST variable which the server is looking for the message in.
-		$fields = array('message'=>$envelope->json());		
+		$fields = array('envelope'=>$envelope->json());		
 		
 		// Send it to the server.
 		$this->sendpost($posturl,$fields);

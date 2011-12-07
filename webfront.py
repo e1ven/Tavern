@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2011 Pluric
     
@@ -21,16 +21,16 @@ from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
 from server import server
-import GeoIP
+import pygeoip
 import pprint
 from keys import *
 from User import User
 from gridfs import GridFS
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 #import TopicList
-import urllib
-from BeautifulSoup import BeautifulSoup
+import urllib.request, urllib.parse, urllib.error
+from bs4 import BeautifulSoup
 
 import re
 try: 
@@ -51,7 +51,7 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler,self).__init__(*args,**kwargs)
         
     def write(self,html):
-        self.html = self.html + html
+        self.html = self.html + str(html,encoding='utf8')
 
     def gettext(self):
         ptext = ""
@@ -96,7 +96,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 #There are Additional Variables in this URL
                 finish = self.request.uri[nextvar:len(self.request.uri)]
             else:
-                print "No Next variables"
+                print("No Next variables")
                 #There are no other variables. Delete until End of string
                 finish = ""
                 
@@ -389,7 +389,7 @@ class PrivateMessageHandler(BaseHandler):
         envelope['envelope']['payload']['body'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['body'])
         envelope['envelope']['payload']['subject'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['subject'])
 
-        if envelope['envelope']['payload'].has_key('formatting'):
+        if 'formatting' in envelope['envelope']['payload']:
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
         else:    
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
@@ -437,7 +437,7 @@ class RegisterHandler(BaseHandler):
             return    
             
         else:
-            hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(12))
+            hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(1))
             u = User()
             u.generate(hashedpass=hashedpass,username=client_newuser.lower())
             if client_email is not None:
@@ -473,7 +473,7 @@ class LoginHandler(BaseHandler):
                 self.set_secure_cookie("username",user['username'].lower(),httponly=True)
                 self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
                 self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-                print str(''.join(u.UserSettings['pubkey'].split() ) )
+                print(str(''.join(u.UserSettings['pubkey'].split() ) ))
                 self.redirect("/")
                 return
 
@@ -490,7 +490,7 @@ class ShowUserPosts(BaseHandler):
         
         #Unquote it, then convert it to a PluricKey object so we can rebuild it.
         #Quoting destroys the newlines.
-        pubkey = urllib.unquote(pubkey)
+        pubkey = urllib.parse.unquote(pubkey)
         k = Keys(pub=pubkey)
         k.formatkeys()
         pubkey = k.pubkey
@@ -606,7 +606,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
             
             #Don't check from home.
@@ -670,7 +670,7 @@ class UserTrustHandler(BaseHandler):
 
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
 
             #Don't check from home.
@@ -734,7 +734,7 @@ class NewmessageHandler(BaseHandler):
             if argument.startswith("attached_file") and argument.endswith('.path'):
                 filelist.append(argument.rsplit('.')[0])
         #Uniquify list
-        filelist = dict(map(lambda i: (i,1),filelist)).keys()
+        filelist = list(dict([(i,1) for i in filelist]).keys())
         #Use this flag to know if we successfully stored or not.
         stored = False   
         client_filepath = None     
@@ -749,7 +749,7 @@ class NewmessageHandler(BaseHandler):
             client_filename =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".name"))
             client_filesize =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".size"))
            
-            print "Trying client_filepath" 
+            print("Trying client_filepath") 
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
        
@@ -787,7 +787,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['body'] = client_body
         e.payload.dict['subject'] = client_subject
         if client_regarding is not None:
-            print "Adding Regarding - " + client_regarding
+            print("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
             
         #Instantiate the user who's currently logged in
@@ -803,7 +803,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
             
             #Don't check from home.
@@ -829,7 +829,7 @@ class NewmessageHandler(BaseHandler):
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
         if client_regarding is not None:
-            print '/message/' + client_regarding + "#" + newmsgid
+            print('/message/' + client_regarding + "#" + newmsgid)
             self.redirect('/message/' + client_regarding + "#" + newmsgid, permanent=False)
         else:
             self.redirect('/message/' + newmsgid, permanent=False)
@@ -900,7 +900,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['body'] = toKey.encryptToSelf(client_body)
         e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)
         if client_regarding is not None:
-            print "Adding Regarding - " + client_regarding
+            print("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
 
         e.payload.dict['author'] = OrderedDict()
@@ -908,7 +908,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
-            gi = GeoIP.open("/usr/local/share/GeoIP/GeoIPCity.dat",GeoIP.GEOIP_STANDARD)
+            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
 
             #Don't check from home.
@@ -949,7 +949,7 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    print "Starting Web Frontend for " + server.ServerSettings['hostname']
+    print("Starting Web Frontend for " + server.ServerSettings['hostname'])
     #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
     settings = {

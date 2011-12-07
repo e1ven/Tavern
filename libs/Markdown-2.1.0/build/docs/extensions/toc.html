@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Toc &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#table-of-contents">Table of Contents</a><ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#configuration-options">Configuration Options</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="table-of-contents">Table of Contents</h1>
+<h2 id="summary">Summary</h2>
+<p>Adds a Table of Contents to a Markdown document.</p>
+<p>This extension is included with the Markdown library since version 2.0.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Place a marker in the document where you would like the table of contents to
+appear. Then, a nested list of all the headers in the document will replace the
+marker. The marker defaults to <code>[TOC]</code> so the following document:</p>
+<pre><code>[TOC]
+
+# Header 1
+
+## Header 2
+</code></pre>
+<p>would generate the following output:</p>
+<pre><code>&lt;div class="toc"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="#header-1"&gt;Header 1&lt;/a&gt;&lt;/li&gt;
+      &lt;ul&gt;
+        &lt;li&gt;&lt;a href="#header-2"&gt;Header 2&lt;/a&gt;&lt;/li&gt;
+      &lt;/ul&gt;
+  &lt;/ul&gt;
+&lt;/div&gt;
+&lt;h1 id="header-1"&gt;Header 1&lt;/h1&gt;
+&lt;h1 id="header-2"&gt;Header 2&lt;/h1&gt;
+</code></pre>
+<h2 id="configuration-options">Configuration Options</h2>
+<p>The following options are provided to configure the output:</p>
+<ul>
+<li><strong>marker</strong>: Text to find and replace with the Table of Contents. Defaults
+  to <code>[TOC]</code>.</li>
+<li><strong>slugify</strong>: Callable to generate anchors based on header text. Defaults to a
+  built in <code>slugify</code> method. The callable must accept one argument which 
+  contains the text content of the header and return a string which will be 
+  used as the anchor text.</li>
+<li><strong>title</strong>: Title to insert in TOC <code>&lt;div&gt;</code>. Defaults to <code>None</code>.</li>
+<li><strong>anchorlink</strong>: Set to <code>True</code> to have the headers link to themselves. 
+  Default is <code>False</code>.</li>
+</ul>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

@@ -1,6 +1,5 @@
 import os,json
 import hashlib
-import M2Crypto
 import imghdr
 import platform
 import time
@@ -71,7 +70,7 @@ class Server(object):
                 self.loadconfig()
             else:
                 #Generate New config   
-                print "Generating new Config" 
+                print("Generating new Config") 
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
                 self.ServerSettings = OrderedDict()
@@ -111,8 +110,7 @@ class Server(object):
                 guest = OrderedDict()
                 guest['username'] = "Guest"
                 guest['friendlyname'] = "Guest"
-                guest['hashedpass'] = bcrypt.hashpw(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(100)), bcrypt.gensalt(12))
-                
+                guest['hashedpass'] = bcrypt.hashpw(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(100)), bcrypt.gensalt(1))
                 gkeys = Keys()
                 gkeys.generate()
                 guest['privkey'] = gkeys.privkey
@@ -127,7 +125,7 @@ class Server(object):
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
  
     def loadconfig(self,filename=None):
-        print "Loading config from file."
+        print("Loading config from file.")
         if filename == None:
             filename = platform.node() + ".PluricServerSettings"
         filehandle = open(filename, 'r')
@@ -143,9 +141,7 @@ class Server(object):
         self.mongos['cache'] = self.mongocons['cache'][self.ServerSettings['cache-mongo-db']]
         self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
         self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
-        
         self.bin_GridFS = GridFS(self.mongos['binaries'])
-        
         filehandle.close()
         self.saveconfig()
 
@@ -154,11 +150,11 @@ class Server(object):
         if filename == None:
             filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
         filehandle = open(filename,'w')   
-        filehandle.write(json.dumps(self.ServerSettings,separators=(u',',u':'))) 
+        filehandle.write(json.dumps(self.ServerSettings,separators=(',',':'))) 
         filehandle.close()
 
     def prettytext(self):
-        newstr = json.dumps(self.ServerSettings,indent=2,separators=(u', ',u': '))
+        newstr = json.dumps(self.ServerSettings,indent=2,separators=(', ',': '))
         return newstr
     
 
@@ -169,12 +165,12 @@ class Server(object):
         
         #First, ensure we're dealing with a good Env, before we proceed
         if not c.validate():
-            print "Validation Error"
+            print("Validation Error")
             return False
         
         #If we don't have a local section, add one.
         #This isn't inside of validation since it's legal not to have one.
-        if not c.dict['envelope'].has_key('local'):
+        if 'local' not in c.dict['envelope']:
             c.dict['envelope']['local'] = OrderedDict()    
         
         #Pull out serverstamps.    
@@ -212,7 +208,7 @@ class Server(object):
             #Do this in the {local} block, so we don't waste bits passing this on. 
             #Partners can calculate this when they receive it.
 
-            if c.dict['envelope']['payload'].has_key('regarding'):
+            if 'regarding' in c.dict['envelope']['payload']:
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
                     repliedTo.dict['envelope']['local']['citedby'].append(c.dict['envelope']['payload_sha512'])
@@ -242,24 +238,24 @@ class Server(object):
         attachmentList = []
         displayableAttachmentList = []
         
-        if envelope['envelope']['payload'].has_key('subject'):
+        if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload']['subject'][:50]
             temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
             envelope['envelope']['local']['short_subject'] = "-".join(temp_short.split())
-        if envelope['envelope']['payload'].has_key('binaries'):
+        if 'binaries' in envelope['envelope']['payload']:
             for binary in envelope['envelope']['payload']['binaries']:
-                if binary.has_key('sha_512'):
+                if 'sha_512' in binary:
                     fname = binary['sha_512']
                     attachment = self.bin_GridFS.get_version(filename=fname)
-                    if not binary.has_key('filename'):
+                    if 'filename' not in binary:
                         binary['filename'] = "unknown_file"
                     #In order to display an image, it must be of the right MIME type, the right size, it must open in
                     #Python and be a valid image.
                     attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
                     attachmentList.append(attachmentdesc)
                     if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
-                        if binary.has_key('content_type'):
+                        if 'content_type' in binary:
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 imagetype = imghdr.what('ignoreme',h=attachment.read())
                                 acceptable_images = ['gif','jpeg','jpg','png','bmp']
@@ -275,8 +271,8 @@ class Server(object):
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
                                     displayableAttachmentList.append(binary['sha_512'])
-        if envelope['envelope']['payload'].has_key('body'):                            
-            if envelope['envelope']['payload'].has_key('formatting'):
+        if 'body' in envelope['envelope']['payload']:                            
+            if 'formatting' in envelope['envelope']['payload']:
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
             else:    
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'])
@@ -290,7 +286,7 @@ class Server(object):
         
         
         
-        if envelope.has_key('_id'):            
+        if '_id' in envelope:            
             del(envelope['_id'])        
         return envelope
 

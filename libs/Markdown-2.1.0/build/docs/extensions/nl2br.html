@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Nl2br &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#nl2br-extension">NL2BR Extension</a></li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="nl2br-extension">NL2BR Extension</h1>
+<p>A Python-Markdown extension to treat newlines as hard breaks; like
+StackOverflow and <a href="http://github.github.com/github-flavored-markdown/">GitHub</a> flavored Markdown do.</p>
+<p>Usage:</p>
+<pre><code>&gt;&gt;&gt; import markdown
+&gt;&gt;&gt; text = """
+... Line 1
+... Line 2
+... """
+&gt;&gt;&gt; html = markdown.markdown(text, extensions=['nl2br'])
+&gt;&gt;&gt; print html
+&lt;p&gt;Line 1&lt;br /&gt;
+Line 2&lt;/p&gt;
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

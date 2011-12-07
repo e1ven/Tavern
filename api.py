@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Copyright 2011 Pluric
     
@@ -29,7 +29,7 @@ from keys import *
 from User import User
 from gridfs import GridFS
 import hashlib
-import urllib
+import urllib.request, urllib.parse, urllib.error
 #import TopicList
 import uuid
 
@@ -74,7 +74,7 @@ class ListActiveTopics(BaseHandler):
         toptopics = []
         for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic['_id']['tag']) 
-        self.write(json.dumps(toptopics,separators=(u',',u':')))
+        self.write(json.dumps(toptopics,separators=(',',':')))
         self.finish()
 
 class MessageHandler(BaseHandler):        
@@ -98,7 +98,7 @@ class MessageHandler(BaseHandler):
         
         envelope = server.formatEnvelope(envelope)
         envelope['envelope']['local']['calculatedrating'] = messagerating   
-        self.write(json.dumps(envelope,separators=(u',',u':')))
+        self.write(json.dumps(envelope,separators=(',',':')))
 
 
 class TopicHandler(BaseHandler):        
@@ -123,7 +123,7 @@ class TopicHandler(BaseHandler):
             envelope = server.formatEnvelope(envelope)
             envelopes.append(envelope)
                    
-        self.write(json.dumps(envelopes,separators=(u',',u':')))
+        self.write(json.dumps(envelopes,separators=(',',':')))
             
 class PrivateMessagesHandler(BaseHandler):
     def get(self,pubkey):
@@ -136,7 +136,7 @@ class PrivateMessagesHandler(BaseHandler):
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
 
-        self.write(json.dumps(envelopes,separators=(u',',u':')))
+        self.write(json.dumps(envelopes,separators=(',',':')))
         
 
 class SubmitEnvelopeHandler(BaseHandler):
@@ -151,7 +151,7 @@ class ServerStatus(BaseHandler):
         status['timestamp'] = int(time.time())
         status['pubkey'] = server.ServerKeys.pubkey
         status['hostname'] = server.ServerSettings['hostname']
-        self.write(json.dumps(status,separators=(u',',u':')))
+        self.write(json.dumps(status,separators=(',',':')))
         
         
 
@@ -162,7 +162,7 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    print "Starting Web Frontend for " + server.ServerSettings['hostname']
+    print("Starting Web Frontend for " + server.ServerSettings['hostname'])
      
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),

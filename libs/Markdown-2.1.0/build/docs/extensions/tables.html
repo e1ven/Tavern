@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Tables &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#tables">Tables</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h2 id="tables">Tables</h2>
+<h2 id="summary">Summary</h2>
+<p>The Table Extension adds the ability to create tables in Markdown documents.</p>
+<p>This extension is included in the standard Markdown library.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Tables are defined using the syntax established in <a href="http://www.michelf.com/projects/php-markdown/extra/#table">PHP Markdown Extra</a>.</p>
+<p>Thus, the following text (taken from the above referenced PHP documentation):</p>
+<table>
+<thead>
+<tr>
+<th>First Header</th>
+<th>Second Header</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content Cell</td>
+<td>Content Cell</td>
+</tr>
+<tr>
+<td>Content Cell</td>
+<td>Content Cell</td>
+</tr>
+</tbody>
+</table>
+<p>will be rendered as:</p>
+<table>
+<thead>
+<tr>
+<th>First Header</th>
+<th>Second Header</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Content Cell</td>
+<td>Content Cell</td>
+
+</tr>
+<tr>
+<td>Content Cell</td>
+<td>Content Cell</td>
+</tr>
+</tbody>
+</table>
+
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['tables'])
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

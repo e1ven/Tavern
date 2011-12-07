@@ -27,8 +27,8 @@ if end > countEnvelopes:
     
 sitemapcount = 1 + (countEnvelopes / divisor)
 
-print "This will generate " + str(sitemapcount) + " sitemaps, beginning with element " + str(start)
-print "Generating Master sitemap file"
+print("This will generate " + str(sitemapcount) + " sitemaps, beginning with element " + str(start))
+print("Generating Master sitemap file")
 
 date1  = datetime.datetime.now().isoformat()
 datenow = date1[0:date1.find(".")] + "+00:00"
@@ -46,7 +46,7 @@ for i in range(sitemapcount):
     sitemap = open(sitemap_path, 'w')  
     sitemap.write("""<?xml version="1.0" encoding="UTF-8"?>\n""")
     sitemap.write("""<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n""")
-    print "Starting file " + str(i) + "; start = " + str(start) + " ; end " + str()
+    print("Starting file " + str(i) + "; start = " + str(start) + " ; end " + str())
 
  
     sitemapindex.write("<sitemap>")

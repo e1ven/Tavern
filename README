@@ -1,11 +1,18 @@
-Readme will go here.
-Better to write code than a doc for a product no one will read for now ;)
+Pluric is a Decentralized, Anonymous, Peer to Peer forum, written in Tornado and Python3.
+It is designed to be censorship resistant, and is based on the idea of passing signed messages.
+
+
+
+
 
 http://wiki.nginx.org/HttpLimitZoneModule
 
 http://www.crummy.com/software/BeautifulSoup/download/3.x/BeautifulSoup-3.2.0.tar.gz
 
 Using the following Libraries:
+
+	py3-bcrypt (BSD) 
+		https://bitbucket.org/widefido/py3-bcrypt/
 
 	JQuery Splitter (Under LGPL)
 		http://plugins.jquery.com/project/splitter

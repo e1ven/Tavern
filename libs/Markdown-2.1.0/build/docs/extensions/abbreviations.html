@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Abbreviations &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#abbreviations">Abbreviations</a></li>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#syntax">Syntax</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h2 id="abbreviations">Abbreviations</h2>
+<h2 id="summary">Summary</h2>
+<p>The Markdown Abbreviation Extension adds the ability to define abbreviations. 
+Specifically, any defined abbreviation is wrapped in  an <code>&lt;abbr&gt;</code> tag.</p>
+<p>The Abbreviation extension is included in the standard Markdown library.</p>
+<h2 id="syntax">Syntax</h2>
+<p>Abbreviations are defined using the syntax established in 
+<a href="http://www.michelf.com/projects/php-markdown/extra/#abbr">PHP Markdown Extra</a>.</p>
+<p>Thus, the following text (taken from the above referenced PHP documentation):</p>
+<pre><code>The HTML specification 
+is maintained by the W3C.
+
+*[HTML]: Hyper Text Markup Language
+*[W3C]:  World Wide Web Consortium
+</code></pre>
+<p>will be rendered like so:</p>
+<pre><code>&lt;p&gt;The &lt;abbr title="Hyper Text Markup Language"&gt;HTML&lt;/abbr&gt; specification 
+is maintained by the &lt;abbr title="World Wide Web Consortium"&gt;W3C&lt;/abbr&gt;.&lt;/p&gt;
+</code></pre>
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; import markdown
+&gt;&gt;&gt; text = """
+... Some text with an ABBR.
+...
+... *[ABBR]: Abbreviation
+... """
+&gt;&gt;&gt; html = markdown.markdown(text, ['abbr'])
+</code></pre>
+<p>To use with other extensions, just add them to the list, like this:</p>
+<pre><code>&gt;&gt;&gt; html = markdown.markdown(text, ['abbr', 'footnotes'])
+</code></pre>
+<p>Abbreviations can also be called from the command line using Markdown's <code>-x</code> 
+parameter, like so:</p>
+<pre><code>markdown.py -x abbr source.txt &gt; output.html
+</code></pre>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>

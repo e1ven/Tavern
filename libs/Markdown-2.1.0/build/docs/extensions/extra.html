@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset=utf-8>
+<title>Extensions | Extra &#8212; Python Markdown</title>
+<link rel=stylesheet href=style.css>
+</head>
+<body>
+<div id="nav">
+<p><a href="/">Index</a></p>
+<div class="toc">
+<ul>
+<li><a href="#python-markdown-extra">Python-Markdown Extra</a><ul>
+<li><a href="#summary">Summary</a></li>
+<li><a href="#usage">Usage</a></li>
+</ul>
+</li>
+</ul>
+</div>
+
+</div>
+<div id="content">
+<h1 id="python-markdown-extra">Python-Markdown Extra</h1>
+<h2 id="summary">Summary</h2>
+<p>A compilation of various Python-Markdown extensions that (mostly) imitates
+<a href="http://michelf.com/projects/php-markdown/extra/">PHP Markdown Extra</a>.</p>
+<p>The supported extensions include:</p>
+<ul>
+<li><a href="abbreviations.html">Abbreviations</a></li>
+<li><a href="attr_list.html">Attribute Lists</a></li>
+<li><a href="definition_lists.html">Definition Lists</a></li>
+<li><a href="fenced_code_blocks.html">Fenced Code Blocks</a></li>
+<li><a href="footnotes.html">Footnotes</a></li>
+<li><a href="tables.html">Tables</a></li>
+<li><a href="smart_strong.html">Smart Strong</a></li>
+</ul>
+<p>See each individual extension for syntax documentation. Extra and all its 
+supported extensions are included in the standard Markdown library.</p>
+<h2 id="usage">Usage</h2>
+<p>From the Python interpreter:</p>
+<pre><code>&gt;&gt;&gt; import markdown
+&gt;&gt;&gt; html = markdown.markdown(text, ['extra'])
+</code></pre>
+<p>In the unlikely event that one or more of the supported extensions are not
+available for import, Markdown will simply continue without that
+extension. If you would like to be notified of such failures,
+you may set Python-Markdown's logger level to "WARN".</p>
+<p>There may be <a href="index.html">additional extensions</a> that are distributed with
+Python-Markdown that are not included here in Extra. The features 
+of those extensions are not part of PHP Markdown Extra, and 
+therefore, not part of Python-Markdown Extra. If you really would 
+like Extra to include additional extensions, we suggest creating 
+your own clone of Extra under a different name 
+(see <a href="../writing_extensions.html">Writing Extensions</a>).<br />
+</p>
+</div>
+<p id="foot">&copy; 2010 Python Markdown Project<p>
+</body>
+</html>
