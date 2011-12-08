@@ -4,14 +4,14 @@ Message posted by: <acronym title="{{envelope['envelope']['payload']['author']['
 
 
 <form action="/usertrust" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="trust" value="100">
 <input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 <input type="submit" value="Trust This User">
 </form>
 
 <form action="/usertrust" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="trust" value="-100">
 <input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 <input type="submit" value="Distrust This User">

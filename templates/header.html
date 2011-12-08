@@ -52,7 +52,7 @@
 							<a href="/user/{{pubkey}}" alt="User Page">
 						    	{{username}}
 							</a>
-	 						<form class = "logout" action="/logout" method="post">   {{ xsrf_form_html() }} <input type="submit" value="logout" class="textbutton"></form>
+	 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton"></form>
 						</div>
             {% end %}
             </div> <!-- #menu-text -->

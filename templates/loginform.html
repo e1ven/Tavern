@@ -3,7 +3,7 @@
 	<p></p>
 
 <form action="/login" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <p>
 Username: <input type="text" name="username">
 </p><p>

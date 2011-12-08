@@ -5,7 +5,7 @@
 {% end %}
 
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 {% if topic is None %}
 Topic: <input type="text" name="topic"><br>
 {% else %}

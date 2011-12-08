@@ -17,14 +17,14 @@ Topics:<br>
 </p>
 
 <form action="/usertrust" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="trust" value="100">
 <input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 <input type="submit" value="Trust This User">
 </form>
 
 <form action="/usertrust" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="trust" value="-100">
 <input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 <input type="submit" value="Distrust This User">
@@ -67,14 +67,14 @@ Topics:<br>
 {% end %}
 
 <form action="/vote" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="rating" value="-1">
 <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 <input type="submit" value="Thumbs Down on this post">
 </form>
 
 <form action="/vote" method="post">
-  {{ xsrf_form_html() }}
+  {% raw xsrf_form_html() %}
 <input type="hidden" name="rating" value="1">
 <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 <input type="submit" value="Thumbs Up on this post">

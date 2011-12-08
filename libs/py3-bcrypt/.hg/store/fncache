@@ -1,0 +1,6 @@
+data/bcrypt/readme.i
+data/bcrypt/simple_test.py.i
+data/bcrypt/bcrypt.py.i
+data/bcrypt/test.py.i
+data/.hgignore.i
+data/bcrypt/blowfish.py.i

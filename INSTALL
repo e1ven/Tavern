@@ -83,6 +83,12 @@ python3 setup.py install
 cd /opt/Pluric/libs/BeautifulSoup-4.0b
 python3 setup.py install
 
+
+cd /opt/Pluric/libs/pycrypto-2.4.1
+./configure
+python3 setup.py install
+
+
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
 ln -s /opt/Pluric/libs/pluric /etc/init.d/
