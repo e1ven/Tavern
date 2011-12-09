@@ -5,7 +5,7 @@
 
 					<ul>
 					{% for quicktopic in toptopics %}
-                    <li><a class='internal' href="/topic/{{urllib.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
+                    <li><a class='internal' href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
                     {% end %}
 					</ul>
 				
@@ -41,10 +41,10 @@
 				<div class="thread">
 					<h2>Thread Discussion</h2>
 
-						{% if envelope['envelope'].has_key('payload_sha512') %}
-								{{ handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right")}}
+						{% if 'payload_sha512' in envelope['envelope'] %}
+								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right") %}
 						{% end %}
-				</div><!-- .thread -->
+					</div>
 				
 			</div><!-- #right -->
 		    </div><!-- #centerandright -->

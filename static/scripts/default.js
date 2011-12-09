@@ -1,17 +1,3 @@
-function include_dom(script_filename) {
-    var html_doc = document.getElementsByTagName('head').item(0);
-    var js = document.createElement('script');
-    js.setAttribute('language', 'javascript');
-    js.setAttribute('type', 'text/javascript');
-    js.setAttribute('src', script_filename);
-    js.setAttribute('origin-id', "pluric");
-    $('script[src*="js=yes"]').remove();
-    html_doc.appendChild(js);
-    return false;
-}
-
-
-
 /*
  * jQuery.splitter.js - two-pane splitter window plugin
  *
@@ -271,7 +257,7 @@ head.ready(function() {
             $("#spinner").height($(this).parent().height());
             $("#spinner").width($(this).parent().width());
             $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show()
-            include_dom($(this).attr('link-destination') + "?js=yes");
+            head.js($(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
             return false;
             });
         $(this).attr("link-destination",this.href);

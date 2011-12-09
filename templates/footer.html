@@ -13,21 +13,20 @@ if (head.browser.ie)
 {
   if ( parseFloat(head.browser.version) == 6 )
   { 
-    head.js("/static/scripts/version/2.1%28beta4%29/IE9.js");
+    head.js("/static/scripts/IE9.js");
   }
     
   if ( parseFloat(head.browser.version) > 7 )
   {
-  head.js("/static/scripts/jquery/1.5.2/jquery.min.js");
-  head.js("/static/scripts/default.js"); 
+  head.js("/static/scripts/jquery.min.js");
   }
 }
 else
 {
   head.js("/static/scripts/jquery.min.js");
-  head.js("/static/scripts/default.js");
 }
 </script>
+<script src="/static/scripts/default.js"></script>
 
 </body>
 </html>

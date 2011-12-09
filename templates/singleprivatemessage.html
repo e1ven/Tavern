@@ -28,6 +28,6 @@ Message posted by: <acronym title="{{envelope['envelope']['payload']['author']['
 <p>Body: {{formattedbody}}</p>
 
 
-{% if envelope['envelope']['payload'].has_key('coords')  %}
+{% if 'coords' in envelope['envelope']['payload']  %}
 	<p>Coords: {{envelope['envelope']['payload']['coords']}}</p>
 {% end %}

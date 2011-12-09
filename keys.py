@@ -11,7 +11,7 @@ class Keys(object):
         
         if priv == None and pub != None:
             self.key = rsa.Key(pub)
-            self.pubkey = self.key.pub.as_string()
+            self.pubkey = self.key.public.as_string()
             print("Going with Pubkey Only")
         if priv != None:
             self.key = rsa.Key(priv)
@@ -68,10 +68,13 @@ class Keys(object):
         self.privkey = self.key.as_string()
 
     def signstring(self,signstring):
-        return self.key.sign(signstring.encode('utf-8'))
+        # Convert the string to byte array
+        # Then sign, then base64
+        # Then convert that to a String
+        return base64.b64encode(self.key.sign(signstring.encode('utf-8'))).decode('utf-8')
 
     def verifystring(self,stringtoverify,signature):
-        return self.key.verify(stringtoverify.encode('utf-8'),signature)
+        return self.key.verify(stringtoverify.encode('utf-8'),  base64.b64decode(signature.encode('utf-8')  ))
 
     def encrypt(self,encryptstring):
         return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512')).decode('utf-8')

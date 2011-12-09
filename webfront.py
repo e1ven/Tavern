@@ -14,7 +14,6 @@ import datetime
 import os
 import random
 import socket
-import pymongo
 import json
 from Envelope import Envelope
 from collections import OrderedDict
@@ -83,9 +82,9 @@ class BaseHandler(tornado.web.RequestHandler):
         return soupytxt
         
     def getjs(self,element):
-        #Get the element text, remove all linebreaks, and escape it up.
-        #Then, send that as a document replacement
-        #Also, rewrite the document history in the browser, so the URL looks normal.
+        # Get the element text, remove all linebreaks, and escape it up.
+        # Then, send that as a document replacement
+        # Also, rewrite the document history in the browser, so the URL looks normal.
         
         jsvar = self.request.uri.find("js=")
         if jsvar > -1:
@@ -133,7 +132,7 @@ class BaseHandler(tornado.web.RequestHandler):
                             $("#spinner").height($(this).parent().height());
                             $("#spinner").width($(this).parent().width());
                             $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show();
-                            include_dom($(this).attr('link-destination') + "?js=yes");
+                            head.js($(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
                             return false;
                         });
                         $(this).attr("link-destination",this.href);
@@ -176,13 +175,14 @@ class BaseHandler(tornado.web.RequestHandler):
                 ''')
 
     def getvars(self):
-        self.username = self.get_secure_cookie("username").decode('utf-8')
+        self.username = self.get_secure_cookie("username")
         if self.username is None:
             self.username = "Guest"
             self.loggedin = False
         else:
+            self.username = self.username.decode('utf-8')
             self.loggedin = True
-        self.maxposts = self.get_secure_cookie("maxposts").decode('utf-8')
+        self.maxposts = self.get_secure_cookie("maxposts")
         if self.maxposts is None:
             self.maxposts = 20
         else:
@@ -192,7 +192,9 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             self.maxposts = int(self.maxposts)
         
-        self.pubkey = self.get_secure_cookie("pubkey").decode('utf-8')
+        self.pubkey = self.get_secure_cookie("pubkey")
+        if self.pubkey is not None:
+            self.pubkey = self.pubkey.decode('utf-8')
         #Toggle this.
         self.include_loc = "on"  
            

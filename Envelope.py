@@ -218,6 +218,7 @@ class Envelope(object):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
+        pprint.pprint(self.dict)
         newstr = json.dumps(self.dict,separators=(',',':'))
         return newstr
 

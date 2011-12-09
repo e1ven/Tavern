@@ -41,7 +41,7 @@ Topics:<br>
 <p>Body: {{formattedbody}}</p>
 
 
-{% if envelope['envelope']['payload'].has_key('coords')  %}
+{% if 'coords' in envelope['envelope']['payload']  %}
 	<p>Coords: {{envelope['envelope']['payload']['coords']}}</p>
 {% end %}
 
@@ -51,14 +51,14 @@ Topics:<br>
     {% end %}
 {% end %}
 
-{% if envelope['envelope']['local'].has_key('attachmentlist') %}
+{% if 'attachmentlist' in envelope['envelope']['local'] %}
     {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
             <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
             ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
     {% end %}
 {% end %}
 
-{% if envelope['envelope']['local'].has_key('citedby') %}
+{% if 'citedby' in envelope['envelope']['local'] %}
 	{% if len(envelope['envelope']['local']['citedby']) > 0 %}
 		{% for cited in envelope['envelope']['local']['citedby'] %}
 			<a href="/message/{{cited}}">Reply: {{cited}}</a><br>

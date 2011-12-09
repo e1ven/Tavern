@@ -1,49 +1,43 @@
 #!/usr/bin/env python3
-
-import datetime
 import pymongo
-from bson.code import Code
+from datetime import datetime, timedelta
+from pymongo.code import Code
 from server import server
-from User import User
-
 class TopicList(object):
-    def __init__(self): 
-        #We put this in an init function so I can just create one a TopicList
-        #This allows me to create one at Runtime if nec. 
-        map = Code("""
-        function() {
-                if (this.envelope.payload.class == 'message')
-                {
-                    for (var i =0; i < this.envelope.payload.topictag.length; i++) 
-                	{
-                	    var timestamp = Number(new Date()/1000);
-                	    mtime = this.envelope.local.time_added;
-                	    print(mtime)
-                	    print(timestamp)
-                	    if ((mtime + 1186400) > timestamp )
-                	        {
-                                singletag = this.envelope.payload.topictag[i];
-				if (singletag != 'sitecontent')
-				{
-                                	emit({tag:singletag},{count:1}); 
-				}
+    def __init__(self):
+        MAP_FUNCTION = Code("""
+                function() {
+                        if (this.envelope.payload.class == 'message')
+                        {
+                            for (var i =0; i < this.envelope.payload.topictag.length; i++) 
+                                {
+                                    var timestamp = Number(new Date()/1000);
+                                    mtime = this.envelope.local.time_added;
+                                    print(mtime)
+                                    print(timestamp)
+                                    if ((mtime + 1186400) > timestamp )
+                                        {
+                                        singletag = this.envelope.payload.topictag[i];
+                                        if (singletag != 'sitecontent')
+                                        {
+                                                emit({tag:singletag},{count:1}); 
+                                        }
 
-                            }
-                	}
-            	}
+                                    }
+                                }
+                        }
                                               
-        }
-        """)
-
-        reduce = Code("""
-        function(key, values) {
-            var count = 0;
-            values.forEach(function(v) {
-                count += v['count'];
-                });
-                return {count: count};
                 }
-        """)
+                """)
+        REDUCE_FUNCTION = Code("""
+                function(key, values) {
+                    var count = 0;
+                    values.forEach(function(v) {
+                        count += v['count'];
+                        });
+                        return {count: count};
+                        }
+                """)
 
-        server.mongos['default']['envelopes'].map_reduce(map, reduce, "topiclist")
+        server.mongos['default']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 T = TopicList()
