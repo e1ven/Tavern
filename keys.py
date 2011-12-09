@@ -1,7 +1,7 @@
 import os,re
 import string,hashlib,base64
-import Crypto.PublicKey.RSA as RSA
-import Crypto.Hash.MD5 as MD5
+from tomcrypt import cipher,rsa
+
  
 class Keys(object):
 
@@ -10,15 +10,14 @@ class Keys(object):
         self.privkey = priv
         
         if priv == None and pub != None:
-            self.key = RSA.importKey(pub)
-            
-        if priv != None and pub != None:
-            combinedkey = pub + priv
-            self.key = RSA.importKey(combinedkey)
-        
-        if priv != None and pub == None:
-            print("Weirdness. Don't do that.")
-            return False   
+            self.key = rsa.Key(pub)
+            self.pubkey = self.key.pub.as_string()
+            print("Going with Pubkey Only")
+        if priv != None:
+            self.key = rsa.Key(priv)
+            self.pubkey = self.key.public.as_string()
+            self.privkey = self.key.as_string()
+            print("Full Key")
             
             
              
@@ -64,24 +63,22 @@ class Keys(object):
 
 
     def generate(self):
-        self.key = RSA.generate(4096)
-        self.pubkey = str(self.key.publickey().exportKey(),encoding='latin1')
-        self.privkey  = str(self.key.exportKey(),encoding='latin1')
+        self.key = rsa.Key(4096)
+        self.pubkey = self.key.public.as_string()
+        self.privkey = self.key.as_string()
 
     def signstring(self,signstring):
-        
-        # Second Parameter is not needed for RSA.        
-        return self.key.sign(signstring.encode('utf-8'),'')
+        return self.key.sign(signstring.encode('utf-8'))
 
     def verifystring(self,stringtoverify,signature):
         return self.key.verify(stringtoverify.encode('utf-8'),signature)
 
-    def encryptToSelf(self,encryptstring):
-        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),'')[0]).decode('utf-8')
+    def encrypt(self,encryptstring):
+        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512')).decode('utf-8')
+        
+    def decrypt(self,decryptstring):
+        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')),hash='sha512').decode('utf-8')
 
-    def decryptToSelf(self,decryptstring):
-        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8'))).decode('utf-8')
-
-    def dokeysmatch(self):
+    def testsigning(self):
         self.formatkeys()
         return self.verifystring(stringtoverify="ABCD1234",signature=self.signstring("ABCD1234"))

@@ -44,6 +44,18 @@ cp nginx.conf /opt/nginx/conf/
 cd /opt/Pluric/libs/distribute-0.6.24/
 python3 distribute_setup.py
 
+
+cd /opt/Pluric/libs/Cython-0.15.1
+python3 setup.py install
+
+cd /opt/Pluric/libs/Mako-0.5.0
+python3 setup.py install
+
+cd /opt/Pluric/lib/PyTomCrypt
+make sources
+python3 setup.py build
+python3 setup.py install
+
 cd /opt/Pluric/libs/tornado-2.1.1
 python3 setup.py install
 

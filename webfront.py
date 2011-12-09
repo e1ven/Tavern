@@ -176,13 +176,13 @@ class BaseHandler(tornado.web.RequestHandler):
                 ''')
 
     def getvars(self):
-        self.username = self.get_secure_cookie("username")
+        self.username = self.get_secure_cookie("username").decode('utf-8')
         if self.username is None:
             self.username = "Guest"
             self.loggedin = False
         else:
             self.loggedin = True
-        self.maxposts = self.get_secure_cookie("maxposts")
+        self.maxposts = self.get_secure_cookie("maxposts").decode('utf-8')
         if self.maxposts is None:
             self.maxposts = 20
         else:
@@ -192,7 +192,7 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             self.maxposts = int(self.maxposts)
         
-        self.pubkey = self.get_secure_cookie("pubkey")
+        self.pubkey = self.get_secure_cookie("pubkey").decode('utf-8')
         #Toggle this.
         self.include_loc = "on"  
            
@@ -828,12 +828,14 @@ class NewmessageHandler(BaseHandler):
                 
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
-        if client_regarding is not None:
-            print('/message/' + client_regarding + "#" + newmsgid)
-            self.redirect('/message/' + client_regarding + "#" + newmsgid, permanent=False)
+        if newmsgid != False:
+            if client_regarding is not None:
+                print('/message/' + client_regarding + "#" + newmsgid)
+                self.redirect('/message/' + client_regarding + "#" + newmsgid, permanent=False)
+            else:
+                self.redirect('/message/' + newmsgid, permanent=False)
         else:
-            self.redirect('/message/' + newmsgid, permanent=False)
-                
+            self.write("Failure to insert message.")
 
 class MyPrivateMessagesHandler(BaseHandler):
     def get(self):

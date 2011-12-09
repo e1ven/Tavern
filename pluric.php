@@ -251,7 +251,7 @@ class Envelope
 		$binary_signature = "";
 
 		// Generate and verify a signature for the message.
-		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],OPENSSL_ALGO_SHA1);
+		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],"sha512");
 		$ok = openssl_verify($payloadtxt, $binary_signature,$user->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
 		if ($ok != 1)
 		{

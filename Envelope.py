@@ -24,7 +24,7 @@ class Envelope(object):
         def hash(self):
             self.format()
             h = hashlib.sha512()
-            h.update(self.text())
+            h.update(self.text().encode('utf-8'))
             # print "Hashing --" + self.text() + "--"
             return h.hexdigest()
         def text(self): 
@@ -107,7 +107,7 @@ class Envelope(object):
                   
     def validate(self):
         #Validate an Envelope   
-                
+        print(self.text())        
         
         #Check headers 
         if 'envelope' not in self.dict:
@@ -218,7 +218,7 @@ class Envelope(object):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
-        newstr = json.dumps(self.dict,separators=(',',':'),encoding='utf8')
+        newstr = json.dumps(self.dict,separators=(',',':'))
         return newstr
 
     def prettytext(self):
