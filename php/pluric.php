@@ -1,5 +1,6 @@
 <?php
-
+include('Crypt/RSA.php');
+define('CRYPT_RSA_MODE', CRYPT_RSA_MODE_OPENSSL);
 
 // The main ForumLegion server class.
 // This contains the key interfaces for talking with the FL server.
@@ -11,7 +12,7 @@ class FLServer
 	
 	function __construct()
 	{
-		$this->SERVER_URL = 'http://pluric.com:8090';
+		$this->SERVER_URL = 'http://127.0.0.1:8090';
 		$this->TOPIC = 'ClientTest';		
 	}
 	
@@ -207,22 +208,28 @@ class Envelope
 		// Verify each Stamp, ensuring there are no forgeries. 
 		
 		$listofstamps = $this->dict['envelope']['stamps'];	
+		$rsa = new Crypt_RSA();
+		$rsa->setHash('SHA512');
+		$rsa->setMGFHash('SHA512');
+		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
+		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);	
+		
 		foreach ($listofstamps as $stamp)
 		{
 			$signature = base64_decode($stamp['signature']);
 			$stampkey = $stamp['pubkey'];
-            $pubkeyid = openssl_get_publickey($stampkey);
+			$rsa->loadKey($stampkey);
 
 			// Verify the signature, against the pubkey and the payload_json (which is what is signed)
-			if (! openssl_verify($this->payload_json(), $signature, $pubkeyid, OPENSSL_ALGO_SHA1) == 1)
+			if (! $rsa->verify($this->payload_json(),$signature) == 1)
 			{
 				print "Error verifying Stamp.";
 				return False;
 			}
-
-			// free the key from memory
-			openssl_free_key($pubkeyid);
 		}
+		print "verifies!";
+		return True;
 	}
 
 
@@ -244,28 +251,23 @@ class Envelope
 		// Store the hash into the envelope
 		$this->dict['envelope']['payload_sha512'] = $this->payload_hash();
 
-		// Get the text we want to sign.
-		$payloadtxt = $this->payload_json();
 
-		//Create an empty sig; This will be filled in in a moment.
-		$binary_signature = "";
+		$rsa = new Crypt_RSA();
+		$rsa->setHash('SHA512');
+		$rsa->setMGFHash('SHA512');
+		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
+		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);	
+		$privatekey = $user->usersettings['privkey'];
 
-		// Generate and verify a signature for the message.
-		$ok = openssl_sign($payloadtxt,$binary_signature,$user->usersettings['privkey'],"sha512");
-		$ok = openssl_verify($payloadtxt, $binary_signature,$user->usersettings['pubkey'], OPENSSL_ALGO_SHA1);
-		if ($ok != 1)
-		{
-			print "Failure to sign the Envelope. Aborting";
-			return False;
-		}
-		
+		$rsa->loadKey($privatekey);
+		$signature = $rsa->sign($this->payload_json());
 		// Stamp the message with our signature. 
 		
 		$sender_stamp['class'] = "author";
 		$sender_stamp['pubkey'] = $user->usersettings['pubkey'];
-		$sender_stamp['signature'] = base64_encode($binary_signature);	
-		$sender_stamp['time_added'] = (int)gmdate('U');
-		
+		$sender_stamp['signature'] = base64_encode($signature);	
+		$sender_stamp['time_added'] = (int)gmdate('U');		
 		$this->dict['envelope']['stamps'][] = $sender_stamp;
 	}	
 	
@@ -344,17 +346,20 @@ class User
 	
 	function generatekeys()
 	{
-		$config = array('private_key_bits' => 4096, 'digest_alg' => 'sha1','private_key_type' => OPENSSL_KEYTYPE_RSA);
-		$res = openssl_pkey_new($config);
-		openssl_pkey_export($res, $privkey);
+		$rsa = new Crypt_RSA();
 		
-		//We need to do this little dance, since it returns a pubkey object, and we just want the key itself.
-		$pubkey= openssl_pkey_get_details($res);
-		$pubkey=$pubkey["key"];
+		$rsa->setMGFHash('SHA512');
+		$rsa->setHash('SHA512');
+		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
+		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);
 		
-		$this->usersettings['privkey'] = trim($privkey);
-		$this->usersettings['pubkey'] = trim($pubkey);
-		
+		print "Generating new Public/Private Key";	
+		extract($rsa->createKey(4096));
+		print "Keys Made.";
+		print $publickey;
+		$this->usersettings['privkey'] = trim($privatekey);
+		$this->usersettings['pubkey'] = trim($publickey);
 	}
 		
 }
@@ -403,7 +408,7 @@ $e->sign($u);
 $e->verify();
 
 $server->submitenvelope($e);
-
+print_r($e);
 // //Upload the message we just wrote.
 // $e->uploadenvelope($u);
 // 
@@ -485,5 +490,3 @@ $server->submitenvelope($e);
 
 
 ?>
-
-

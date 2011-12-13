@@ -10,11 +10,11 @@ class Keys(object):
         self.privkey = priv
         
         if priv == None and pub != None:
-            self.key = rsa.Key(pub)
+            self.key = rsa.Key(pub,hash='sha512',padding="PSS")
             self.pubkey = self.key.public.as_string()
             print("Going with Pubkey Only")
         if priv != None:
-            self.key = rsa.Key(priv)
+            self.key = rsa.Key(priv,hash='sha512',padding="PSS")
             self.pubkey = self.key.public.as_string()
             self.privkey = self.key.as_string()
             print("Full Key")
@@ -63,7 +63,7 @@ class Keys(object):
 
 
     def generate(self):
-        self.key = rsa.Key(4096)
+        self.key = rsa.Key(4096,hash='sha512',padding="PSS")
         self.pubkey = self.key.public.as_string()
         self.privkey = self.key.as_string()
 
@@ -71,16 +71,16 @@ class Keys(object):
         # Convert the string to byte array
         # Then sign, then base64
         # Then convert that to a String
-        return base64.b64encode(self.key.sign(signstring.encode('utf-8'))).decode('utf-8')
+        return base64.b64encode(self.key.sign(signstring.encode('utf-8'),hash='sha512',padding="PSS")).decode('utf-8')
 
     def verifystring(self,stringtoverify,signature):
-        return self.key.verify(stringtoverify.encode('utf-8'),  base64.b64decode(signature.encode('utf-8')  ))
+        return self.key.verify(stringtoverify.encode('utf-8'), base64.b64decode(signature.encode('utf-8')),hash='sha512',padding="PSS")
 
     def encrypt(self,encryptstring):
-        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512')).decode('utf-8')
+        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512',padding="PSS")).decode('utf-8')
         
     def decrypt(self,decryptstring):
-        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')),hash='sha512').decode('utf-8')
+        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')),hash='sha512',padding="PSS").decode('utf-8')
 
     def testsigning(self):
         self.formatkeys()

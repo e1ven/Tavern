@@ -84,7 +84,7 @@
 
 The "time_added" format is the number of seconds since the epoch, expressed in UTC.
 
-The 'MESSAGE_SHA512' should be the SHA-512 hash of the 'Message' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
+The 'PAYLOAD_SHA512' should be the SHA-512 hash of the 'PAYLOAD' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
 SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
 
 
@@ -96,20 +96,17 @@ We define two stamps in particular-
     The second is class Server, which is signed by each server that touches the message.
     Origin is the FIRST server to touch the message.
 
-Each stamp has a "signature" which should be an RSA signature of the 'Message' portion. The signature uses a SHA1 digest.
+Each stamp has a "signature" which should be an RSA signature of the 'Message' portion. The signature uses a SHA512 digest and PKCS #1 v1.5 padding.
 
 
 The server's signature should also be of the "Message" portion, not the entire container.
 
 "Regarding" should be the 'POSTID_SHA512' of the message, if any, that this is in reference to.  If this is not in reference to another message, this field should be omitted.
-You should not post a message with a "regarding" of a binary-control-message. If you do, a server should discard the message.
-
 
 
 
 The "TopicTag" field may be used to specify the overall topic. This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.  
 You may specify any number of topics you wish, but many servers will not carry a message if it has too many. (Pluric.com limits you to 3)
-You may also omit any topictags entirely. In this case, only people following you are likely to see the message.
 
 The optional "TO" field allows you to specify a public key of a person to whom the message is directed. Their client may or may not look for this field.
 You may specify any number of "TO" fields, but many servers will not carry a message if it has too many. (Pluric.com limits you to 100)
@@ -128,18 +125,17 @@ Since this is impossible to secure, it's best to treat this like a web browser's
 If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.
 
 
-The "Subject" should contain the subject of the message. If you are replying to an existing message, it's fine to import from that message. DO NOT change the subject to add a "RE: "-whatever. Just set the "regarding" field.
-The "Body" section should be plaintext. Github-flavored markdown could be a potential option, but there aren't parsing libraries for every platform, and linebreaks/etc are overkill for simple message exchange.
+The "Subject" should contain the subject of the message. If you are replying to an existing message, it's fine to import from that message. 
+There's no reason to modify the subject, but it won't hurt anything.
+Adding a  "RE: " is stupid. 
+Just set the "regarding" field.
 
+The "Body" section should be plaintext, formatted in markdown or bbcode. 
+Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 
 
 Any binaries that are to be included should have a the SHA512 of their uploaded file.
 
-
-
-
---TODO LATER--
 The 'Message' section may alternatively be replaced by 'ENCRYPTED_MESSAGE'.
-
 
 <ENCRYPTED_MESSAGE>
 	<TO>PUBLICKEY_ABCDEFG</TO>
@@ -150,5 +146,3 @@ The "To" field is optional, and allows clients to quickly discard a message if t
 The "ENC_DATA" text should be identical to the "MESSAGE" text above, including formatting, after decryption by the proper private-key.
 In this case, the "POSTID-SHA512" field, should contain the SHA-512 of the "ENCRYPTED_MESSAGE" field.
 
-
-http://www.thomasfrank.se/xml_to_json.html

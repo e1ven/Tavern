@@ -2,7 +2,7 @@
 #
 # Copyright 2011 Pluric
     
-import  asyncmongo
+import codecs
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -23,7 +23,6 @@ from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
 from server import server
-import GeoIP
 import pprint
 from keys import *
 from User import User
@@ -45,11 +44,6 @@ define("port", default=8090, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    @property
-    def db(self):
-        if not hasattr(self, '_db'):
-            self._db = asyncmongo.Client(pool_id='basepool', host=server.ServerSettings['mongo-hostname'], port=server.ServerSettings['mongo-port'], maxcached=10, maxconnections=50, dbname=server.ServerSettings['mongo-db'])
-        return self._db
 
     def error(self,errortext):
 	    self.write("***ERROR***")
@@ -141,7 +135,9 @@ class PrivateMessagesHandler(BaseHandler):
 
 class SubmitEnvelopeHandler(BaseHandler):
     def post(self):
-        client_message =  self.get_argument("envelope")
+        
+        client_message = tornado.escape.to_unicode(self.get_argument("envelope"))
+        # client_message = codecs.unicode_escape_decode(client_message)[0]
         server.receiveEnvelope(client_message)
 
 class ServerStatus(BaseHandler):

@@ -39,6 +39,7 @@ class Envelope(object):
                 if 'pubkey' not in self.dict['author']:
                     print("No Pubkey line in Author info")
                     return False
+            self.format()
             return True                
                           
     class Message(Payload):
@@ -113,7 +114,10 @@ class Envelope(object):
         if 'envelope' not in self.dict:
             print("Invalid Envelope. No Header")
             return False
-        
+            
+        if self.dict['envelope']['payload_sha512'] != self.payload.hash():
+            print("Possible tampering. SHA doesn't match. Abort.")
+            return False
            
         #Ensure we have 1 and only 1 author signature stamp        
         stamps = self.dict['envelope']['stamps']
@@ -132,14 +136,19 @@ class Envelope(object):
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
             stampkey = Keys(pub=stamp['pubkey'])
+            print(type(self.payload.text()))
+            print(self.payload.text())
+            print(type(stamp['signature']))
+            print(stamp['signature'])
             if stampkey.verifystring(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
                     print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
-        #Validate our Payload.
+
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
                 print("Payload does not validate.")
                 return False
+                
         return True    
 
 
