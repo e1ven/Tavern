@@ -1,30 +1,39 @@
-import os,re
-import string,hashlib,base64
+import os
+import re
+import string
+import hashlib
+import base64
 from tomcrypt import cipher,rsa
 
  
 class Keys(object):
-
-    def __init__(self,pub=None,priv=None):    
+    
+    def __init__(self,pub=None,priv=None):  
+        """
+        Create a Key object.
+        Pass in either pub=foo, or priv=foo, to use pre-existing keys.
+        """
+        
         self.pubkey = pub
         self.privkey = priv
         
         if priv == None and pub != None:
-            self.key = rsa.Key(pub,hash='sha512',padding="PSS")
+            self.key = rsa.Key(pub,hash='sha512',padding="pss")
             self.pubkey = self.key.public.as_string()
             print("Going with Pubkey Only")
         if priv != None:
-            self.key = rsa.Key(priv,hash='sha512',padding="PSS")
+            self.key = rsa.Key(priv,hash='sha512',padding="pss")
             self.pubkey = self.key.public.as_string()
             self.privkey = self.key.as_string()
             print("Full Key")
             
             
              
-    def formatkeys(self):
-        #Format the priv and pub keys
-        #Make sure we have proper linebreaks every 64 characters, and a header/footer
-        
+    def format_keys(self):
+        """ 
+        Ensure the keys are in the proper format, with linebreaks. 
+        linebreaks are every 64 characters, and we have a header/footer.
+        """   
         #Strip out the headers
         #Strip out the linebreaks
         #Re-Add the Linebreaks
@@ -63,25 +72,45 @@ class Keys(object):
 
 
     def generate(self):
-        self.key = rsa.Key(4096,hash='sha512',padding="PSS")
+        """
+        Replaces whatever keys currently might exist with new ones.
+        """
+        self.key = rsa.Key(4096,hash='sha512',padding="pss")
         self.pubkey = self.key.public.as_string()
         self.privkey = self.key.as_string()
 
     def signstring(self,signstring):
-        # Convert the string to byte array
-        # Then sign, then base64
-        # Then convert that to a String
-        return base64.b64encode(self.key.sign(signstring.encode('utf-8'),hash='sha512',padding="PSS")).decode('utf-8')
+        """
+        Sign a string, and return back the Base64 Signature.
+        """
+        # It seems with PyTomCrypt, you need to manually hash things before signing.
+        # The Salt Length == 64 == the length of SHA512. If you use sha1, change this to 20, etc.
+    
+        digest = hashlib.sha512(signstring.encode('utf-8')).digest()
+        bsigned = self.key.sign(digest,hash='sha512',padding="pss",saltlen=64)
+        return base64.b64encode(bsigned).decode('utf-8')
 
-    def verifystring(self,stringtoverify,signature):
-        return self.key.verify(stringtoverify.encode('utf-8'), base64.b64decode(signature.encode('utf-8')),hash='sha512',padding="PSS")
-
+    def verify_string(self,stringtoverify,signature):  
+        """
+        Verify the passed in string matches the passed signature
+        """
+        
+        # It's pretty stupid we need to manually digest, but.. Cest la vie.
+        # Maybe a new version of pyTomCrypto will do this for us.
+                   
+        digested = hashlib.sha512(stringtoverify.encode('utf-8')).digest()
+        binarysig = base64.b64decode(signature.encode('utf-8'))
+        return self.key.verify(digested,binarysig,padding="pss",hash="sha512",saltlen=64)
+        
     def encrypt(self,encryptstring):
-        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512',padding="PSS")).decode('utf-8')
+        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'),hash='sha512',padding="pss")).decode('utf-8')
         
     def decrypt(self,decryptstring):
-        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')),hash='sha512',padding="PSS").decode('utf-8')
+        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')),hash='sha512',padding="pss").decode('utf-8')
 
-    def testsigning(self):
-        self.formatkeys()
-        return self.verifystring(stringtoverify="ABCD1234",signature=self.signstring("ABCD1234"))
+    def test_signing(self):
+        """
+        Verify the signing/verification engine works as expected
+        """
+        self.format_keys()
+        return self.verify_string(stringtoverify="ABCD1234",signature=self.signstring("ABCD1234"))

@@ -33,14 +33,14 @@ class Server(object):
         def __init__(self, dt):
             now = datetime.datetime.now()
             delta = now - dt
-            self.year = delta.days / 365
-            self.month = delta.days / 30 - (12 * self.year)
+            self.year = round(delta.days / 365)
+            self.month = round(delta.days / 30 - (12 * self.year))
             if self.year > 0:
                 self.day = 0
             else: 
                 self.day = delta.days % 30
-            self.hour = delta.seconds / 3600
-            self.minute = delta.seconds / 60 - (60 * self.hour)
+            self.hour = round(delta.seconds / 3600)
+            self.minute = round(delta.seconds / 60 - (60 * self.hour))
             self.second = delta.seconds - ( self.hour * 3600) - (60 * self.minute) 
             self.millisecond = delta.microseconds / 1000
 
@@ -185,7 +185,7 @@ class Server(object):
         for server in serverlist:            
             if server['pubkey'] == self.ServerKeys.pubkey:
                 #Potential Us. Let's Verify it really is.
-                if Keys(pub=self.ServerKeys.pubkey).verifystring(stringtoverify=c.payload.text(),signature=server['pubkey']) == True:
+                if Keys(pub=self.ServerKeys.pubkey).verify_string(stringtoverify=c.payload.text(),signature=server['pubkey']) == True:
                     #It's a Me!
                     #Don't double-process. Abort.
                     return False

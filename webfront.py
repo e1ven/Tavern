@@ -248,10 +248,13 @@ class TopicHandler(BaseHandler):
         self.write(self.render_string('footer.html'))
 
 
-class TriPaneHandler(BaseHandler): 
-    #The TriPane Handler is the beefiest handler in the project.
-    #It renders the main tri-panel interface, and only pushes out the parts that are needed.
-                
+class TriPaneHandler(BaseHandler):
+    
+    """ 
+    The TriPane Handler is the beefiest handler in the project.
+    It renders the main tri-panel interface, and only pushes out the parts that are needed.
+    """            
+    
     def get(self,param1=None,param2=None,param3=None):
         self.getvars()
                
@@ -305,8 +308,11 @@ class TriPaneHandler(BaseHandler):
             subjects = []
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
-            displayenvelope = subjects[0] 
-            messageid = subjects[0]['envelope']['payload_sha512'] 
+                
+            if len(subjects) > 0:
+                displayenvelope = subjects[0]
+                messageid = subjects[0]['envelope']['payload_sha512'] 
+                
             canon="topic/" + topic 
             title=topic
  
@@ -494,7 +500,7 @@ class ShowUserPosts(BaseHandler):
         #Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
         k = Keys(pub=pubkey)
-        k.formatkeys()
+        k.format_keys()
         pubkey = k.pubkey
         
         messages = []
@@ -894,7 +900,7 @@ class NewPrivateMessageHandler(BaseHandler):
         
         #Instantiate the key of the user who we're sending to
         toKey = Keys(pub=client_to)
-        toKey.formatkeys()
+        toKey.format_keys()
 
 
         e = Envelope()

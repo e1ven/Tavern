@@ -140,7 +140,7 @@ class Envelope(object):
             print(self.payload.text())
             print(type(stamp['signature']))
             print(stamp['signature'])
-            if stampkey.verifystring(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
+            if stampkey.verify_string(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
                     print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
 

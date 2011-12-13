@@ -208,12 +208,15 @@ class Envelope
 		// Verify each Stamp, ensuring there are no forgeries. 
 		
 		$listofstamps = $this->dict['envelope']['stamps'];	
+		
 		$rsa = new Crypt_RSA();
-		$rsa->setHash('SHA512');
-		$rsa->setMGFHash('SHA512');
+		$rsa->setMGFHash('sha512');
+		$rsa->setHash('sha512');
 		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
 		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
-		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);	
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);
+		//Salt should be 20 for SHA1 and 64 for SHA512
+		$rsa->setSaltLength(64);
 		
 		foreach ($listofstamps as $stamp)
 		{
@@ -253,11 +256,13 @@ class Envelope
 
 
 		$rsa = new Crypt_RSA();
-		$rsa->setHash('SHA512');
-		$rsa->setMGFHash('SHA512');
+		$rsa->setMGFHash('sha512');
+		$rsa->setHash('sha512');
 		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
 		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
-		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);	
+		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);
+		//Salt should be 20 for SHA1 and 64 for SHA512
+		$rsa->setSaltLength(64);	
 		$privatekey = $user->usersettings['privkey'];
 
 		$rsa->loadKey($privatekey);
@@ -348,16 +353,17 @@ class User
 	{
 		$rsa = new Crypt_RSA();
 		
-		$rsa->setMGFHash('SHA512');
-		$rsa->setHash('SHA512');
+		$rsa->setMGFHash('sha512');
+		$rsa->setHash('sha512');
 		$rsa->setPublicKeyFormat(CRYPT_RSA_PUBLIC_FORMAT_PKCS1);
 		$rsa->setPrivateKeyFormat(CRYPT_RSA_PRIVATE_FORMAT_PKCS1);
 		$rsa->setSignatureMode(CRYPT_RSA_SIGNATURE_PSS);
+		//Salt should be 20 for SHA1 and 64 for SHA512
+		$rsa->setSaltLength(64);
 		
 		print "Generating new Public/Private Key";	
 		extract($rsa->createKey(4096));
 		print "Keys Made.";
-		print $publickey;
 		$this->usersettings['privkey'] = trim($privatekey);
 		$this->usersettings['pubkey'] = trim($publickey);
 	}
@@ -408,7 +414,6 @@ $e->sign($u);
 $e->verify();
 
 $server->submitenvelope($e);
-print_r($e);
 // //Upload the message we just wrote.
 // $e->uploadenvelope($u);
 // 
