@@ -4,6 +4,9 @@
 # Ensure you have the proper system-level libraries.
 apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev
 
+ln -s /usr/bin/python3.2 /usr/bin/python
+
+
 #On 64 bit
 apt-get install lib32z1
 
@@ -51,7 +54,13 @@ python3 setup.py install
 cd /opt/Pluric/libs/Mako-0.5.0
 python3 setup.py install
 
-cd /opt/Pluric/lib/PyTomCrypt
+cd /opt/Pluric/lib
+git clone https://github.com/mikeboers/PyTomCrypt.git
+cd /opt/Pluric/libs/PyTomCrypt
+# You need to make sure cython works for this step.
+# You might need to ln -s /usr/bin/python3 /usr/local/bin/python3
+# Also, vi preprocess, and change the first line to #!/usr/bin/env python3
+
 make sources
 python3 setup.py build
 python3 setup.py install
