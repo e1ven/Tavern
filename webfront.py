@@ -39,11 +39,16 @@ except ImportError:
 import NofollowExtension
 
 
-define("port", default=8080, help="run on the given port", type=int)
-
-
 class BaseHandler(tornado.web.RequestHandler):
-
+    
+    """
+    The BaseHandler is the baseclass for all objects in the webserver.
+    It is not expected to ever be instantiated directly.
+    It's main uses are:
+        * Handle Cookies/logins
+        * Allow modules to update just PARTS of the page
+    """
+    
     def __init__(self, *args, **kwargs):
         #Ensure we have a html variable set.
         self.html = ""
@@ -82,10 +87,11 @@ class BaseHandler(tornado.web.RequestHandler):
         return soupytxt
         
     def getjs(self,element):
-        # Get the element text, remove all linebreaks, and escape it up.
-        # Then, send that as a document replacement
-        # Also, rewrite the document history in the browser, so the URL looks normal.
-        
+        """ 
+        Get the element text, remove all linebreaks, and escape it up.
+        Then, send that as a document replacement
+        Also, rewrite the document history in the browser, so the URL looks normal.
+        """
         jsvar = self.request.uri.find("js=")
         if jsvar > -1:
             #This should always be true    
@@ -93,7 +99,7 @@ class BaseHandler(tornado.web.RequestHandler):
             nextvar = self.request.uri.find("&",jsvar)
             if nextvar > 0:
                 #There are Additional Variables in this URL
-                finish = self.request.uri[nextvar:len(self.request.uri)]
+                finish = "?" + self.request.uri[nextvar+1:len(self.request.uri)]
             else:
                 print("No Next variables")
                 #There are no other variables. Delete until End of string
@@ -175,6 +181,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 ''')
 
     def getvars(self):
+        """
+        Retrieve the basic user variables out of your cookies.
+        """
         self.username = self.get_secure_cookie("username")
         if self.username is None:
             self.username = "Guest"
@@ -200,52 +209,39 @@ class BaseHandler(tornado.web.RequestHandler):
            
         return str(self.username)
            
-    
-
-
-class FancyPantsTemplate(BaseHandler):
-    def write(self,text):
-        if callback is not None:
-            self.write("var mydiv = document.getElementById('" + tornado.escape.xhtml_escape(addto) + "'); mydiv.appendChild(document.createTextNode('" + tornado.escape.xhtml_escape(callback) + "'));")
-        if addto is None:
-            return
-        else:
-            self.write(text)
-
-
+    def forceregister(self):
+        """
+        Create a new account for a user.
+        They can customize it later if they want.
+        """
+        newpassword = base64.urlsafe_b64encode(os.urandom(100)).decode('utf-8')
+        newusername = 'guest-' + base64.urlsafe_b64encode(os.urandom(20)).decode('utf-8')
+        hashedpass = bcrypt.hashpw(newpassword, bcrypt.gensalt(1))
+        
+        u = User()
+        u.generate(hashedpass=hashedpass,username=newusername.lower())
+        u.UserSettings['maxposts'] = 20
+        u.savemongo()
+        
+        self.set_secure_cookie("username",newusername.lower(),httponly=True)
+        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)   
+        
+        # Now, force-set all the variables. 
+        # These are used so the HTTP request that forces a registration goes through, using it. 
+        self.username = newusername.lower()
+        self.maxposts = 20
+        self.pubkey = str(''.join(u.UserSettings['pubkey'].split() ) )
+        self.loggedin = True
 
 class NotFoundHandler(BaseHandler):
+    """ Handler for 404s"""
     def get(self,whatever):
         self.getvars()
         self.write(self.render_string('header.html',title="Page not Found",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
         self.write(self.render_string('404.html'))
         self.write(self.render_string('footer.html'))
 
-
-class FrontPageHandler(BaseHandler):        
-    def get(self):
-        self.getvars()
-        toptopics = []
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
-
-        for topic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
-            toptopics.append(topic)
-            
-        self.write(self.render_string('frontpage.html',toptopics=toptopics))
-        self.write(self.render_string('footer.html'))
-        self.finish("content")
-
-class TopicHandler(BaseHandler):        
-    def get(self,topic):
-        self.getvars()
-        client_topic = tornado.escape.xhtml_escape(topic)
-        envelopes = []
-        self.write(self.render_string('header.html',title="Pluric :: " + client_topic,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon="topictag/" + client_topic))
-       
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : client_topic },limit=self.maxposts,as_class=OrderedDict):
-                envelopes.append(envelope)
-        self.write(self.render_string('messages-in-topic.html',envelopes=envelopes))
-        self.write(self.render_string('footer.html'))
 
 
 class TriPaneHandler(BaseHandler):
@@ -346,27 +342,7 @@ class TriPaneHandler(BaseHandler):
         else:
             self.finish()
       
-       
-class MessageHandler(BaseHandler):        
-    def get(self,message):
-        self.getvars()
-        client_message_id = tornado.escape.xhtml_escape(message)
-        
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
-
-        messagerating = u.getRatings(client_message_id)
-        envelope = server.formatEnvelope(envelope)
-
-            
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="message/" + envelope['envelope']['payload_sha512']))
-        self.write(self.render_string('single-message.html',formattedbody=envelope['envelope']['local']['formattedbody'],messagerating=messagerating,usertrust=usertrust,displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
-        self.write(self.render_string('footer.html'))
-        self.finish("right")
-
+     
 class SiteContentHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -489,7 +465,7 @@ class LoginHandler(BaseHandler):
 
 class LogoutHandler(BaseHandler):
      def post(self):
-         self.clear_cookie("username")
+         self.clear_all_cookies()
          self.redirect("/")
 
 class ShowUserPosts(BaseHandler):
@@ -573,7 +549,6 @@ class NoFollowTopicHandler(BaseHandler):
     
             
             
-        
 
 class RatingHandler(BaseHandler):
     def get(self,posthash):
@@ -709,7 +684,7 @@ class UserTrustHandler(BaseHandler):
 
       
 class NewmessageHandler(BaseHandler):
-    def get(self,topic=None,regarding=""    ):
+    def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
@@ -719,22 +694,34 @@ class NewmessageHandler(BaseHandler):
     def post(self):
         self.getvars()
         if not self.loggedin:
-            self.write("You must be logged in to do this.")
-            return
+            self.forceregister()
         
-        # self.write(self.render_string('header.html',title='Post a new message',username=self.username))
 
-        client_topic =  tornado.escape.xhtml_escape(self.get_argument("topic"))
-        client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
+
+        # Pull in our Form variables. 
+        # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
+        # It acts differently in the two scenerios.
+        if "topic" in self.request.arguments:
+            client_topic = tornado.escape.xhtml_escape(self.get_argument("topic"))
+            if client_topic == "":
+                client_topic = None
+        else:
+            client_topic = None
+        if "subject" in self.request.arguments:
+            client_subject = tornado.escape.xhtml_escape(self.get_argument("subject"))
+            if client_subject == "":
+                client_subject = None  
+        else:
+            client_subject = None
         if "regarding" in self.request.arguments:
             client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
             if client_regarding == "":
                 client_regarding = None
         else:
             client_regarding = None
-   
+     
         #Build a list of all the variables that come in with attached_fileX, 
         #so we can parse them later on. attached_fileXXXX.path
         filelist = []
@@ -787,16 +774,24 @@ class NewmessageHandler(BaseHandler):
              
                         
         e = Envelope()
-        topics = []
-        topics.append(client_topic)        
-        e.payload.dict['formatting'] = "markdown"
-        e.payload.dict['class'] = "message"
-        e.payload.dict['topictag'] = topics
-        e.payload.dict['body'] = client_body
-        e.payload.dict['subject'] = client_subject
+
         if client_regarding is not None:
             print("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
+
+            regardingmsg = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512':client_regarding},as_class=OrderedDict)
+            e.payload.dict['topictag'] = regardingmsg['envelope']['payload']['topictag']
+            e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
+        else:
+            topics = []
+            topics.append(client_topic)        
+            e.payload.dict['subject'] = client_subject
+            e.payload.dict['topictag'] = topics
+
+        e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "message"
+        e.payload.dict['body'] = client_body
+       
             
         #Instantiate the user who's currently logged in
         user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
@@ -995,7 +990,7 @@ def main():
     ], **settings)
     
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(options.port)
+    http_server.listen(8080)
     tornado.ioloop.IOLoop.instance().start()
 
 

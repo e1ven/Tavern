@@ -212,7 +212,7 @@ COLUMN WIDTH ELEMENTS
 
 }
 
-#left h2, #center h2, #right h2 { padding: 3px 15px; }
+#left h2, #center h2, #right h1 { padding: 3px 15px; }
 
 /* ########## LEFT COLUMN ########## */
 #left {
@@ -255,7 +255,8 @@ COLUMN WIDTH ELEMENTS
 #right .padder { background: #ffffff; }
 #right .thread { margin-top: 0px; position: relative;}
 #right .thread .thread { position: absolute; top: 20px; margin-bottom: 20px; overflow:scroll;}
-#right h2 {
+#right h1 {
+    line-height: 32px; 
 	font-size: 14px; 
 	font-weight: bold; 
 	text-transform: uppercase;
@@ -285,7 +286,7 @@ img.imginline { vertical-align: middle;  }
 
 .thread_right { float: left; width: 25%; text-align: right; }
 .thread_right img.avatar { float: right; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
-.thread_left { float: left; width: 25%; text-align: left; }
+.thread_left { float: left; text-align: left; }
 .thread_left img.avatar { float: left; padding: 2px; border: 1px solid #ccc; margin-right: 10px; }
 
 

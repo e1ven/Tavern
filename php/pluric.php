@@ -1,6 +1,6 @@
 <?php
-include('Crypt/RSA.php');
 define('CRYPT_RSA_MODE', CRYPT_RSA_MODE_OPENSSL);
+include('Crypt/RSA.php');
 
 // The main ForumLegion server class.
 // This contains the key interfaces for talking with the FL server.

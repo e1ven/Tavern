@@ -39,7 +39,7 @@
 			
 			<div id="right">
 				<div class="thread">
-					<h2>Thread Discussion</h2>
+					<h1>{{envelope['envelope']['payload']['subject']}}</h1>
 
 						{% if 'payload_sha512' in envelope['envelope'] %}
 								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right") %}

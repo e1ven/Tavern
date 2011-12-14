@@ -13,21 +13,21 @@
 	<div class="padder">
 		<div class="topic_{{orient}}">
 		<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-		<p class="meta">Received {{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</p>
+		<p class="meta">Received <time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></p>
 		</div><!-- .topic_title -->		
 {% end %}		
 
 
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
-			<acronym title="{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['local']['author_pubkey_sha512']}}">
-			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
-			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&bgset=any&size=40x40"/>
+			<abbr title="{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['local']['author_pubkey_sha512']}}">
+			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
+			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
-			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" alt="User Page">
+			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha512'][0:6]}}..<br />
 			</a>
-			</acronym>
+			</abbr>
 			
 			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 		</div><!-- .thread_{{orient}} -->
@@ -35,7 +35,9 @@
 		
 		<div class="clear"></div>
 		{% if orient == "left" %}
-		<p class="meta">Received {{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</p>
+		
+		<p class="meta">Received <time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></p>
+		
 		{% end %}
 		<div class="thread_body">
             {% raw envelope['envelope']['local']['formattedbody'] %}
@@ -43,7 +45,7 @@
 		<div class="images">			
 			{% if 'displayableattachmentlist' in envelope['envelope']['local'] %}
 			    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
-				    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
+				    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb" alt="Thumbnail of enclosed image"></a> <br>
 			    {% end %}
 			{% end %}
 		</div>
@@ -55,6 +57,15 @@
 			    {% end %}
 			{% end %}
 		</div>
+
+		{% if 'youtube' in envelope['envelope']['local'] %}
+			{% for video in envelope['envelope']['local']['youtube'] %}
+			<iframe class="youtube-player" type="text/html" width="640" height="385" src="http://www.youtube.com/embed/{{video}}" frameborder="0">
+			</iframe>
+			<br>
+			{% end %}
+		{% end %}
+
 		<div class="comment_bottom">
 		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
 		{% if 'regarding' in envelope['envelope']['payload'] %}
@@ -62,14 +73,14 @@
 		{% end %}
 		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topictag'][0]}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
 			<div class="votes">
-				<form action="/vote" method="post" id="upvote" class="vote">
+				<form action="/vote" method="post" class="vote">
 				  {% raw xsrf_form_html() %}
 				<input type="hidden" name="rating" value="1">
 				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 				<input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post">
 				</form>
 
-				<form action="/vote" method="post" id="downvote" class="vote">
+				<form action="/vote" method="post" class="vote">
 				  {% raw xsrf_form_html() %}
 				<input type="hidden" name="rating" value="-1" >
 				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
@@ -88,6 +99,7 @@
 			{% end %}
 		{% end %}	
 		
+
 {% if orient == "left" %}		
 	</li>
 </ul>			

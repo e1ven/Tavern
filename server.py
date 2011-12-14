@@ -22,6 +22,9 @@ import markdown
 import imghdr
 import datetime
 import re
+from urllib.parse import urlparse,parse_qs
+from bs4 import BeautifulSoup
+
 
 class Server(object):
     class FancyDateTimeDelta(object):
@@ -211,6 +214,9 @@ class Server(object):
             if 'regarding' in c.dict['envelope']['payload']:
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
+                    if not 'citedby' in repliedTo.dict['envelope']['local']:
+                        citedby = []
+                        repliedTo.dict['envelope']['local']['citedby'] = citedby
                     repliedTo.dict['envelope']['local']['citedby'].append(c.dict['envelope']['payload_sha512'])
                     repliedTo.saveMongo()
                 
@@ -234,6 +240,22 @@ class Server(object):
                 
         return formatted
         
+
+    def video_id(self,value):
+        query = urlparse(value)
+        if query.hostname == 'youtu.be':
+            return query.path[1:]
+        if query.hostname in ('www.youtube.com', 'youtube.com'):
+            if query.path == '/watch':
+                p = parse_qs(query.query)
+                return p['v'][0]
+            if query.path[:7] == '/embed/':
+                return query.path.split('/')[2]
+            if query.path[:3] == '/v/':
+                return query.path.split('/')[2]
+        # fail?
+        return None
+    
     def formatEnvelope(self,envelope):
         attachmentList = []
         displayableAttachmentList = []
@@ -284,6 +306,15 @@ class Server(object):
         envelope['envelope']['local']['attachmentlist'] = attachmentList
         envelope['envelope']['local']['author_pubkey_sha512'] = hashlib.sha512(envelope['envelope']['payload']['author']['pubkey'].encode('utf-8')).hexdigest()        
         
+        # Check for any Youtube Links.
+        soup = BeautifulSoup(formattedbody)
+        for href in soup.findAll('a'):
+            if self.video_id(href.get('href')) is not None:
+                if not 'youtube' in envelope['envelope']['local']:
+                    envelope['envelope']['local']['youtube'] = []
+                envelope['envelope']['local']['youtube'].append(self.video_id(href.get('href')))
+
+
         if '_id' in envelope:            
             del(envelope['_id'])        
         return envelope

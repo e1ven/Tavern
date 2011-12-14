@@ -1,11 +1,10 @@
+<!DOCTYPE html>
 	<!-- Hey, Source Reader!
 	Welcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
 	Email me - colin@pluric.com
 	Anyway, Enjoy the site, eh?"
 	-->
 	
-	
-<!DOCTYPE html>
 <html lang="en" > 
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" >
@@ -42,14 +41,14 @@
             {% end %}
 	    {% if loggedin %}	
 					<div id="toplinks">
-            				<a ref="nofollow" href="/newmessage">Post new Message</a><br>
+            				<a rel="nofollow" href="/newmessage">Post new Message</a><br>
 		                	<a rel="nofollow" href="/showprivates">Show private messages</a>
 						</div>
 						<div id="userblock">
-					    	<a href="/user/{{pubkey}}" alt="User Page">
-						    	<img class="avatar" alt= "Your Avatar" src="http://RoboHash.org/{{pubkey}}.png?set=any&bgset=any&size=40x40"/>
+					    	<a href="/user/{{pubkey}}">
+						    	<img class="avatar" alt= "Your Avatar" src="http://RoboHash.org/{{pubkey}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 						    </a><br>
-							<a href="/user/{{pubkey}}" alt="User Page">
+							<a href="/user/{{pubkey}}">
 						    	{{username}}
 							</a>
 	 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton"></form>
@@ -63,6 +62,6 @@
         </div> <!-- #menu -->
 	</header>
 		<div id="spinner" class="black_overlay">
-                <img src="/static/images/spinner.gif">
+                <img src="/static/images/spinner.gif" alt="Loading...">
 		</div> <!-- #Spinner -->
 		<div id="content">

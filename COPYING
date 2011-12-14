@@ -1,0 +1,151 @@
+Pluric has not yet been released publicly, and should be considered a Trade Secret at this point.
+
+If you have this Document, keep it secret for now please.
+
+I'll release it all when it works, but I want to be able to change keyformats without regards to backward compatibility. (I've done this several times already)
+
+Pluric uses the following libraries and/or modules, under License:
+
+
+http://wiki.nginx.org/HttpLimitZoneModule
+
+
+Using the following Libraries:
+	
+	Beautiful Soup (Python License)
+		http://www.crummy.com/software/BeautifulSoup/
+	
+	py3-bcrypt (BSD) 
+		https://bitbucket.org/widefido/py3-bcrypt/
+
+	JQuery Splitter (Under LGPL)
+		http://plugins.jquery.com/project/splitter
+
+	yENC (under LGPL, see email below)
+		For converting Binaries to Text.
+		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.	
+			
+	pylzma (LGPL)
+		For reducing the size of on-disk saves.
+		
+
+	Mongo and the Mongo-Python-Driver (Apache)
+		https://github.com/mongodb/mongo-python-driver
+
+	Tornado (Apache)
+		http://www.tornadoweb.org/
+
+	Github-Flavored-Markdown (BSD)
+		http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
+
+	Auto-linked Markdown (BSD)
+		http://greaterdebater.com/blog/gabe/post/4
+
+	PostMarkup (Politeness)
+		http://code.google.com/p/postmarkup/	
+		Python3 port at https://github.com/e1ven/py3-postmarkup
+		
+
+	MaxMind GeoIP used for GeoLocation (LGPL)
+		http://www.maxmind.com/app/c
+		http://www.maxmind.com/app/python
+		
+	PyGeoIP (For Pure-Python reading of the Above)
+		http://code.google.com/p/pygeoip/
+		
+	GridFS for Nginx (Apache)
+		https://github.com/mdirolf/nginx-gridfs
+
+	Upload Module for Nginx (BSD)
+		https://github.com/vkholodkov/nginx-upload-module 		
+
+	10Gen's Mongo (AGPL) - Only applies to changes to MongoS and MongoD.
+		http://www.mongodb.org/display/DOCS/Licensing
+			
+	FancyDateTimeDelta (MIT)
+		Charlie Clark 
+
+	PrettyDateFormat (Apache)
+		http://code.activestate.com/recipes/576880-convert-datetime-in-python-to-user-friendly-repres/
+		
+	YouTube Extractor (CC Sharealike) -
+		http://stackoverflow.com/a/7936523/396243
+
+--- yENC license ---
+
+Hi Colin,
+I apologize for my bad English. Actually It's been a very long time
+since I last worked on yenc module and I really don't have a
+repository for the source, the only sources lying around I'm aware of
+are those from the Debian repository.
+Just let me know which version you're using and I will release it in
+under LGPL (or consider yourself fully authorized to make all the
+necessary modifications in disclaimers and comments, I know this is
+not an orthodox approach)
+
+
+--- Auto-linked Markdown ---
+
+Thanks for reading! I'm glad the code is helpful to you. Please consider it licensed under the following BSD license:
+
+Copyright (c) 2011, GreaterDebater, LLC
+
+All rights reserved.
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+
+Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+Neither the name of the GreaterDebater, LLC nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+I hope that helps.
+
+Thanks,
+
+Gabe
+
+--- Python port of Github flavored Markdown ---
+
+Hi Colin,
+
+How's this?
+
+http://gregbrown.co.nz/code/license/
+
+Cheers,
+Greg
+
+
+Unless otherwise specified, all code on this site is licensed as follows:
+
+Copyright (c) 2010 Greg Brown
+gregbrown.co.nz All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    The name of the author may not be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+---- 10 Gen Mongo ----
+
+
+Our goal with using AGPL is to preserve the concept of copyleft with MongoDB. With traditional GPL, copyleft was associated with the concept of distribution of software. The problem is that nowadays, distribution of software is rare: things tend to run in the cloud. AGPL fixes this “loophole” in GPL by saying that if you use the software over a network, you are bound by the copyleft. Other than that, the license is virtually the same as GPL v3.
+
+Note however that it is never required that applications using mongo be published. The copyleft applies only to the mongod and mongos database programs. This is why Mongo DB drivers are all licensed under an Apache license. Your application, even though it talks to the database, is a separate program and “work”.
+
+--- Pretty Date Formatting ---
+
+
+Dear Colin,
+
+thank you very much for the e-mail - I'm flattered. Of course, you may use the code. Consider it under the same MIT licence as the original.
+
+Charlie
+-- 
+
+
