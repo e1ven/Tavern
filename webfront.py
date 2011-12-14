@@ -308,19 +308,28 @@ class TriPaneHandler(BaseHandler):
             if len(subjects) > 0:
                 displayenvelope = subjects[0]
                 messageid = subjects[0]['envelope']['payload_sha512'] 
-                
+            else:
+                displayenvelope = None
+                     
             canon="topic/" + topic 
             title=topic
  
         if action == "message":
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
-            topic = displayenvelope['envelope']['payload']['topictag'][0]
-            subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
-                subjects.append(envelope)
-            canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
-            title = displayenvelope['envelope']['payload']['subject']
-        
+            if displayenvelope is not None:
+                topic = displayenvelope['envelope']['payload']['topictag'][0]
+                subjects = []
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+                    subjects.append(envelope)
+                canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+                title = displayenvelope['envelope']['payload']['subject']
+            
+        if displayenvelope is None:
+            # Can't find a message ;(
+            e = server.error_envelope("Can't find your message")
+            displayenvelope = e.dict
+            pprint.pprint(displayenvelope['envelope']['payload_sha512'])
+            messageid = e.payload.hash()
 
         u = User()
         u.load_mongo_by_username(username=self.username)
@@ -329,7 +338,6 @@ class TriPaneHandler(BaseHandler):
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
     
-
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
         self.write(self.render_string('tripane.html',topic=topic,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))

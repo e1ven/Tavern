@@ -160,7 +160,24 @@ class Server(object):
         newstr = json.dumps(self.ServerSettings,indent=2,separators=(', ',': '))
         return newstr
     
-
+    def error_envelope(self,error="Error"):
+        e = Envelope()
+        e.dict['envelope']['payload'] = OrderedDict()
+        e.dict['envelope']['payload']['subject'] = "Error"
+        e.dict['envelope']['payload']['topictag'] = ["Error"]
+        e.dict['envelope']['payload']['formatting'] = "markdown"
+        e.dict['envelope']['payload']['class'] = "message"
+        e.dict['envelope']['payload']['body'] = "Oh, No, something's gone wrong.. \n\n "  + error
+        e.dict['envelope']['payload']['author'] = OrderedDict()
+        e.dict['envelope']['payload']['author']['pubkey'] = "1234"
+        e.dict['envelope']['payload']['author']['friendlyname'] = "ERROR!"
+        e.dict['envelope']['payload']['author']['useragent'] = "Error Agent"
+        e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
+        e.dict['envelope']['local']['time_added'] = 1297396876
+        e.dict['envelope']['local']['author_pubkey_sha512'] = "000000000000000000000000000000000000000000000000000000000000"
+        e.dict['envelope']['payload_sha512'] = '0'
+        e.dict = self.formatEnvelope(e.dict)
+        return e
 
     def receiveEnvelope(self,envelope):
         c = Envelope()

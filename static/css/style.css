@@ -253,7 +253,11 @@ COLUMN WIDTH ELEMENTS
 
 /* ########## RIGHT COLUMN ########## */
 #right .padder { background: #ffffff; }
-#right .thread { margin-top: 0px; position: relative;}
+#right .thread {
+     margin-top: 0px;
+     position: relative;
+     word-wrap: break-word;
+ }
 #right .thread .thread { position: absolute; top: 20px; margin-bottom: 20px; overflow:scroll;}
 #right h1 {
     line-height: 32px; 
