@@ -65,11 +65,16 @@ make sources
 python3 setup.py build
 python3 setup.py install
 
+# I also needed to copy-
+# cp /opt/Pluric/libs/PyTomCrypt/build/lib.linux-i686-3.2/tomcrypt/_core.cpython-32mu.so  /usr/local/lib/python3.2/dist-packages/tomcrypt/_core.so
+
+
+
 cd /opt/Pluric/libs/tornado-2.1.1
 python3 setup.py install
 
 
-mkdir -p /usr/local/share/GeoIP/
+mkdir -p /usr/local/share/GeoIP
 cp /opt/Pluric/libs/GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
 
 cd /opt/Pluric/libs/pygeoip-0.2.2
@@ -92,8 +97,9 @@ python3 setup.py install
 
 
 
+cd /opt/Pluric/libs
+git clone https://github.com/gpolo/pil-py3k.git
 cd /opt/Pluric/libs/pil-py3k
-# Using Python3 version from https://github.com/sloonz/pil-py3k
 python3 setup.py install
 
 
@@ -103,12 +109,6 @@ python3 setup.py install
 
 cd /opt/Pluric/libs/BeautifulSoup-4.0b
 python3 setup.py install
-
-
-cd /opt/Pluric/libs/pycrypto-2.4.1
-./configure
-python3 setup.py install
-
 
 echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
 
