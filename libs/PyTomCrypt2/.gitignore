@@ -1,0 +1,19 @@
+# General
+*.pyc
+.DS_Store
+/.Python
+/bin
+/build
+/dist
+/include/python*
+/lib/python*
+/man
+/pip-log.txt
+/MANIFEST
+/doc/build
+*.pdf
+*.o
+*.a
+*.so
+
+tomcrypt/*.c
