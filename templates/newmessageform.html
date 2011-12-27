@@ -14,7 +14,14 @@ Subject: <input type="text" name="subject"><br>
 {% end %}
 
 
-Body: <textarea name="body" rows=8 cols=80></textarea><br><br>
+{% if regarding is None %}
+What would you like your message to say?<br> 
+{% else %}
+What would you like your reply to say?<br>
+{% end %}
+
+
+<textarea name="body" rows=8 cols=80></textarea><br><br>
 Attach File 1: <input type="file" name="attached_file1"><br>
 Attach File 2: <input type="file" name="attached_file2"><br>
 Attach File 3: <input type="file" name="attached_file3"><br>

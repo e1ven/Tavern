@@ -55,7 +55,7 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler,self).__init__(*args,**kwargs)
         
     def write(self,html):
-        self.html = self.html + str(html,encoding='utf8')
+        self.html += html.decode('utf-8')
 
     def gettext(self):
         ptext = ""
@@ -457,11 +457,27 @@ class LoginHandler(BaseHandler):
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
+        login = False
         user = server.mongos['default']['users'].find_one({"username":client_username.lower()},as_class=OrderedDict)
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
+            
+            # Allow four forms of password
+            # Normal password
+            # swapped case (caps lock)
+            # First letter as upper if you initially signed up on mobile
+            # First form lower, as if you're on mobile now.
+            
             if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
+                login = True
+            elif bcrypt.hashpw(client_password.swapcase(),user['hashedpass']) == user['hashedpass']:
+                    login = True
+            elif bcrypt.hashpw(client_password[:1].upper() + client_password[1:],user['hashedpass']) == user['hashedpass']:
+                    login = True
+            elif bcrypt.hashpw(client_password[:1].lower() + client_password[1:],user['hashedpass']) == user['hashedpass']:
+                    login = True
+            if login == True:
                 self.set_secure_cookie("username",user['username'].lower(),httponly=True)
                 self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
                 self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
@@ -469,7 +485,7 @@ class LoginHandler(BaseHandler):
                 self.redirect("/")
                 return
 
-        self.write("I'm sorry, we don't have that username/password combo on file.")
+            print("Username/password fail." + client_password[:1].upper() + client_password[1:])
 
 class LogoutHandler(BaseHandler):
      def post(self):

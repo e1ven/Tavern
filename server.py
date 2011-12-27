@@ -148,7 +148,19 @@ class Server(object):
         filehandle.close()
         self.saveconfig()
 
-        
+    def getSortedMessages(topic=None):
+        messagesInTopic = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topictag" : topictag})
+
+        messagedate = e["envelope"]["local"]["time_added"]
+
+        numberOfStories = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topictag" : topictag,"envelope.local.time_added": {'$gt': messagedate }} ).count()
+
+        print("Original Date")
+        print(messagedate)
+        print("num since")
+        print(numberOfStories)
+
+    
     def saveconfig(self,filename=None):
         if filename == None:
             filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
@@ -194,31 +206,29 @@ class Server(object):
             c.dict['envelope']['local'] = OrderedDict()    
         
         #Pull out serverstamps.    
-        serverlist = []    
         stamps = c.dict['envelope']['stamps']
-        for stamp in stamps:
-            if stamp['class'] == "server":
-                serverlist.append[stamp]
-
-        #Search the server list to look for ourselves. 
-        #If we find ourselves, abort. We don't want to double-process
-        for server in serverlist:            
-            if server['pubkey'] == self.ServerKeys.pubkey:
-                #Potential Us. Let's Verify it really is.
-                if Keys(pub=self.ServerKeys.pubkey).verify_string(stringtoverify=c.payload.text(),signature=server['pubkey']) == True:
-                    #It's a Me!
-                    #Don't double-process. Abort.
-                    return False
-                else:
-                    #Someone is imitating us. Bastards.
-                    logging.error("It's a FAAAAAAKE!")
-                    #We should log this more, and look for trends, etc. For now, just suck it up, and process the message.
         
+        serversTouched = 0
+        
+        # Count the parters the message has danced with.
+        for stamp in stamps:
+            if stamp['class'] == "server" or stamp['class'] == "server":
+                serversTouched += 1    
+                 
         utctime = time.time()
-        #Sign the message to saw we saw it.
+          
+        
+        # Sign the message to saw we saw it.
         signedpayload = self.ServerKeys.signstring(c.payload.text())
         myserverinfo = {'class':'server','hostname':self.ServerSettings['hostname'],'time_added':int(utctime),'signature':signedpayload,'pubkey': self.ServerKeys.pubkey}
         stamps.append(myserverinfo)
+        
+        # If we are the first to see this, also set outselves as the Origin.
+        if serversTouched == 0:
+            myserverinfo = {'class':'origin','hostname':self.ServerSettings['hostname'],'time_added':int(utctime),'signature':signedpayload,'pubkey': self.ServerKeys.pubkey}
+            stamps.append(myserverinfo)
+        
+        
         
         c.dict['envelope']['stamps'] = stamps
         c.dict['envelope']['local']['time_added']  = int(utctime) 
@@ -302,7 +312,7 @@ class Server(object):
                                     #If we pass -all- the tests, create a thumb once.
                                     if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
                                         attachment.seek(0) 
-                                        im = Image.open(attachment)
+                                        im = Image.open(attachment,'rb')
                                         img_width, img_height = im.size
                                         if ((img_width > 150) or (img_height > 150)): 
                                             im.thumbnail((150, 150), Image.ANTIALIAS)

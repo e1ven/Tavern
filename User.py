@@ -38,10 +38,10 @@ class User(object):
         #We can probably bring this cache to be a pretty high number. 60+ secs
         cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
 
-        #if cache is not None:
-        #    if time.time() - cache['time'] < 20:
-        #        print "Using cached trust"
-        #        return cache['calculatedtrust']
+        if cache is not None:
+            if time.time() - cache['time'] < 20:
+                print("Using cached trust")
+                return cache['calculatedtrust']
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
@@ -56,7 +56,7 @@ class User(object):
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
         print("Asking About -- " + askingabout)
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_seen",pymongo.DESCENDING)
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         foundtrust = False
         if trustrow.count() > 0:
     		#Get the most recent trust
@@ -107,7 +107,19 @@ class User(object):
             authorTrust = self.gatherTrust(askingabout=author)
             if authorTrust > 0:
                 combinedrating += rating
+                
+        # Stamp based ratings give a baseline, like SpamAssassin. 
+        e = server.mongos['default']['envelopes'].find_one({"envelope.payload_sha512" : postInQuestion},as_class=OrderedDict)
         
+        if e is not None:
+            if 'stamps' in e['envelope']: 
+                stamps = e['envelope']['stamps']
+                for stamp in stamps:
+                    # if it was posted directly to Pluric.com, we can ip limit it, give it a +1
+                    if stamp['class'] == "origin":
+                        if stamp['pubkey'] == server.ServerKeys.pubkey:
+                            combinedrating += 1
+                        
         return combinedrating  
     
     def followUser(self,pubkey):
