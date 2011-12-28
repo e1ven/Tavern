@@ -308,17 +308,14 @@ class Server(object):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 imagetype = imghdr.what('ignoreme',h=attachment.read())
                                 acceptable_images = ['gif','jpeg','jpg','png','bmp']
-                                print("Acceptable?? " + imagetype)
                                 if imagetype in acceptable_images:
                                     #If we pass -all- the tests, create a thumb once.
                                     if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
                                         attachment.seek(0) 
-                                        print(attachment)
                                         im = Image.open(attachment)
                                         img_width, img_height = im.size
-                                        print("opened.")
-                                        if ((img_width > 150) or (img_height > 150)): 
-                                            im.thumbnail((150, 150), Image.ANTIALIAS)
+                                        if ((img_width > 150 ) or (img_height > 150 )): 
+                                            im = im.resize((150, 150),Image.ANTIALIAS)
                                         thumbnail = self.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
