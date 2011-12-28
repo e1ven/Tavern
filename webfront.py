@@ -768,24 +768,29 @@ class NewmessageHandler(BaseHandler):
             client_filename =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".name"))
             client_filesize =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".size"))
            
-            print("Trying client_filepath") 
+            print("Trying client_filepath of " + client_filepath ) 
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
-       
+            print("Taking Hash!") 
+
             #Hash the file in chunks
-            sha512 = hashlib.sha512()
-            with open(fullpath,'rb') as f: 
-                for chunk in iter(lambda: f.read(128 * sha512.block_size), ''): 
-                     sha512.update(chunk)
-            digest =  sha512.hexdigest()
-            
+            SHA512 = hashlib.sha512()
+            File = open(fullpath, 'rb')
+            while True:
+                buf = File.read(0x100000)
+                if not buf:
+                    break
+                SHA512.update(buf)
+            File.close()
+            digest = SHA512.hexdigest()
+            print("Opening File " + fullpath + " as digest " + digest)
             if not server.bin_GridFS.exists(filename=digest):
-                with open(fullpath) as localfile:
-                    
+                with open(fullpath,'rb') as localfile:
                     oid = server.bin_GridFS.put(localfile,filename=digest, content_type=client_filetype)
                     stored = True
             else:
                 stored = True
+            print("Creating Messazge")
             #Create a message binary.    
             bin = Envelope.binary(hash=digest)
             #Set the Filesize. Clients can't trust it, but oh-well.

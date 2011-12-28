@@ -17,7 +17,7 @@ import random
 import socket
 import pymongo
 import json
-from PIL import Image
+import Image
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo

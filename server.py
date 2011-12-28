@@ -4,7 +4,7 @@ import imghdr
 import platform
 import time
 from keys import *
-from PIL import Image
+import Image
 import logging
 import bcrypt
 import string
@@ -296,7 +296,7 @@ class Server(object):
             for binary in envelope['envelope']['payload']['binaries']:
                 if 'sha_512' in binary:
                     fname = binary['sha_512']
-                    attachment = self.bin_GridFS.get_version(filename=fname)
+                    attachment = self.bin_GridFS.get_last_version(filename=fname)
                     if 'filename' not in binary:
                         binary['filename'] = "unknown_file"
                     #In order to display an image, it must be of the right MIME type, the right size, it must open in
@@ -308,12 +308,15 @@ class Server(object):
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 imagetype = imghdr.what('ignoreme',h=attachment.read())
                                 acceptable_images = ['gif','jpeg','jpg','png','bmp']
+                                print("Acceptable?? " + imagetype)
                                 if imagetype in acceptable_images:
                                     #If we pass -all- the tests, create a thumb once.
                                     if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
                                         attachment.seek(0) 
-                                        im = Image.open(attachment,'rb')
+                                        print(attachment)
+                                        im = Image.open(attachment)
                                         img_width, img_height = im.size
+                                        print("opened.")
                                         if ((img_width > 150) or (img_height > 150)): 
                                             im.thumbnail((150, 150), Image.ANTIALIAS)
                                         thumbnail = self.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
