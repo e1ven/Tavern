@@ -1,5 +1,5 @@
 User-agent: *
-Sitemap: /static/sitemaps/sitemap_index.xml 
+Sitemap: http://pluric.com/static/sitemaps/sitemap_index.xml 
 Crawl-delay: 1
 Disallow: /register
 Disallow: /login
@@ -10,7 +10,7 @@ Disallow: /usertrust
 Disallow: /followuser
 Disallow: /followtopic
 Disallow: /showprivates
-Disallow: /static
+Disallow: /static/
 Disallow: /newmessage
 Disallow: /uploadnewmessage
 Disallow: /showuserposts

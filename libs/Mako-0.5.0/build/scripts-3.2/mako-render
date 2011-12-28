@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/opt/local/Library/Frameworks/Python.framework/Versions/3.2/Resources/Python.app/Contents/MacOS/Python
 
 def render(data):
     from mako.template import Template

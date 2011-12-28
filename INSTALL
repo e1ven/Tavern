@@ -63,6 +63,7 @@ git clone https://github.com/mikeboers/PyTomCrypt.git
 cd /opt/Pluric/libs/PyTomCrypt
 # You need to make sure cython works for this step.
 # You might need to ln -s /usr/bin/python3 /usr/local/bin/python3
+# sudo ln -s  /opt/local/Library/Frameworks/Python.framework/Versions/3.2/bin/cython /usr/local/bin/cython
 # Also, vi preprocess, and change the first line to #!/usr/bin/env python3
 
 make sources

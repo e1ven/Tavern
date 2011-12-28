@@ -334,12 +334,13 @@ class Server(object):
         envelope['envelope']['local']['author_pubkey_sha512'] = hashlib.sha512(envelope['envelope']['payload']['author']['pubkey'].encode('utf-8')).hexdigest()        
         
         # Check for any Youtube Links.
-        soup = BeautifulSoup(formattedbody)
-        for href in soup.findAll('a'):
-            if self.video_id(href.get('href')) is not None:
-                if not 'youtube' in envelope['envelope']['local']:
-                    envelope['envelope']['local']['youtube'] = []
-                envelope['envelope']['local']['youtube'].append(self.video_id(href.get('href')))
+        if 'body' in envelope['envelope']['payload']:         
+            soup = BeautifulSoup(formattedbody)
+            for href in soup.findAll('a'):
+                if self.video_id(href.get('href')) is not None:
+                    if not 'youtube' in envelope['envelope']['local']:
+                        envelope['envelope']['local']['youtube'] = []
+                    envelope['envelope']['local']['youtube'].append(self.video_id(href.get('href')))
 
 
         if '_id' in envelope:            

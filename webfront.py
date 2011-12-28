@@ -55,8 +55,11 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler,self).__init__(*args,**kwargs)
         
     def write(self,html):
-        self.html += html.decode('utf-8')
-
+        if hasattr(html, 'decode'):
+            self.html += html.decode('utf-8')
+        else:
+             self.html += html
+             
     def gettext(self):
         ptext = ""
         for a in self.pagetext:
@@ -215,7 +218,7 @@ class BaseHandler(tornado.web.RequestHandler):
         They can customize it later if they want.
         """
         newpassword = base64.urlsafe_b64encode(os.urandom(100)).decode('utf-8')
-        newusername = 'guest-' + base64.urlsafe_b64encode(os.urandom(20)).decode('utf-8')
+        newusername = 'Anonymous-' + str(random.randint(100000,999999))
         hashedpass = bcrypt.hashpw(newpassword, bcrypt.gensalt(1))
         
         u = User()
@@ -862,8 +865,7 @@ class NewmessageHandler(BaseHandler):
         newmsgid = server.receiveEnvelope(e.text())
         if newmsgid != False:
             if client_regarding is not None:
-                print('/message/' + client_regarding + "#" + newmsgid)
-                self.redirect('/message/' + client_regarding + "#" + newmsgid, permanent=False)
+                self.redirect('/message/' + client_regarding + "?jumpto=" + newmsgid, permanent=False)                
             else:
                 self.redirect('/message/' + newmsgid, permanent=False)
         else:

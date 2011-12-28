@@ -248,8 +248,39 @@ head.ready(function() {
 
  }
  
+     function getParameterByName(name) {
+         var match = RegExp('[?&]' + name + '=([^&]*)')
+                         .exec(window.location.search);
+         return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+     }
  
-
+    if (getParameterByName("jumpto"))
+    {
+        jumpto = getParameterByName("jumpto")
+        //Ensure we can't jump to random stuff.
+        var alphanumberic = /^([a-zA-Z0-9_-]+)$/;
+        if(alphanumberic.test( jumpto ))
+        {    
+            // If the element exists, find it's parent's offset, then it's.
+            // Subtract to find the element height.
+            // Then, scroll to the top of the element.
+            
+            right=(document.getElementById('right')); 
+            mytop = $("#" + jumpto ).offset().top; 
+            // if ( $("#" + jumpto ).parent() )
+            // {
+            //     parenttop = $("#" + jumpto ).parent().offset().top; 
+            // }
+            // else
+            // {
+            //     parenttop = $("#" + jumpto ).offset().top; 
+            // }
+            // DivHeight = mytop - parenttop;
+            right.scrollTop = mytop; // - DivHeight;   
+        }
+    }
+    
+        
     $('a.internal').each( function ()
     {            
         $(this).click(function()
