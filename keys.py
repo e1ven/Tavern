@@ -75,9 +75,10 @@ class Keys(object):
         """
         Replaces whatever keys currently might exist with new ones.
         """
-        self.key = rsa.Key(4096,hash='sha512',padding="pss")
+        self.key = rsa.Key(2048,hash='sha512',padding="pss")
         self.pubkey = self.key.public.as_string()
         self.privkey = self.key.as_string()
+        self.format_keys()
 
     def signstring(self,signstring):
         """

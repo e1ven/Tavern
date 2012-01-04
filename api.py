@@ -105,9 +105,11 @@ class TopicHandler(BaseHandler):
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
-        
+        print(server.ServerSettings['pubkey'])
         for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.stamps.pubkey':server.ServerSettings['pubkey'],'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
+            print("foo")
             if client_perspective is not None:
+                print("FFFF")
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
                 usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])

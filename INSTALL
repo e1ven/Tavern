@@ -62,17 +62,14 @@ cd /opt/Pluric/lib
 git clone https://github.com/mikeboers/PyTomCrypt.git
 cd /opt/Pluric/libs/PyTomCrypt
 # You need to make sure cython works for this step.
-# You might need to ln -s /usr/bin/python3 /usr/local/bin/python3
+# If you are on OS X, set add /usr/local/bin as top of /etc/paths
+sudo ln -s /usr/local/bin/python3 /usr/local/bin/python
+sudo ln -s /usr/local/share/python3/cython /usr/local/bin/cython
 # sudo ln -s  /opt/local/Library/Frameworks/Python.framework/Versions/3.2/bin/cython /usr/local/bin/cython
-# Also, vi preprocess, and change the first line to #!/usr/bin/env python3
 
 make sources
 python3 setup.py build
 python3 setup.py install
-
-# I also needed to copy-
-# cp /opt/Pluric/libs/PyTomCrypt/build/lib.linux-i686-3.2/tomcrypt/_core.cpython-32mu.so  /usr/local/lib/python3.2/dist-packages/tomcrypt/_core.so
-
 
 
 cd /opt/Pluric/libs/tornado-2.1.1
