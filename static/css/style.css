@@ -352,10 +352,6 @@ img.imginline { vertical-align: middle;  }
     float:right;
 }
 
-#nonjs_files_list {
-    display:none;
-}
-
 /*Splitter*/
 
 .SplitterPane {

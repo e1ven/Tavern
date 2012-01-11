@@ -1,35 +1,4 @@
-/*
- * jQuery.splitter.js - two-pane splitter window plugin
- *
- * version 1.51 (2009/01/09) 
- * 
- * Dual licensed under the MIT and GPL licenses: 
- *   http://www.opensource.org/licenses/mit-license.php 
- *   http://www.gnu.org/licenses/gpl.html 
- */
 
-/**
- * The splitter() plugin implements a two-pane resizable splitter window.
- * The selected elements in the jQuery object are converted to a splitter;
- * each selected element should have two child elements, used for the panes
- * of the splitter. The plugin adds a third child element for the splitbar.
- * 
- * For more details see: http://methvin.com/splitter/
- *
- *
- * @example $('#MySplitter').splitter();
- * @desc Create a vertical splitter with default settings 
- *
- * @example $('#MySplitter').splitter({type: 'h', accessKey: 'M'});
- * @desc Create a horizontal splitter resizable via Alt+Shift+M
- *
- * @name splitter
- * @type jQuery
- * @param Object options Options for the splitter (not required)
- * @cat Plugins/Splitter
- * @return jQuery
- * @author Dave Methvin (dave.methvin@gmail.com)
- */
 head.ready(function() {
  $.fn.splitter = function(args){
     args = args || {};

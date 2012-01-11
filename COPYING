@@ -1,4 +1,4 @@
-Pluric has not yet been released publicly, and should be considered a Trade Secret at this point.
+/Pluric has not yet been released publicly, and should be considered a Trade Secret at this point.
 
 If you have this Document, keep it secret for now please.
 
@@ -25,7 +25,7 @@ Using the following Libraries:
 		For converting Binaries to Text.
 		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.	
 			
-	pylzma (LGPL)
+	py3 (LGPL)
 		For reducing the size of on-disk saves.
 		
 
@@ -74,6 +74,20 @@ Using the following Libraries:
 	Multifile.js ( Use this however/wherever you like )
 		http://the-stickman.com/web-development/javascript/upload-multiple-files-with-a-single-file-element/
 
+	Splitter.JS ( MIT )
+		/*
+		 * jQuery.splitter.js - two-pane splitter window plugin
+		 *
+		 * version 1.51 (2009/01/09) 
+		 * 
+		 * Dual licensed under the MIT and GPL licenses: 
+		 *   http://www.opensource.org/licenses/mit-license.php 
+		 *   http://www.gnu.org/licenses/gpl.html 
+		 */
+
+		
+		
+		
 --- yENC license ---
 
 Hi Colin,

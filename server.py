@@ -190,6 +190,7 @@ class Server(object):
         e.dict['envelope']['payload_sha512'] = '0'
         e.dict = self.formatEnvelope(e.dict)
         return e
+        
 
     def receiveEnvelope(self,envelope):
         c = Envelope()
@@ -275,7 +276,7 @@ class Server(object):
         envelope = server.formatEnvelope(envelope)
         
     
-        # IF we don't have a parent, or if it's null, return self.
+        # IF we don't have a parent, or if it's null, return self./
         if not 'regarding' in envelope['envelope']['payload']:
             return messageid
         if envelope['envelope']['payload']['regarding'] is None:
