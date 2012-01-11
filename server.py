@@ -267,6 +267,28 @@ class Server(object):
                 
         return formatted
         
+    def find_top_parent(self,messageid):
+        # Find the top level of a post that we currently have.
+        
+        # First, pull the message.
+        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
+        envelope = server.formatEnvelope(envelope)
+        
+    
+        # IF we don't have a parent, or if it's null, return self.
+        if not 'regarding' in envelope['envelope']['payload']:
+            return messageid
+        if envelope['envelope']['payload']['regarding'] is None:
+           return messageid
+           
+        # If we do have a parent, Check to see if it's in our datastore.
+        parentid = envelope['envelope']['payload']['regarding']
+        parent = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : parentid },as_class=OrderedDict)
+        if parent is None:
+            return messageid
+            
+        # If it is, recurse
+        return self.find_top_parent(parentid)    
 
     def video_id(self,value):
         query = urlparse(value)

@@ -104,8 +104,8 @@ class Envelope(object):
                   print("Message ratings must be either -100, 0, or 100")
                   return False
               return True             
-                     
-                  
+                    
+                      
     def validate(self):
         #Validate an Envelope   
         print(self.text())        

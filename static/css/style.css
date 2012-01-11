@@ -333,6 +333,7 @@ img.imginline { vertical-align: middle;  }
  	 font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
 
+
 #spinner{
 	display: none;
 	position: absolute;
@@ -351,8 +352,9 @@ img.imginline { vertical-align: middle;  }
     float:right;
 }
 
-
-
+#nonjs_files_list {
+    display:none;
+}
 
 /*Splitter*/
 

@@ -360,7 +360,6 @@ class SiteContentHandler(BaseHandler):
         client_message_id = tornado.escape.xhtml_escape(message)
         
         envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-
         envelope = server.formatEnvelope(envelope)
 
             
@@ -865,7 +864,7 @@ class NewmessageHandler(BaseHandler):
         newmsgid = server.receiveEnvelope(e.text())
         if newmsgid != False:
             if client_regarding is not None:
-                self.redirect('/message/' + client_regarding + "?jumpto=" + newmsgid, permanent=False)                
+                self.redirect('/message/' + server.find_top_parent(newmsgid) + "?jumpto=" + newmsgid, permanent=False)                
             else:
                 self.redirect('/message/' + newmsgid, permanent=False)
         else:

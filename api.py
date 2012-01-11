@@ -96,7 +96,7 @@ class MessageHandler(BaseHandler):
 
 
 class TopicHandler(BaseHandler):        
-    def get(self,topic,since='1319068800',persp=None,offset=0,include=100):
+    def get(self,topic,since='1319113800',include=100,offset=0,persp=None,):
         if persp is not None:
             client_perspective = tornado.escape.xhtml_escape(persp)
         else: 
@@ -106,7 +106,7 @@ class TopicHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
         print(server.ServerSettings['pubkey'])
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.stamps.pubkey':server.ServerSettings['pubkey'],'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.payload.topictag' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
             print("foo")
             if client_perspective is not None:
                 print("FFFF")
