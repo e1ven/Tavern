@@ -8,6 +8,8 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import pprint
+import pylzma
+
 
 class Envelope(object):
         
@@ -108,7 +110,7 @@ class Envelope(object):
                       
     def validate(self):
         #Validate an Envelope   
-        print(self.text())        
+        #print(self.text())        
         
         #Check headers 
         if 'envelope' not in self.dict:
@@ -136,10 +138,10 @@ class Envelope(object):
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
             stampkey = Keys(pub=stamp['pubkey'])
-            print(type(self.payload.text()))
-            print(self.payload.text())
-            print(type(stamp['signature']))
-            print(stamp['signature'])
+            #print(type(self.payload.text()))
+            #print(self.payload.text())
+            #print(type(stamp['signature']))
+            #print(stamp['signature'])
             if stampkey.verify_string(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
                     print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
@@ -197,15 +199,14 @@ class Envelope(object):
 
         #Determine the file extension to see how to parse it.
         basename,ext = os.path.splitext(filename)
-        filehandle = open(filename, 'r')
+        filehandle = open(filename, 'rb')
         filecontents = filehandle.read() 
         if (ext == '.7zPluricEnvelope'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
-        self.dict = OrderedDict()
-        self.dict = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-        self.registerpayload()
+            filecontents = filecontents.decode('utf-8')
         filehandle.close()
+        self.loadstring(filecontents)
         
     def loadmongo(self,mongo_id):
         from server import server
@@ -227,7 +228,7 @@ class Envelope(object):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
-        pprint.pprint(self.dict)
+        #pprint.pprint(self.dict)
         newstr = json.dumps(self.dict,separators=(',',':'))
         return newstr
 
@@ -238,19 +239,18 @@ class Envelope(object):
         newstr = json.dumps(self.dict,indent=2,separators=(', ',': '))
         return newstr 
         
-    def savefile(self):
+    def savefile(self,directory='.'):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         
         #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(),dictionary=27,fastBytes=255)
-
         # print "Compressed size " + str(sys.getsizeof(compressed))
         # print "Full Size " + str(sys.getsizeof(self.dict))        
-        
+
         #We want to name this file to the SHA512 of the payload contents, so it is consistant across servers.
-        filehandle = open(self.payload.hash() + ".7zPluricEnvelope",'w')
+        filehandle = open(directory + "/" + self.payload.hash() + ".7zPluricEnvelope",'wb')
         filehandle.write(compressed)
         filehandle.close()
         

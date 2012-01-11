@@ -105,6 +105,11 @@ cd /opt/Pluric/libs/pil-py3k
 python3 setup.py install
 
 
+cd /opt/Pluric/libs
+git clone https://github.com/fancycode/pylzma.git
+cd /opt/Pluric/libs/pylzma
+python3 setup.py install
+
 cd /opt/Pluric/libs/lxml-2.3/
 python3 setup.py build
 python3 setup.py install
