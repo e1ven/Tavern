@@ -68,6 +68,14 @@
 			<br>
 			{% end %}
 		{% end %}
+		
+		{% if 'vimeo' in envelope['envelope']['local'] %}
+			{% for video in envelope['envelope']['local']['vimeo'] %}
+			
+			<iframe src="http://player.vimeo.com/video/{{video}}" width="640" height="385" frameborder="0"></iframe>
+			<br>
+			{% end %}
+		{% end %}
 
 		<div class="comment_bottom">
 		&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
