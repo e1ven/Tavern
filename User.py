@@ -126,17 +126,17 @@ class User(object):
         if pubkey not in self.UserSettings['local']['followUser']:
             self.UserSettings['local']['followUser'].append(pubkey)
             
-    def followTopic(self,topictag):
+    def followTopic(self,topic):
         if pubkey not in self.UserSettings['local']['followTopic']:
-            self.UserSettings['local']['followTopic'].append(topictag)
+            self.UserSettings['local']['followTopic'].append(topic)
 
     def noFollowUser(self,pubkey):
         if pubkey in self.UserSettings['local']['followUser']:
             self.UserSettings['local']['followUser'].remove(pubkey)
 
-    def noFollowTopic(self,topictag):
+    def noFollowTopic(self,topic):
         if pubkey in self.UserSettings['local']['followTopic']:
-            self.UserSettings['local']['followTopic'].remove(topictag)    
+            self.UserSettings['local']['followTopic'].remove(topic)    
        
                 
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):

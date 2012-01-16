@@ -149,11 +149,11 @@ class Server(object):
         self.saveconfig()
 
     def getSortedMessages(topic=None):
-        messagesInTopic = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topictag" : topictag})
+        messagesInTopic = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topic" : topic})
 
         messagedate = e["envelope"]["local"]["time_added"]
 
-        numberOfStories = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topictag" : topictag,"envelope.local.time_added": {'$gt': messagedate }} ).count()
+        numberOfStories = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topic" : topic,"envelope.local.time_added": {'$gt': messagedate }} ).count()
 
         print("Original Date")
         print(messagedate)
@@ -176,7 +176,7 @@ class Server(object):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
         e.dict['envelope']['payload']['subject'] = "Error"
-        e.dict['envelope']['payload']['topictag'] = ["Error"]
+        e.dict['envelope']['payload']['topic'] = ["Error"]
         e.dict['envelope']['payload']['formatting'] = "markdown"
         e.dict['envelope']['payload']['class'] = "message"
         e.dict['envelope']['payload']['body'] = "Oh, No, something's gone wrong.. \n\n "  + error
@@ -199,6 +199,7 @@ class Server(object):
         #First, ensure we're dealing with a good Env, before we proceed
         if not c.validate():
             print("Validation Error")
+            print(c.text())
             return False
         
         #If we don't have a local section, add one.
@@ -370,7 +371,7 @@ class Server(object):
         envelope['envelope']['local']['attachmentlist'] = attachmentList
         envelope['envelope']['local']['author_pubkey_sha512'] = hashlib.sha512(envelope['envelope']['payload']['author']['pubkey'].encode('utf-8')).hexdigest()        
         
-        # Check for any Youtube Links.
+        # Check for any     Youtube Links.
         if 'body' in envelope['envelope']['payload']:         
             soup = BeautifulSoup(formattedbody)
             for href in soup.findAll('a'):

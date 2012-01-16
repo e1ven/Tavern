@@ -3,17 +3,8 @@ Message posted by: <abbr title="{{envelope['envelope']['payload']['author']['fri
 <br>
 Message Rating of: {{messagerating}}<br><br>
 
-Topics:<br>
-
-	{% set length = len(envelope['envelope']['payload']['topictag']) %}
-	{% set count = 1 %} 
-	{% for topic in envelope['envelope']['payload']['topictag'] %}
-	        {{topic}}
-			{% if count != length %}
-				,
-			{% end %}
-			{% set count = count + 1 %}
-	{% end %}
+Topic: 
+	{{envelope['envelope']['payload']['topic']}}
 </p>
 
 <form action="/usertrust" method="post">

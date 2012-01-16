@@ -305,7 +305,7 @@ class TriPaneHandler(BaseHandler):
                                 
         if action == "topic":
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
                 
             if len(subjects) > 0:
@@ -320,9 +320,9 @@ class TriPaneHandler(BaseHandler):
         if action == "message":
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
-                topic = displayenvelope['envelope']['payload']['topictag'][0]
+                topic = displayenvelope['envelope']['payload']['topic'][0]
                 subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topictag' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                     subjects.append(envelope)
                 canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
@@ -507,7 +507,7 @@ class ShowUserPosts(BaseHandler):
         
         messages = []
         self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topictag','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topic','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             messages.append(message)
 
         self.write(self.render_string('showuserposts.html',messages=messages))
@@ -530,7 +530,7 @@ class FollowUserHandler(BaseHandler):
         u.savemongo()
         
 class NoFollowUserHandler(BaseHandler):
-    def get(self,topictag):
+    def get(self,topic):
         self.getvars()
      #Calculate the votes for that post. 
 
@@ -541,7 +541,7 @@ class NoFollowUserHandler(BaseHandler):
             return 0
         u = User()
         u.load_mongo_by_username(username=self.username)
-        u.noFollowUser(topictag)
+        u.noFollowUser(topic)
         u.savemongo()
 
 
@@ -560,7 +560,7 @@ class FollowTopicHandler(BaseHandler):
         u.savemongo()
 
 class NoFollowTopicHandler(BaseHandler):
-    def get(self,topictag):
+    def get(self,topic):
         self.getvars()
         
     def post(self):       
@@ -570,7 +570,7 @@ class NoFollowTopicHandler(BaseHandler):
             return 0
         u = User()
         u.load_mongo_by_username(username=self.username)
-        u.noFollowTopic(topictag)
+        u.noFollowTopic(topic)
         u.savemongo()
     
             
@@ -655,11 +655,15 @@ class UserTrustHandler(BaseHandler):
             return
 
         client_pubkey =  self.get_argument("pubkey")    
-        client_trust =  tornado.escape.xhtml_escape(self.get_argument("trust"))
+        client_trust =  self.get_argument("trust")
+        client_trust =  self.get_argument("topic")
+
+
         trust_val = int(client_trust)
         if trust_val not in [-100,0,100]:
             self.write("Invalid Trust Score.")
             return -1
+        
 
         e = Envelope()
         e.payload.dict['class'] = "usertrust"
@@ -811,13 +815,11 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['regarding'] = client_regarding
 
             regardingmsg = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512':client_regarding},as_class=OrderedDict)
-            e.payload.dict['topictag'] = regardingmsg['envelope']['payload']['topictag']
+            e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
             e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
         else:
-            topics = []
-            topics.append(client_topic)        
+            e.payload.dict['topic'] = client_topic
             e.payload.dict['subject'] = client_subject
-            e.payload.dict['topictag'] = topics
 
         e.payload.dict['formatting'] = "markdown"
         e.payload.dict['class'] = "message"
@@ -929,7 +931,6 @@ class NewPrivateMessageHandler(BaseHandler):
 
 
         e = Envelope()
-        topics = []
         e.payload.dict['class'] = "privatemessage"
         e.payload.dict['to'] = toKey.pubkey
         e.payload.dict['body'] = toKey.encryptToSelf(client_body)

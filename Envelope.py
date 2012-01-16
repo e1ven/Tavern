@@ -55,12 +55,9 @@ class Envelope(object):
             if 'body' not in self.dict:
                 print("No Body")
                 return False
-            if 'topictag' not in self.dict:
-                print("No Topictags")
-                return False
-            if len(self.dict['topictag']) > 3:
-                print("Topictag List too long")
-                return False                    
+            if 'topic' not in self.dict:
+                print("No Topic")
+                return False             
             if 'formatting' not in self.dict:
                 print("No Formatting")
                 return False            
@@ -75,9 +72,9 @@ class Envelope(object):
             if 'to' not in self.dict:
                 print("No 'to' field")
                 return False
-            if 'topictag_list' in self.dict:
-                print("Topictag not allowed in privmessage.")
-                return False
+            # if 'topic' in self.dict:
+            #     print("Topic not allowed in privmessage.")
+            #     return False
             return True
             
     class Rating(Payload):

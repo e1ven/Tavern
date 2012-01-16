@@ -82,7 +82,7 @@
 		{% if 'regarding' in envelope['envelope']['payload'] %}
 			&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 		{% end %}
-		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topictag'][0]}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
+		&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
 			<div class="votes">
 				<form action="/vote" method="post" class="vote">
 				  {% raw xsrf_form_html() %}

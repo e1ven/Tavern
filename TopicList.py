@@ -9,7 +9,7 @@ class TopicList(object):
                 function() {
                         if (this.envelope.payload.class == 'message')
                         {
-                            for (var i =0; i < this.envelope.payload.topictag.length; i++) 
+                            for (var i =0; i < this.envelope.payload.topic.length; i++) 
                                 {
                                     var timestamp = Number(new Date()/1000);
                                     mtime = this.envelope.local.time_added;
@@ -17,7 +17,7 @@ class TopicList(object):
                                     print(timestamp)
                                     if ((mtime + 1186400) > timestamp )
                                         {
-                                        singletag = this.envelope.payload.topictag[i];
+                                        singletag = this.envelope.payload.topic;
                                         if (singletag != 'sitecontent')
                                         {
                                                 emit({tag:singletag},{count:1}); 

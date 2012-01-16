@@ -4,15 +4,8 @@ Top Topics:
 <p> ---
 Topics:<br>
 
-	{% set length = len(envelope['envelope']['payload']['topictag']) %}
-	{% set count = 1 %} 
-	{% for topic in envelope['envelope']['payload']['topictag'] %}
-	        {{topic}}
-			{% if count != length %}
-				,
-			{% end %}
-			{% set count = count + 1 %}
-	{% end %}
+ {{for topic in }}envelope['envelope']['payload']['topic']}}
+
 </p>
 <p>Subject: <a href="/message/{{envelope['envelope']['payload_sha512']/{{envelope['envelope']['local']['short_subject']}}">
 	{{envelope['envelope']['payload']['subject']}}
