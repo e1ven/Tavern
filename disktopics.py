@@ -8,7 +8,7 @@ from collections import OrderedDict
 import json
 import os
 
-class SaveOut(object):
+class DiskTopics(object):
     
     
     def writetopic(self,topic,since=0,limit=100,skip=0):
@@ -39,6 +39,6 @@ class SaveOut(object):
             e.loadfile(directory + "/" + infile)
             server.receiveEnvelope(e.text())
 
-a = SaveOut()
+a = DiskTopics()
 #a.writetopic('sitecontent')  
 a.loaddir('TOPICS/Topic-sitecontent')          

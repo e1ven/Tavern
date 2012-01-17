@@ -104,6 +104,24 @@
 		</div> <!-- .padder -->
 		{% end %}
 			
+
+<form action="/usertrust" method="post">
+  {% raw xsrf_form_html() %}
+<input type="hidden" name="trust" value="100">
+<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+<input type="submit" value="Trust This User">
+</form>
+
+<form action="/usertrust" method="post">
+  {% raw xsrf_form_html() %}
+<input type="hidden" name="trust" value="-100">
+<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+
+<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+<input type="submit" value="Distrust This User">
+</form>
+
 		{% if 'citedby' in envelope['envelope']['local'] %}
 			{% for cite in envelope['envelope']['local']['citedby'] %}
 				{% raw handler.render_string('reply.html',messageid=cite,orient="left") %}

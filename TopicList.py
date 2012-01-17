@@ -6,37 +6,42 @@ from server import server
 class TopicList(object):
     def __init__(self):
         MAP_FUNCTION = Code("""
-                function() {
+                function()
+                {
                         if (this.envelope.payload.class == 'message')
                         {
-                            for (var i =0; i < this.envelope.payload.topic.length; i++) 
-                                {
-                                    var timestamp = Number(new Date()/1000);
-                                    mtime = this.envelope.local.time_added;
-                                    print(mtime)
-                                    print(timestamp)
-                                    if ((mtime + 1186400) > timestamp )
-                                        {
-                                        singletag = this.envelope.payload.topic;
-                                        if (singletag != 'sitecontent')
-                                        {
-                                                emit({tag:singletag},{count:1}); 
-                                        }
 
-                                    }
+                            var timestamp = Number(new Date()/1000);
+                            mtime = this.envelope.local.time_added;
+
+                            // 60 * 60 * 24 * 7 * 2 = 1209600
+                            if ((mtime + 1209600) > timestamp )
+
+                                {
+                                tag = this.envelope.payload.topic;
+                                if (singletag != 'sitecontent')
+                                {
+                                        emit({tag:tag},{count:1}); 
                                 }
+
+                            }
+
                         }
                                               
                 }
                 """)
+
         REDUCE_FUNCTION = Code("""
-                function(key, values) {
+                function(key, values){
                     var count = 0;
-                    values.forEach(function(v) {
+                    values.forEach(function(v)
+                    {
                         count += v['count'];
-                        });
-                        return {count: count};
-                        }
+                    });
+
+                    return {count: count};
+                }
+                 
                 """)
 
         server.mongos['default']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")

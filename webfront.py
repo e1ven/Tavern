@@ -305,7 +305,7 @@ class TriPaneHandler(BaseHandler):
                                 
         if action == "topic":
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
                 
             if len(subjects) > 0:
@@ -353,7 +353,14 @@ class TriPaneHandler(BaseHandler):
         else:
             self.finish()
       
-     
+class TopicPropertiesHandler(BaseHandler):
+    def get(self,topic):
+
+        client_topic = tornado.escape.xhtml_escape(topic)
+        mods = []
+        for mod in server.mongos['default']['modlist'].find({'_id':client_topic},limit=10,as_class=OrderedDict):
+            mods.append(mod)
+        pprint.pprint(mods)
 class SiteContentHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -649,14 +656,15 @@ class UserTrustHandler(BaseHandler):
         #Calculate the trust for a user. 
 
     def post(self):    
+        print("Entered UTH")
         self.getvars()
         if not self.loggedin:
             self.write("You must be logged in to trust or distrust a user.")
             return
 
-        client_pubkey =  self.get_argument("pubkey")    
+        client_trusted_pubkey =  self.get_argument("trusted_pubkey")    
         client_trust =  self.get_argument("trust")
-        client_trust =  self.get_argument("topic")
+        client_topic =  self.get_argument("topic")
 
 
         trust_val = int(client_trust)
@@ -668,20 +676,22 @@ class UserTrustHandler(BaseHandler):
         e = Envelope()
         e.payload.dict['class'] = "usertrust"
         e.payload.dict['trust'] = trust_val
-                
-        k = Keys(pub=client_pubkey)
-        e.payload.dict['pubkey'] = k.pubkey
+        e.payload.dict['topic'] = client_topic   
+        k = Keys(pub=client_trusted_pubkey)
+        e.payload.dict['trusted_pubkey'] = k.pubkey
 
         #Instantiate the user who's currently logged in
         user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
 
+
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
-
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
+
+
         if self.include_loc == "on":
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -709,7 +719,7 @@ class UserTrustHandler(BaseHandler):
         
         #Send to the server
         server.receiveEnvelope(e.text())
-
+        print("Trust Submitted.")
 
 
       
@@ -1006,6 +1016,7 @@ def main():
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
+        (r"/topicinfo/(.*)",TopicPropertiesHandler),  
         (r"/followuser/(.*)" ,FollowUserHandler),  
         (r"/followtopic/(.*)" ,FollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  

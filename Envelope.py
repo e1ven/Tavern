@@ -79,30 +79,32 @@ class Envelope(object):
             
     class Rating(Payload):
          def validate(self):
-             if not Envelope.Payload(self.dict).validate():
-                 print("Super fails")
-                 return False
-             if 'rating' not in self.dict:
-                 print("No rating number")
-                 return False
-             rvalue = self.dict['rating']
-             if rvalue not in [-1,0,1]:
-                 print("Evelope ratings must be either -1, 1, or 0.")
-                 return False
-             return True
+            if not Envelope.Payload(self.dict).validate():
+                print("Super fails")
+                return False
+            if 'rating' not in self.dict:
+                print("No rating number")
+                return False
+            if self.dict['rating'] not in [-1,0,1]:
+                print("Evelope ratings must be either -1, 1, or 0.")
+                return False
+
+            return True
              
     class UserTrust(Payload):
         def validate(self):
-              if not Envelope.Payload(self.dict).validate():
-                  return False
-              if 'pubkey' not in self.dict:
-                  print("No pubkey to set trust for.")
-                  return False
-              tvalue = self.dict['trust']
-              if tvalue not in [-100,0,100]:
-                  print("Message ratings must be either -100, 0, or 100")
-                  return False
-              return True             
+            if not Envelope.Payload(self.dict).validate():
+                return False
+            if 'trusted_pubkey' not in self.dict:
+                print("No trusted_pubkey to set trust for.")
+                return False
+            if self.dict['trust'] not in [-100,0,100]:
+                print("Message ratings must be either -100, 0, or 100")
+                return False
+            if 'topic' not in self.dict:
+                print("User trust must be per topic. Please include a topic.")
+                return False
+            return True             
                     
                       
     def validate(self):

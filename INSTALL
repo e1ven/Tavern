@@ -117,7 +117,9 @@ python3 setup.py install
 cd /opt/Pluric/libs/BeautifulSoup-4.0b
 python3 setup.py install
 
-echo "/usr/bin/python /opt/Pluric/topiclist.py" > /etc/cron.hourly/generatetopics
+echo "/usr/bin/python /opt/Pluric/TopicList.py" > /etc/cron.hourly/generatetopics
+echo "/usr/bin/python /opt/Pluric/ModList.py" > /etc/cron.daily/findmods
+
 
 ln -s /opt/Pluric/libs/pluric /etc/init.d/
 

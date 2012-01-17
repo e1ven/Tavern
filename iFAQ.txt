@@ -9,8 +9,9 @@ Why not use GPG to store data?
 	GPG basically all wraps through the one implementation, and is not easy to run with PyPy, Android, whatever.	
 
 Why use 2048-bit keys, rather than 4096-bit keys?
+	The underlying Pluric system will work with keys of any length - 
 	Pluric will work with keys of any length, but 2048 bit keys are substantially faster to generate.
-	2048-bit keys really are sufficiently hard to factor.
+	2048-bit keys really are sufficiently hard to factor that
 	
 
 Why not allow something to be posted into multiple topics?
@@ -22,12 +23,15 @@ Why not allow something to be posted into multiple topics?
 	If you upvote a post, we only want to count those up votes in one topic, otherwise crossposting to both a popular topic and an obscure one boost your popularity in the obscure one.
 	Essentially, I found that I had the code to support something having multiple topics, but then at every turn, I was adding additional code to say that everything having to DO with the post only affected the one topic.
 
-	In looking at it, there's relatively few benefits to having the same post be in multiple topics. Instead, the better way to handle Cross-posting is at the client-level.
-	If you really want to cross-post something, a client could manually insert it in several topics. Replies would be split, and segregated to their respective posts.
+
 	This is likely for the best. Imagine a post about a vulnerability in a popular application.
 		Members of the "Programming" topic might write about how to avoid it.
 		Members of "WhiteHat" might write about how to guard your servers against it.
 		Members of the the suite's Topic might talk about how it affects each of them.
 
 	None of these posts would be directly interesting to the other Topics.
+
+	In looking at it, there's relatively few benefits to having the same post be in multiple topics. Instead, the better way to handle Cross-posting is at the client-level.
+	If you really want to cross-post something, a client could manually insert it in several topics. Replies would be split, and segregated to their respective posts.
+
 
