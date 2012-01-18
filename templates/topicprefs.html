@@ -1,23 +1,21 @@
 {% import urllib,re %}
 			<div id="left">
-				<h2>Today's Topics</h2>
-				
-
-					<ul>
-					{% for quicktopic in toptopics %}
-                    <li><a class='internal' href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
-                    {% end %}
-					</ul>
-				
-				<h2>Interesting People</h2>
+				<h2>Your Topics</h2>
 					<ul>
 						<li><a href="#">#Egypt</a></li>
 						<li><a href="#">#Python</a></li>
 						<li class="active"><a href="#">#StarTrek</a></li>
 						<li><a href="#">#Apple</a></li>
 						<li><a href="#">#Linux</a></li>
-					</ul>				
+					</ul>
+
 				
+				<h2>Top Topics</h2>
+					<ul>
+					{% for quicktopic in toptopics %}
+                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} ><a class="internal" href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
+                    {% end %}
+					</ul>
 			</div><!-- #left -->
 			<div id="centerandright">
 			<div id="center">

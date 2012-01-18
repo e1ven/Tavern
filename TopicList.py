@@ -6,8 +6,7 @@ from server import server
 class TopicList(object):
     def __init__(self):
         MAP_FUNCTION = Code("""
-                function()
-                {
+                function(){
                         if (this.envelope.payload.class == 'message')
                         {
 
@@ -19,7 +18,7 @@ class TopicList(object):
 
                                 {
                                 tag = this.envelope.payload.topic;
-                                if (singletag != 'sitecontent')
+                                if (tag != 'sitecontent')
                                 {
                                         emit({tag:tag},{count:1}); 
                                 }

@@ -67,12 +67,13 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(ptext)
         
 
-    def finish(self,div='limits',div2=None,message=None):
+    def finish(self,divs=['limits'],message=None):
         if "js" in self.request.arguments:
+
             #if JS is set at all, send the JS script version.
-            super(BaseHandler, self).write(self.getjs(div))
-            if div2 is not None:
-                super(BaseHandler, self).write(self.getjs(div2))
+            for div in divs:
+                super(BaseHandler, self).write(self.getjs(div))
+
         elif "getonly" in self.request.arguments:
             #Get ONLY the div content marked
             super(BaseHandler, self).write(self.getdiv(div))
@@ -298,12 +299,18 @@ class TriPaneHandler(BaseHandler):
         #THIS WILL WASTE CPU
         #tl = TopicList.TopicList()                
         
+        divs = []
         toptopics = []
         for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
 
                                 
         if action == "topic":
+            # If you change the topic, refresh all three panels.
+            divs.append("left")
+            divs.append("center")
+            divs.append("right")
+
             subjects = []
             for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                 subjects.append(envelope)
@@ -318,11 +325,14 @@ class TriPaneHandler(BaseHandler):
             title=topic
  
         if action == "message":
+            divs.append("center")
+            divs.append("right")
+
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
-                topic = displayenvelope['envelope']['payload']['topic'][0]
+                topic = displayenvelope['envelope']['payload']['topic']
                 subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
                     subjects.append(envelope)
                 canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
@@ -346,10 +356,9 @@ class TriPaneHandler(BaseHandler):
         self.write(self.render_string('tripane.html',topic=topic,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
-        if action == "message":
-            self.finish("right")
-        elif action == "topic":
-            self.finish(div="center",div2="right")
+        pprint.pprint(divs)   
+        if action == "message" or action == "topic":
+            self.finish(divs=divs)
         else:
             self.finish()
       
@@ -376,7 +385,7 @@ class TopicPropertiesHandler(BaseHandler):
         self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
         self.write(self.render_string('topicprefs.html',topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
         self.write(self.render_string('footer.html'))  
-        self.finish('right')
+        self.finish(divs=['right'])
 
 class SiteContentHandler(BaseHandler):        
     def get(self,message):
@@ -746,7 +755,7 @@ class NewmessageHandler(BaseHandler):
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
          self.write(self.render_string('footer.html'))
-         self.finish('content')
+         c(divs=['content'])
 
     def post(self):
         self.getvars()

@@ -88,14 +88,14 @@
 				  {% raw xsrf_form_html() %}
 				<input type="hidden" name="rating" value="1">
 				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-				<input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post">
+				<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post"></abbr>
 				</form>
 
 				<form action="/vote" method="post" class="vote">
 				  {% raw xsrf_form_html() %}
 				<input type="hidden" name="rating" value="-1" >
 				<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-				<input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post">
+				<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post"></abbr>
 				</form>
 			</div>  <!-- votes -->
 			<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
