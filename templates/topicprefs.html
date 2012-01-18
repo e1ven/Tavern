@@ -1,0 +1,64 @@
+{% import urllib,re %}
+			<div id="left">
+				<h2>Today's Topics</h2>
+				
+
+					<ul>
+					{% for quicktopic in toptopics %}
+                    <li><a class='internal' href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
+                    {% end %}
+					</ul>
+				
+				<h2>Interesting People</h2>
+					<ul>
+						<li><a href="#">#Egypt</a></li>
+						<li><a href="#">#Python</a></li>
+						<li class="active"><a href="#">#StarTrek</a></li>
+						<li><a href="#">#Apple</a></li>
+						<li><a href="#">#Linux</a></li>
+					</ul>				
+				
+			</div><!-- #left -->
+			<div id="centerandright">
+			<div id="center">
+				<h2>
+					{% if topic == 'sitecontent' %}
+					Messages from Pluric.com
+					{% else %}
+					Messages in {{topic}}
+					{% end %}
+				</h2>
+					<ul>
+					{% for subject in subjects %}
+					<li><a class='internal' href="/message/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a></li>
+                    {% end %}
+                    
+					</ul>				
+			
+			</div><!-- #center -->
+			
+			<div id="right">
+				<div class="thread">
+					<h1>{{topic}} Preferences</h1>
+						You are currently <b>subscribed</b> to {{topic}}.<br>
+						<p>
+						The following users are popular moderators, you might want to consider adding them:<br>
+						<ul>
+						{% for mod in mods %}
+							<li>
+							<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
+								<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+				    				<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+				    			</a>
+				    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+				    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
+								</a>
+							</abbr>
+							</li>
+							<br><Br>
+						{% end %}
+						</ul>
+					</div>
+				
+			</div><!-- #right -->
+		    </div><!-- #centerandright -->

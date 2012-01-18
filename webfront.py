@@ -355,12 +355,29 @@ class TriPaneHandler(BaseHandler):
       
 class TopicPropertiesHandler(BaseHandler):
     def get(self,topic):
+        self.getvars()
 
         client_topic = tornado.escape.xhtml_escape(topic)
+
         mods = []
-        for mod in server.mongos['default']['modlist'].find({'_id':client_topic},limit=10,as_class=OrderedDict):
+        for mod in server.mongos['default']['modlist'].find({'_id.topic':topic},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
+            pprint.pprint(mod)
+            mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(mod['_id']['moderator'].encode('utf-8')).hexdigest() 
             mods.append(mod)
-        pprint.pprint(mods)
+
+        toptopics = []
+        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+            toptopics.append(quicktopic)
+        subjects = []
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+            subjects.append(envelope)
+
+        title = "Properties for " + topic    
+        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('topicprefs.html',topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
+        self.write(self.render_string('footer.html'))  
+        self.finish('right')
+
 class SiteContentHandler(BaseHandler):        
     def get(self,message):
         self.getvars()

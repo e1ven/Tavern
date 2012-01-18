@@ -16,35 +16,29 @@ class ModList(object):
                             // 60 * 60 * 24 * 7 * 26 = 15724800
                             if ( (mtime + 15724800) > timestamp )
                                 {
-                                    emit({moderator:this.envelope.payload.trusted_pubkey},{count:1,trust:this.envelope.payload.trust}); 
+                                    var topic = this.envelope.payload.topic;
+                                    var moderator = this.envelope.payload.trusted_pubkey;
+                                    var trust = this.envelope.payload.trust;
+                                    emit({topic:topic,moderator:moderator},{trust:trust,count:1}); 
                                 }
 
-                        }
-                                              
-                }
+                        }                       
+                    }
                 """)
                 
         REDUCE_FUNCTION = Code("""
-                function(key, values){
-                    var record = {};
-
-                    values.forEach(function(v)
-                    {
-                        print(v);
-                        if (typeof(record[v[0]]) == 'undefined')
-                        {
-                            record[v[0]] = {};
-                            record[v[0]]['count'] = 0;
-                            record[v[0]]['trust'] = 0;
-                        };
-                        record[v[0]]['count'] += v['count'];
-                        record[v[0]]['trust'] += v['trust'];
-                    });
-
-                    return record;
+                function (key, values){
+                    var count = 0;
+                    var trust = 0;
+                    values.forEach(function(v) {
+                        count += v['count'];
+                        trust += v['trust'];
+                     });                                                                                 
+                    return {trust:trust,count:count};
                 }
                 """)
                 
         server.mongos['default']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
         
 M = ModList()
+

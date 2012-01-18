@@ -236,9 +236,9 @@ class Server(object):
         c.dict['envelope']['local']['time_added']  = int(utctime) 
         
         if c.dict['envelope']['payload']['class'] == "message":       
-            #If the message referenes anyone, mark the original, for ease of finding it later.
-            #Do this in the {local} block, so we don't waste bits passing this on. 
-            #Partners can calculate this when they receive it.
+            # If the message referenes anyone, mark the original, for ease of finding it later.
+            # Do this in the {local} block, so we don't waste bits passing this on. 
+            # Partners can calculate this when they receive it.
 
             if 'regarding' in c.dict['envelope']['payload']:
                 repliedTo = Envelope()
