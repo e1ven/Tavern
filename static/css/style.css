@@ -82,13 +82,6 @@ p { padding-bottom: 22px; }
     background-position: 0 0;
 }
 
-a:hover img.icon {
-    border: solid 1px #CCC;
-    -moz-box-shadow: 1px 1px 5px #999;
-    -webkit-box-shadow: 1px 1px 5px #999;
-    box-shadow: 1px 1px 5px #999;
-}
-
 .thread_body strong, b, strong *, b * { font-weight: bold; }
 .thread_body em, i, em *, i * {font-style: italic; }
 .thread_body ul {list-style-type: circle;}
