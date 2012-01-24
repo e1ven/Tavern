@@ -23,14 +23,12 @@
 
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
-			<abbr title="{{envelope['envelope']['payload']['author']['friendlyname']}}@{{envelope['envelope']['local']['author_pubkey_sha512']}}">
 			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
 			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
-			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha512'][0:6]}}..<br />
+			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br />
 			</a>
-			</abbr>
 			
 			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 		</div><!-- .thread_{{orient}} -->

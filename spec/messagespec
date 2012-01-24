@@ -1,12 +1,6 @@
 {
 	'envelope':
 	{
-		'payload_sha512':
-	'3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54'
-	},
-
-
-	{
 		'stamps':
 		[
 			{
@@ -34,18 +28,14 @@
 			}
 		]
 	},
-
+	'payload_sha512':
+	'3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54',
 	{
 		'payload':
 		{
 			'formatting':'markdown',
 			'class':'message',
-			'topictag':
-			[
-				'Startrek',
-				'TV Shows'
-			],		
-			'to': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
+			'topictag': 'Startrek',
 			'regarding': 'fa200fc2bbb11cfb2349668826685b5ec481d3555895877b5dd60d9981f411c665b2867023c61838cb78caf020ec61517aa3880ee225784fce6c560ecafeafaa',
 			'coords': '29.199505,-90.041242',
 			'author':
@@ -114,24 +104,25 @@ You may omit a "TO" tag- Most messages shouldn't carry one!
 
 
 The "Author" fields are included to positively tie a message with an author. This is included inside of the 'Message' block so that it is signed, along with the rest of the message.
-The 'from' field should contain the RSA public key of the author. This is used as the author's primary identity. A client might include a "Follow User" button using this.
-The optional 'About' field may contain a POSTID-SHA512 linking to the author's most-recent about-me Post.
-The 'friendlyname' is a friendly-short name, that is not necessarily unique across services. We don't call it a username, since that implies uniqueness.
+	The 'from' field should contain the RSA public key of the author. This is used as the author's primary identity. A client might include a "Follow User" button using this.
+	If you need to display a shortened version of this field for length concerns, SHA1 is customary.
+	The optional 'About' field may contain a POSTID-SHA512 linking to the author's most-recent about-me Post.
+	The 'friendlyname' is a friendly-short name, that is not necessarily unique across services. We don't call it a username, since that implies uniqueness.
 
 
 The client string is intentionally free-form- While it would be tempting to use a client signature here to 'prove' what client it is, it is ultimately untrustworthy.
-Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.
-Since this is impossible to secure, it's best to treat this like a web browser's USER-AGENT. Interesting to know, but Entirely untrusted.
-If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.
+	Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.
+	Since this is impossible to secure, it's best to treat this like a web browser's USER-AGENT. Interesting to know, but Entirely untrusted.
+	If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.
 
 
 The "Subject" should contain the subject of the message. If you are replying to an existing message, it's fine to import from that message. 
-There's no reason to modify the subject, but it won't hurt anything.
-Adding a  "RE: " is stupid. 
-Just set the "regarding" field.
+	There's no reason to modify the subject, but it won't hurt anything.
+	Adding a  "RE: " is stupid. 
+	Just set the "regarding" field.
 
 The "Body" section should be plaintext, formatted in markdown or bbcode. 
-Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 
+	Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 
 
 Any binaries that are to be included should have a the SHA512 of their uploaded file.
 

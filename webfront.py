@@ -76,7 +76,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
         elif "getonly" in self.request.arguments:
             #Get ONLY the div content marked
-            super(BaseHandler, self).write(self.getdiv(div))
+            for div in divs:
+                super(BaseHandler, self).write(self.getdiv(div))
         else:
             super(BaseHandler, self).write(self.html)
         super(BaseHandler,self).finish(message) 
@@ -755,7 +756,7 @@ class NewmessageHandler(BaseHandler):
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
          self.write(self.render_string('footer.html'))
-         c(divs=['content'])
+         self.finish(divs=['content'])
 
     def post(self):
         self.getvars()

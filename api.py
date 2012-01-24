@@ -139,8 +139,8 @@ class SubmitEnvelopeHandler(BaseHandler):
     def post(self):
         
         client_message = tornado.escape.to_unicode(self.get_argument("envelope"))
-        # client_message = codecs.unicode_escape_decode(client_message)[0]
-        server.receiveEnvelope(client_message)
+        # Receive a message, print back it's SHA
+        self.write(server.receiveEnvelope(client_message))
 
 class ServerStatus(BaseHandler):
     def get(self):
