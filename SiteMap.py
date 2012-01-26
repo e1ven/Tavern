@@ -1,4 +1,4 @@
-#!/opt/local/bin/python
+#!/usr/bin/env python3
 import datetime
 import pymongo
 from bson.code import Code
@@ -25,7 +25,7 @@ end = start + divisor - 1
 if end > countEnvelopes:
     end = countEnvelopes
     
-sitemapcount = 1 + (countEnvelopes / divisor)
+sitemapcount = 1 + int(countEnvelopes / divisor)
 
 print("This will generate " + str(sitemapcount) + " sitemaps, beginning with element " + str(start))
 print("Generating Master sitemap file")
