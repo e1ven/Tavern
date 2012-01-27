@@ -46,10 +46,10 @@ define("port", default=8090, help="run on the given port", type=int)
 class BaseHandler(tornado.web.RequestHandler):
 
     def error(self,errortext):
-	    self.write("***ERROR***")
-	    self.write(errortext)
-	    self.write("***END ERROR***")
-	    
+        self.write("***ERROR***")
+        self.write(errortext)
+        self.write("***END ERROR***")
+        
     def getvars(self):
         if "clientauth" in self.request.arguments:
             clientauth = self.get_argument("clientauth")
@@ -128,7 +128,7 @@ class PrivateMessagesHandler(BaseHandler):
         envelopes = []
 
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.to':client_pubkey},as_class=OrderedDict):
-            formattedtext = server.formatText(envelope)
+            formattedtext = server.formatText(envelope,formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
 

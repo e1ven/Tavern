@@ -4,7 +4,7 @@
 					<ul>
 						<li><a href="#">#Egypt</a></li>
 						<li><a href="#">#Python</a></li>
-						<li ><a href="#">#StarTrek</a></li>
+						<li><a href="#">#StarTrek</a></li>
 						<li><a href="#">#Apple</a></li>
 						<li><a href="#">#Linux</a></li>
 					</ul>
@@ -31,7 +31,7 @@
 				</h2>
 					<ul>
 					{% for subject in subjects %}
-					<li  {% if subject['envelope']['payload']['subject'] == envelope['envelope']['payload']['subject'] %} class="active"{% end %} >
+					<li  {% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} class="active"{% end %} >
 						<a class='internal' href="/message/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a>
 					</li>
                     {% end %}

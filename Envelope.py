@@ -124,8 +124,13 @@ class Envelope(object):
         stamps = self.dict['envelope']['stamps']
         foundauthor = 0
         for stamp in stamps:
-            if (stamp['class'] == "author"):
+            if stamp['class'] == "author":
                 foundauthor += 1
+                # Ensure that the Author stamp matches the Author in the Payload section!
+                if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
+                    print("Author stamp must match payload author key.")
+                    return False
+
         if foundauthor == 0:
             print("No author stamp.")
             return False    

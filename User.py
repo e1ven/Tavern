@@ -59,8 +59,8 @@ class User(object):
         trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         foundtrust = False
         if trustrow.count() > 0:
-    		#Get the most recent trust
-            tr = trustrow[0] 	
+            #Get the most recent trust
+            tr = trustrow[0]    
             print("We trust this user directly.")
             pprint.pprint(tr)
             trust = int(tr['envelope']['payload']['trust'])

@@ -127,10 +127,10 @@ class BaseHandler(tornado.web.RequestHandler):
         return ( '''var pluric_replace = function() 
                 {
                     var stateObj = {
-	    		        title: document.title,
-	    		        url: window.location.pathname 
-	    	    };
-	    	        document.title = "''' + newtitle + ''' ";
+                        title: document.title,
+                        url: window.location.pathname 
+                };
+                    document.title = "''' + newtitle + ''' ";
                     if (typeof history.pushState !== "undefined")
                     {
                         window.history.pushState(stateObj, "","''' + modifiedurl + '''");

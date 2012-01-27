@@ -327,7 +327,7 @@ class Server(object):
         
         if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
-            temp_short = envelope['envelope']['payload']['subject'][:50]
+            temp_short = envelope['envelope']['payload']['subject'][:50].rstrip()
             temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
             envelope['envelope']['local']['short_subject'] = "-".join(temp_short.split())
         if 'binaries' in envelope['envelope']['payload']:
