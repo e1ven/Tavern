@@ -13,7 +13,7 @@
 				<h2>Top Topics</h2>
 					<ul>
 					{% for quicktopic in toptopics %}
-                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} ><a class="internal" href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a></li>
+                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} ><a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}">{{quicktopic['_id']['tag']}}</a></li>
                     {% end %}
 					</ul>
 			</div><!-- #left -->

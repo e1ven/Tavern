@@ -17,11 +17,11 @@ from gridfs import GridFS
 from Envelope import Envelope
 import sys
 import pprint
-from postmarkup import render_bbcode
 import markdown
 import imghdr
 import datetime
 import re
+import bbcodepy
 from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 
@@ -257,10 +257,17 @@ class Server(object):
         return  c.dict['envelope']['payload_sha512']
         
     def formatText(self,text=None,formatting='markdown'):    
-        if formatting == 'bbcode':
-                formatted = render_bbcode(text)
-        elif formatting == 'markdown':
-                formatted = self.autolink(markdown.markdown(self.gfm(text)))
+        if formatting == 'markdown':
+            formatted = self.autolink(markdown.markdown(self.gfm(text)))
+        elif formatting == 'bbcode':
+            formatted =  bbcodepy.Parser().to_html(text)    
+        elif formatting == 'html':
+            VALID_TAGS = ['strong', 'em', 'p', 'ul', 'li', 'br']
+            soup = BeautifulSoup(text)
+            for tag in soup.findAll(True):
+                if tag.name not in VALID_TAGS:
+                    tag.hidden = True
+            formatted =  soup.renderContents()
         elif formatting == "plaintext":
                 formatted = "<pre>" + text + "</pre>"
         else:

@@ -291,10 +291,15 @@ head.ready(function() {
           $('#reply_'+$msg).empty().append("<br>" + data);
         });   
         
-    });    
+    });  
+    
+    $(".thread_right").tooltip({
+       offset: [10, 2],
+       effect: 'slide'
+    }).dynamic({ bottom: { direction: 'down', bounce: true } });
+  
   
 });
-
 
 
 function MultiSelector( list_target, max ){

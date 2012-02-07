@@ -2,6 +2,6 @@
 Top Topics:
 <ul>
 {% for message in messages %}
-       <li><a href="/message/{{urllib.quote(escape(message['envelope']['payload_sha512']))}}/{{urllib.quote(escape(message['envelope']['local']['short_subject']))}}">{{message['envelope']['payload']['subject']}}</a></li>
+       <li><a href="/message/{{urllib.quote(message['envelope']['payload_sha512'])}}/{{urllib.quote(message['envelope']['local']['short_subject'])}}">{{message['envelope']['payload']['subject']}}</a></li>
 {% end %}
 </ul>

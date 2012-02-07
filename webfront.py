@@ -1031,6 +1031,7 @@ def main():
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path" : "templates",
+        "autoescape" : "xhtml_escape"
     }
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),

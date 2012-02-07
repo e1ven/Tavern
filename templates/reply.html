@@ -22,7 +22,7 @@
 
 
 		<div class="thread_common">
-		<div class="thread_{{orient}}">
+		<div class="thread_{{orient}} download">
 			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
@@ -32,6 +32,31 @@
 			
 			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 		</div><!-- .thread_{{orient}} -->
+		<div class="tooltip">
+			<img src="http://static.flowplayer.org/img/title/eye.png" alt="Flying screens" 
+				style="float:left;margin:0 15px 20px 0" />
+			<table style="margin:0">
+				<tr>
+					<td class="label">File</td>
+					<td>flowplayer-3.2.7.zip</td>
+				</tr>
+				<tr>
+					<td class="label">Date</td>
+					<td>2011-03-03</td>
+				</tr>
+				<tr>
+					<td class="label">Size</td>
+					<td>112 kB</td>
+				</tr>
+				<tr>
+					<td class="label">OS</td>
+					<td>all</td>
+				</tr>		
+			</table>
+			<a href="/3.2/">What's new in 3.2</a>
+		</div>
+		
+		
 		</div>
 		
 		<div class="clear"></div>
@@ -53,7 +78,7 @@
 		<div class="attachments">
 			{% if 'attachmentlist' in envelope['envelope']['local'] %}
 			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-			            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
+			            <a href="/binaries/{{attachment['sha_512']}}"><bdi>{{attachment['filename']}}</bdi></a>
 			            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
 			    {% end %}
 			{% end %}
@@ -61,7 +86,7 @@
 
 		{% if 'youtube' in envelope['envelope']['local'] %}
 			{% for video in envelope['envelope']['local']['youtube'] %}
-			<iframe class="youtube-player" type="text/html" width="640" height="385" src="https://www.youtube.com/embed/{{video}}" frameborder="0">
+			<iframe class="youtube-player" type="text/html" width="640" height="385" src="https://www.youtube.com/embed/{{video}}?wmode=opaque" frameborder="0">
 			</iframe>
 			<br>
 			{% end %}

@@ -14,7 +14,7 @@
 					<ul>
 					{% for quicktopic in toptopics %}
                     <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} >
-                    	<a class="internal" href="/topic/{{urllib.parse.quote(escape(quicktopic['_id']['tag']))}}">{{escape(quicktopic['_id']['tag'])}}</a>
+                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
                     </li>
                     {% end %}
 					</ul>
@@ -26,13 +26,13 @@
 					{% if topic == 'sitecontent' %}
 					Messages from Pluric.com
 					{% else %}
-					Messages in {{topic}} <a class="internal configbutton" href="/topicinfo/{{topic}}">[C]</a>
+					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{topic}}">[C]</a>
 					{% end %}
 				</h2>
 					<ul>
 					{% for subject in subjects %}
 					<li  {% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} class="active"{% end %} >
-						<a class='internal' href="/message/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a>
+						<a class='internal' href="/message/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}"><bdi>{{subject['envelope']['payload']['subject']}}</bdi></a>
 					</li>
                     {% end %}
                     
@@ -42,7 +42,7 @@
 			
 			<div id="right">
 				<div class="thread">
-					<h1>{{envelope['envelope']['payload']['subject']}}</h1>
+					<h1><bdi>{{envelope['envelope']['payload']['subject']}}</bdi></h1>
 						{% if 'payload_sha512' in envelope['envelope'] %}
 								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right") %}
 						{% end %}
