@@ -152,6 +152,10 @@ header#top {
 form.vote { position:relative; float: left;}
 .comment_bottom {padding-bottom: 12px;}
 .votes {float:left;}
+.externalsharing {
+    float:right;
+    font-size:70%;
+    }
 
 #single {
     top: 20px;

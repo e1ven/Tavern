@@ -122,6 +122,11 @@
 				<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post"></abbr>
 				</form>
 			</div>  <!-- votes -->
+			{% if orient == "right" %}
+			<div class="externalsharing">
+			Share this post on <a href="http://www.facebook.com/sharer.php?u=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}&t={{envelope['envelope']['local']['short_subject']}}">Facebook</a>, <a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0Ahttp://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}" >Twitter</a> or <a href="https://plusone.google.com/_/+1/confirm?hl=en&url=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Google+</a>.
+			</div>
+			{% end %}
 			<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
 		</div> <!-- comment_bottom -->
 		{% if orient is not "left" %}
