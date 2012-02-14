@@ -145,12 +145,11 @@ class SubmitEnvelopeHandler(BaseHandler):
 class ServerStatus(BaseHandler):
     def get(self):
         status = OrderedDict()
-        
         status['timestamp'] = int(time.time())
         status['pubkey'] = server.ServerKeys.pubkey
         status['hostname'] = server.ServerSettings['hostname']
+        status['connections'] = ['http://Pluric.com:8090','http://ForumLegion.com:8090','http://ForumLegion.ch:8090']
         self.write(json.dumps(status,separators=(',',':')))
-        
         
 
         

@@ -191,7 +191,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val() },
                       function( data ) {
                           ref.empty().append("Done.");
-                          head.js("/?js=true&singlediv=left");
+                          head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
                       }
                     );
 
