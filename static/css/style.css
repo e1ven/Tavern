@@ -122,17 +122,18 @@ header#top {
     text-decoration:none;
 }
 
-ul#menubuttons li {
-	padding: 10px; 
+#menubuttons li {
+        padding: 10px; 
 	list-style-type: none;
 	float: left; 
 }
 
-ul#menubuttons li a { 
+#menubuttons li a { 
+        float: left;
+        padding: 10px 15px;
 	background: #231b32; 
 	color: #ffffff;
         text-decoration: none;
-	padding: 10px 15px;
 	border-top: 1px solid #170210;
 	border-bottom: 1px solid #7e446b;
 	-webkit-border-radius: 3px;
@@ -328,10 +329,6 @@ img.imginline { vertical-align: middle;  }
 *:first-child+html .clearfix { zoom: 1; } /* IE7 */
 
 
-#toplinks{
-     position:relative;
-     float: left;
-}
 #userblock{
      position:relative;
      float: right;

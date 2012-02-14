@@ -40,10 +40,10 @@
                 Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
             {% end %}
 	    {% if loggedin %}	
-					<div id="toplinks">
-            				<a rel="nofollow" href="/newmessage">Post new Message</a><br>
-		                	<a rel="nofollow" href="/showprivates">Show private messages</a>
-						</div>
+                <ul id="menubuttons">
+                    <li><a rel="nofollow" href="/newmessage">Post new message</a></li>
+                    <li><a rel="nofollow" href="/showprivates">Show private messages</a></li>
+                </ul>
 						<div id="userblock">
 					    	<a href="/user/{{pubkey}}">
 						    	<img class="avatar" alt= "Your Avatar" src="http://RoboHash.org/{{pubkey}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
@@ -55,10 +55,6 @@
 						</div>
             {% end %}
             </div> <!-- #menu-text -->
-                    <ul id="menubuttons">
-            <li><a href="#">Thing</a></li>
-            <li><a href="#">Thing2</a></li>
-            </ul>
         </div> <!-- #menu -->
 	</header>
 		<div id="spinner" class="black_overlay">
