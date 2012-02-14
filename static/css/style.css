@@ -424,6 +424,9 @@ img.imginline { vertical-align: middle;  }
 	width:35px;
 }
 
+.othercopies {
+    font-size:70%;
+}
 .tooltip a {
 	color:#ad4;
 	font-size:11px;
