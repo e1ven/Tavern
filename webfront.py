@@ -447,7 +447,19 @@ class SiteContentHandler(BaseHandler):
         self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
         self.write(self.render_string('footer.html'))
         
-        
+class AttachmentHandler(BaseHandler):        
+    def get(self,attachment):
+        self.getvars()
+        client_attachment_id = tornado.escape.xhtml_escape(attachment)
+        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},fields={'envelope.payload_sha512':1,'envelope.payload.subject':1}),as_class=OrderedDict)
+        stack = []
+        for envelope in envelopes:
+            stack.append(envelope)
+    
+        self.write(self.render_string('header.html',title="Pluric Attachment " + client_attachment_id,username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="attachment/" + client_attachment_id))
+        self.write(self.render_string('attachments.html',attachment=client_attachment_id,stack=stack))
+        self.write(self.render_string('footer.html'))
+                
 
 class PrivateMessageHandler(BaseHandler):        
     def get(self,message):
@@ -1134,7 +1146,8 @@ def main():
         (r"/nofollowuser/(.*)" ,NoFollowUserHandler),  
         (r"/nofollowtopic/(.*)" ,NoFollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  
-        (r"/showprivates" ,MyPrivateMessagesHandler),    
+        (r"/showprivates" ,MyPrivateMessagesHandler), 
+        (r"/attachment" ,AttachmentHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler), 

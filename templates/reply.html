@@ -78,9 +78,8 @@
 		<div class="attachments">
 			{% if 'attachmentlist' in envelope['envelope']['local'] %}
 			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-			            <a href="/binaries/{{attachment['sha_512']}}"><bdi>{{attachment['filename']}}</bdi></a>
-			            <br><div class="othercopies">Search for other messages with the <a href="/attachment/{{attachment['sha_512']}}">same attachment</a></div><br>
-			            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+			            <a href="/binaries/{{attachment['sha_512']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+			            <br><div class="othercopies">Search for other messages with the <a href="/attachment/{{attachment['sha_512']}}">same attachment</a></div>
 			    {% end %}
 			{% end %}
 		</div>
