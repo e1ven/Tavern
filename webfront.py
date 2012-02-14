@@ -30,6 +30,8 @@ import urllib.request, urllib.parse, urllib.error
 #import TopicList
 import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup
+import rss
+
 
 import re
 try: 
@@ -69,7 +71,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     def finish(self,divs=['limits'],message=None):
         if "js" in self.request.arguments:
-
+            if "singlediv" in self.request.arguments:
+                divs = [self.get_argument('singlediv')]
             #if JS is set at all, send the JS script version.
             for div in divs:
                 super(BaseHandler, self).write(self.getjs(div))
@@ -172,6 +175,29 @@ class BaseHandler(tornado.web.RequestHandler):
                       }
                     );
                 });
+
+
+                
+                $(".subscription").submit(function(event) {
+                    ref = $(this);
+                    /* stop form from submitting normally */
+                    event.preventDefault(); 
+
+                    /* get some values from elements on the page: */
+                    var $form = $( this ),
+                        url = $form.attr( 'action' );
+
+                    /* Send the data using post and put the results in a div */
+                    $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val() },
+                      function( data ) {
+                          ref.empty().append("Done.");
+                          head.js("/?js=true&singlediv=left");
+                      }
+                    );
+
+                });
+
+
                 $(".reply").click(function(event) {
                     event.preventDefault();
                     var $msg = $(this).attr('message');
@@ -189,26 +215,28 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Retrieve the basic user variables out of your cookies.
         """
-        self.username = self.get_secure_cookie("username")
-        if self.username is None:
+
+        if self.get_secure_cookie("username") is None:
             self.username = "Guest"
             self.loggedin = False
         else:
-            self.username = self.username.decode('utf-8')
+            self.username = self.get_secure_cookie("username").decode('utf-8')
             self.loggedin = True
-        self.maxposts = self.get_secure_cookie("maxposts")
-        if self.maxposts is None:
+
+        if self.get_secure_cookie("maxposts") is None:
             self.maxposts = 20
         else:
-            self.maxposts = int(self.maxposts)
-        if self.maxposts is None:
-            self.maxposts = 20
+            self.maxposts = int(self.get_secure_cookie("maxposts"))
+            
+        if self.get_secure_cookie("pubkey") is not None:
+            self.pubkey = self.get_secure_cookie("pubkey").decode('utf-8')
         else:
-            self.maxposts = int(self.maxposts)
-        
-        self.pubkey = self.get_secure_cookie("pubkey")
-        if self.pubkey is not None:
-            self.pubkey = self.pubkey.decode('utf-8')
+            self.pubkey = None
+
+        if self.get_secure_cookie("followedTopics") is not None:
+            self.followedTopics = json.loads(self.get_secure_cookie("followedTopics").decode('utf-8'),object_pairs_hook=OrderedDict,object_hook=OrderedDict)
+        else:
+            self.followedTopics = ['StarTrek','Python','Egypt','Guests']
         #Toggle this.
         self.include_loc = "on"  
            
@@ -219,23 +247,25 @@ class BaseHandler(tornado.web.RequestHandler):
         Create a new account for a user.
         They can customize it later if they want.
         """
-        newpassword = base64.urlsafe_b64encode(os.urandom(100)).decode('utf-8')
         newusername = 'Anonymous-' + str(random.randint(100000,999999))
-        hashedpass = bcrypt.hashpw(newpassword, bcrypt.gensalt(1))
+        newpassword = base64.urlsafe_b64encode(os.urandom(100)).decode('utf-8')
         
+        # We're not actually hashing the password, since the user cannot log in with it.
+        # They don't even know it. When they use "Change Password", we'll generate one and hash it.
+           
         u = User()
-        u.generate(hashedpass=hashedpass,username=newusername.lower())
-        u.UserSettings['maxposts'] = 20
+        u.generate(hashedpass=newpassword,username=newusername.lower())
         u.savemongo()
         
         self.set_secure_cookie("username",newusername.lower(),httponly=True)
         self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
         self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)   
+        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
         
         # Now, force-set all the variables. 
         # These are used so the HTTP request that forces a registration goes through, using it. 
         self.username = newusername.lower()
-        self.maxposts = 20
+        u.UserSettings['maxposts']
         self.pubkey = str(''.join(u.UserSettings['pubkey'].split() ) )
         self.loggedin = True
 
@@ -247,7 +277,23 @@ class NotFoundHandler(BaseHandler):
         self.write(self.render_string('404.html'))
         self.write(self.render_string('footer.html'))
 
-
+class RSSHandler(BaseHandler):
+    def get(self,action,param):
+        if action =="topic":
+            channel = rss.Channel('ForumLegion - ' + param,
+                          'http://ForumLegion.ch/rss/' + param,
+                          'ForumLegion discussion about ' + param,
+                          generator = 'ForumLegion',
+                          pubdate = datetime.datetime.now())
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : param,'envelope.payload.class':'message'},limit=100,as_class=OrderedDict):
+                item = rss.Item(channel,
+                    envelope['envelope']['payload']['subject'],
+                    "http://ForumLegion.ch/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
+                    envelope['envelope']['local']['formattedbody'])
+                channel.additem(item)
+            self.write(channel.toprettyxml())
+                      
+                          
 
 class TriPaneHandler(BaseHandler):
     
@@ -354,7 +400,7 @@ class TriPaneHandler(BaseHandler):
     
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
-        self.write(self.render_string('tripane.html',topic=topic,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('tripane.html',topic=topic,mytopics=self.followedTopics,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
         pprint.pprint(divs)   
@@ -384,7 +430,7 @@ class TopicPropertiesHandler(BaseHandler):
 
         title = "Properties for " + topic    
         self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
-        self.write(self.render_string('topicprefs.html',topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
+        self.write(self.render_string('topicprefs.html',mytopics=self.followedTopics,topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
         self.write(self.render_string('footer.html'))  
         self.finish(divs=['right'])
 
@@ -476,7 +522,9 @@ class RegisterHandler(BaseHandler):
             
             self.set_secure_cookie("username",client_newuser.lower(),httponly=True)
             self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-            
+            self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+            self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
+
             self.redirect("/")
 
 
@@ -517,7 +565,8 @@ class LoginHandler(BaseHandler):
                 self.set_secure_cookie("username",user['username'].lower(),httponly=True)
                 self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
                 self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-                print(str(''.join(u.UserSettings['pubkey'].split() ) ))
+                self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+
                 self.redirect("/")
                 return
 
@@ -562,7 +611,16 @@ class FollowUserHandler(BaseHandler):
         u.load_mongo_by_username(username=self.username)
         u.followUser(pubkey)
         u.savemongo()
-        
+        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
+        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
+        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        if "js" in self.request.arguments:
+            self.finish(divs=['right'])
+        else:
+            self.redirect("/")
+
+
 class NoFollowUserHandler(BaseHandler):
     def get(self,topic):
         self.getvars()
@@ -577,27 +635,43 @@ class NoFollowUserHandler(BaseHandler):
         u.load_mongo_by_username(username=self.username)
         u.noFollowUser(topic)
         u.savemongo()
+        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
+        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
+        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        if "js" in self.request.arguments:
+            self.finish(divs=['right'])
+        else:
+            self.redirect("/")
 
 
 class FollowTopicHandler(BaseHandler):
-    def get(self,pubkey):
+    def get(self,topic):
         self.getvars()
 
-    def post(self):    
+    def post(self,topic):    
         self.getvars()
         if not self.loggedin:
-            self.write("You must be logged in to follow a user.")
+            self.write("You must be logged in to follow a Topic.")
             return 0
         u = User()
         u.load_mongo_by_username(username=self.username)
-        u.followTopic(pubkey)
+        u.followTopic(topic)
         u.savemongo()
+        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
+        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
+        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        if "js" in self.request.arguments:
+            self.finish(divs=['right'])
+        else:
+            self.redirect("/")
 
 class NoFollowTopicHandler(BaseHandler):
     def get(self,topic):
         self.getvars()
         
-    def post(self):       
+    def post(self,topic):       
         self.getvars()
         if not self.loggedin:
             self.write("You must be logged in to follow a topic.")
@@ -606,6 +680,15 @@ class NoFollowTopicHandler(BaseHandler):
         u.load_mongo_by_username(username=self.username)
         u.noFollowTopic(topic)
         u.savemongo()
+        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
+        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
+        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
+        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        if "js" in self.request.arguments:
+            self.finish(divs=['right'])
+        else:
+            self.redirect("/")
+
     
             
             
@@ -1038,8 +1121,9 @@ def main():
         (r"/user/(.*)" ,TodoHandler),  
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
-        (r"/logout" ,LogoutHandler), 
+        (r"/logout" ,LogoutHandler),   
         (r"/newmessage" ,NewmessageHandler),
+        (r"/rss/(.*)/(.*)" ,RSSHandler),
         (r"/reply/(.*)/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
@@ -1047,6 +1131,8 @@ def main():
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
         (r"/followuser/(.*)" ,FollowUserHandler),  
         (r"/followtopic/(.*)" ,FollowTopicHandler),  
+        (r"/nofollowuser/(.*)" ,NoFollowUserHandler),  
+        (r"/nofollowtopic/(.*)" ,NoFollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  
         (r"/showprivates" ,MyPrivateMessagesHandler),    
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),

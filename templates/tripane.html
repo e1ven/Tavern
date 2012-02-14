@@ -2,11 +2,12 @@
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
-						<li><a href="#">#Egypt</a></li>
-						<li><a href="#">#Python</a></li>
-						<li><a href="#">#StarTrek</a></li>
-						<li><a href="#">#Apple</a></li>
-						<li><a href="#">#Linux</a></li>
+					{% for quicktopic in mytopics %}
+      					<li {%if quicktopic == topic %} class="active"{% end %} >
+	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
+	                    </li>
+                    {% end %}
+
 					</ul>
 
 				

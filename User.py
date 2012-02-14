@@ -14,8 +14,8 @@ class User(object):
     def __init__(self):
         self.UserSettings = OrderedDict()
         self.UserSettings['local'] = OrderedDict()
-        self.UserSettings['local']['followUser'] = []
-        self.UserSettings['local']['followTopic'] = []
+        self.UserSettings['local']['followedUsers'] = []
+        self.UserSettings['local']['followedTopics'] = []
 
     def gatherTrust(self,askingabout,incomingtrust=250):
         print("My Key------" +  self.Keys.pubkey)
@@ -56,7 +56,7 @@ class User(object):
         #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
         print("Asking About -- " + askingabout)
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.UserSettings['pubkey'])  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         foundtrust = False
         if trustrow.count() > 0:
             #Get the most recent trust
@@ -71,7 +71,7 @@ class User(object):
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
 
             #First, find the people WE'VE trusted
-            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.UserSettings['pubkey']  },as_class=OrderedDict)
+            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.Keys.pubkey  },as_class=OrderedDict)
             combinedFriendTrust = 0
             friendcount = 0
             
@@ -124,21 +124,24 @@ class User(object):
         return combinedrating  
     
     def followUser(self,pubkey):
-        if pubkey not in self.UserSettings['local']['followUser']:
-            self.UserSettings['local']['followUser'].append(pubkey)
-            
+        if pubkey not in self.UserSettings['local']['followedUsers']:
+            self.UserSettings['local']['followedUsers'].append(pubkey)
+        self.savemongo()
+
     def followTopic(self,topic):
-        if pubkey not in self.UserSettings['local']['followTopic']:
-            self.UserSettings['local']['followTopic'].append(topic)
+        if topic not in self.UserSettings['local']['followedTopics']:
+            self.UserSettings['local']['followedTopics'].append(topic)
+        self.savemongo()
 
     def noFollowUser(self,pubkey):
-        if pubkey in self.UserSettings['local']['followUser']:
-            self.UserSettings['local']['followUser'].remove(pubkey)
+        if pubkey in self.UserSettings['local']['followedUsers']:
+            self.UserSettings['local']['followedUsers'].remove(pubkey)
+        self.savemongo()
 
     def noFollowTopic(self,topic):
-        if pubkey in self.UserSettings['local']['followTopic']:
-            self.UserSettings['local']['followTopic'].remove(topic)    
-       
+        if topic in self.UserSettings['local']['followedTopics']:
+            self.UserSettings['local']['followedTopics'].remove(topic)    
+        self.savemongo()
                 
     def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
         self.UserSettings['username'] = username
@@ -150,6 +153,8 @@ class User(object):
         self.UserSettings['hashedpass'] = hashedpass
         self.Keys = Keys()
         self.Keys.generate()
+        self.Keys.format_keys()
+
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
         
@@ -157,6 +162,12 @@ class User(object):
         gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
     
         self.UserSettings['time_created'] = gmtstring
+        self.followTopic("StarTrek")
+        self.followTopic("Python")
+        self.followTopic("Egypt")
+        self.followTopic("Funny")
+        self.UserSettings['maxposts'] = 20
+
             
     def load_file(self,filename):
         filehandle = open(filename, 'r')
@@ -168,6 +179,7 @@ class User(object):
         self.UserSettings['pubkey'] = self.Keys.pubkey
         
     def savefile(self,filename=None):
+        self.Keys.format_keys()
         if filename == None:
             filename = self.UserSettings['username'] + ".PluricUser"                
         filehandle = open(filename,'w')   
@@ -199,6 +211,7 @@ class User(object):
         self.UserSettings['pubkey'] = self.Keys.pubkey
         print("Loaded username " + username + "..." + self.UserSettings['pubkey'])
     def savemongo(self):
-        self.UserSettings['_id'] = self.UserSettings['pubkey']
+        self.Keys.format_keys()
+        self.UserSettings['_id'] = self.Keys.pubkey
         server.mongos['default']['users'].save(self.UserSettings) 
             

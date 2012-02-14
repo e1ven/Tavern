@@ -2,18 +2,21 @@
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
-						<li><a href="#">#Egypt</a></li>
-						<li><a href="#">#Python</a></li>
-						<li class="active"><a href="#">#StarTrek</a></li>
-						<li><a href="#">#Apple</a></li>
-						<li><a href="#">#Linux</a></li>
+					{% for quicktopic in mytopics %}
+      					<li {%if quicktopic == topic %} class="active"{% end %} >
+	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
+	                    </li>
+                    {% end %}
+
 					</ul>
 
 				
 				<h2>Top Topics</h2>
 					<ul>
 					{% for quicktopic in toptopics %}
-                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} ><a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}">{{quicktopic['_id']['tag']}}</a></li>
+                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} >
+                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
+                    </li>
                     {% end %}
 					</ul>
 			</div><!-- #left -->
@@ -38,7 +41,15 @@
 			<div id="right">
 				<div class="thread">
 					<h1>{{topic}} Preferences</h1>
-						You are currently <b>subscribed</b> to {{topic}}.<br>
+						<br>
+
+						Showing Preferences for {{topic}}.  <a href="/rss/topic/{{topic}}"><img src="/static/images/feed-icon-14x14.png"></a><br>
+						<p>
+						{% if topic in mytopics %}
+							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/nofollowtopic/{{topic}}" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
+							{% else %}
+							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/followtopic/{{topic}}" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
+						{% end %}
 						<p>
 						The following users are popular moderators, you might want to consider adding them:<br>
 						<ul>

@@ -26,7 +26,7 @@ class Keys(object):
             self.pubkey = self.key.public.as_string()
             self.privkey = self.key.as_string()
             print("Full Key")
-            
+        self.format_keys()   
             
              
     def format_keys(self):

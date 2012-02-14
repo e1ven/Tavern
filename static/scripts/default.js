@@ -282,6 +282,24 @@ head.ready(function() {
               voteref.parent().empty().append( data );
           }
         );
+    });                
+    $(".subscription").submit(function(event) {
+        ref = $(this);
+        /* stop form from submitting normally */
+        event.preventDefault(); 
+
+        /* get some values from elements on the page: */
+        var $form = $( this ),
+            url = $form.attr( 'action' );
+
+        /* Send the data using post and put the results in a div */
+        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val() },
+          function( data ) {
+              ref.empty().append("Done.");
+              head.js("/?js=true&singlediv=left");
+          }
+        );
+
     });
     $(".reply").click(function(event) {
         event.preventDefault();
