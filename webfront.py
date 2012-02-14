@@ -451,7 +451,7 @@ class AttachmentHandler(BaseHandler):
     def get(self,attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},fields={'envelope.payload_sha512':1,'envelope.payload.subject':1}),as_class=OrderedDict)
+        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},fields={'envelope.payload_sha512':1,'envelope.payload.subject':1},as_class=OrderedDict)
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -1138,6 +1138,7 @@ def main():
         (r"/rss/(.*)/(.*)" ,RSSHandler),
         (r"/reply/(.*)/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 
+        (r"/attachment/(.*)" ,AttachmentHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
@@ -1147,7 +1148,6 @@ def main():
         (r"/nofollowtopic/(.*)" ,NoFollowTopicHandler),  
         (r"/showuserposts/(.*)" ,ShowUserPosts),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 
-        (r"/attachment" ,AttachmentHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler), 

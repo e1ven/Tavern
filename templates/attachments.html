@@ -1,12 +1,13 @@
 <div id="single">
-<h2> Messages involving Attachment - {{attachment}} </h2>
+<h2> Messages involving Attachment <br>- {{attachment}} </h2>
 <p></p>
 
-
-{% for attachment in stack %}
-            <a href="/message/{{attachment['sha_512']}}">{{attachment['subject']}}</a>
-    {% end %}
+<br><br>
+<ul>
+{% for envelope in stack %}
+            <li><a href="/message/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a>
+            </li>
 {% end %}
-
-
+</ul>
+<br><br>
 </div> <!-- #single -->
