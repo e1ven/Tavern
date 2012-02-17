@@ -129,10 +129,11 @@ class BaseHandler(tornado.web.RequestHandler):
         
         return ( '''var pluric_replace = function() 
                 {
-                    var stateObj = {
+                    var stateObj = 
+                    {
                         title: document.title,
                         url: window.location.pathname 
-                };
+                    };
                     document.title = "''' + newtitle + ''' ";
                     if (typeof history.pushState !== "undefined")
                     {
@@ -155,7 +156,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 };
                 pluric_replace();
                 pluric_replace = null;
-                
+             
                 $(".vote").submit(function(event) {
                     voteref = $(this);
                     /* stop form from submitting normally */
@@ -207,7 +208,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     });   
 
                 });
-                
+
                 
                 ''')
 
