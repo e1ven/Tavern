@@ -341,9 +341,9 @@ class TriPaneHandler(BaseHandler):
             topic = "sitecontent"
         else:
             action = tornado.escape.xhtml_escape(param1) 
-            if action == "t" or "topic" or "topictag":
+            if action == "t" or action == "topic" or action == "topictag":
                 action = "topic"
-            elif action == "m" or "message":
+            elif action == "m" or action == "message":
                 action = "message"
             else:
                 action = "message"
@@ -365,7 +365,7 @@ class TriPaneHandler(BaseHandler):
         for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
 
-                                
+        print(action)                        
         if action == "topic":
             # If you change the topic, refresh all three panels.
             divs.append("left")
@@ -393,7 +393,7 @@ class TriPaneHandler(BaseHandler):
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
                 canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']

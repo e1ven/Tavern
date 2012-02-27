@@ -16,4 +16,4 @@ Disallow: /uploadnewmessage
 Disallow: /showuserposts
 Disallow: /uploadprivatemessage
 Disallow: /privatemessage
-
+Disallow: /user
