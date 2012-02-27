@@ -340,17 +340,14 @@ class TriPaneHandler(BaseHandler):
             action = "topic"
             topic = "sitecontent"
         else:
-            if numparams > 1:
-                action = tornado.escape.xhtml_escape(param1) 
-                if action == "t":
-                    action = "topic"
-                elif action == "topictag":
-                    action = "topic"
-                elif action == "m":
-                    action = "message"
-                #finally 
-                else:
-                    action = "message"
+            action = tornado.escape.xhtml_escape(param1) 
+            if action == "t" or "topic" or "topictag":
+                action = "topic"
+            elif action == "m" or "message":
+                action = "message"
+            else:
+                action = "message"
+
             if action == "message":       
                 if numparams == 2:
                     messageid = tornado.escape.xhtml_escape(param2)
