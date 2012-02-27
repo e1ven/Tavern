@@ -287,14 +287,6 @@ class BaseHandler(tornado.web.RequestHandler):
         self.pubkey = str(''.join(u.UserSettings['pubkey'].split() ) )
         self.loggedin = True
 
-class NotFoundHandler(BaseHandler):
-    """ Handler for 404s"""
-    def get(self,whatever):
-        self.getvars()
-        self.write(self.render_string('header.html',title="Page not Found",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
-        self.write(self.render_string('404.html'))
-        self.write(self.render_string('footer.html'))
-
 class RSSHandler(BaseHandler):
     def get(self,action,param):
         if action =="topic":
@@ -343,12 +335,12 @@ class TriPaneHandler(BaseHandler):
             
             
         #Decide what to do, based on the number of incoming actions.    
-        if numparams < 1:
+        if numparams < 2:
             # Defaults all around
             action = "topic"
             topic = "sitecontent"
         else:
-            if numparams >= 1:
+            if numparams > 1:
                 action = tornado.escape.xhtml_escape(param1) 
                 if action == "t":
                     action = "topic"
@@ -356,7 +348,9 @@ class TriPaneHandler(BaseHandler):
                     action = "topic"
                 elif action == "m":
                     action = "message"
-
+                #finally 
+                else:
+                    action = "message"
             if action == "message":       
                 if numparams == 2:
                     messageid = tornado.escape.xhtml_escape(param2)
@@ -365,7 +359,6 @@ class TriPaneHandler(BaseHandler):
             elif action == "topic":
                 topic = tornado.escape.xhtml_escape(param2)
                     
-                                        
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
         #tl = TopicList.TopicList()                
