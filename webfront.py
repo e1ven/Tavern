@@ -115,6 +115,23 @@ class BaseHandler(tornado.web.RequestHandler):
                 
             modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
             
+            #Also strip out the "timestamp" param
+            jsvar = modifiedurl.find("timestamp=")
+            if jsvar > -1:
+                #This should always be true    
+                #But Are there other params?
+                nextvar = modifiedurl.find("&",jsvar)
+                if nextvar > 0:
+                    #There are Additional Variables in this URL
+                    finish = "?" + modifiedurl[nextvar+1:len(modifiedurl)]
+                else:
+                    print("No Next variables")
+                    #There are no other variables. Delete until End of string
+                    finish = ""
+                modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") -1] + finish
+
+
+
         soup = BeautifulSoup(self.html)    
         soupyelement = soup.find(id=element)
         newtitle = soup.html.head.title.string.rstrip().lstrip()
@@ -286,7 +303,7 @@ class RSSHandler(BaseHandler):
                           'ForumLegion discussion about ' + param,
                           generator = 'ForumLegion',
                           pubdate = datetime.datetime.now())
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : param,'envelope.payload.class':'message'},limit=100,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : param,'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
                     "http://ForumLegion.ch/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -333,7 +350,13 @@ class TriPaneHandler(BaseHandler):
         else:
             if numparams >= 1:
                 action = tornado.escape.xhtml_escape(param1) 
-                
+                if action == "t":
+                    action = "topic"
+                elif action == "topictag":
+                    action = "topic"
+                elif action == "m":
+                    action = "message"
+
             if action == "message":       
                 if numparams == 2:
                     messageid = tornado.escape.xhtml_escape(param2)
@@ -360,7 +383,7 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
                 
             if len(subjects) > 0:
@@ -389,8 +412,13 @@ class TriPaneHandler(BaseHandler):
             # Can't find a message ;(
             e = server.error_envelope("Can't find your message")
             displayenvelope = e.dict
-            pprint.pprint(displayenvelope['envelope']['payload_sha512'])
             messageid = e.payload.hash()
+            title = "Can't find your message"
+            topic = "sitecontent"
+            canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+            subjects = []
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                subjects.append(envelope)
 
         u = User()
         u.load_mongo_by_username(username=self.username)

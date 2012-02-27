@@ -78,8 +78,11 @@ sitemapindex.write("</sitemapindex>\n")
 sitemapindex.close()
 
 # print "Notifying Bing"
-# cmd = 'curl http://www.bing.com/webmaster/ping.aspx?siteMap=http://lonava.com/static/sitemaps/sitemap_index.xml > /dev/null'
+# cmd = 'curl http://www.bing.com/webmaster/ping.aspx?siteMap=http://forumlegion.com/static/sitemaps/sitemap_index.xml > /dev/null'
 # os.system(cmd)
 # print "Notifying Google"
-# cmd = 'curl http://www.google.com/webmasters/sitemaps/ping?sitemap=http://lonava.com/static/sitemaps/sitemap_index.xml > /dev/null'
+# cmd = 'curl http://www.google.com/webmasters/sitemaps/ping?sitemap=http://forumlegion.com/static/sitemaps/sitemap_index.xml > /dev/null'
+# os.system(cmd)
+# print "Notifying Ask"
+# cmd = 'curl http://submissions.ask.com/ping?sitemap=http://forumlegion.com/static/sitemaps/sitemap_index.xml > /dev/null'
 # os.system(cmd)

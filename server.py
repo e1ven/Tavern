@@ -187,7 +187,7 @@ class Server(object):
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
         e.dict['envelope']['local']['time_added'] = 1297396876
         e.dict['envelope']['local']['author_pubkey_sha1'] = "000000000000000000000000000000000000000000000000000000000000"
-        e.dict['envelope']['payload_sha512'] = '0'
+        e.dict['envelope']['payload_sha512'] = e.payload.hash()
         e.dict = self.formatEnvelope(e.dict)
         return e
         
