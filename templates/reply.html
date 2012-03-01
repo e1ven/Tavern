@@ -68,19 +68,15 @@
 		<div class="thread_body">
             {% raw envelope['envelope']['local']['formattedbody'] %}
 		</div><!-- .thread_start -->
-		<div class="images">			
-			{% if 'displayableattachmentlist' in envelope['envelope']['local'] %}
-			    {% for attachment in envelope['envelope']['local']['displayableattachmentlist'] %}
-				    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb" alt="Thumbnail of enclosed image"></a> <br>
-			    {% end %}
-			{% end %}
-		</div>
 		<div class="attachments">
 			{% if 'attachmentlist' in envelope['envelope']['local'] %}
 			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+						{% if attachment['displayable'] is not False %}
+							<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><img src="{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a> <br>
+						{% end %} 
 			            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
 			            <div class="othercopies">Search for other messages with the <a href="/attachment/{{attachment['sha_512']}}">same attachment</a></div>
-                                    <br>
+                        <br>
 			    {% end %}
 			{% end %}
 		</div>

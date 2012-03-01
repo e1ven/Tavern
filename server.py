@@ -329,9 +329,7 @@ class Server(object):
             return None
     
     def formatEnvelope(self,envelope):
-        attachmentList = []
-        displayableAttachmentList = []
-        
+        attachmentList = []        
         if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload']['subject'][:50].rstrip()
@@ -346,8 +344,7 @@ class Server(object):
                         binary['filename'] = "unknown_file"
                     #In order to display an image, it must be of the right MIME type, the right size, it must open in
                     #Python and be a valid image.
-                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length }
-                    attachmentList.append(attachmentdesc)
+                    displayable = False;
                     if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
                         if 'content_type' in binary:
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
@@ -361,10 +358,12 @@ class Server(object):
                                         img_width, img_height = im.size
                                         if ((img_width > 150 ) or (img_height > 150 )): 
                                             im = im.resize((150, 150),Image.ANTIALIAS)
-                                        thumbnail = self.bin_GridFS.new_file(filename=binary['sha_512'] + "-thumb")
+                                        displayable=binary['sha_512'] + "-thumb"
+                                        thumbnail = self.bin_GridFS.new_file(filename=displayable)
                                         im.save(thumbnail,format='png')    
                                         thumbnail.close()
-                                    displayableAttachmentList.append(binary['sha_512'])
+                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
+                    attachmentList.append(attachmentdesc)
         if 'body' in envelope['envelope']['payload']:                            
             if 'formatting' in envelope['envelope']['payload']:
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
@@ -372,7 +371,6 @@ class Server(object):
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
                 
-        envelope['envelope']['local']['displayableattachmentlist'] = displayableAttachmentList            
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!
         envelope['envelope']['local']['attachmentlist'] = attachmentList

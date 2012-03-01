@@ -463,7 +463,7 @@ class SiteContentHandler(BaseHandler):
 
             
         self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512']))
-        self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],displayableAttachmentList=envelope['envelope']['local']['displayableattachmentlist'],envelope=envelope))
+        self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],envelope=envelope))
         self.write(self.render_string('footer.html'))
         
 class AttachmentHandler(BaseHandler):        
