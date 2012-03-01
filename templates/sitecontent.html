@@ -16,7 +16,7 @@
 
 {% if 'attachmentlist' in envelope['envelope']['local'] %}
     {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-            <a href="/binaries/{{attachment['sha_512']}}">{{attachment['filename']}}</a>
+            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}">{{attachment['filename']}}</a>
             ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
     {% end %}
 {% end %}
