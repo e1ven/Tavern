@@ -8,12 +8,6 @@
 <p>{% raw formattedbody %}</p>
 
 
-{% if len(displayableAttachmentList) > 0 %}
-    {% for attachment in displayableAttachmentList %}
-	    <a href="/binaries/{{attachment}}"><img src="/binaries/{{attachment}}-thumb"></a> <br>
-    {% end %}
-{% end %}
-
 {% if 'attachmentlist' in envelope['envelope']['local'] %}
 	<div class="attachments">
     {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
