@@ -15,10 +15,18 @@
 {% end %}
 
 {% if 'attachmentlist' in envelope['envelope']['local'] %}
+	<div class="attachments">
     {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
-            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}">{{attachment['filename']}}</a>
-            ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+			{% if 'displayable' in attachment %}
+                                        {% if attachment['displayable'] is not False %}
+				<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a> <br>
+			    {% end %} 
+			{% end %} 
+            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
+            <div class="othercopies">Search for other messages with the <a href="/attachment/{{attachment['sha_512']}}">same attachment</a></div>
+            <br>
     {% end %}
+	</div>
 {% end %}
 
 </div> <!-- #single -->

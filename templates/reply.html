@@ -68,8 +68,9 @@
 		<div class="thread_body">
             {% raw envelope['envelope']['local']['formattedbody'] %}
 		</div><!-- .thread_start -->
-		<div class="attachments">
-			{% if 'attachmentlist' in envelope['envelope']['local'] %}
+		{% if 'attachmentlist' in envelope['envelope']['local'] %}
+			<div class="attachments">
+
 			    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 						{% if 'displayable' in attachment %}
                                                     {% if attachment['displayable'] is not False %}
@@ -80,8 +81,8 @@
 			            <div class="othercopies">Search for other messages with the <a href="/attachment/{{attachment['sha_512']}}">same attachment</a></div>
                         <br>
 			    {% end %}
-			{% end %}
-		</div>
+    		</div>
+		{% end %}
 
 		{% if 'youtube' in envelope['envelope']['local'] %}
 			{% for video in envelope['envelope']['local']['youtube'] %}
