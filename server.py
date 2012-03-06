@@ -244,7 +244,7 @@ class Server(object):
         
         # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
         if 'topic' in c.dict['envelope']['payload']:
-            c.dict['envelope']['local']['sorttopic'] = self.shorttopic(c.dict['envelope']['payload']['topic'])
+            c.dict['envelope']['local']['sorttopic'] = self.sorttopic(c.dict['envelope']['payload']['topic'])
 
         c.dict['envelope']['stamps'] = stamps
         c.dict['envelope']['local']['time_added']  = int(utctime) 
@@ -255,13 +255,18 @@ class Server(object):
           # Partners can calculate this when they receive it.
 
           if 'regarding' in c.dict['envelope']['payload']:
-          repliedTo = Envelope()
-          if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-            repliedTo.addcite(c.dict['envelope']['payload_sha512'])
+            repliedTo = Envelope()
+            if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
+              print(" I am :: " + c.dict['envelope']['payload_sha512'])
+              print(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['payload_sha512'])
+              repliedTo.addcite(c.dict['envelope']['payload_sha512'])
 
           # It could also be that this message is cited BY others we already have!
           # Sometimes we received them out of order. Better check.
-          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.shorttopic': self.shorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
+          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
+            print('found existing cite, bad order. ')
+            print(" I am :: " + c.dict['envelope']['payload_sha512'])
+            print(" Found pre-existing cite at :: " + citedme['envelope']['payload_sha512']) 
             citedme = self.formatEnvelope(citedme)
             c.addcite(citedme['envelope']['payload_sha512'])
       
@@ -379,10 +384,10 @@ class Server(object):
                                             img_width, img_height = im.size
                                             if ((img_width > 150 ) or (img_height > 150 )): 
                                                 im = im.resize((150, 150),Image.ANTIALIAS)
-                                            displayable=binary['sha_512'] + "-thumb"
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
                                             im.save(thumbnail,format='png')    
                                             thumbnail.close()
+                                        displayable=binary['sha_512'] + "-thumb"
                         attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:

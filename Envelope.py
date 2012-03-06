@@ -159,11 +159,9 @@ class Envelope(object):
 
     def addcite(self,citedby):
       if not 'citedby' in self.dict['envelope']['local']:
-        citedby = []
-        self.dict['envelope']['local']['citedby'] = citedby
-      else:
-        if citedby not in self.dict['envelope']['local']['citedby']:
-          self.dict['envelope']['local']['citedby'].append(citedby)
+        self.dict['envelope']['local']['citedby'] = []
+      if citedby not in self.dict['envelope']['local']['citedby']:
+        self.dict['envelope']['local']['citedby'].append(citedby)
       self.saveMongo()
         
         
