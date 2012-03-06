@@ -14,6 +14,7 @@ from collections import OrderedDict
 import collections
 import pymongo
 from gridfs import GridFS
+import gridfs
 from Envelope import Envelope
 import sys
 import pprint
