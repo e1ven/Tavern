@@ -295,7 +295,7 @@ class RSSHandler(BaseHandler):
                           'ForumLegion discussion about ' + param,
                           generator = 'ForumLegion',
                           pubdate = datetime.datetime.now())
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : param,'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
                     "http://ForumLegion.ch/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -373,7 +373,7 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
                 
             if len(subjects) > 0:
@@ -393,7 +393,7 @@ class TriPaneHandler(BaseHandler):
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
                 canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
@@ -407,7 +407,7 @@ class TriPaneHandler(BaseHandler):
             topic = "sitecontent"
             canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
 
         u = User()
@@ -418,7 +418,7 @@ class TriPaneHandler(BaseHandler):
         displayenvelope['envelope']['local']['messagerating'] = messagerating
     
         #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon))
+        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon,rss="/rss/topic/" + displayenvelope['envelope']['payload']['topic'],topic=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('tripane.html',topic=topic,mytopics=self.followedTopics,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
@@ -435,7 +435,7 @@ class TopicPropertiesHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
 
         mods = []
-        for mod in server.mongos['default']['modlist'].find({'_id.topic':topic},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
+        for mod in server.mongos['default']['modlist'].find({'_id.topic':server.sorttopic(topic)},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
             pprint.pprint(mod)
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(mod['_id']['moderator'].encode('utf-8')).hexdigest() 
             mods.append(mod)
@@ -444,11 +444,11 @@ class TopicPropertiesHandler(BaseHandler):
         for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.topic' : topic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
             subjects.append(envelope)
 
         title = "Properties for " + topic    
-        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss="/rss/topic/" + topic,topic=topic))
         self.write(self.render_string('topicprefs.html',mytopics=self.followedTopics,topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
         self.write(self.render_string('footer.html'))  
         self.finish(divs=['right'])
@@ -462,24 +462,10 @@ class SiteContentHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512']))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],envelope=envelope))
         self.write(self.render_string('footer.html'))
-        
-class AttachmentHandler(BaseHandler):        
-    def get(self,attachment):
-        self.getvars()
-        client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},fields={'envelope.payload_sha512':1,'envelope.payload.subject':1},as_class=OrderedDict)
-        stack = []
-        for envelope in envelopes:
-            stack.append(envelope)
-    
-        self.write(self.render_string('header.html',title="Pluric Attachment " + client_attachment_id,username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="attachment/" + client_attachment_id))
-        self.write(self.render_string('attachments.html',attachment=client_attachment_id,stack=stack))
-        self.write(self.render_string('footer.html'))
-                
-
+ 
 class PrivateMessageHandler(BaseHandler):        
     def get(self,message):
         self.getvars()
@@ -499,7 +485,7 @@ class PrivateMessageHandler(BaseHandler):
         else:    
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
 
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
         self.write(self.render_string('singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
         self.write(self.render_string('footer.html'))
 
@@ -509,12 +495,12 @@ class PrivateMessageHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
-        self.write(self.render_string('header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
         self.write(self.render_string('registerform.html'))
         self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html',title='Register for an account',username="",loggedin=False,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title='Register for an account',username="",loggedin=False,pubkey=self.pubkey,rss=None))
 
         client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -562,12 +548,12 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         self.getvars()        
-        self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
         self.write(self.render_string('loginform.html'))
         self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html',loggedin=False,title='Login to your account',username="",pubkey=self.pubkey))
+        self.write(self.render_string('header.html',loggedin=False,title='Login to your account',username="",pubkey=self.pubkey,rss=None))
 
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -620,7 +606,7 @@ class ShowUserPosts(BaseHandler):
         pubkey = k.pubkey
         
         messages = []
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topic','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             messages.append(message)
 
@@ -867,7 +853,7 @@ class UserTrustHandler(BaseHandler):
 class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
-         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
          self.write(self.render_string('footer.html'))
          self.finish(divs=['content'])
@@ -1035,7 +1021,7 @@ class MyPrivateMessagesHandler(BaseHandler):
         u = User()
         u.load_mongo_by_pubkey(user['pubkey'])
         
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
@@ -1047,7 +1033,7 @@ class MyPrivateMessagesHandler(BaseHandler):
 class NewPrivateMessageHandler(BaseHandler):
     def get(self,urlto=None):
          self.getvars()
-         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey))
+         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
          self.write(self.render_string('privatemessageform.html',urlto=urlto))
          self.write(self.render_string('footer.html'))
 
@@ -1155,9 +1141,9 @@ def main():
         (r"/logout" ,LogoutHandler),   
         (r"/newmessage" ,NewmessageHandler),
         (r"/rss/(.*)/(.*)" ,RSSHandler),
+        (r"/reply/(.*)" ,NewmessageHandler),
         (r"/reply/(.*)/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 
-        (r"/attachment/(.*)" ,AttachmentHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  

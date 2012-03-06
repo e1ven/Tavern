@@ -106,7 +106,7 @@ class TopicHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
         print(server.ServerSettings['pubkey'])
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.payload.topic' : client_topic },limit=include,skip=offset,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.local.sorttopic' : server.sorttopic(client_topic) },limit=include,skip=offset,as_class=OrderedDict):
             print("foo")
             if client_perspective is not None:
                 print("FFFF")

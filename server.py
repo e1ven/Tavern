@@ -172,11 +172,13 @@ class Server(object):
         newstr = json.dumps(self.ServerSettings,indent=2,separators=(', ',': '))
         return newstr
     
+    def sorttopic(self,topic):
+        return topic.lower().translate(str.maketrans("", "", string.punctuation))
     def error_envelope(self,error="Error"):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
         e.dict['envelope']['payload']['subject'] = "Error"
-        e.dict['envelope']['payload']['topic'] = ["Error"]
+        e.dict['envelope']['payload']['topic'] = "Error"
         e.dict['envelope']['payload']['formatting'] = "markdown"
         e.dict['envelope']['payload']['class'] = "message"
         e.dict['envelope']['payload']['body'] = "Oh, No, something's gone wrong.. \n\n "  + error
@@ -187,6 +189,8 @@ class Server(object):
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
         e.dict['envelope']['local']['time_added'] = 1297396876
         e.dict['envelope']['local']['author_pubkey_sha1'] = "000000000000000000000000000000000000000000000000000000000000"
+        e.dict['envelope']['local']['sorttopic'] = "error"
+
         e.dict['envelope']['payload_sha512'] = e.payload.hash()
         e.dict = self.formatEnvelope(e.dict)
         return e
@@ -231,7 +235,10 @@ class Server(object):
             stamps.append(myserverinfo)
         
         
-        
+        # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
+        if 'topic' in c.dict['envelope']['payload']:
+            c.dict['envelope']['local']['sorttopic'] = c.dict['envelope']['payload']['topic'].lower().translate(str.maketrans("", "", string.punctuation))
+
         c.dict['envelope']['stamps'] = stamps
         c.dict['envelope']['local']['time_added']  = int(utctime) 
         

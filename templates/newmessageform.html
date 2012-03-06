@@ -1,4 +1,4 @@
-{% if topic is None %}
+{% if regarding is None %}
 <div id="single">
 	<h2>Post a new message</h2>
 	<p></p>
@@ -6,10 +6,12 @@
 
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
   {% raw xsrf_form_html() %}
-{% if regarding is None %}
+{% if topic is None %}
 Topic: <input type="text" name="topic"><br>
 Subject: <input type="text" name="subject"><br>
-{% else %}
+{% end %}
+
+{% if regarding is not None %}
 <input type="hidden" name="regarding" value = "{{regarding}}"><br>
 {% end %}
 

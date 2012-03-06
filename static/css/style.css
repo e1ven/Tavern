@@ -284,6 +284,7 @@ COLUMN WIDTH ELEMENTS
 #center ul li a:hover { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
 #center li.active { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
 
+#center .newpost { color: #992d2d; }
 /* ########## RIGHT COLUMN ########## */
 
 #right{

@@ -26,7 +26,9 @@
 	Pluric :: A distributed discussion
 	{% end %}
 </title>
-
+	{% if rss is not None %}
+		<link rel="alternate" type="application/rss+xml" title="Updates on {{topic}}" href="{{rss}}" /> 
+	{% end %}
 	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/images/favicon.png" type="image/png" />
 </head>

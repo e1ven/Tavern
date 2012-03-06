@@ -40,5 +40,14 @@ class DiskTopics(object):
             server.receiveEnvelope(e.text())
 
 a = DiskTopics()
-#a.writetopic('sitecontent')  
+a.writetopic('ClientTest')  
+a.writetopic('ABCD')  
+a.writetopic('Python')  
+a.writetopic('abcd')  
+a.writetopic('sitecontent')  
 a.loaddir('TOPICS/Topic-sitecontent')          
+a.loaddir('TOPICS/Topic-ABCD')          
+a.loaddir('TOPICS/Topic-Python')          
+a.loaddir('TOPICS/Topic-abcd')          
+a.loaddir('TOPICS/Topic-ClientTest')          
+
