@@ -8,13 +8,17 @@
   {% raw xsrf_form_html() %}
 {% if topic is None %}
 Topic: <input type="text" name="topic"><br>
+{% end %}
+{% if regarding is None %}
 Subject: <input type="text" name="subject"><br>
 {% end %}
 
 {% if regarding is not None %}
 <input type="hidden" name="regarding" value = "{{regarding}}"><br>
 {% end %}
-
+{% if topic is not None %}
+<input type="hidden" name="topic" value = "{{topic}}"><br>
+{% end %}
 
 {% if regarding is None %}
 What would you like your message to say?<br> 
