@@ -854,13 +854,9 @@ class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
-         if "js" in self.request.arguments:
-             js = True
-         else:
-             js = False
-         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,js=js))
+         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
          self.write(self.render_string('footer.html'))
-         self.finish(divs=['content'])
+         self.finish(divs=['newmessageform'])
 
     def post(self):
         self.getvars()

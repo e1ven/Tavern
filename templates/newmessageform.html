@@ -1,9 +1,9 @@
-{% if js is False %}
+
 <div id="single">
 	<h2>Post a new message</h2>
 	<p></p>
-{% end %}
 
+<div id="newmessageform">
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
   {% raw xsrf_form_html() %}
 {% if topic is None %}
@@ -49,7 +49,5 @@ What would you like your reply to say?<br>
 	multi_selector.addElement( document.getElementById( 'first_upload_element' ) );
 	
 </script>
-
-{% if topic is None %}
+</div> <!-- #Newmessageform -->
 </div> <!-- #single -->
-{% end %}
