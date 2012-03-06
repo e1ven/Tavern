@@ -206,6 +206,12 @@ class Server(object):
             print("Validation Error")
             print(c.text())
             return False
+
+                # First, pull the message.
+        existing = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : c.payload.hash() },as_class=OrderedDict)
+        if existing is not None:
+            print("We already have that msg.")  
+            return c.dict['envelope']['payload_sha512']      
         
         #If we don't have a local section, add one.
         #This isn't inside of validation since it's legal not to have one.

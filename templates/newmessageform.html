@@ -1,6 +1,10 @@
 
 <div id="single">
-	<h2>Post a new message</h2>
+	<h2>Post a new message
+	{% if topic is not None %}
+	to {{topic}}
+	{% end %}
+	</h2>
 	<p></p>
 
 <div id="newmessageform">
@@ -48,10 +52,8 @@ What would you like your reply to say?<br>
 </form>
 
 <script>
-    $("#nonjs_files_list").css("display", "none");
-	var multi_selector = new MultiSelector( document.getElementById('js_files_list' ), 5 );
-	multi_selector.addElement( document.getElementById( 'first_upload_element' ) );
-	
+head.js("/static/scripts/jquery.min.js");
+head.js("/static/scripts/newmessage.js");
 </script>
 </div> <!-- #Newmessageform -->
 </div> <!-- #single -->
