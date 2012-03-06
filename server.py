@@ -259,13 +259,12 @@ class Server(object):
           if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
             repliedTo.addcite(c.dict['envelope']['payload_sha512'])
 
-          # It could also be that this message is CITED by others.
-          # and we received them out of order. Better check.
-          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.shorttopic': self.shorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512'] },as_class=OrderedDict):
+          # It could also be that this message is cited BY others we already have!
+          # Sometimes we received them out of order. Better check.
+          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.shorttopic': self.shorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
             citedme = self.formatEnvelope(citedme)
-            envstr = json.dumps(envelope,separators=(',',':'))
-            citesme = Envelope()
-            citesme.loadstring(envstr)        
+            c.addcite(citedme['envelope']['payload_sha512'])
+      
                     
 
 
