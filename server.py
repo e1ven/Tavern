@@ -215,8 +215,8 @@ class Server(object):
         
         #If we don't have a local section, add one.
         #This isn't inside of validation since it's legal not to have one.
-        if 'local' not in c.dict['envelope']:
-            c.dict['envelope']['local'] = OrderedDict()    
+        #if 'local' not in c.dict['envelope']:
+        c.dict['envelope']['local'] = OrderedDict()    
         
         #Pull out serverstamps.    
         stamps = c.dict['envelope']['stamps']
@@ -244,25 +244,32 @@ class Server(object):
         
         # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
         if 'topic' in c.dict['envelope']['payload']:
-            c.dict['envelope']['local']['sorttopic'] = c.dict['envelope']['payload']['topic'].lower().translate(str.maketrans("", "", string.punctuation))
+            c.dict['envelope']['local']['sorttopic'] = self.shorttopic(c.dict['envelope']['payload']['topic'])
 
         c.dict['envelope']['stamps'] = stamps
         c.dict['envelope']['local']['time_added']  = int(utctime) 
         
         if c.dict['envelope']['payload']['class'] == "message":       
-            # If the message referenes anyone, mark the original, for ease of finding it later.
-            # Do this in the {local} block, so we don't waste bits passing this on. 
-            # Partners can calculate this when they receive it.
+          # If the message referenes anyone, mark the original, for ease of finding it later.
+          # Do this in the {local} block, so we don't waste bits passing this on. 
+          # Partners can calculate this when they receive it.
 
-            if 'regarding' in c.dict['envelope']['payload']:
-                repliedTo = Envelope()
-                if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                    if not 'citedby' in repliedTo.dict['envelope']['local']:
-                        citedby = []
-                        repliedTo.dict['envelope']['local']['citedby'] = citedby
-                    repliedTo.dict['envelope']['local']['citedby'].append(c.dict['envelope']['payload_sha512'])
-                    repliedTo.saveMongo()
-                
+          if 'regarding' in c.dict['envelope']['payload']:
+          repliedTo = Envelope()
+          if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
+            repliedTo.addcite(c.dict['envelope']['payload_sha512'])
+
+          # It could also be that this message is CITED by others.
+          # and we received them out of order. Better check.
+          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.shorttopic': self.shorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512'] },as_class=OrderedDict):
+            citedme = self.formatEnvelope(citedme)
+            envstr = json.dumps(envelope,separators=(',',':'))
+            citesme = Envelope()
+            citesme.loadstring(envstr)        
+                    
+
+
+ 
         #Create the HTML version, and store it in local        
         c.dict = self.formatEnvelope(c.dict)
                     

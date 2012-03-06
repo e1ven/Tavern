@@ -157,7 +157,14 @@ class Envelope(object):
                 
         return True    
 
-
+    def addcite(self,citedby):
+      if not 'citedby' in self.dict['envelope']['local']:
+        citedby = []
+        self.dict['envelope']['local']['citedby'] = citedby
+      else:
+        if citedby not in self.dict['envelope']['local']['citedby']:
+          self.dict['envelope']['local']['citedby'].append(citedby)
+      self.saveMongo()
         
         
         
@@ -249,7 +256,7 @@ class Envelope(object):
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         
         #Compress the whole internal Envelope for saving.
-        compressed = pylzma.compress(self.text(),dictionary=27,fastBytes=255)
+        compressed = pylzma.compress(self.text(),dictionary=10,fastBytes=255)
         # print "Compressed size " + str(sys.getsizeof(compressed))
         # print "Full Size " + str(sys.getsizeof(self.dict))        
 
