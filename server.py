@@ -349,7 +349,6 @@ class Server(object):
                     fname = binary['sha_512']
                     try:
                         attachment = self.bin_GridFS.get_last_version(filename=fname)
-                        print("Trying to load...")
                         if 'filename' not in binary:
                             binary['filename'] = "unknown_file"
                         #In order to display an image, it must be of the right MIME type, the right size, it must open in

@@ -854,7 +854,11 @@ class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
-         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
+         if "js" in self.request.arguments:
+             js = True
+         else:
+             js = False
+         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,js=js))
          self.write(self.render_string('footer.html'))
          self.finish(divs=['content'])
 
@@ -1141,8 +1145,8 @@ def main():
         (r"/logout" ,LogoutHandler),   
         (r"/newmessage" ,NewmessageHandler),
         (r"/rss/(.*)/(.*)" ,RSSHandler),
-        (r"/reply/(.*)" ,NewmessageHandler),
         (r"/reply/(.*)/(.*)" ,NewmessageHandler),
+        (r"/reply/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  

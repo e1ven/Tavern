@@ -45,9 +45,7 @@ a.writetopic('ABCD')
 a.writetopic('Python')  
 a.writetopic('abcd')  
 a.writetopic('sitecontent')  
-a.loaddir('TOPICS/Topic-sitecontent')          
-a.loaddir('TOPICS/Topic-ABCD')          
-a.loaddir('TOPICS/Topic-Python')          
-a.loaddir('TOPICS/Topic-abcd')          
-a.loaddir('TOPICS/Topic-ClientTest')          
-
+for name in os.listdir('TOPICS'):
+    subdir = os.path.join('TOPICS', name)
+    if os.path.isdir(subdir):
+        a.loaddir(subdir)
