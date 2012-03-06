@@ -346,31 +346,34 @@ class Server(object):
             for binary in envelope['envelope']['payload']['binaries']:
                 if 'sha_512' in binary:
                     fname = binary['sha_512']
-                    attachment = self.bin_GridFS.get_last_version(filename=fname)
-                    if 'filename' not in binary:
-                        binary['filename'] = "unknown_file"
-                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
-                    #Python and be a valid image.
-                    displayable = False;
-                    if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
-                        if 'content_type' in binary:
-                            if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                imagetype = imghdr.what('ignoreme',h=attachment.read())
-                                acceptable_images = ['gif','jpeg','jpg','png','bmp']
-                                if imagetype in acceptable_images:
-                                    #If we pass -all- the tests, create a thumb once.
-                                    if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
-                                        attachment.seek(0) 
-                                        im = Image.open(attachment)
-                                        img_width, img_height = im.size
-                                        if ((img_width > 150 ) or (img_height > 150 )): 
-                                            im = im.resize((150, 150),Image.ANTIALIAS)
-                                        displayable=binary['sha_512'] + "-thumb"
-                                        thumbnail = self.bin_GridFS.new_file(filename=displayable)
-                                        im.save(thumbnail,format='png')    
-                                        thumbnail.close()
-                    attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
-                    attachmentList.append(attachmentdesc)
+                    try:
+                        attachment = self.bin_GridFS.get_last_version(filename=fname)
+                        if 'filename' not in binary:
+                            binary['filename'] = "unknown_file"
+                        #In order to display an image, it must be of the right MIME type, the right size, it must open in
+                        #Python and be a valid image.
+                        displayable = False;
+                        if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
+                            if 'content_type' in binary:
+                                if binary['content_type'].rsplit('/')[0].lower() == "image":
+                                    imagetype = imghdr.what('ignoreme',h=attachment.read())
+                                    acceptable_images = ['gif','jpeg','jpg','png','bmp']
+                                    if imagetype in acceptable_images:
+                                        #If we pass -all- the tests, create a thumb once.
+                                        if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
+                                            attachment.seek(0) 
+                                            im = Image.open(attachment)
+                                            img_width, img_height = im.size
+                                            if ((img_width > 150 ) or (img_height > 150 )): 
+                                                im = im.resize((150, 150),Image.ANTIALIAS)
+                                            displayable=binary['sha_512'] + "-thumb"
+                                            thumbnail = self.bin_GridFS.new_file(filename=displayable)
+                                            im.save(thumbnail,format='png')    
+                                            thumbnail.close()
+                        attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
+                        attachmentList.append(attachmentdesc)
+                    except gridfs.errors.NoFile:
+                        print("Error, attachment gone ;(")
         if 'body' in envelope['envelope']['payload']:                            
             if 'formatting' in envelope['envelope']['payload']:
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
