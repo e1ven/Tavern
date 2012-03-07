@@ -364,8 +364,6 @@ class TriPaneHandler(BaseHandler):
         toptopics = []
         for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
-        toptopics.append({ "_id" : { "tag" : "all" }, "value" : { "count" : 0 } })
-
 
         print(action)                        
         if action == "topic":

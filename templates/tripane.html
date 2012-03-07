@@ -19,6 +19,10 @@
                     </li>
                     {% end %}
 					</ul>
+				 <h2>Special</h2>
+					<ul>
+						<li><a href="/topic/all">All Messages</a></li>
+					</ul>
 			</div><!-- #left -->
 
 			<div id="centerandright">
@@ -26,11 +30,13 @@
 				<h2>
 					{% if topic == 'sitecontent' %}
 					Messages from Pluric.com
-					{% else %}
+					{% elif topic == 'all' %} 
+                                        All Messages
+                                        {% else %}    
 					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{topic}}">[C]</a>
 					{% end %}
 				</h2>
-				{% if topic != 'sitecontent' %}	
+				{% if topic != 'sitecontent' and topic != 'all' %}	
 					<div class = "newpost">
 					<a href="/reply/{{topic}}">Submit new Post to {{topic}}</a>
 					</div>	
