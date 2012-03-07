@@ -594,20 +594,22 @@ class LogoutHandler(BaseHandler):
          self.clear_all_cookies()
          self.redirect("/")
 
-class ShowUserPosts(BaseHandler):
+class UserHandler(BaseHandler):
     def get(self,pubkey):
         self.getvars()
         
         #Unquote it, then convert it to a PluricKey object so we can rebuild it.
         #Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
+
+        #Reformat it correctly
         k = Keys(pub=pubkey)
-        k.format_keys()
         pubkey = k.pubkey
-        
+        print(pubkey)
         messages = []
         self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},fields={'envelope.payload_sha512','envelope.payload.topic','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
+
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
             messages.append(message)
 
         self.write(self.render_string('showuserposts.html',messages=messages))
@@ -1106,14 +1108,6 @@ class NewPrivateMessageHandler(BaseHandler):
         #Send to the server
         server.receiveEnvelope(e.text())
 
-
-
-class TodoHandler(BaseHandler):
-    def get(self):
-        #TODO: Stuff
-        self.getvars()
-
-
       
         
 def main():
@@ -1135,9 +1129,10 @@ def main():
     }
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),
-        (r"/user/(.*)" ,TodoHandler),  
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
+        (r"/showuserposts/(.*)" ,UserHandler),  
+        (r"/user/(.*)" ,UserHandler),  
         (r"/logout" ,LogoutHandler),   
         (r"/newmessage" ,NewmessageHandler),
         (r"/rss/(.*)/(.*)" ,RSSHandler),
@@ -1151,7 +1146,6 @@ def main():
         (r"/followtopic/(.*)" ,FollowTopicHandler),  
         (r"/nofollowuser/(.*)" ,NoFollowUserHandler),  
         (r"/nofollowtopic/(.*)" ,NoFollowTopicHandler),  
-        (r"/showuserposts/(.*)" ,ShowUserPosts),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  

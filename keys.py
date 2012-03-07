@@ -17,15 +17,6 @@ class Keys(object):
         self.pubkey = pub
         self.privkey = priv
         
-        if priv == None and pub != None:
-            self.key = rsa.Key(pub,hash='sha512',padding="pss")
-            self.pubkey = self.key.public.as_string()
-            print("Going with Pubkey Only")
-        if priv != None:
-            self.key = rsa.Key(priv,hash='sha512',padding="pss")
-            self.pubkey = self.key.public.as_string()
-            self.privkey = self.key.as_string()
-            print("Full Key")
         self.format_keys()   
             
              
@@ -70,6 +61,16 @@ class Keys(object):
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PUBLIC KEY-----\n" + withLinebreaks + "\n-----END PUBLIC KEY-----" 
 
+        if self.privkey == None and self.pubkey != None:
+            self.key = rsa.Key(self.pubkey,hash='sha512',padding="pss")
+            # self.pubkey = self.key.public.as_string()
+            print("Going with Pubkey Only")
+
+        if self.privkey != None:
+            self.key = rsa.Key(self.privkey,hash='sha512',padding="pss")
+            # self.pubkey = self.key.public.as_string()
+            # self.privkey = self.key.as_string()
+            print("Full Key")
 
     def generate(self):
         """
