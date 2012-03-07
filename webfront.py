@@ -362,7 +362,7 @@ class TriPaneHandler(BaseHandler):
         
         divs = []
         toptopics = []
-        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+        for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
 
         print(action)                        
@@ -373,6 +373,7 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
+
             for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
                 
