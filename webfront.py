@@ -364,6 +364,8 @@ class TriPaneHandler(BaseHandler):
         toptopics = []
         for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
+        toptopics.append({ "_id" : { "tag" : "all" }, "value" : { "count" : 0 } })
+
 
         print(action)                        
         if action == "topic":
@@ -373,10 +375,13 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
+            if topic != "all":
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                    subjects.append(envelope)
+            else:
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                    subjects.append(envelope)
 
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
-                subjects.append(envelope)
-                
             if len(subjects) > 0:
                 displayenvelope = subjects[0]
                 messageid = subjects[0]['envelope']['payload_sha512'] 
