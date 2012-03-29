@@ -22,40 +22,36 @@
 
 
 		<div class="thread_common">
-		<div class="thread_{{orient}} download">
+		<div class="thread_{{orient}}">
 			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
 			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br />
 			</a>
-			
-			<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
+			<a class="details" user="{{envelope['envelope']['local']['author_pubkey_sha1']}}" href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Details</a>
+				<div class="UserDetails" id="details_{{envelope['envelope']['local']['author_pubkey_sha1']}}">
+						<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
+						<form action="/usertrust" method="post">
+							 {% raw xsrf_form_html() %}
+							<input type="hidden" name="trust" value="100">
+							<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+							<input type="submit" value="Trust This User">
+							</form>
+
+							<form action="/usertrust" method="post">
+							  {% raw xsrf_form_html() %}
+							<input type="hidden" name="trust" value="-100">
+							<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+
+							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+							<input type="submit" value="Distrust This User">
+						</form>
+				</div>	
 		</div><!-- .thread_{{orient}} -->
-		<div class="tooltip">
-			<img src="http://static.flowplayer.org/img/title/eye.png" alt="Flying screens" 
-				style="float:left;margin:0 15px 20px 0" />
-			<table style="margin:0">
-				<tr>
-					<td class="label">File</td>
-					<td>flowplayer-3.2.7.zip</td>
-				</tr>
-				<tr>
-					<td class="label">Date</td>
-					<td>2011-03-03</td>
-				</tr>
-				<tr>
-					<td class="label">Size</td>
-					<td>112 kB</td>
-				</tr>
-				<tr>
-					<td class="label">OS</td>
-					<td>all</td>
-				</tr>		
-			</table>
-			<a href="/3.2/">What's new in 3.2</a>
-		</div>
-		
+
+
 		
 		</div>
 		
@@ -131,24 +127,6 @@
 		{% if orient is not "left" %}
 		</div> <!-- .padder -->
 		{% end %}
-			
-
-<form action="/usertrust" method="post">
-  {% raw xsrf_form_html() %}
-<input type="hidden" name="trust" value="100">
-<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
-<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-<input type="submit" value="Trust This User">
-</form>
-
-<form action="/usertrust" method="post">
-  {% raw xsrf_form_html() %}
-<input type="hidden" name="trust" value="-100">
-<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
-
-<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-<input type="submit" value="Distrust This User">
-</form>
 
 		{% if 'citedby' in envelope['envelope']['local'] %}
 			{% for cite in envelope['envelope']['local']['citedby'] %}

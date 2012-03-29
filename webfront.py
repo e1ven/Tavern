@@ -245,7 +245,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.maxposts = 20
         else:
             self.maxposts = int(self.get_secure_cookie("maxposts"))
-            
+        self.maxposts = 9999    
         if self.get_secure_cookie("pubkey") is not None:
             self.pubkey = self.get_secure_cookie("pubkey").decode('utf-8')
         else:
@@ -860,9 +860,9 @@ class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
-         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic))
+         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,args=self.request.arguments))
          self.write(self.render_string('footer.html'))
-         self.finish(divs=['newmessageform'])
+         self.finish(divs=['right','single'])
 
     def post(self):
         self.getvars()

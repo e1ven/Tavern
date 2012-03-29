@@ -315,12 +315,24 @@ head.ready(function() {
         });   
         
     });  
+
+    $('a.details').each( function ()
+    {            
+        $(this).click(function()
+            {   
+            userdiv = "details_" + $(this).attr('user');
+            if ($("#" + userdiv).is(":visible"))
+            {
+                $("#" + userdiv).hide()
+            }
+            else
+            {
+                $("#" + userdiv).show()
+            }
+            return false;
+            });
+    });
     
-    $(".thread_right").tooltip({
-       offset: [10, 2],
-       effect: 'slide'
-    }).dynamic({ bottom: { direction: 'down', bounce: true } });
-  
   
 });
 

@@ -1,20 +1,21 @@
 
-<div id="single">
-	<h2>Post a new message
-	{% if topic is not None %}
-	to {{topic}}
-	{% end %}
-	</h2>
-	<p></p>
 
-<div id="newmessageform">
+{% if 'js' in args %}
+<div id="right">
+{% else %}
+<div id="single">
+{% end %}	
+<h1>Post a new message {% if topic is not None %} to {{topic}} {% end %}</h1>
+
+<div class="padder">
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
   {% raw xsrf_form_html() %}
 {% if topic is None %}
-Topic: <input type="text" name="topic"><br>
+Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny">
+<br>
 {% end %}
 {% if regarding is None %}
-Subject: <input type="text" name="subject"><br>
+Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Mom's favorite joke" ><br>
 {% end %}
 
 {% if regarding is not None %}
@@ -50,10 +51,10 @@ What would you like your reply to say?<br>
 <input type="checkbox"  name="include_location" checked>Include Location<br>
 <input type="submit" value="Submit Message">
 </form>
-
+</div>
 <script>
 head.js("/static/scripts/jquery.min.js");
 head.js("/static/scripts/newmessage.js");
 </script>
-</div> <!-- #Newmessageform -->
+</div> <!-- newmessageform -->
 </div> <!-- #single -->
