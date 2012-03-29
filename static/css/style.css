@@ -455,10 +455,12 @@ img.imginline { vertical-align: middle;  }
   color:#ffffff;
   cursor:normal;
   display:none;
-
+  margin-top:12px;
  /* display:-moz-inline-stack;
   display:inline-block;
  */ font-size:12px;
+  margin-left:80px;
+
   font-family:arial;
   padding:.5em 1em;
   position:relative;
@@ -491,16 +493,13 @@ img.imginline { vertical-align: middle;  }
   filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
   -ms-filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
 }
-.UserDetails:after, .tooltip-top:after, .tooltip-right:after, .tooltip-bottom:after, .tooltip-left:after {
+.UserDetails:after{
   content:"\25B8";
   display:block;
   font-size:2em;
   height:0;
   line-height:0;
   position:absolute;
-}
-
-.UserDetails:after {
   bottom:auto;
   color:#4f4f4f;
   left:-2px;
@@ -511,6 +510,7 @@ img.imginline { vertical-align: middle;  }
   -moz-transform:rotate(-90deg);
   -khtml-transform:rotate(-90deg);
   -webkit-transform:rotate(-90deg);
-  width:100%;
+  margin-left:80%;
+  width:30%;
 }
 

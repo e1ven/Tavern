@@ -1,6 +1,5 @@
 
 head.ready(function() {
-    head.js("/static/scripts/tooltip.js");
 
     
  $.fn.splitter = function(args){
