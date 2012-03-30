@@ -23,22 +23,20 @@
 
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
-			    <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
+			    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
-			<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
+			<a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br />
 			</a>
-			<a class="details" user="{{envelope['envelope']['payload_sha512']}}" href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Details</a>
 				<div class="UserDetails" id="details_{{envelope['envelope']['payload_sha512']}}">
-						<div class="FloatingDetails">
-						<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
+						<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Follow User</a>
 						<form action="/usertrust" method="post">
 							 {% raw xsrf_form_html() %}
 							<input type="hidden" name="trust" value="100">
 							<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-							<input type="submit" value="Trust This User">
+							<input class="textbutton" type="submit" value="Trust This User">
 							</form>
 
 							<form action="/usertrust" method="post">
@@ -47,9 +45,9 @@
 							<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 
 							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-							<input type="submit" value="Distrust This User">
-						</form>
-					</div>
+							<input class="textbutton" type="submit" value="Distrust This User">
+						</form><br>
+						<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
 				</div>	
 		</div><!-- .thread_{{orient}} -->
 

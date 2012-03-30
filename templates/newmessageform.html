@@ -5,7 +5,10 @@
 {% else %}
 <div id="single">
 {% end %}	
+
+{% if regarding is None %}
 <h1>Post a new message {% if topic is not None %} to {{topic}} {% end %}</h1>
+{% end %}
 
 <div class="padder">
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">

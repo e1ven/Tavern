@@ -325,7 +325,6 @@ COLUMN WIDTH ELEMENTS
 }
 #right ul.response li { }
 #right ul.response li { padding: 15px 15px 0 0px; }
-#right form { padding: 15px 15px 0 0px; }
 
 #right ul.response ul { padding-left: 15px; }
 #right .response p.response_meta { color: #818181; margin-top: -12px; margin-bottom: 0px; }
@@ -365,17 +364,19 @@ img.imginline { vertical-align: middle;  }
 }
 .textbutton {
      position:relative;
-     float: left;
      border: 0px;
      background-color: transparent;
-     padding: 0;
-     color:#EEEEEE;
+     color:#DDDDDD;
      font-weight: bold;
      text-decoration:none; 	
    	 font-size: 12px;
      line-height: 18px;
  	 font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 }
+.textbutton:hover{
+  color:#BBBBBB;
+} 
+
 
 
 #spinner{
@@ -467,6 +468,16 @@ img.imginline { vertical-align: middle;  }
   cursor:normal;
   display:none;
   margin-top:12px;
+
+     font-weight: bold;
+     text-decoration:none;  
+     font-size: 12px;
+     line-height: 18px;
+   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+
+
+
+
  /* display:-moz-inline-stack;
   display:inline-block;
  */ font-size:12px;
@@ -504,6 +515,8 @@ img.imginline { vertical-align: middle;  }
 .UserDetails:after{
   content:"\25B8";
   display:block;
+
+
   font-size:2em;
   height:0;
   line-height:0;
@@ -529,7 +542,12 @@ img.imginline { vertical-align: middle;  }
   margin-left:5%;
 }
 
-.UserDetails a {
+.UserDetails a:link, .UserDetails a:visited, a:active{
   color:#DDDDDD;
 } 
+.UserDetails a:hover{
+  color:#BBBBBB;
+} 
+
+
 

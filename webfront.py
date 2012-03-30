@@ -226,6 +226,24 @@ class BaseHandler(tornado.web.RequestHandler):
 
                 });
 
+                $('a.details').each( function ()
+                {            
+                    $(this).click(function()
+                        {   
+                        userdiv = "details_" + $(this).attr('user');
+                        if ($("#" + userdiv).is(":visible"))
+                        {
+                            $("#" + userdiv).hide()
+                        }
+                        else
+                        {
+                            $("#" + userdiv).show()
+                        }
+                        return false;
+                        });
+                });
+    
+
                 
                 ''')
 
