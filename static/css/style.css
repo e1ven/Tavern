@@ -452,6 +452,7 @@ img.imginline { vertical-align: middle;  }
 */
 
 .UserDetails {
+  position:relative;
   color:#ffffff;
   cursor:normal;
   display:none;
@@ -459,11 +460,8 @@ img.imginline { vertical-align: middle;  }
  /* display:-moz-inline-stack;
   display:inline-block;
  */ font-size:12px;
-  margin-left:80px;
-
   font-family:arial;
   padding:.5em 1em;
-  position:relative;
   text-align:center;
   text-shadow:0 -1px 1px #111111;
   -webkit-border-top-left-radius:4px ;
@@ -510,7 +508,11 @@ img.imginline { vertical-align: middle;  }
   -moz-transform:rotate(-90deg);
   -khtml-transform:rotate(-90deg);
   -webkit-transform:rotate(-90deg);
-  margin-left:80%;
+  margin-left:75%;
   width:30%;
 }
+
+.UserDetails a {
+  color:#DDDDDD;
+} 
 

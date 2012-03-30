@@ -31,6 +31,7 @@
 			</a>
 			<a class="details" user="{{envelope['envelope']['local']['author_pubkey_sha1']}}" href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Details</a>
 				<div class="UserDetails" id="details_{{envelope['envelope']['local']['author_pubkey_sha1']}}">
+						<div class="FloatingDetails">
 						<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">follow</a>
 						<form action="/usertrust" method="post">
 							 {% raw xsrf_form_html() %}
@@ -48,6 +49,7 @@
 							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 							<input type="submit" value="Distrust This User">
 						</form>
+					</div>
 				</div>	
 		</div><!-- .thread_{{orient}} -->
 
