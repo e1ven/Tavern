@@ -156,9 +156,19 @@ header#top {
     border-bottom: 3px solid  #a9a9a9;
 }
 
-form.vote { position:relative; float: left;}
 .comment_bottom {padding-bottom: 12px;}
-.votes {float:left;}
+
+
+.votes {
+  float: left;
+}
+
+form.vote {
+  padding:0px 0px 0px 0px !important;
+  margin: 0px 0px 0px 0px;
+  position:relative;
+  float: left;}
+
 .externalsharing {
     float:right;
     font-size:70%;
@@ -508,8 +518,15 @@ img.imginline { vertical-align: middle;  }
   -moz-transform:rotate(-90deg);
   -khtml-transform:rotate(-90deg);
   -webkit-transform:rotate(-90deg);
-  margin-left:75%;
   width:30%;
+}
+
+/* Proper floating per side! */
+.thread_right > .UserDetails:after{
+  margin-left:75%;
+}
+.thread_left > .UserDetails:after{
+  margin-left:5%;
 }
 
 .UserDetails a {
