@@ -46,7 +46,7 @@
 
 							<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 							<input class="textbutton" type="submit" value="Distrust This User">
-						</form><br>
+						</form>
 						<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
 				</div>	
 		</div><!-- .thread_{{orient}} -->
