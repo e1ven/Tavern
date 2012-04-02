@@ -18,18 +18,16 @@ if (head.browser.ie)
     
   if ( parseFloat(head.browser.version) > 7 )
   {
-  head.js("/static/scripts/jquery.min.js");
+  head.js("/static/scripts/jquery.min.js","/static/scripts/default.js");
+
   }
 }
 else
 {
-  head.js("/static/scripts/jquery.min.js");
+  head.js("/static/scripts/jquery.min.js","/static/scripts/default.js");
 }
 
 </script>
-
-<script src="/static/scripts/default.js"></script>
-
 
 </body>
 </html>

@@ -238,9 +238,8 @@ COLUMN WIDTH ELEMENTS
         height: 100%;
         padding: 0;
         overflow:auto;
-    padding-bottom: 32000px;
-    margin-bottom: -32000px;
 }
+
 
 #center {
 	background: #D8D8D8;
@@ -274,13 +273,22 @@ COLUMN WIDTH ELEMENTS
 #left ul li a:hover { background: url(/static/images/left_arrow.png) center right no-repeat #202020; border-top: 1px solid #111111; border-bottom: 1px solid #434343; }
 #left li.active a { background: url(/static/images/left_arrow.png) center right no-repeat #202020; border-top: 1px solid #111111; border-bottom: 1px solid #434343; }
 
-
 /* ########## CENTER COLUMN ########## */
 #center { 
 	color: #2d2d2d;
     border-top: 1px solid #e7e7e7;
     border-bottom: 1px solid #595b63;
+    overflow-y: auto;
+    overflow-x: hidden;
+
 }
+
+/* IE < 9 crap margins */
+.lt-ie8 #center {
+    padding-bottom: 32000px;
+    margin-bottom: -32000px;
+}
+
 #center h2 {
 	font-size: 14px; 
 	font-weight: bold; 

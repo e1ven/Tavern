@@ -16,7 +16,7 @@
 	<div class="padder">
 		<div class="topic_{{orient}}">
 		<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-		<p class="meta">Received <time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></p>
+		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
 		</div><!-- .topic_title -->		
 {% end %}		
 
@@ -58,7 +58,7 @@
 		<div class="clear"></div>
 		{% if orient == "left" %}
 		
-		<p class="meta">Received <time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></p>
+		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
 		
 		{% end %}
 		<div class="thread_body">
