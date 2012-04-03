@@ -45,10 +45,10 @@
 
 						Showing Preferences for {{topic}}.  <a href="/rss/topic/{{topic}}"><img src="/static/images/feed-icon-14x14.png"></a><br>
 						<p>
-						{% if topic in mytopics %}
-							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/nofollowtopic/{{topic}}" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
+						{% if topic in user.UserSettings['followedTopics'] %}
+							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
 							{% else %}
-							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/followtopic/{{topic}}" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
+							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
 						{% end %}
 						<p>
 						The following users are popular moderators, you might want to consider adding them:<br>

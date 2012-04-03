@@ -599,13 +599,10 @@ class UserHandler(BaseHandler):
                  
                  
 class FollowUserHandler(BaseHandler):
-    def get(self,pubkey):
-        self.getvars()
-        #Calculate the votes for that post. 
 
     def post(self):    
         self.getvars()
-        self.user.followUser(tornado.escape.xhtml_escape(self.get_argument("username")))
+        self.user.followUser(tornado.escape.xhtml_escape(self.get_argument("pubkey")))
         self.user.savemongo()
         self.servars()
 
@@ -615,13 +612,10 @@ class FollowUserHandler(BaseHandler):
             self.redirect("/")
 
 class NoFollowUserHandler(BaseHandler):
-    def get(self,topic):
-        self.getvars()
-     #Calculate the votes for that post. 
 
     def post(self):    
         self.getvars()
-        self.user.noFollowUser(tornado.escape.xhtml_escape(self.get_argument("username")))
+        self.user.noFollowUser(tornado.escape.xhtml_escape(self.get_argument("pubkey")))
         self.user.savemongo()
         self.setvars()
 
@@ -631,11 +625,10 @@ class NoFollowUserHandler(BaseHandler):
             self.redirect("/")
 
 class FollowTopicHandler(BaseHandler):
-    def get(self,topic):
+
+    def post(self):    
         self.getvars()
 
-    def post(self,topic):    
-        self.getvars()
         self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
         self.user.savemongo()
         self.setvars()
@@ -646,11 +639,11 @@ class FollowTopicHandler(BaseHandler):
             self.redirect("/")
 
 class NoFollowTopicHandler(BaseHandler):
-    def get(self,topic):
-        self.getvars()
+
         
-    def post(self,topic):       
+    def post(self):       
         self.getvars()
+
         self.user.noFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
         self.user.savemongo()
         self.setsetvars()
@@ -1059,10 +1052,10 @@ def main():
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
-        (r"/followuser/(.*)" ,FollowUserHandler),  
-        (r"/followtopic/(.*)" ,FollowTopicHandler),  
-        (r"/nofollowuser/(.*)" ,NoFollowUserHandler),  
-        (r"/nofollowtopic/(.*)" ,NoFollowTopicHandler),  
+        (r"/followuser" ,FollowUserHandler),  
+        (r"/followtopic" ,FollowTopicHandler),  
+        (r"/nofollowuser" ,NoFollowUserHandler),  
+        (r"/nofollowtopic" ,NoFollowTopicHandler),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
