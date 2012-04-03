@@ -286,7 +286,7 @@ head.ready(function() {
         );
     });                
                 
-    $(".subscription").submit(function(event) {
+    $(".followtopic").submit(function(event) {
         ref = $(this);
         /* stop form from submitting normally */
         event.preventDefault(); 
@@ -296,7 +296,7 @@ head.ready(function() {
             url = $form.attr( 'action' );
 
         /* Send the data using post and put the results in a div */
-        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val() },
+        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(),'topic' : $form.find( 'input[name="topic"]' ).val() },
           function( data ) {
               ref.empty().append("Done.");
               head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
@@ -304,6 +304,27 @@ head.ready(function() {
         );
 
     });
+
+
+    $(".followuser").submit(function(event) {
+        ref = $(this);
+        /* stop form from submitting normally */
+        event.preventDefault(); 
+
+        /* get some values from elements on the page: */
+        var $form = $( this ),
+            url = $form.attr( 'action' );
+
+        /* Send the data using post and put the results in a div */
+        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(),'pubkey' : $form.find( 'input[name="pubkey"]' ).val() },
+          function( data ) {
+              ref.empty().append("Done.");
+              head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
+          }
+        );
+
+    });
+
 
     $(".reply").click(function(event) {
         event.preventDefault();
