@@ -2,7 +2,7 @@
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
-					{% for quicktopic in mytopics %}
+                                        {% for quicktopic in user.UserSettings['followedTopics'] %}
       					<li {%if quicktopic == topic %} class="active"{% end %} >
 	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
 	                    </li>

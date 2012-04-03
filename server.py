@@ -105,23 +105,11 @@ class Server(object):
                 self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
                 self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
+
+
                 self.saveconfig()   
-        
-            #Ensure we have a "Guest" user
-            #We can un-logged-in settings in this acct.
-            users_with_this_username = self.mongos['default']['users'].find({"username":"Guest"},as_class=OrderedDict)
-            if users_with_this_username.count() < 1:
-                guest = OrderedDict()
-                guest['username'] = "Guest"
-                guest['friendlyname'] = "Guest"
-                guest['hashedpass'] = bcrypt.hashpw(''.join(random.choice(string.ascii_uppercase + string.ascii_lowercase + string.digits) for x in range(100)), bcrypt.gensalt(1))
-                gkeys = Keys()
-                gkeys.generate()
-                guest['privkey'] = gkeys.privkey
-                guest['pubkey'] = gkeys.pubkey  
-                guest['_id'] = guest['pubkey']
-                self.mongos['default']['users'].save(guest)
-        
+
+
         else:
             self.loadconfig(settingsfile)
             

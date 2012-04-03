@@ -26,8 +26,8 @@
 	Pluric :: A distributed discussion
 	{% end %}
 </title>
-	{% if rss is not None %}
-		<link rel="alternate" type="application/rss+xml" title="Updates on {{topic}}" href="{{rss}}" /> 
+	{% if type == 'topic' %}
+		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
 	{% end %}
 	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/images/favicon.png" type="image/png" />
@@ -38,24 +38,23 @@
 		<a href="/"><img src="/static/images/logo.png" alt="Pluric" /></a>
 		<div id="menu">
 		    <div id="menu-text">
-            {% if not loggedin %}	
+          	{% if user.UserSettings['privkey'] is None %}	
                 Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
-            {% end %}
-	    {% if loggedin %}	
-                <ul id="menubuttons">
-                    <li><a rel="nofollow" href="/newmessage">Post new message</a></li>
-                    <li><a rel="nofollow" href="/showprivates">Show private messages</a></li>
-                </ul>
-						<div id="userblock">
-					    	<a href="/user/{{pubkey}}">
-						    	<img class="avatar" alt= "Your Avatar" src="http://RoboHash.org/{{pubkey}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
-						    </a><br>
-							<a href="/user/{{pubkey}}">
-						    	{{username}}
-							</a>
-	 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton"></form>
-						</div>
-            {% end %}
+            {% else %}
+	                <ul id="menubuttons">
+	                    <li><a rel="nofollow" href="/newmessage">Post new message</a></li>
+	                    <li><a rel="nofollow" href="/showprivates">Show private messages</a></li>
+	                </ul>
+							<div id="userblock">
+						    	<a href="/user/{{user.UserSettings['pubkey']}}">
+							    	<img class="avatar" alt= "Your Avatar" src="https://static1.RoboHash.org/{{user.UserSettings['pubkey']}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+							    </a><br>
+								<a href="/user/{{user.UserSettings['pubkey']}}">
+							    	{{user.UserSettings['username']}}
+								</a>
+		 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton"></form>
+							</div>
+	            {% end %}
             </div> <!-- #menu-text -->
         </div> <!-- #menu -->
 	</header>

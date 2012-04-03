@@ -76,6 +76,7 @@ class Keys(object):
         """
         Replaces whatever keys currently might exist with new ones.
         """
+        print("MAKING A KEY.")
         self.key = rsa.Key(2048,hash='sha512',padding="pss")
         self.pubkey = self.key.public.as_string()
         self.privkey = self.key.as_string()

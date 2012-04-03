@@ -13,9 +13,8 @@ class User(object):
       
     def __init__(self):
         self.UserSettings = OrderedDict()
-        self.UserSettings['local'] = OrderedDict()
-        self.UserSettings['local']['followedUsers'] = []
-        self.UserSettings['local']['followedTopics'] = []
+        self.UserSettings['followedUsers'] = []
+        self.UserSettings['followedTopics'] = []
 
     def gatherTrust(self,askingabout,incomingtrust=250):
         print("My Key------" +  self.Keys.pubkey)
@@ -124,51 +123,105 @@ class User(object):
         return combinedrating  
     
     def followUser(self,pubkey):
-        if pubkey not in self.UserSettings['local']['followedUsers']:
-            self.UserSettings['local']['followedUsers'].append(pubkey)
-        self.savemongo()
+        if pubkey not in self.UserSettings['followedUsers']:
+            self.UserSettings['followedUsers'].append(pubkey)
 
     def followTopic(self,topic):
-        if topic not in self.UserSettings['local']['followedTopics']:
-            self.UserSettings['local']['followedTopics'].append(topic)
-        self.savemongo()
+        if topic not in self.UserSettings['followedTopics']:
+            self.UserSettings['followedTopics'].append(topic)
 
     def noFollowUser(self,pubkey):
-        if pubkey in self.UserSettings['local']['followedUsers']:
-            self.UserSettings['local']['followedUsers'].remove(pubkey)
-        self.savemongo()
+        if pubkey in self.UserSettings['followedUsers']:
+            self.UserSettings['followedUsers'].remove(pubkey)
 
     def noFollowTopic(self,topic):
-        if topic in self.UserSettings['local']['followedTopics']:
-            self.UserSettings['local']['followedTopics'].remove(topic)    
-        self.savemongo()
-                
-    def generate(self,email=None,hashedpass=None,pubkey=None,username=None):
-        self.UserSettings['username'] = username
-        self.UserSettings['friendlyname'] = username
-        #username is specific to this service.
-        #Move it to <local> ?
-        #Friendlyname is the displayedname
-        self.UserSettings['email'] = email
-        self.UserSettings['hashedpass'] = hashedpass
-        self.Keys = Keys()
-        self.Keys.generate()
-        self.Keys.format_keys()
+        if topic in self.UserSettings['followedTopics']:
+            self.UserSettings['followedTopics'].remove(topic)    
+                    
+    def generate(self,email=None,hashedpass=None,username=None,skipkeys=False):
+        """
+        Fill in any missing user information
+        """
 
+
+        # Ensure that these values are filled in. 
+        # Either by Saved values, Passed-in values, or by Null objects.
+
+        if username is not None:
+            self.UserSettings['username'] = username
+        elif not 'username' in self.UserSettings:
+            self.UserSettings['username'] = "Anonymous"
+
+
+        if email is not None:
+            self.UserSettings['email'] = email
+        elif not 'email' in self.UserSettings:
+            self.UserSettings['email'] = "email@example.com"
+
+        if hashedpass is not None:
+            self.UserSettings['hashedpass'] = hashedpass
+        elif not 'hashedpass' in self.UserSettings:
+            self.hashedpass = None
+
+
+        # Ensure we have a valid private key
+        validpriv = False
+        if 'privkey' in self.UserSettings:
+            if self.UserSettings['privkey'] is not None:
+                validpriv = True
+
+        if not validpriv: 
+            # If we don't have a public key, decide if we need one by the 'skipkeys' value
+            # If we do, use the default system guest key.
+            # If there isn't one, add one.
+            # Adding this here, rather than on system start under Server, to avoid looping deps.
+            if skipkeys != True:
+                print("I was asked to make a key.")
+                self.Keys = Keys()
+                self.Keys.generate()
+                self.Keys.format_keys()
+                self.UserSettings['privkey'] = self.Keys.privkey
+                self.UserSettings['pubkey'] = self.Keys.pubkey
+            else:
+                if 'guestacct' not in server.ServerSettings:
+                    u = User()
+                    u.generate(skipkeys=False)
+                    server.ServerSettings['guestacct'] = u.UserSettings
+
+                self.UserSettings['pubkey'] = server.ServerSettings['guestacct']['pubkey']
+                self.UserSettings['privkey'] = None
+                self.Keys = Keys(pub=self.UserSettings['pubkey'])
+
+
+        
+        if not 'time_created' in self.UserSettings:
+            gmttime = time.gmtime()
+            gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
+            self.UserSettings['time_created'] = gmtstring
+
+
+        if len(self.UserSettings['followedTopics']) == 0:
+            self.followUser("StarTrek")
+            self.followUser("Python")
+            self.followUser("Egypt")
+            self.followUser("Funny")
+
+        if not 'maxposts' in self.UserSettings:
+            self.UserSettings['maxposts'] = 50
+
+        if not 'maxreplies' in self.UserSettings:
+            self.UserSettings['maxreplies'] = 20
+
+        if not 'friendlyname' in self.UserSettings:
+            self.UserSettings['friendlyname'] = "Anonymous"
+
+
+    def load_string(self,incomingstring):
+        self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
+        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
-        
-        gmttime = time.gmtime()
-        gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
-    
-        self.UserSettings['time_created'] = gmtstring
-        self.followTopic("StarTrek")
-        self.followTopic("Python")
-        self.followTopic("Egypt")
-        self.followTopic("Funny")
-        self.UserSettings['maxposts'] = 20
 
-            
     def load_file(self,filename):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
@@ -210,7 +263,10 @@ class User(object):
         self.UserSettings['privkey'] = self.Keys.privkey
         self.UserSettings['pubkey'] = self.Keys.pubkey
         print("Loaded username " + username + "..." + self.UserSettings['pubkey'])
+
     def savemongo(self):
+        if not 'privkey' in self.UserSettings:
+            self.Keys.generate()    
         self.Keys.format_keys()
         self.UserSettings['_id'] = self.Keys.pubkey
         server.mongos['default']['users'].save(self.UserSettings) 

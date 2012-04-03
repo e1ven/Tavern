@@ -2,7 +2,7 @@
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
-					{% for quicktopic in mytopics %}
+					{% for quicktopic in user.UserSettings['followedTopics'] %}
       					<li {%if quicktopic == topic %} class="active"{% end %} >
 	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
 	                    </li>
@@ -57,7 +57,7 @@
 							<li>
 							<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
 								<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
-				    				<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+				    				<img class="avatar" alt="User Avatar for post" src="https://static1.RoboHash.org/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 				    			</a>
 				    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
 				    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />

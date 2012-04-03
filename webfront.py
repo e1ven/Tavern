@@ -247,63 +247,39 @@ class BaseHandler(tornado.web.RequestHandler):
                 
                 ''')
 
-    def getvars(self):
+    def getvars(self,ensurekeys=False):
         """
         Retrieve the basic user variables out of your cookies.
         """
 
-        if self.get_secure_cookie("username") is None:
-            self.username = "Guest"
-            self.loggedin = False
+        self.user = User()
+        if self.get_secure_cookie("preferences") is not None:
+            print("Loading cookie")
+            self.user.load_string(self.get_secure_cookie("preferences").decode('utf-8'))
         else:
-            self.username = self.get_secure_cookie("username").decode('utf-8')
-            self.loggedin = True
+            print("Makign cookies")
+            self.user.generate(skipkeys=True)
+            self.setvars()
 
-        if self.get_secure_cookie("maxposts") is None:
-            self.maxposts = 20
-        else:
-            self.maxposts = int(self.get_secure_cookie("maxposts"))
-        self.maxposts = 9999    
-        if self.get_secure_cookie("pubkey") is not None:
-            self.pubkey = self.get_secure_cookie("pubkey").decode('utf-8')
-        else:
-            self.pubkey = None
+        if ensurekeys == True:
+            print("Making key cookies")
+            if self.user.UserSettings['privkey'] is None:
+                self.user.generate(skipkeys=False)
+                self.setvars()
+                self.user.savemongo()
 
-        if self.get_secure_cookie("followedTopics") is not None:
-            self.followedTopics = json.loads(self.get_secure_cookie("followedTopics").decode('utf-8'),object_pairs_hook=OrderedDict,object_hook=OrderedDict)
-        else:
-            self.followedTopics = ['StarTrek','Python','Egypt','Guests']
-        #Toggle this.
-        self.include_loc = "on"  
-           
-        return str(self.username)
-           
-    def forceregister(self):
+        return self.user.UserSettings['username']
+
+
+    def setvars(self,ensurekeys=False):
         """
-        Create a new account for a user.
-        They can customize it later if they want.
+        Saves out the current userobject to a cookie.
         """
-        newusername = 'Anonymous-' + str(random.randint(100000,999999))
-        newpassword = base64.urlsafe_b64encode(os.urandom(100)).decode('utf-8')
-        
-        # We're not actually hashing the password, since the user cannot log in with it.
-        # They don't even know it. When they use "Change Password", we'll generate one and hash it.
-           
-        u = User()
-        u.generate(hashedpass=newpassword,username=newusername.lower())
-        u.savemongo()
-        
-        self.set_secure_cookie("username",newusername.lower(),httponly=True)
-        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)   
-        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
-        
-        # Now, force-set all the variables. 
-        # These are used so the HTTP request that forces a registration goes through, using it. 
-        self.username = newusername.lower()
-        u.UserSettings['maxposts']
-        self.pubkey = str(''.join(u.UserSettings['pubkey'].split() ) )
-        self.loggedin = True
+        self.set_secure_cookie("preferences",json.dumps(self.user.UserSettings),httponly=True)
+        print("Setting :::: " + json.dumps(self.user.UserSettings))
+
+
+
 
 class RSSHandler(BaseHandler):
     def get(self,action,param):
@@ -392,10 +368,10 @@ class TriPaneHandler(BaseHandler):
 
             subjects = []
             if topic != "all":
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
             else:
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
 
             if len(subjects) > 0:
@@ -415,7 +391,7 @@ class TriPaneHandler(BaseHandler):
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
                 canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
@@ -429,19 +405,17 @@ class TriPaneHandler(BaseHandler):
             topic = "sitecontent"
             canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
             subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
 
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        usertrust = u.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
-        messagerating = u.getRatings(messageid)
+        usertrust = self.user.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
+        messagerating = self.user.getRatings(messageid)
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
     
         #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,canon=canon,rss="/rss/topic/" + displayenvelope['envelope']['payload']['topic'],topic=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html',topic=topic,mytopics=self.followedTopics,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
+        self.write(self.render_string('tripane.html',topic=topic,user=self.user,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
         pprint.pprint(divs)   
@@ -466,12 +440,12 @@ class TopicPropertiesHandler(BaseHandler):
         for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.maxposts,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict):
             subjects.append(envelope)
 
         title = "Properties for " + topic    
-        self.write(self.render_string('header.html',title=title,username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss="/rss/topic/" + topic,topic=topic))
-        self.write(self.render_string('topicprefs.html',mytopics=self.followedTopics,topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
+        self.write(self.render_string('header.html',title=title,user=self.user,rsshead=topic,type="topic"))
+        self.write(self.render_string('topicprefs.html',user=self.user,topic=topic,toptopics=toptopics,subjects=subjects,mods=mods))
         self.write(self.render_string('footer.html'))  
         self.finish(divs=['right'])
 
@@ -484,7 +458,7 @@ class SiteContentHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],user=self.user,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],envelope=envelope))
         self.write(self.render_string('footer.html'))
  
@@ -495,19 +469,17 @@ class PrivateMessageHandler(BaseHandler):
 
         envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
 
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
+        usertrust = self.user.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
         
-        envelope['envelope']['payload']['body'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['body'])
-        envelope['envelope']['payload']['subject'] = u.Keys.decryptToSelf(envelope['envelope']['payload']['subject'])
+        envelope['envelope']['payload']['body'] = self.user.Keys.decryptToSelf(envelope['envelope']['payload']['body'])
+        envelope['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(envelope['envelope']['payload']['subject'])
 
         if 'formatting' in envelope['envelope']['payload']:
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])
         else:    
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
 
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],user=self.user,type="privatemessage",rsshead=None))
         self.write(self.render_string('singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
         self.write(self.render_string('footer.html'))
 
@@ -517,12 +489,12 @@ class PrivateMessageHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
-        self.write(self.render_string('header.html',title="Register for an Account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title="Register for an Account",user=self.user,type=None,rsshead=None))
         self.write(self.render_string('registerform.html'))
         self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html',title='Register for an account',username="",loggedin=False,pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title='Register for an account',user=self.user,type=None,rsshead=None))
 
         client_newuser =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -551,31 +523,23 @@ class RegisterHandler(BaseHandler):
             
         else:
             hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(1))
-            u = User()
-            u.generate(hashedpass=hashedpass,username=client_newuser.lower())
+            self.user.generate(hashedpass=hashedpass,username=client_newuser.lower())
             if client_email is not None:
-                u.UserSettings['email'] = client_email.lower()
-            
-            u.UserSettings['maxposts'] = 20
-            u.savemongo()
-            
-            self.set_secure_cookie("username",client_newuser.lower(),httponly=True)
-            self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-            self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
-            self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-
+                self.user.UserSettings['email'] = client_email.lower()
+            self.user.savemongo()
+            self.setvars()
             self.redirect("/")
 
 
 class LoginHandler(BaseHandler):
     def get(self):
         self.getvars()        
-        self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title="Login to your account",user=self.user,rsshead=None,type=None))
         self.write(self.render_string('loginform.html'))
         self.write(self.render_string('footer.html'))
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html',loggedin=False,title='Login to your account',username="",pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title='Login to your account',user=self.user,rsshead=None,type=None))
 
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
@@ -601,11 +565,7 @@ class LoginHandler(BaseHandler):
             elif bcrypt.hashpw(client_password[:1].lower() + client_password[1:],user['hashedpass']) == user['hashedpass']:
                     login = True
             if login == True:
-                self.set_secure_cookie("username",user['username'].lower(),httponly=True)
-                self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-                self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-                self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
-
+                self.set_secure_cookie("preferences",json.dumps(u.UserSettings),httponly=True)
                 self.redirect("/")
                 return
 
@@ -629,7 +589,7 @@ class UserHandler(BaseHandler):
         pubkey = k.pubkey
         print(pubkey)
         messages = []
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",user=self.user,rsshead=None,type=None))
 
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
             messages.append(message)
@@ -645,22 +605,14 @@ class FollowUserHandler(BaseHandler):
 
     def post(self):    
         self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a user.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.followUser(pubkey)
-        u.savemongo()
-        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
-        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        self.user.followUser(tornado.escape.xhtml_escape(self.get_argument("username")))
+        self.user.savemongo()
+        self.servars()
+
         if "js" in self.request.arguments:
             self.finish(divs=['right'])
         else:
             self.redirect("/")
-
 
 class NoFollowUserHandler(BaseHandler):
     def get(self,topic):
@@ -669,22 +621,14 @@ class NoFollowUserHandler(BaseHandler):
 
     def post(self):    
         self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a topic.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.noFollowUser(topic)
-        u.savemongo()
-        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
-        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        self.user.noFollowUser(tornado.escape.xhtml_escape(self.get_argument("username")))
+        self.user.savemongo()
+        self.setvars()
+
         if "js" in self.request.arguments:
             self.finish(divs=['right'])
         else:
             self.redirect("/")
-
 
 class FollowTopicHandler(BaseHandler):
     def get(self,topic):
@@ -692,17 +636,10 @@ class FollowTopicHandler(BaseHandler):
 
     def post(self,topic):    
         self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a Topic.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.followTopic(topic)
-        u.savemongo()
-        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
-        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
+        self.user.savemongo()
+        self.setvars()
+
         if "js" in self.request.arguments:
             self.finish(divs=['right'])
         else:
@@ -714,22 +651,14 @@ class NoFollowTopicHandler(BaseHandler):
         
     def post(self,topic):       
         self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to follow a topic.")
-            return 0
-        u = User()
-        u.load_mongo_by_username(username=self.username)
-        u.noFollowTopic(topic)
-        u.savemongo()
-        self.set_secure_cookie("username",u.UserSettings['username'].lower(),httponly=True)
-        self.set_secure_cookie("maxposts",str(u.UserSettings['maxposts']),httponly=True)
-        self.set_secure_cookie("pubkey",str(''.join(u.UserSettings['pubkey'].split() ) ),httponly=True)
-        self.set_secure_cookie("followedTopics",json.dumps(u.UserSettings['local']['followedTopics'],separators=(',',':')),httponly=True)
+        self.user.noFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
+        self.user.savemongo()
+        self.setsetvars()
+
         if "js" in self.request.arguments:
             self.finish(divs=['right'])
         else:
             self.redirect("/")
-
     
             
             
@@ -740,16 +669,13 @@ class RatingHandler(BaseHandler):
         #Calculate the votes for that post. 
          
     def post(self):    
-        self.getvars()
+        self.getvars(ensurekeys=True)
 
         #So you may be asking yourself.. Self, why did we do this as a POST, rather than
         #Just a GET value, of the form server.com/msg123/voteup
         #The answer is xsrf protection.
         #We don't want people to link to the upvote button and trick you into voting up.
 
-        if not self.loggedin:
-            self.write("You must be logged in to rate a message.")
-            return
         
         client_hash =  tornado.escape.xhtml_escape(self.get_argument("hash"))        
         client_rating =  tornado.escape.xhtml_escape(self.get_argument("rating"))
@@ -764,13 +690,10 @@ class RatingHandler(BaseHandler):
         e.payload.dict['regarding'] = client_hash
             
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
         
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -784,11 +707,11 @@ class RatingHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
         
         #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text())
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.UserSettings['pubkey']
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -807,11 +730,7 @@ class UserTrustHandler(BaseHandler):
         #Calculate the trust for a user. 
 
     def post(self):    
-        print("Entered UTH")
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to trust or distrust a user.")
-            return
+        self.getvars(ensurekeys=True)
 
         client_trusted_pubkey =  self.get_argument("trusted_pubkey")    
         client_trust =  self.get_argument("trust")
@@ -832,14 +751,11 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['trusted_pubkey'] = k.pubkey
 
         #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
 
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
 
 
@@ -855,11 +771,11 @@ class UserTrustHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
 
         #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text())
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.UserSettings['pubkey']
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -877,17 +793,13 @@ class UserTrustHandler(BaseHandler):
 class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
-         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+         self.write(self.render_string('header.html',title="Post a new message",user=self.user,rsshead=None,type=None))
          self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,args=self.request.arguments))
          self.write(self.render_string('footer.html'))
          self.finish(divs=['right','single'])
 
     def post(self):
-        self.getvars()
-        if not self.loggedin:
-            self.forceregister()
-        
-
+        self.getvars(ensurekeys=True)
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
         self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
 
@@ -986,18 +898,12 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['class'] = "message"
         e.payload.dict['body'] = client_body
        
-            
-        #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
-        
         if stored is True:
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -1011,10 +917,10 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
         
         #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text())
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.UserSettings['pubkey']
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -1036,18 +942,14 @@ class NewmessageHandler(BaseHandler):
 class MyPrivateMessagesHandler(BaseHandler):
     def get(self):
         self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to do this.")
-            return
+
             
         messages = []
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
+        self.user.load_mongo_by_pubkey(user['pubkey'])
         
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':u.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
-            message['envelope']['payload']['subject'] = u.Keys.decryptToSelf(message['envelope']['payload']['subject'])
+        self.write(self.render_string('header.html',title="Welcome to Pluric!",user=self.user,rsshead=None,type=None))
+        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':self.user.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
+            message['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
 
         self.write(self.render_string('showprivatemessages.html',messages=messages))
@@ -1057,15 +959,13 @@ class MyPrivateMessagesHandler(BaseHandler):
 class NewPrivateMessageHandler(BaseHandler):
     def get(self,urlto=None):
          self.getvars()
-         self.write(self.render_string('header.html',title="Login to your account",username=self.username,loggedin=self.loggedin,pubkey=self.pubkey,rss=None))
+         self.write(self.render_string('header.html',title="Login to your account",user=self.user,rsshead=None,type=none))
          self.write(self.render_string('privatemessageform.html',urlto=urlto))
          self.write(self.render_string('footer.html'))
 
     def post(self,urlto=None):
-        self.getvars()
-        if not self.loggedin:
-            self.write("You must be logged in to do this.")
-            return
+        self.getvars(ensurekeys=True)
+
 
         client_to =  tornado.escape.xhtml_escape(self.get_argument("to"))
         if urlto is not None:
@@ -1081,11 +981,6 @@ class NewPrivateMessageHandler(BaseHandler):
         else:
             client_regarding = None
 
-        #Instantiate the user who's currently logged in
-        user = server.mongos['default']['users'].find_one({"username":self.username},as_class=OrderedDict)        
-        u = User()
-        u.load_mongo_by_pubkey(user['pubkey'])
-        
         #Instantiate the key of the user who we're sending to
         toKey = Keys(pub=client_to)
         toKey.format_keys()
@@ -1101,8 +996,8 @@ class NewPrivateMessageHandler(BaseHandler):
             e.payload.dict['regarding'] = client_regarding
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = u.UserSettings['pubkey']
-        e.payload.dict['author']['friendlyname'] = u.UserSettings['username']
+        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
         if self.include_loc == "on":
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -1116,10 +1011,10 @@ class NewPrivateMessageHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
 
         #Sign this bad boy
-        usersig = u.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text())
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = u.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.UserSettings['pubkey']
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)

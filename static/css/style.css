@@ -208,6 +208,7 @@ form.vote {
 
 	
 #single .padder { background: #ffffff; }
+
 #single h1 {
 	font-size: 14px; 
 	font-weight: bold; 
@@ -308,7 +309,6 @@ COLUMN WIDTH ELEMENTS
 #right{
     border-top: 2px solid #ffffff;
 }
-#right .padder { background: #ffffff; }
 #right .thread {
      margin-top: 0px;
      position: relative;

@@ -16,7 +16,7 @@
 	<div class="padder">
 		<div class="topic_{{orient}}">
 		<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
+		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
 		</div><!-- .topic_title -->		
 {% end %}		
 
@@ -24,7 +24,7 @@
 		<div class="thread_common">
 		<div class="thread_{{orient}}">
 			    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
-			    	<img class="avatar" alt="User Avatar for post" src="http://RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+			    	<img class="avatar" alt="User Avatar for post" src="https://static1.RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 			    </a>
 			<a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 			    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br />
@@ -58,7 +58,7 @@
 		<div class="clear"></div>
 		{% if orient == "left" %}
 		
-		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
+		<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
 		
 		{% end %}
 		<div class="thread_body">
