@@ -639,6 +639,11 @@ class FollowTopicHandler(BaseHandler):
             self.redirect("/")
 
 class NoFollowTopicHandler(BaseHandler):
+<<<<<<< HEAD
+=======
+
+        
+>>>>>>> 474ac42ed27caea99953427af64355b07a38f12d
     def post(self):       
         self.getvars()
 

@@ -46,9 +46,15 @@
 						Showing Preferences for {{topic}}.  <a href="/rss/topic/{{topic}}"><img src="/static/images/feed-icon-14x14.png"></a><br>
 						<p>
 						{% if topic in user.UserSettings['followedTopics'] %}
+<<<<<<< HEAD
 							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "followtopic" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
 							{% else %}
 							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "followtopic" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
+=======
+							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
+							{% else %}
+							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "subscription" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
+>>>>>>> 474ac42ed27caea99953427af64355b07a38f12d
 						{% end %}
 						<p>
 						The following users are popular moderators, you might want to consider adding them:<br>
