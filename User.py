@@ -163,7 +163,6 @@ class User(object):
         elif not 'hashedpass' in self.UserSettings:
             self.hashedpass = None
 
-
         # Ensure we have a valid private key
         validpriv = False
         if 'privkey' in self.UserSettings:
@@ -215,6 +214,8 @@ class User(object):
         if not 'friendlyname' in self.UserSettings:
             self.UserSettings['friendlyname'] = "Anonymous"
 
+        if not 'include_location' in self.UserSettings:
+            self.UserSettings['include_location'] = False
 
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)

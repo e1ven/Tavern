@@ -1,3 +1,56 @@
+<script>
+head.js("/static/scripts/zxcvbn.js");
+
+
+head.ready(function() {
+	head.js("/static/scripts/jquery.mailcheck.min.js");
+
+	$('#email').on('blur', function() {
+	    $(this).mailcheck({
+	      suggested: function(element, suggestion) {
+	        $('#EmailStatus').html('<p><i>&nbsp;&nbsp;&nbsp; Did you mean '+suggestion.address+'@'+'<strong>'+suggestion.domain+'</strong>?</i></p>').show();
+
+	        $('#EmailStatus').click(function(event) {
+	        	$('#email').val(suggestion.full);
+	        	$('#EmailStatus').hide();
+	        });
+	      
+
+	      },
+	      empty: function(element) {
+	        $('#EmailStatus').html('').hide();
+	      }
+	    });
+	});
+
+
+	$('#pass').keyup(function() {
+		result = zxcvbn( this.value );
+		pass1 = this.value
+		PassDescriptions = ['Not Very Strong', 'Average', 'Good', 'Very Good', 'Great'];
+		$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Password Strength: " + PassDescriptions[result.score]) + "</i></p>";
+	});
+	$('#pass2').keyup(function() {
+		if (this.value != pass1 )
+		{
+			$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Passwords do not match</i></p>");
+		}
+		else
+		{
+			$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Passwords match</i></p>");
+		}
+	});
+
+
+
+
+
+});
+
+
+</script>
+
+
 
 <div id="single">
 <h1>Register for an account</h1>
@@ -10,12 +63,15 @@
 Once you are registered, you can change the name that shows up in posts to whatever you want.
 <br>
 </p>
-<p>Email (Entirely Optional): <input type="text" name="email">
+<p>Email (Entirely Optional): <input id="email" type="text" name="email">
+<br>
+<div id="EmailStatus"></div>
 </p><p>
-Password: <input type="password" name="pass">
+Password: <input id='pass' type="password" name="pass">
 </p><p>
-Verify Password: <input type="password" name="pass2">
+Verify Password: <input id='pass2' type="password" name="pass2">
 <input type="submit" value="Create Login">
+<div id="PasswordStatus"></div>
 </p>
 </form>
 

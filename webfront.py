@@ -32,7 +32,6 @@ import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup
 import rss
 
-
 import re
 try: 
     from hashlib import md5 as md5_func
@@ -61,6 +60,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.html += html.decode('utf-8')
         else:
              self.html += html
+        #self.set_header("X-Fortune", server.fortune.random())
              
     def gettext(self):
         ptext = ""
@@ -684,7 +684,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
-        if self.include_loc == "on":
+        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
             
@@ -748,7 +748,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
 
 
-        if self.include_loc == "on":
+        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
 
@@ -790,7 +790,6 @@ class NewmessageHandler(BaseHandler):
     def post(self):
         self.getvars(ensurekeys=True)
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-        self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
 
         # Pull in our Form variables. 
         # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
@@ -894,7 +893,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
-        if self.include_loc == "on":
+        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
             
@@ -962,7 +961,6 @@ class NewPrivateMessageHandler(BaseHandler):
             
         client_subject =  tornado.escape.xhtml_escape(self.get_argument("subject"))
         client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-        self.include_loc = tornado.escape.xhtml_escape(self.get_argument("include_location"))
         if "regarding" in self.request.arguments:
             client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
             if client_regarding == "":
@@ -988,7 +986,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
-        if self.include_loc == "on":
+        if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
 
@@ -1013,8 +1011,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
         #Send to the server
         server.receiveEnvelope(e.text())
-
-      
+    
         
 def main():
 

@@ -27,6 +27,18 @@ from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 
 
+class Fortuna():
+    def __init__(self,fortunefile="fortunes"):
+        self.fortunes = []            
+        fortunes = open(fortunefile, "r")
+        line = fortunes.readline()
+        while line:
+            self.fortunes.append(line)
+            line = fortunes.readline()
+    def random(self):
+        return random.choice(self.fortunes)
+
+
 class Server(object):
     class FancyDateTimeDelta(object):
         """
@@ -115,7 +127,8 @@ class Server(object):
             
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
- 
+        self.fortune = Fortuna()
+
     def loadconfig(self,filename=None):
         print("Loading config from file.")
         if filename == None:
@@ -409,10 +422,6 @@ class Server(object):
         if '_id' in envelope:            
             del(envelope['_id'])        
         return envelope
-
-
-
-
 
     #Autolink from http://greaterdebater.com/blog/gabe/post/4
     def autolink(self,html):
