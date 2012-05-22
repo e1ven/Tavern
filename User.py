@@ -24,7 +24,7 @@ class User(object):
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 
-        key = Keys(pubkey = noteabout )
+        key = Keys(pub = noteabout )
         noteabout = key.pubkey
 
         
@@ -37,7 +37,11 @@ class User(object):
             return None
 
     def setNote(self,noteabout,note=""):
-        # print("My Key------" +  self.Keys.pubkey)
+        
+        # Format the Key.
+        key = Keys(pub = noteabout )
+        noteabout = key.pubkey
+
         newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
 
         # Retrieve any existing note, so that the _id is the same. Then, we'll gut it, and put in our own values.
@@ -49,7 +53,12 @@ class User(object):
 
 
     def gatherTrust(self,askingabout,incomingtrust=250):
-        print("My Key------" +  self.Keys.pubkey)
+ 
+        # Ensure the formatting 
+        key = Keys(pub = askingabout )
+        askingabout = key.pubkey
+
+        #print("My Key------" +  self.Keys.pubkey)
         #Rating of myself = 250
         #Direct Rating = 100
         #Friend's Rating = 40
