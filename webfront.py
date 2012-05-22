@@ -173,79 +173,12 @@ class BaseHandler(tornado.web.RequestHandler):
                 };
                 pluric_replace();
                 pluric_replace = null;
-             
-                $(".vote").submit(function(event) {
-                    voteref = $(this);
-                    /* stop form from submitting normally */
-                    event.preventDefault(); 
-
-                    /* get some values from elements on the page: */
-                    var $form = $( this ),
-                        rating = $form.find( 'input[name="rating"]' ).val(),
-                        url = $form.attr( 'action' );
-
-                    /* Send the data using post and put the results in a div */
-                    $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
-                                   '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
-                                   'hash' : $form.find( 'input[name="hash"]' ).val() },
-                      function( data ) {
-                          voteref.parent().empty().append( data );
-                      }
-                    );
-                });
-
-
-                
-                $(".subscription").submit(function(event) {
-                    ref = $(this);
-                    /* stop form from submitting normally */
-                    event.preventDefault(); 
-
-                    /* get some values from elements on the page: */
-                    var $form = $( this ),
-                        url = $form.attr( 'action' );
-
-                    /* Send the data using post and put the results in a div */
-                    $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val() },
-                      function( data ) {
-                          ref.empty().append("Done.");
-                          head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
-                      }
-                    );
-
-                });
-
-
-                $(".reply").click(function(event) {
-                    event.preventDefault();
-                    var $msg = $(this).attr('message');
-                    var $href = $(this).attr('href');
-                    $.get($href + "?getonly=true",function(data) {
-                      $('#reply_'+$msg).empty().append("<br>" + data);
-                    });   
-
-                });
-
-                $('a.details').each( function ()
-                {            
-                    $(this).click(function()
-                        {   
-                        userdiv = "details_" + $(this).attr('user');
-                        if ($("#" + userdiv).is(":visible"))
-                        {
-                            $("#" + userdiv).hide()
-                        }
-                        else
-                        {
-                            $("#" + userdiv).show()
-                        }
-                        return false;
-                        });
-                });
-    
-
-                
-                ''')
+                ''' + server.cache['instance.js'] 
+                + 
+                '''
+                // Any other code here.
+                '''
+                )
 
     def getvars(self,ensurekeys=False):
         """

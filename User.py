@@ -18,16 +18,16 @@ class User(object):
         self.UserSettings['followedTopics'] = []
 
     def getNote(self,noteabout):
-        print("My Key------" +  self.Keys.pubkey)
-        print("Looking for -- " + noteabout)
+       # print("My Key------" +  self.Keys.pubkey)
+       # print("Looking for -- " + noteabout)
         # Retrieve any note from user A about user B
         note = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
         #pprint.pprint(note)
         if note is not None:
-            print("Found a note - " + note['note'])
+        #    print("Found a note - " + note['note'])
             return note['note']
         else:
-            print("Found no note.")
+         #   print("Found no note.")
             return None
 
     def setNote(self,noteabout,note=""):

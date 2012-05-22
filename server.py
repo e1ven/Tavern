@@ -79,7 +79,8 @@ class Server(object):
         self.ServerSettings = OrderedDict()
         self.mongocons = OrderedDict()
         self.mongos = OrderedDict()
-        
+        self.cache = OrderedDict()
+
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".PluricServerSettings"):
                 #Load Default file(hostnamestname)
@@ -118,7 +119,6 @@ class Server(object):
                 self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
 
-
                 self.saveconfig()   
 
 
@@ -128,6 +128,13 @@ class Server(object):
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         self.fortune = Fortuna()
+
+        # Cache our JS, so we can include it later.
+        file = open("static/scripts/instance.js")
+        print("Cached JS")
+        self.cache['instance.js'] = file.read()
+        file.close()
+
 
     def loadconfig(self,filename=None):
         print("Loading config from file.")
