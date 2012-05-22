@@ -8,7 +8,25 @@
 <html lang="en" > 
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+
 <script src="/static/scripts/head.min.js"></script>
+
+
+<!-- wysihtml5 parser rules -->
+<script src="/static/scripts/simple.js"></script>
+<script src="/static/scripts/wysihtml5-0.3.0.js"></script>
+
+
+<script>
+var editor = new wysihtml5.Editor("wysihtml5-textarea", { // id of textarea element
+  toolbar:      "wysihtml5-toolbar", // id of toolbar element
+  parserRules:  wysihtml5ParserRules // defined in parser rules set 
+});
+</script>
+
+
+
 {% if 'canon' in globals()%}
 <link rel=canonical href="http://Pluric.com/{{canon}}"/>
 {% end %}
@@ -31,6 +49,10 @@
 	{% end %}
 	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/images/favicon.png" type="image/png" />
+
+
+
+
 </head>
 <body>
 <div id="limits">
