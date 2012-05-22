@@ -57,7 +57,7 @@
 				<div class="thread">
 					<h1><bdi>{{envelope['envelope']['payload']['subject']}}</bdi></h1>
 						{% if 'payload_sha512' in envelope['envelope'] %}
-								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],orient="right") %}
+								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],user=user,orient="right") %}
 						{% end %}
 					</div>
 				

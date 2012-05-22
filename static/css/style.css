@@ -484,8 +484,6 @@ img.imginline { vertical-align: middle;  }
    font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
 
 
-
-
  /* display:-moz-inline-stack;
   display:inline-block;
  */ font-size:12px;
@@ -556,6 +554,12 @@ img.imginline { vertical-align: middle;  }
 .UserDetails a:hover{
   color:#BBBBBB;
 } 
+
+.usernote {
+border:none;
+background-color:#ddd;
+}
+
 
 
 

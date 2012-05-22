@@ -7,6 +7,7 @@ import logging
 import bcrypt
 from collections import OrderedDict
 import pymongo
+import pprint
 from server import server
 
 class User(object):
@@ -15,6 +16,31 @@ class User(object):
         self.UserSettings = OrderedDict()
         self.UserSettings['followedUsers'] = []
         self.UserSettings['followedTopics'] = []
+
+    def getNote(self,noteabout):
+        print("My Key------" +  self.Keys.pubkey)
+        print("Looking for -- " + noteabout)
+        # Retrieve any note from user A about user B
+        note = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
+        #pprint.pprint(note)
+        if note is not None:
+            print("Found a note - " + note['note'])
+            return note['note']
+        else:
+            print("Found no note.")
+            return None
+
+    def setNote(self,noteabout,note=""):
+        # print("My Key------" +  self.Keys.pubkey)
+        newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
+
+        # Retrieve any existing note, so that the _id is the same. Then, we'll gut it, and put in our own values.
+        newnote = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
+        if newnote is None:
+                newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
+        newnote['note'] = note
+        server.mongos['default']['notes'].save(newnote) 
+
 
     def gatherTrust(self,askingabout,incomingtrust=250):
         print("My Key------" +  self.Keys.pubkey)

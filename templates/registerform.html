@@ -5,7 +5,7 @@ head.js("/static/scripts/zxcvbn.js");
 head.ready(function() {
 	head.js("/static/scripts/jquery.mailcheck.min.js");
 
-	$('#email').on('blur', function() {
+	$('#email').blur(function() {
 	    $(this).mailcheck({
 	      suggested: function(element, suggestion) {
 	        $('#EmailStatus').html('<p><i>&nbsp;&nbsp;&nbsp; Did you mean '+suggestion.address+'@'+'<strong>'+suggestion.domain+'</strong>?</i></p>').show();

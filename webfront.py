@@ -257,7 +257,7 @@ class BaseHandler(tornado.web.RequestHandler):
             print("Loading cookie")
             self.user.load_string(self.get_secure_cookie("preferences").decode('utf-8'))
         else:
-            print("Makign cookies")
+            print("Making cookies")
             self.user.generate(skipkeys=True)
             self.setvars()
 
@@ -275,8 +275,14 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Saves out the current userobject to a cookie.
         """
-        self.set_secure_cookie("preferences",json.dumps(self.user.UserSettings),httponly=True)
-        print("Setting :::: " + json.dumps(self.user.UserSettings))
+
+        # Zero out the stuff in 'local', since it's big.
+        usersettings = self.user.UserSettings
+        usersettings['local'] = []
+        
+        self.set_secure_cookie("preferences",json.dumps(usersettings),httponly=True)
+
+        print("Setting :::: " + json.dumps(usersettings))
 
 
 
@@ -639,11 +645,6 @@ class FollowTopicHandler(BaseHandler):
             self.redirect("/")
 
 class NoFollowTopicHandler(BaseHandler):
-<<<<<<< HEAD
-=======
-
-        
->>>>>>> 474ac42ed27caea99953427af64355b07a38f12d
     def post(self):       
         self.getvars()
 
@@ -717,6 +718,23 @@ class RatingHandler(BaseHandler):
         server.receiveEnvelope(e.text())
         
         self.write("Your vote has been recorded. Thanks!")
+
+
+class UserNoteHandler(BaseHandler):
+    def get(self,user):
+        self.getvars()
+        #Show the Note for a user
+
+    def post(self):    
+        self.getvars(ensurekeys=True)
+
+        client_pubkey = self.get_argument("pubkey")    
+        client_note = self.get_argument("note")
+        self.user.setNote(client_pubkey,client_note)
+        print("Note Submitted.")
+
+
+
 
 class UserTrustHandler(BaseHandler):
     def get(self,user):
@@ -1049,6 +1067,8 @@ def main():
         (r"/uploadnewmessage" ,NewmessageHandler), 
         (r"/vote" ,RatingHandler),
         (r"/usertrust",UserTrustHandler),  
+        (r"/usernote",UserNoteHandler),  
+
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
         (r"/followuser" ,FollowUserHandler),  
         (r"/followtopic" ,FollowTopicHandler),  

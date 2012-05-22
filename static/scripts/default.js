@@ -1,7 +1,6 @@
 
 head.ready(function() {
 
-    
  $.fn.splitter = function(args){
     args = args || {};
     return this.each(function() {
@@ -180,10 +179,7 @@ head.ready(function() {
     });
 };
 
-});
 
-
-head.ready(function() {
  
     if ($("#centerandright").length)
     {
@@ -217,7 +213,7 @@ head.ready(function() {
 
      */
 
- }
+    }
  
      function getParameterByName(name) {
          var match = RegExp('[?&]' + name + '=([^&]*)')
@@ -266,7 +262,27 @@ head.ready(function() {
     });
     $('#spinner').hide();
 
-    $(".vote").submit(function(event) {
+    $(".usernote").submit(function(event) {
+        /* stop form from submitting normally */
+        noteref = $(this);
+        event.preventDefault(); 
+        
+        /* get some values from elements on the page: */
+        var $form = $( this ),
+            rating = $form.find( 'input[name="rating"]' ).val(),
+            url = $form.attr( 'action' );
+
+        /* Send the data using post and put the results in a div */
+        $.post( url, { 'pubkey': $form.find( 'input[name="pubkey"]' ).val(),
+                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
+                       'note' : $form.find( 'input[name="note"]' ).val() },
+          function( data ) {
+              noteref.empty().append( data );
+          }
+        );
+    });        
+
+     $(".vote").submit(function(event) {
         voteref = $(this);
         /* stop form from submitting normally */
         event.preventDefault(); 
