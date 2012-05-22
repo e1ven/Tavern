@@ -203,8 +203,8 @@ class BaseHandler(tornado.web.RequestHandler):
         numchunks = 0
         for chunk in self.chunks(signed,3000):
             numchunks += 1
-            self.set_cookie("pluric_preferences" + str(numchunks),chunk,httponly=True,expires_days=999999)
-        self.set_secure_cookie("pluric_preferences_count",str(numchunks),httponly=True,expires_days=999999)
+            self.set_cookie("pluric_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
+        self.set_secure_cookie("pluric_preferences_count",str(numchunks),httponly=True,expires_days=999)
         print("numchunks + " + str(numchunks))
 
         print("Setting :::: " + json.dumps(usersettings))
