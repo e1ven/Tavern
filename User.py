@@ -43,7 +43,6 @@ class User(object):
         """ 
         Retrieve any note by user A about user B
         """
-        return ""
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 

@@ -14,7 +14,7 @@ class TopicList(object):
                             mtime = this.envelope.local.time_added;
 
                             // 60 * 60 * 24 * 7 * 2 = 1209600
-                            if ((mtime + 1209600) > timestamp )
+                            if ((mtime + 11209600) > timestamp )
 
                                 {
                                 tag = this.envelope.payload.topic;
