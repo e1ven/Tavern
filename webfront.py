@@ -438,7 +438,7 @@ class AttachmentHandler(BaseHandler):
         for envelope in envelopes:
             stack.append(envelope)
 
-        self.write(self.render_string('header.html',title="Pluric Attachment " + client_attachment_id,username=self.username,pubkey=self.pubkey,loggedin=self.loggedin,canon="attachment/" + client_attachment_id))
+        self.write(self.render_string('header.html',title="Pluric Attachment " + client_attachment_id,user=self.user,rsshead=client_attachment_id,type="attachment"))
         self.write(self.render_string('attachments.html',attachment=client_attachment_id,stack=stack))
         self.write(self.render_string('footer.html'))
 
