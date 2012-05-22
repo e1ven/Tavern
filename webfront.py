@@ -179,46 +179,73 @@ class BaseHandler(tornado.web.RequestHandler):
                 '''
                 )
 
+
+    def chunks(self,s, n):
+        """
+        Produce `n`-character chunks from `s`.
+        """
+        for start in range(0, len(s), n):
+            yield s[start:start+n]
+
+    def setvars(self):
+        """
+        Saves out the current userobject to a cookie, or series of cookies.
+        These are encrypted using the built-in Tornado cookie encryption.
+        """
+        
+        # Zero out the stuff in 'local', since it's big.
+        usersettings = self.user.UserSettings
+
+        # Create the Cookie value, and sign it.
+        signed = self.create_signed_value("pluric_preferences",json.dumps(usersettings))
+
+        # Chunk up the cookie value, so we can spread across multiple cookies.
+        numchunks = 0
+        for chunk in self.chunks(signed,3000):
+            numchunks += 1
+            self.set_cookie("pluric_preferences" + str(numchunks),chunk,httponly=True,expires_days=999999)
+        self.set_secure_cookie("pluric_preferences_count",str(numchunks),httponly=True,expires_days=999999)
+        print("numchunks + " + str(numchunks))
+
+        print("Setting :::: " + json.dumps(usersettings))
+
     def getvars(self,ensurekeys=False):
         """
         Retrieve the basic user variables out of your cookies.
         """
 
         self.user = User()
-        if self.get_secure_cookie("pluric_preferences") is not None:
-            print("Loading cookie")
-            print(self.get_secure_cookie("pluric_preferences").decode('utf-8'))
-            print("----------")
-            self.user.load_string(self.get_secure_cookie("pluric_preferences").decode('utf-8'))
+        if self.get_secure_cookie("pluric_preferences_count") is not None:
+
+            # Restore the signed cookie, across many chunks
+            restoredcookie = ""
+            for i in range(1,1 + int(self.get_secure_cookie("pluric_preferences_count"))):
+                restoredcookie += self.get_cookie("pluric_preferences" + str(i))
+
+            # Validate the cookie, and load if it passes
+            decodedcookie = self.get_secure_cookie("pluric_preferences",value=restoredcookie)
+            if decodedcookie is not None:
+                self.user.load_string(decodedcookie.decode('utf-8'))
+            else:
+                print("Cookie doesn't validate")
+
+        # If there isn't already a cookie, make a very basic one.
+        # Don't bother doing the keys, since that eats randomness.
         else:
             print("Making cookies")
             self.user.generate(skipkeys=True)
             self.setvars()
 
+        # If we've asked to make the keys.. Generate them.
+        # This won't overwrite existing values, since user.generate() is additive.
         if ensurekeys == True:
-            print("Making key cookies")
             if self.user.UserSettings['privkey'] is None:
+                print("Making key cookies")
                 self.user.generate(skipkeys=False)
                 self.setvars()
                 self.user.savemongo()
 
         return self.user.UserSettings['username']
-
-
-    def setvars(self):
-        """
-        Saves out the current userobject to a cookie.
-        """
-        print("------------------In Setvars-----------------------")
-        # Zero out the stuff in 'local', since it's big.
-        usersettings = self.user.UserSettings
-        usersettings['local'] = []
-        usersettings['_id'] = ''
-        self.set_secure_cookie("pluric_preferences",json.dumps(usersettings),httponly=True)
-
-        print("Setting :::: " + json.dumps(usersettings))
-
-
 
 
 class RSSHandler(BaseHandler):

@@ -42,18 +42,50 @@
         /* get some values from elements on the page: */
         var $form = $( this ),
             rating = $form.find( 'input[name="rating"]' ).val(),
-            url = $form.attr( 'action' );
+            url = $form.attr( 'action' ),
+            hash = $form.find( 'input[name="hash"]' ).val();
 
         /* Send the data using post and put the results in a div */
         $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
                        '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
                        'hash' : $form.find( 'input[name="hash"]' ).val() },
           function( data ) {
-              voteref.parent().empty().append( data );
+              /* update the page */
+              /* voteref.parent().empty().append( data ); */
+
+             /* Store the vote to local storage */
+              rating = $form.find( 'input[name="rating"]' ).val(),
+              hashdata = $.jStorage.get(hash,{});
+              hashdata['rating'] = rating;
+              $.jStorage.set(hash, hashdata);   
+
+              /* Mark the vote as selected, unselect the other vote */
+              $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+              $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+              
+
           }
         );
     });                
-                
+    
+
+    /* Note the votes we've already cast */
+    $(".vote").each( function ()
+    {
+        /* get some values from elements on the page: */
+        var $form = $( this ),
+            rating = $form.find( 'input[name="rating"]' ).val(),
+            url = $form.attr( 'action' ),
+            hash = $form.find( 'input[name="hash"]' ).val();
+
+        /* Find the ones we've hit before */
+        hashdata = $.jStorage.get(hash,{});
+        rating = hashdata['rating'];
+        $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+
+    });
+
+
     $(".followtopic").submit(function(event) {
         ref = $(this);
         /* stop form from submitting normally */

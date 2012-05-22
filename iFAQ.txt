@@ -1,5 +1,6 @@
 Infrequently Asked Questions-
 
+
 Why not use GPG to store data?
 	RSA with PSS is ported to more architectures/platforms. 
 	GPG basically all wraps through the one implementation, and is not easy to run with PyPy, Android, whatever.	
@@ -61,3 +62,14 @@ Why does the website do the processing/signing on the server, rather than in the
 		The best way to avoid that is to use a local, native client. 
 		The Pluric API fully supports native clients, so if you're really worried about us, use a local machine, so no one has the ability to get in the way.
 
+Isn't storing my Private Key in a cookie bad?
+	No.
+	Storing a token which allows you to login to the site gives any potential attacker just as much access as giving them the key.
+	
+Why Tornado, and not Flash
+	Flask didn't support Python3 at the time this project was created. Tornado, even when not doing the async tools, provides a really nice, low-magic framework for webdev.
+
+Why store some things (like notes about users) on the server, and others (like votes) in localstorage?
+	The upvotes/downvotes on existing comments are there to remind you what you've already voted on. 
+	In theory, we could calculate it by loading it all from the server, but it would be too intensive, for too little gain.
+	Instead, we just store it in localstorage, and if you change computers, we don't worry about displaying it.

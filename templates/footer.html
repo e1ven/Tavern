@@ -18,16 +18,13 @@ if (head.browser.ie)
     
   if ( parseFloat(head.browser.version) > 7 )
   {
-  head.js("/static/scripts/jquery.min.js","/static/scripts/default.js");
-
+    head.js("/static/scripts/jquery.min.js","/static/scripts/default.js","/static/scripts/jstorage.min.js","/static/scripts/jquery.json-2.3.min.js");
   }
 }
 else
 {
-
-    head.js("/static/scripts/jquery.min.js","/static/scripts/default.js");
+  head.js("/static/scripts/jquery.min.js","/static/scripts/default.js","/static/scripts/jstorage.min.js","/static/scripts/jquery.json-2.3.min.js");
 }
-
 </script>
 
 

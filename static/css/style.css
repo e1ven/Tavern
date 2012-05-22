@@ -190,7 +190,10 @@ form.vote {
   padding:0px 0px 0px 0px !important;
   margin: 0px 0px 0px 0px;
   position:relative;
-  float: left;}
+  float: left;
+  height:16px;
+  border:1px solid #dddddd;
+}
 
 .externalsharing {
     float:right;
