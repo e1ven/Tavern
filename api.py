@@ -8,7 +8,6 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.escape
-import bcrypt
 import time
 import datetime
 import os
