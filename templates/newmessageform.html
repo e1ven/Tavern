@@ -1,3 +1,5 @@
+
+
 {% if 'js' in args %}
 <div id="right">
 {% else %}
@@ -9,7 +11,6 @@
 {% end %}
 
 <div class="padder">
-
 <form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
   {% raw xsrf_form_html() %}
 {% if topic is None %}
@@ -33,43 +34,8 @@ What would you like your message to say?<br>
 What would you like your reply to say?<br>
 {% end %}
 
-  <div id="toolbar" style="display: none;">
-    <a data-wysihtml5-command="bold" title="CTRL+B">bold</a> |
-    <a data-wysihtml5-command="italic" title="CTRL+I">italic</a> |
-    <a data-wysihtml5-command="createLink">insert link</a> |
-    <a data-wysihtml5-command="insertImage">insert image</a> |
-    <a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h1">h1</a> |
-    <a data-wysihtml5-command="formatBlock" data-wysihtml5-command-value="h2">h2</a> |
-    <a data-wysihtml5-command="insertSpeech">speech</a>
-    <a data-wysihtml5-action="change_view">View Raw Code</a>
-    
-    <div data-wysihtml5-dialog="createLink" style="display: none;">
-      <label>
-        Link:
-        <input data-wysihtml5-dialog-field="href" value="http://">
-      </label>
-      <a data-wysihtml5-dialog-action="save">OK</a>&nbsp;<a data-wysihtml5-dialog-action="cancel">Cancel</a>
-    </div>
-    
-    <div data-wysihtml5-dialog="insertImage" style="display: none;">
-      <label>
-        Image:
-        <input data-wysihtml5-dialog-field="src" value="http://">
-      </label>
-      <label>
-        Align:
-        <select data-wysihtml5-dialog-field="className">
-          <option value="">default</option>
-          <option value="wysiwyg-float-left">left</option>
-          <option value="wysiwyg-float-right">right</option>
-        </select>
-      </label>
-      <a data-wysihtml5-dialog-action="save">OK</a>&nbsp;<a data-wysihtml5-dialog-action="cancel">Cancel</a>
-    </div>
-    
-  </div>
 
-<textarea id="textarea" name="body" rows=8 cols=80></textarea><br><br>
+<textarea name="body" rows=8 cols=80></textarea><br><br>
 
 <div id="js_files_list">
 	Attach one or more files:<br>
@@ -92,14 +58,6 @@ What would you like your reply to say?<br>
 <script>
 head.js("/static/scripts/jquery.min.js");
 head.js("/static/scripts/newmessage.js");
-
-  var editor = new wysihtml5.Editor("textarea", {
-    toolbar:      "toolbar",
-    parserRules:  wysihtml5ParserRules
-  });
-    
-  editor;
-
 </script>
 </div> <!-- newmessageform -->
 </div> <!-- #single -->
