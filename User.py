@@ -9,6 +9,9 @@ from collections import OrderedDict
 import pymongo
 import pprint
 from server import server
+import scrypt
+import random
+import base64
 
 class User(object):
       
@@ -17,10 +20,30 @@ class User(object):
         self.UserSettings['followedUsers'] = []
         self.UserSettings['followedTopics'] = []
 
+
+
+    def randstr(self,length):
+        return ''.join(chr(random.randint(0,255)) for i in range(length))
+    def hash_password(self,password, maxtime=0.5, datalength=64):
+        pword = scrypt.encrypt(self.randstr(datalength), password, maxtime=maxtime)
+
+        return base64.b64encode(pword).decode('utf-8')
+
+    def verify_password(self, guessed_password,hashed_password=None, maxtime=0.5):
+        try:
+            if hashed_password == None:
+                hashed_password = self.UserSettings['hashedpass']
+            pword = base64.b64decode(hashed_password.encode('utf-8'))
+            scrypt.decrypt(pword, guessed_password, maxtime) 
+            return True
+        except scrypt.error:
+            return False
+
     def getNote(self,noteabout):
         """ 
         Retrieve any note by user A about user B
         """
+        return ""
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 

@@ -97,6 +97,10 @@ cd /opt/Pluric/libs/postmarkup-1.1.4/
 # Use my modified version
 python3 setup.py install
 
+cd /opt/Pluric/libs/
+hg clone http://bitbucket.org/mhallin/py-scrypt
+cd py-scrypt
+python3 setup.py install
 
 
 cd /opt/Pluric/libs

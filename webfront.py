@@ -8,7 +8,6 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.escape
-import bcrypt
 import time
 import datetime
 import os
@@ -186,9 +185,11 @@ class BaseHandler(tornado.web.RequestHandler):
         """
 
         self.user = User()
-        if self.get_secure_cookie("preferences") is not None:
+        if self.get_secure_cookie("pluric_preferences") is not None:
             print("Loading cookie")
-            self.user.load_string(self.get_secure_cookie("preferences").decode('utf-8'))
+            print(self.get_secure_cookie("pluric_preferences").decode('utf-8'))
+            print("----------")
+            self.user.load_string(self.get_secure_cookie("pluric_preferences").decode('utf-8'))
         else:
             print("Making cookies")
             self.user.generate(skipkeys=True)
@@ -204,16 +205,16 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.user.UserSettings['username']
 
 
-    def setvars(self,ensurekeys=False):
+    def setvars(self):
         """
         Saves out the current userobject to a cookie.
         """
-
+        print("------------------In Setvars-----------------------")
         # Zero out the stuff in 'local', since it's big.
         usersettings = self.user.UserSettings
         usersettings['local'] = []
-        
-        self.set_secure_cookie("preferences",json.dumps(usersettings),httponly=True)
+        usersettings['_id'] = ''
+        self.set_secure_cookie("pluric_preferences",json.dumps(usersettings),httponly=True)
 
         print("Setting :::: " + json.dumps(usersettings))
 
@@ -461,7 +462,7 @@ class RegisterHandler(BaseHandler):
             return    
             
         else:
-            hashedpass = bcrypt.hashpw(client_newpass, bcrypt.gensalt(1))
+            hashedpass = self.user.hash_password(client_newpass)
             self.user.generate(hashedpass=hashedpass,username=client_newuser.lower())
             if client_email is not None:
                 self.user.UserSettings['email'] = client_email.lower()
@@ -495,20 +496,25 @@ class LoginHandler(BaseHandler):
             # First letter as upper if you initially signed up on mobile
             # First form lower, as if you're on mobile now.
             
-            if bcrypt.hashpw(client_password,user['hashedpass']) == user['hashedpass']:
+            if u.verify_password(client_password):
                 login = True
-            elif bcrypt.hashpw(client_password.swapcase(),user['hashedpass']) == user['hashedpass']:
+            elif u.verify_password(client_password.swapcase()):
                     login = True
-            elif bcrypt.hashpw(client_password[:1].upper() + client_password[1:],user['hashedpass']) == user['hashedpass']:
+            elif u.verify_password(client_password[:1].upper() + client_password[1:]):
                     login = True
-            elif bcrypt.hashpw(client_password[:1].lower() + client_password[1:],user['hashedpass']) == user['hashedpass']:
+            elif u.verify_password(client_password[:1].lower() + client_password[1:]):
                     login = True
             if login == True:
-                self.set_secure_cookie("preferences",json.dumps(u.UserSettings),httponly=True)
+                self.user = u
+                pprint.pprint(u.UserSettings)
+                self.setvars()
+                print("Login Successful.")
+                pprint.pprint(self.user.UserSettings)
                 self.redirect("/")
                 return
 
             print("Username/password fail." + client_password[:1].upper() + client_password[1:])
+            self.redirect("http://Google.com")
 
 class LogoutHandler(BaseHandler):
      def post(self):

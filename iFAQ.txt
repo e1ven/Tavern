@@ -1,10 +1,5 @@
 Infrequently Asked Questions-
 
-
-Why do you use bcrypt, rather than scrypt?
-	Because there is a python implemention of bcrypt, and not one for scrypt.
-	I don't trust my ability to implement scrypt securely myself, and would rather use existing implementations.
-	
 Why not use GPG to store data?
 	RSA with PSS is ported to more architectures/platforms. 
 	GPG basically all wraps through the one implementation, and is not easy to run with PyPy, Android, whatever.	

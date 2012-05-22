@@ -48,8 +48,8 @@ class Keys(object):
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]            
             self.privkey = "-----BEGIN RSA PRIVATE KEY-----\n" + withLinebreaks + "\n-----END RSA PRIVATE KEY-----"        
-        else:
-            print("No PRIVKEY")
+        #else:
+        #    print("No PRIVKEY")
             
         if self.pubkey is not None:
             if "-----BEGIN PUBLIC KEY-----" in self.pubkey:
@@ -64,7 +64,7 @@ class Keys(object):
         if self.privkey == None and self.pubkey != None:
             self.key = rsa.Key(self.pubkey,hash='sha512',padding="pss")
             # self.pubkey = self.key.public.as_string()
-            print("Going with Pubkey Only")
+            # print("Going with Pubkey Only")
 
         if self.privkey != None:
             self.key = rsa.Key(self.privkey,hash='sha512',padding="pss")
