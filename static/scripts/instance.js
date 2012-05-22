@@ -45,15 +45,6 @@
             url = $form.attr( 'action' ),
             hash = $form.find( 'input[name="hash"]' ).val();
 
-        /* Send the data using post and put the results in a div */
-        $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
-                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
-                       'hash' : $form.find( 'input[name="hash"]' ).val() },
-          function( data ) {
-              /* update the page */
-              /* voteref.parent().empty().append( data ); */
-
-             /* Store the vote to local storage */
               rating = $form.find( 'input[name="rating"]' ).val(),
               hashdata = $.jStorage.get(hash,{});
               hashdata['rating'] = rating;
@@ -62,10 +53,12 @@
               /* Mark the vote as selected, unselect the other vote */
               $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
               $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
-              
 
-          }
-        );
+              
+        /* Send the data using post and put the results in a div */
+        $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
+                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
+                       'hash' : $form.find( 'input[name="hash"]' ).val() });
     });                
     
 
