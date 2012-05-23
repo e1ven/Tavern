@@ -53,14 +53,14 @@ class BaseHandler(tornado.web.RequestHandler):
         #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
-        
+        self.set_header("X-Fortune", server.fortune.random())
+
     def write(self,html):
         if hasattr(html, 'decode'):
             self.html += html.decode('utf-8')
         else:
              self.html += html
-        #self.set_header("X-Fortune", server.fortune.random())
-             
+
     def gettext(self):
         ptext = ""
         for a in self.pagetext:
@@ -213,7 +213,6 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Retrieve the basic user variables out of your cookies.
         """
-
         self.user = User()
         if self.get_secure_cookie("pluric_preferences_count") is not None:
 

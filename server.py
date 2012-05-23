@@ -36,6 +36,7 @@ class Fortuna():
         while line:
             self.fortunes.append(line)
             line = fortunes.readline()
+        print("Fortunes Loaded.")
     def random(self):
         return random.choice(self.fortunes)
 
