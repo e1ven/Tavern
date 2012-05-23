@@ -7,25 +7,37 @@
 	
 <html lang="en" > 
 <head>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-<script src="/static/scripts/head.min.js"></script>
-{% if 'canon' in globals()%}
-<link rel=canonical href="http://Pluric.com/{{canon}}"/>
-{% end %}
-<meta charset="utf-8" />
-{% if len('title') > 1 %}
-<meta NAME="Description" CONTENT="Pluric:: {{title}}">
-{% else %}
-<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
-{% end %}
-<title>
-	{% if len(title) > 1 %}
-	Pluric :: {{title}}
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	<script src="/static/scripts/head.min.js"></script>
+	{% if 'canon' in globals()%}
+		<link rel=canonical href="http://Pluric.com/{{canon}}"/>
+		<meta property="og:url" content="http://Pluric.com/{{canon}}"/>
+		<meta property="og:blog" content="article"/>
 	{% end %}
-	{% if len(title) < 2 %}
-	Pluric :: A distributed discussion
+	<meta charset="utf-8" />
+
+
+
+
+	{% if len('title') > 1 %}
+	<meta NAME="Description" CONTENT="Pluric:: {{title}}">
+	{% else %}
+	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
 	{% end %}
-</title>
+
+
+	<meta property="og:site_name" content="Pluric"/>
+
+	<title>
+		{% if len(title) > 1 %}
+		Pluric :: {{title}}
+		{% end %}
+		{% if len(title) < 2 %}
+		Pluric :: A distributed discussion
+		{% end %}
+	</title>
+	<meta property="og:title" content="{% if len(title) > 1 %}Pluric :: {{title}}{% end %}{% if len(title) < 2 %}Pluric :: A distributed discussion{% end %}"/>
+
 	{% if type == 'topic' %}
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
 	{% end %}
@@ -36,6 +48,7 @@
 <div id="limits">
 	<header id="top">
 		<a href="/"><img src="/static/images/logo.png" alt="Pluric" id="toplogo"/></a>
+		<meta property="og:image" content="http://Pluric.com/static/images/logo.png"/>
 		<div id="menu">
 		    <div id="menu-text">
           	{% if user.UserSettings['privkey'] is None %}	

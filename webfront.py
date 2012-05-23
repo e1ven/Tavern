@@ -346,10 +346,14 @@ class TriPaneHandler(BaseHandler):
                 messageid = subjects[0]['envelope']['payload_sha512'] 
             else:
                 displayenvelope = None
-                     
-            canon="topic/" + topic 
-            title=topic
- 
+            
+            if topic != 'sitecontent':
+                canon="topic/" + topic 
+                title=topic
+            else:
+                canon=""
+                title="An anonymous, shared discussion"
+
         if action == "message":
             divs.append("center")
             divs.append("right")
@@ -380,6 +384,13 @@ class TriPaneHandler(BaseHandler):
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
     
+
+        # Detect people accessing via odd URLs
+        if self.request.path[1:] != canon:
+            print("Redirecting URL " + self.request.path[1:] + " to " + canon )
+            self.redirect("/" + canon, permanent=True)
+            return
+
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('tripane.html',topic=topic,user=self.user,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
