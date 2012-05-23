@@ -25,6 +25,7 @@ import re
 import bbcodepy
 from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
+import urllib.request, urllib.parse, urllib.error
 
 
 class Fortuna():
@@ -182,7 +183,10 @@ class Server(object):
         return newstr
     
     def sorttopic(self,topic):
-        return topic.lower().translate(str.maketrans("", "", string.punctuation))
+        topic = topic.lower()
+        topic = self.urlize(topic) 
+        return topic
+
     def error_envelope(self,error="Error"):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
@@ -360,14 +364,19 @@ class Server(object):
             if testid == possibleid:
                 return possibleid
             return None
-    
+
+    def urlize(self,url):   
+        url = "-".join(url.split())
+        url = urllib.parse.quote(url)
+        return url 
+
     def formatEnvelope(self,envelope):
         attachmentList = []        
         if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload']['subject'][:50].rstrip()
             temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
-            envelope['envelope']['local']['short_subject'] = "-".join(temp_short.split())
+            envelope['envelope']['local']['short_subject'] = self.urlize(temp_short)
         if 'binaries' in envelope['envelope']['payload']:
             for binary in envelope['envelope']['payload']['binaries']:
                 if 'sha_512' in binary:

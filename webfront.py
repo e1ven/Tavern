@@ -315,7 +315,7 @@ class TriPaneHandler(BaseHandler):
                 if numparams == 3:
                     messageid = tornado.escape.xhtml_escape(param3)
             elif action == "topic":
-                topic = tornado.escape.xhtml_escape(param2)
+                topic = server.sorttopic(param2)
                     
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
@@ -334,13 +334,14 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
+            print(server.sorttopic(topic))
             if topic != "all":
                 for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
             else:
                 for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
-
+            print(len(subjects))
             if len(subjects) > 0:
                 displayenvelope = subjects[0]
                 messageid = subjects[0]['envelope']['payload_sha512'] 
@@ -383,7 +384,9 @@ class TriPaneHandler(BaseHandler):
         messagerating = self.user.getRatings(messageid)
         displayenvelope = server.formatEnvelope(displayenvelope)
         displayenvelope['envelope']['local']['messagerating'] = messagerating
-    
+   
+        # Make canon URL safe
+        canon=server.urlize(canon) 
 
         # Detect people accessing via odd URLs
         if self.request.path[1:] != canon:

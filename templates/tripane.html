@@ -1,10 +1,10 @@
-{% import urllib,re %}
+{% from server import server %}
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
                                         {% for quicktopic in user.UserSettings['followedTopics'] %}
       					<li {%if quicktopic == topic %} class="active"{% end %} >
-	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
+	                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
 	                    </li>
                     {% end %}
 
@@ -15,7 +15,7 @@
 					<ul>
 					{% for quicktopic in toptopics %}
                     <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} >
-                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
+                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
                     </li>
                     {% end %}
 					</ul>
