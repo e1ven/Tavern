@@ -53,7 +53,7 @@ class BaseHandler(tornado.web.RequestHandler):
         #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
-        self.set_header("X-Fortune", server.fortune.random())
+        self.add_header("X-Fortune", str(server.fortune.random()))
 
     def write(self,html):
         if hasattr(html, 'decode'):
