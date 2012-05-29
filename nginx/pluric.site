@@ -7,7 +7,10 @@
            expires 1m;
         }
 
-
+        location /avatar/ {
+                proxy_pass http://robohash.org/;
+                expires max;
+                }
 
         location / {
                 proxy_pass http://tornados/;

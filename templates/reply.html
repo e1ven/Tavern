@@ -26,7 +26,7 @@
 			<div class="thread_common">
 			<div class="thread_{{orient}}">
 				    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
-				    	<img class="avatar" alt="User Avatar for post" src="https://static1.RoboHash.org/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+				    	<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 				    </a>
 				<a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
 				    <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}  <br />
