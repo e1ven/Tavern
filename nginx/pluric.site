@@ -10,6 +10,7 @@
         location /avatar/ {
                 proxy_pass http://robohash.org/;
                 expires max;
+                add_header Last-Modified "Fri, 08 Jul 2011 05:00:00 GMT";
                 }
 
         location / {
