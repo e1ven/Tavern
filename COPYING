@@ -15,9 +15,6 @@ Using the following Libraries:
 	Beautiful Soup (Python License)
 		http://www.crummy.com/software/BeautifulSoup/
 	
-	py3-bcrypt (BSD) 
-		https://bitbucket.org/widefido/py3-bcrypt/
-
 	JQuery Splitter (Under LGPL)
 		http://plugins.jquery.com/project/splitter
 

@@ -34,6 +34,8 @@ head.ready(function() {
             $(document)
                 .unbind("mousemove", doSplitMouse)
                 .unbind("mouseup", endSplitMouse);
+                $.jStorage.set('splitsize', newPos);  
+
         }
         function resplit(newPos) {
             // Constrain new splitbar position to fit pane size limits
@@ -192,25 +194,27 @@ head.ready(function() {
         });
         // Second vertical splitter, nested in the right pane of the main one.
    
+        
+        splitsize = $.jStorage.get('splitsize',150);
         $("#centerandright").splitter({
             type: "v",
             outline: true,
-            minLeft: 250, sizeLeft: 150
+            minLeft: 250, sizeLeft: splitsize
         });
    
-   
-    /*
 
+        /*
         $("#centerandright").splitter({
             type: "h",
             outline: true,
             minTop: 100,
+            sizeTop: 200,
             minBottom: 300,
             anchorToWindow: true,
 
         });
-
-     */
+        */
+     
 
     }
  

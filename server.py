@@ -6,7 +6,6 @@ import time
 from keys import *
 import Image
 import logging
-import bcrypt
 import string
 import random
 import collections

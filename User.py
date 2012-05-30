@@ -4,7 +4,6 @@ from Envelope import *
 import time
 from keys import *
 import logging
-import bcrypt
 from collections import OrderedDict
 import pymongo
 import pprint
