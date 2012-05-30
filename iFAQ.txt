@@ -61,6 +61,7 @@ Why does the website do the processing/signing on the server, rather than in the
 
 		The best way to avoid that is to use a local, native client. 
 		The Pluric API fully supports native clients, so if you're really worried about us, use a local machine, so no one has the ability to get in the way.
+		See Also: http://www.matasano.com/articles/javascript-cryptography/
 
 Isn't storing my Private Key in a cookie bad?
 	No.

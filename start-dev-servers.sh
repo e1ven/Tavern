@@ -4,4 +4,4 @@ if [ $? -eq 1 ]
 then 
 	nohup mysql.server start 
 fi
-nohup mongod run --config /usr/local/Cellar/mongodb/2.0.2-x86_64/mongod.conf &
+nohup mongod run --config /usr/local/Cellar/mongodb/2.0.5-x86_64/mongod.conf &
