@@ -34,7 +34,7 @@ class Fortuna():
         fortunes = open(fortunefile, "r")
         line = fortunes.readline()
         while line:
-            self.fortunes.append(line)
+            self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
         print("Fortunes Loaded.")
     def random(self):

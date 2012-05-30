@@ -53,7 +53,7 @@ class BaseHandler(tornado.web.RequestHandler):
         #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
-        self.add_header("X-Fortune", str(server.fortune.random()))
+        self.set_header("X-Fortune", str(server.fortune.random()))
 
     def write(self,html):
         if hasattr(html, 'decode'):
@@ -1027,6 +1027,13 @@ class NewPrivateMessageHandler(BaseHandler):
         #Send to the server
         server.receiveEnvelope(e.text())
     
+class NullHandler(BaseHandler):
+        # This is grabbed by nginx, and never called in prod.
+    def get(self,url=None):
+        return 
+    def post(self,url=None):
+        return
+
         
 def main():
 
@@ -1048,6 +1055,7 @@ def main():
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
+        (r"/avatar/(.*)" ,NullHandler),
         (r"/login" ,LoginHandler),
         (r"/showuserposts/(.*)" ,UserHandler),  
         (r"/user/(.*)" ,UserHandler),  
