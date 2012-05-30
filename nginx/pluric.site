@@ -11,6 +11,9 @@
                 proxy_pass http://robohash.org/;
                 expires max;
                 add_header Last-Modified "Fri, 08 Jul 2011 05:00:00 GMT";
+                proxy_cache avatar-cache;
+                proxy_cache_valid  200 1y;
+                proxy_cache_valid  404 302  1m;
                 }
 
         location / {
