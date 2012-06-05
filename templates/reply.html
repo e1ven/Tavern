@@ -43,7 +43,7 @@
 								<input type="hidden" name="trust" value="100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Trust This User">
+								<input class="textbutton" type="submit" value="Allow this user to mark SPAM">
 							</form>
 
 							<form action="/usertrust" method="post">
@@ -51,15 +51,7 @@
 								<input type="hidden" name="trust" value="-100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Distrust This User">
-							</form>
-							
-							<form action="/usertrust" method="post">
-								{% raw xsrf_form_html() %}
-								<input type="hidden" name="trust" value="-100">
-								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
-								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Distrust This User">
+								<input class="textbutton" type="submit" value="Disallow this user to mark SPAM">
 							</form>
 							
 							<form action="/usernote" method="post" class="usernote">
@@ -140,7 +132,7 @@
 				</div>  <!-- votes -->
 				{% if orient == "right" %}
 				<div class="externalsharing">
-				Share this post on <a href="http://www.facebook.com/sharer.php?u=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}&t={{envelope['envelope']['local']['short_subject']}}">Facebook</a>, <a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0Ahttp://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}" >Twitter</a> or <a href="https://plusone.google.com/_/+1/confirm?hl=en&url=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Google+</a>.
+				<a href="http://www.facebook.com/sharer.php?u=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}&t={{envelope['envelope']['local']['short_subject']}}"><i class="icon-facebook-sign"></i></a> <a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0Ahttp://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}" ><i class="icon-twitter-sign"></i></a> <a href="https://plusone.google.com/_/+1/confirm?hl=en&url=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}"><i class="icon-google-plus-sign"></i></a>
 				</div>
 				{% end %}
 				<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>

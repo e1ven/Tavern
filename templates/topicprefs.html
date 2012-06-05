@@ -41,32 +41,35 @@
 			<div id="right">
 				<div class="thread">
 					<h1>{{topic}} Preferences</h1>
-						<br>
-
-						Showing Preferences for {{topic}}.  <a href="/rss/topic/{{topic}}"><img src="/static/images/feed-icon-14x14.png"></a><br>
-						<p>
-						{% if topic in user.UserSettings['followedTopics'] %}
-							You are currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "followtopic" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Stop Following {{topic}}" class="textbutton topicpref"></form>
-							{% else %}
-							You are not currently Following {{topic}}.  &nbsp; &nbsp; &nbsp; <form class = "followtopic" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value="Follow {{topic}}" class="textbutton topicpref"></form>
-						{% end %}
-						<p>
-						The following users are popular moderators, you might want to consider adding them:<br>
-						<ul>
-						{% for mod in mods %}
-							<li>
-							<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
-								<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
-				    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
-				    			</a>
-				    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
-				    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
-								</a>
-							</abbr>
-							</li>
-							<br><Br>
-						{% end %}
-						</ul>
+						<div class="padder">
+								<br>
+								Showing Preferences for {{topic}}.  <p>
+								<Br>
+								<a href="/rss/topic/{{topic}}"><i class="icon-rss"></i> RSS</a><br>
+								<p>
+								{% if topic in user.UserSettings['followedTopics'] %}
+									<form class = "followtopic" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
+									{% else %}
+									<form class = "followtopic" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
+								{% end %}
+								<p>
+								The following users are popular moderators, you might want to consider adding them:<br>
+								<ul>
+								{% for mod in mods %}
+									<li>
+									<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
+										<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+						    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+						    			</a>
+						    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+						    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
+										</a>
+									</abbr>
+									</li>
+									<br><Br>
+								{% end %}
+								</ul>
+						</div>
 					</div>
 				
 			</div><!-- #right -->

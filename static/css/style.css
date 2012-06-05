@@ -46,15 +46,20 @@ table {
         border-spacing: 0;
 }
 
-a {
-  color: #2F2445;
+.textbutton, a {
+    font-size:100%;
+     color: black;
+     position:relative;
+     border: 0px;
+     background-color: transparent;
+     text-decoration:none;  
+}
+.textbutton:hover, a:hover{
+  color:#BBBBBB;
   text-decoration: none;
-}
+  color: #4c4c9c;
 
-a:hover {
-  color: #2F2445;
-  text-decoration: underline;
-}
+} 
 
 
 a:focus {
@@ -91,24 +96,27 @@ h1 { font-size: 28px; line-height: 44px; padding: 10px 0; }
 h2 { font-size: 22px; line-height: 32px; padding: 10px 0; }  
 h3 { font-size: 18px; line-height: 22px; padding: 6px 0; }   
 p { padding-bottom: 22px; }
-.padder { padding: 15px; }
-.clear { clear: both; }
 
-.icon {  
+
+.padder { padding-left: 15px; 
+          padding-top:  15px;
+          padding-bottom: 0px;
+          padding-right: 15px;
 }
+.clear { clear: both; }
 
 .configbutton {
     position:relative;
     float:right;
-    top: 8px;
-    display: block;
-    width: 15px;
-    height: 15px;
-    background: url('/static/images/wrench.png') bottom;
-    text-indent: -99999px;
-}
+    font-size:15px;
+    color:#444444;
+    margin-left:-5px;
+    margin-top: 1px;
+  }
+
 .configbutton:hover {
-    background-position: 0 0;
+  color:black;
+  text-decoration:none ;
 }
 
 .thread_body strong, b, strong *, b * { font-weight: bold; }
@@ -131,28 +139,34 @@ header#top {
     height:100%;
 }
 
-
-
-#menu-text {
+.menu-login {
+    font-weight: bold;
+    color:#EEEEEE;
+}
+.menu-login:hover {
+    font-weight: bold;
+    color:#AAAAAA;
+}
+.menu-text {
     position:absolute;
     bottom: 0;
     padding-bottom:5px;
     text-align:right;
     width:100%;
 }
-#menu-text a:link {
+.menu-text a:link {
     color:#EEEEEE;
     font-weight: bold;
     text-decoration:none;
 }    
-#menu-text a:visited {  
+.menu-text a:visited {  
     color:#EEEEEE;
     font-weight: bold;
     text-decoration:none;
 }
 
 #menubuttons li {
-        padding: 10px; 
+  padding: 10px; 
 	list-style-type: none;
 	float: left; 
 }
@@ -179,8 +193,10 @@ header#top {
     border-bottom: 3px solid  #a9a9a9;
 }
 
-.comment_bottom {padding-bottom: 12px;}
-
+.comment_bottom {
+    padding-top: 5px;
+    padding-bottom: 12px;
+}
 
 .votes {
   float: left;
@@ -195,10 +211,18 @@ form.vote {
   border:1px solid #dddddd;
 }
 
-.externalsharing {
+.externalsharing a {
+    top: -15px;
     float:right;
-    font-size:70%;
-    }
+    font-size:15px;
+    color:#BBBBBB;
+    padding-right: 3px;
+  }
+
+.externalsharing a :hover{
+  color:#999999;
+  text-decoration:none;
+}
 
 #single {
     top: 20px;
@@ -329,7 +353,30 @@ COLUMN WIDTH ELEMENTS
 #center ul li a:hover { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
 #center li.active { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
 
-#center .newpost { color: #992d2d; }
+#center .newpost 
+{
+    float:none;
+    height:15px;
+    padding-right:20px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+
+}
+
+#center .newpost:hover 
+{
+  background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0;
+  border-top: 1px solid #a1b1b1
+  border-bottom: 1px solid #ffffff;
+}
+
+#center .newpost .newpost-text {
+  float:right;
+}
+
+
+
+
 /* ########## RIGHT COLUMN ########## */
 
 #right{
@@ -396,20 +443,6 @@ img.imginline { vertical-align: middle;  }
      position:relative;
      float: right;
 }
-.textbutton {
-     position:relative;
-     border: 0px;
-     background-color: transparent;
-     color:#DDDDDD;
-     font-weight: bold;
-     text-decoration:none; 	
-   	 font-size: 12px;
-     line-height: 18px;
- 	 font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-}
-.textbutton:hover{
-  color:#BBBBBB;
-} 
 
 
 

@@ -33,13 +33,15 @@
 					{% elif topic == 'all' %} 
                                         All Messages
                                         {% else %}    
-					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{topic}}">[C]</a>
+					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{topic}}"><i class="icon-info-sign"></i></a>
 					{% end %}
 				</h2>
 				{% if topic != 'sitecontent' and topic != 'all' %}	
-					<div class = "newpost">
-					<a href="/reply/{{topic}}" class="internal">Submit new Post to {{topic}}</a>
-					</div>	
+					<a href="/reply/{{topic}}" class="internal">
+						<div class = "newpost">
+							<span class="newpost-text"><i class="icon-edit"></i> New Message in {{topic}}</span>
+						</div>
+					</a>
 				{% end %}
 
 				<ul>
