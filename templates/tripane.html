@@ -4,7 +4,7 @@
 					<ul>
                                         {% for quicktopic in user.UserSettings['followedTopics'] %}
       					<li {%if quicktopic == topic %} class="active"{% end %} >
-	                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
+	                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
 	                    </li>
                     {% end %}
 

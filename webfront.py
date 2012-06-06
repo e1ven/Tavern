@@ -48,12 +48,27 @@ class BaseHandler(tornado.web.RequestHandler):
         * Handle Cookies/logins
         * Allow modules to update just PARTS of the page
     """
-    
+
     def __init__(self, *args, **kwargs):
+        """
+        Wrap the default RequestHandler with extra methods
+        """    
         #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
         self.set_header("X-Fortune", str(server.fortune.random()))
+
+
+    def render_string(self, template_name, **kwargs):
+        """
+        Overwrite the default render_string to ensure the "server" variable is always available to templates
+        """    
+        args = dict(
+             server=server
+        )
+        args.update(kwargs)
+        return tornado.web.RequestHandler.render_string(self,template_name, **args) 
+
 
     def write(self,html):
         if hasattr(html, 'decode'):

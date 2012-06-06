@@ -13,17 +13,17 @@ if (head.browser.ie)
 {
   if ( parseFloat(head.browser.version) == 6 )
   { 
-    head.js("/static/scripts/IE9.js");
+    head.js("/static/scripts/IE9.js?revision={{server.ServerSettings['static-revision']}}");
   }
     
   if ( parseFloat(head.browser.version) > 7 )
   {
-    head.js("/static/scripts/jquery.min.js","/static/scripts/default.js","/static/scripts/jstorage.min.js","/static/scripts/jquery.json-2.3.min.js");
+    head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}");
   }
 }
 else
 {
-  head.js("/static/scripts/jquery.min.js","/static/scripts/default.js","/static/scripts/jstorage.min.js","/static/scripts/jquery.json-2.3.min.js");
+  head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}");
 }
 </script>
 

@@ -1,95 +1,95 @@
  
         
-    $('a.internal').each( function ()
+    jQuery('a.internal').each( function ()
     {            
-        $(this).click(function()
+        jQuery(this).click(function()
             {   
-            $("#spinner").height($(this).parent().height());
-            $("#spinner").width($(this).parent().width());
-            $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show()
-            head.js($(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
+            jQuery("#spinner").height(jQuery(this).parent().height());
+            jQuery("#spinner").width(jQuery(this).parent().width());
+            jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show()
+            head.js(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
             return false;
             });
-        $(this).attr("link-destination",this.href);
+        jQuery(this).attr("link-destination",this.href);
     });
-    $('#spinner').hide();
+    jQuery('#spinner').hide();
 
-    $(".usernote").submit(function(event) {
+    jQuery(".usernote").submit(function(event) {
         /* stop form from submitting normally */
-        noteref = $(this);
+        noteref = jQuery(this);
         event.preventDefault(); 
         
         /* get some values from elements on the page: */
-        var $form = $( this ),
-            rating = $form.find( 'input[name="rating"]' ).val(),
-            url = $form.attr( 'action' );
+        var jQueryform = jQuery( this ),
+            rating = jQueryform.find( 'input[name="rating"]' ).val(),
+            url = jQueryform.attr( 'action' );
 
         /* Send the data using post and put the results in a div */
-        $.post( url, { 'pubkey': $form.find( 'input[name="pubkey"]' ).val(),
-                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
-                       'note' : $form.find( 'input[name="note"]' ).val() },
+        jQuery.post( url, { 'pubkey': jQueryform.find( 'input[name="pubkey"]' ).val(),
+                       '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
+                       'note' : jQueryform.find( 'input[name="note"]' ).val() },
           function( data ) {
               noteref.empty().append( data );
           }
         );
     });        
 
-     $(".vote").submit(function(event) {
-        voteref = $(this);
+     jQuery(".vote").submit(function(event) {
+        voteref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault(); 
         
         /* get some values from elements on the page: */
-        var $form = $( this ),
-            rating = $form.find( 'input[name="rating"]' ).val(),
-            url = $form.attr( 'action' ),
-            hash = $form.find( 'input[name="hash"]' ).val();
+        var jQueryform = jQuery( this ),
+            rating = jQueryform.find( 'input[name="rating"]' ).val(),
+            url = jQueryform.attr( 'action' ),
+            hash = jQueryform.find( 'input[name="hash"]' ).val();
 
-              rating = $form.find( 'input[name="rating"]' ).val(),
-              hashdata = $.jStorage.get(hash,{});
+              rating = jQueryform.find( 'input[name="rating"]' ).val(),
+              hashdata = jQuery.jStorage.get(hash,{});
               hashdata['rating'] = rating;
-              $.jStorage.set(hash, hashdata);   
+              jQuery.jStorage.set(hash, hashdata);   
 
               /* Mark the vote as selected, unselect the other vote */
-              $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
-              $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
 
               
         /* Send the data using post and put the results in a div */
-        $.post( url, { 'rating': $form.find( 'input[name="rating"]' ).val(),
-                       '_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(), 
-                       'hash' : $form.find( 'input[name="hash"]' ).val() });
+        jQuery.post( url, { 'rating': jQueryform.find( 'input[name="rating"]' ).val(),
+                       '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
+                       'hash' : jQueryform.find( 'input[name="hash"]' ).val() });
     });                
     
 
     /* Note the votes we've already cast */
-    $(".vote").each( function ()
+    jQuery(".vote").each( function ()
     {
         /* get some values from elements on the page: */
-        var $form = $( this ),
-            rating = $form.find( 'input[name="rating"]' ).val(),
-            url = $form.attr( 'action' ),
-            hash = $form.find( 'input[name="hash"]' ).val();
+        var jQueryform = jQuery( this ),
+            rating = jQueryform.find( 'input[name="rating"]' ).val(),
+            url = jQueryform.attr( 'action' ),
+            hash = jQueryform.find( 'input[name="hash"]' ).val();
 
         /* Find the ones we've hit before */
-        hashdata = $.jStorage.get(hash,{});
+        hashdata = jQuery.jStorage.get(hash,{});
         rating = hashdata['rating'];
-        $form.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+        jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
 
     });
 
 
-    $(".followtopic").submit(function(event) {
-        ref = $(this);
+    jQuery(".followtopic").submit(function(event) {
+        ref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault(); 
 
         /* get some values from elements on the page: */
-        var $form = $( this ),
-            url = $form.attr( 'action' );
+        var jQueryform = jQuery( this ),
+            url = jQueryform.attr( 'action' );
 
         /* Send the data using post and put the results in a div */
-        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(),'topic' : $form.find( 'input[name="topic"]' ).val() },
+        jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
           function( data ) {
               ref.empty().append("Done.");
               head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
@@ -99,17 +99,17 @@
     });
 
 
-    $(".followuser").submit(function(event) {
-        ref = $(this);
+    jQuery(".followuser").submit(function(event) {
+        ref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault(); 
 
         /* get some values from elements on the page: */
-        var $form = $( this ),
-            url = $form.attr( 'action' );
+        var jQueryform = jQuery( this ),
+            url = jQueryform.attr( 'action' );
 
         /* Send the data using post and put the results in a div */
-        $.post( url, {'_xsrf' : $form.find( 'input[name="_xsrf"]' ).val(),'pubkey' : $form.find( 'input[name="pubkey"]' ).val() },
+        jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
           function( data ) {
               ref.empty().append("Done.");
               head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
@@ -119,28 +119,28 @@
     });
 
 
-    $(".reply").click(function(event) {
+    jQuery(".reply").click(function(event) {
         event.preventDefault();
-        var $msg = $(this).attr('message');
-        var $href = $(this).attr('href');
-        $.get($href + "?getonly=true",function(data) {
-          $('#reply_'+$msg).empty().append("<br>" + data);
+        var jQuerymsg = jQuery(this).attr('message');
+        var jQueryhref = jQuery(this).attr('href');
+        jQuery.get(jQueryhref + "?getonly=true",function(data) {
+          jQuery('#reply_'+jQuerymsg).empty().append("<br>" + data);
         });   
         
     });  
 
-    $('a.details').each( function ()
+    jQuery('a.details').each( function ()
     {            
-        $(this).click(function()
+        jQuery(this).click(function()
             {   
-            userdiv = "details_" + $(this).attr('user');
-            if ($("#" + userdiv).is(":visible"))
+            userdiv = "details_" + jQuery(this).attr('user');
+            if (jQuery("#" + userdiv).is(":visible"))
             {
-                $("#" + userdiv).hide()
+                jQuery("#" + userdiv).hide()
             }
             else
             {
-                $("#" + userdiv).show()
+                jQuery("#" + userdiv).show()
             }
             return false;
             });

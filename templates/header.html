@@ -41,10 +41,10 @@
 	{% if type == 'topic' %}
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
 	{% end %}
-	<link href="/static/css/style.css" rel="stylesheet" type="text/css" media="screen" />
-	<link href="/static/css/font-awesome.css" rel="stylesheet" type="text/css" media="screen" />
+	<link href="/static/css/style.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+	<link href="/static/css/font-awesome.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/images/favicon.png" type="image/png" />
-        <script src="/static/scripts/head.min.js"></script>
+        <script src="/static/scripts/head.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
 </head>
 <body>
 <div id="limits">

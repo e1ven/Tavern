@@ -125,7 +125,9 @@ class Server(object):
 
         else:
             self.loadconfig(settingsfile)
-            
+        
+        self.ServerSettings['static-revision'] = int(time.time())
+        
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         self.fortune = Fortuna()
