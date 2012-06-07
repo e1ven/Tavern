@@ -22,10 +22,10 @@ import imghdr
 import datetime
 import re
 import bbcodepy
+import embedis
 from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
-
 
 class Fortuna():
     def __init__(self,fortunefile="fortunes"):
@@ -127,7 +127,7 @@ class Server(object):
             self.loadconfig(settingsfile)
         
         self.ServerSettings['static-revision'] = int(time.time())
-        
+
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         self.fortune = Fortuna()
@@ -338,34 +338,6 @@ class Server(object):
         # If it is, recurse
         return self.find_top_parent(parentid)    
 
-    def youtube_id(self,value):
-        query = urlparse(value)
-        if query.hostname == 'youtu.be':
-            return query.path[1:]
-        if query.hostname in ('www.youtube.com', 'youtube.com'):
-            if query.path == '/watch':
-                p = parse_qs(query.query)
-                return p['v'][0]
-            if query.path[:7] == '/embed/':
-                return query.path.split('/')[2]
-            if query.path[:3] == '/v/':
-                return query.path.split('/')[2]
-        # fail?
-        return None
-        
-    def vimeo_id(self,value):
-        query = urlparse(value)
-        if query.hostname in ('vimeo.com', 'www.vimeo.com'):
-            possibleid = query.path.split('/')[1]
-            # If we can convert it to a str and back, it's an int, so likely a video.
-            testid = "foo"
-            try:
-                testid = str(int(possibleid))
-            except ValueError:
-                return None
-            if testid == possibleid:
-                return possibleid
-            return None
 
     def urlize(self,url):   
         url = "-".join(url.split())
@@ -423,19 +395,26 @@ class Server(object):
         envelope['envelope']['local']['attachmentlist'] = attachmentList
         envelope['envelope']['local']['author_pubkey_sha1'] = hashlib.sha1(envelope['envelope']['payload']['author']['pubkey'].encode('utf-8')).hexdigest()        
         
-        # Check for any     Youtube Links.
-        if 'body' in envelope['envelope']['payload']:         
-            soup = BeautifulSoup(formattedbody)
-            for href in soup.findAll('a'):
-                if self.youtube_id(href.get('href')) is not None:
-                    if not 'youtube' in envelope['envelope']['local']:
-                        envelope['envelope']['local']['youtube'] = []
-                    envelope['envelope']['local']['youtube'].append(self.youtube_id(href.get('href')))
-                if self.vimeo_id(href.get('href')) is not None:
-                    if not 'vimeo' in envelope['envelope']['local']:
-                        envelope['envelope']['local']['vimeo'] = []
-                    envelope['envelope']['local']['vimeo'].append(self.vimeo_id(href.get('href')))
-            
+        # Check for any Embeddable (Youtube, Vimeo, etc) Links.
+        # Don't check a given message more than once.
+        # Iterate through the list of possible embeddables.
+
+        if 'body' in envelope['envelope']['payload']:
+            if not 'embed' in envelope['envelope']['local']:
+                envelope['envelope']['local']['embed'] = []
+            if envelope['envelope']['local']['embed'] == []:
+                # Don't check more than once.
+                soup = BeautifulSoup(formattedbody)
+                emb = embedis.embedis()
+                for href in soup.findAll('a'):
+                    result = emb.lookup(href.get('href'))
+                    if result is not None:
+                        if not 'embed' in envelope['envelope']['local']:
+                            envelope['envelope']['local']['embed'] = []
+                        envelope['envelope']['local']['embed'].append(result)
+
+            if envelope['envelope']['local']['embed'] == []:
+                envelope['envelope']['local']['embed'] = ["<span class='embeddables'></span>"]
 
         if '_id' in envelope:            
             del(envelope['_id'])        

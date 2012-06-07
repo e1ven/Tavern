@@ -93,19 +93,9 @@
 	    		</div>
 			{% end %}
 
-			{% if 'youtube' in envelope['envelope']['local'] %}
-				{% for video in envelope['envelope']['local']['youtube'] %}
-				<iframe class="youtube-player" type="text/html" width="640" height="385" src="https://www.youtube.com/embed/{{video}}?wmode=opaque" frameborder="0">
-				</iframe>
-				<br>
-				{% end %}
-			{% end %}
-			
-			{% if 'vimeo' in envelope['envelope']['local'] %}
-				{% for video in envelope['envelope']['local']['vimeo'] %}
-				
-				<iframe src="http://player.vimeo.com/video/{{video}}" width="640" height="385" frameborder="0"></iframe>
-				<br>
+			{% if 'embed' in envelope['envelope']['local'] %}
+				{% for embed in envelope['envelope']['local']['embed'] %}
+					{%raw embed %}				
 				{% end %}
 			{% end %}
 

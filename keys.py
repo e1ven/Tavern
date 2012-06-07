@@ -29,7 +29,10 @@ class Keys(object):
         #Strip out the linebreaks
         #Re-Add the Linebreaks
         #Re-add the headers
-        
+        print("------------")
+        print(self.privkey)
+        print(self.pubkey)
+        print("Apples--------")
         #Check for compressed versions-
         if self.privkey is not None:
             self.privkey = self.privkey.replace("-----BEGINRSAPRIVATEKEY-----","-----BEGIN RSA PRIVATE KEY-----")
