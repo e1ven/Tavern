@@ -447,7 +447,7 @@ class Server(object):
             # substitute only where the url is not already part of a
             # link element.
             html = re.sub("(?<!(=\"|\">))" + re.escape(c_url), 
-                          "<a rel=\"nofollow\" href=\"" + c_url + "\">" + c_url + "</a>",
+                          "<a rel=\"noreferrer nofollow\" href=\"" + c_url + "\">" + c_url + "</a>",
                           html)
         return html
 

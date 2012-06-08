@@ -25,7 +25,7 @@
 
 			<div class="thread_common">
 			<div class="thread_{{orient}}">
-				    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
+				    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
 				    	<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 				    </a>
 				<a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">
@@ -83,7 +83,7 @@
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 							{% if 'displayable' in attachment %}
 	                                                    {% if attachment['displayable'] is not False %}
-								<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a> <br>
+								<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a> <br>
 							    {% end %} 
 							{% end %} 
 				            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
@@ -100,7 +100,7 @@
 			{% end %}
 
 			<div class="comment_bottom">
-			&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
+			&nbsp; <a rel="bookmark" class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
 			{% if 'regarding' in envelope['envelope']['payload'] %}
 				&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 			{% end %}
