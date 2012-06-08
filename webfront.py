@@ -171,19 +171,19 @@ class BaseHandler(tornado.web.RequestHandler):
                         window.history.pushState(stateObj, "","''' + modifiedurl + '''");
                     }
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
-                    $('div#''' + element  + ''' a.internal').each( function ()
+                    jQuery('div#''' + element  + ''' a.internal').each( function ()
                     {            
-                        $(this).click(function()
+                        jQuery(this).click(function()
                         {   
-                            $("#spinner").height($(this).parent().height());
-                            $("#spinner").width($(this).parent().width());
-                            $("#spinner").css("top", $(this).parent().offset().top).css("left", $(this).parent().offset().left).show();
-                            head.js($(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
+                            jQuery("#spinner").height(jQuery(this).parent().height());
+                            jQuery("#spinner").width(jQuery(this).parent().width());
+                            jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
+                            head.js(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
                             return false;
                         });
-                        $(this).attr("link-destination",this.href);
+                        jQuery(this).attr("link-destination",this.href);
                     });
-                    $('#spinner').hide();
+                    jQuery('#spinner').hide();
                 };
                 pluric_replace();
                 pluric_replace = null;
