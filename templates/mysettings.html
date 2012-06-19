@@ -1,0 +1,35 @@
+<div id="single">
+<h1> Your user settings <br />
+</h1>
+<p></p>
+<ul>
+
+<p>
+<form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
+  {% raw xsrf_form_html() %}
+
+{% if user.UserSettings['username'] != "Anonymous" %}
+<p>Your username (for logging in) is {{user.UserSettings['username']}}</p>
+{% else %}
+<p>You have not registered yet. Your settings will be saved, but you will not be able to log in from any other browsers or devices until you register.</p>
+{% end %}
+
+<p>Your posts will be posted under the name: <input type="text" size=25 name="username" value="{{user.UserSettings['friendlyname']}}"></p> 
+<br><p>
+Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{user.UserSettings['maxposts']}}"><br>
+Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{user.UserSettings['maxreplies']}}"><br>
+<br><p>
+Include location with posts by default : <input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>Include Location<br>
+<br>
+
+<input type="submit" value="Update Settings">
+
+
+</form>
+
+</p>
+
+
+
+</ul>
+</div> <!-- #single -->

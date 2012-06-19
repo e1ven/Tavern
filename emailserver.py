@@ -50,6 +50,7 @@ class EmailServer(object):
         server.ServerSettings['email']['newmailevery'] = 100
         server.ServerSettings['email']['sleeptime'] = 5
         server.ServerSettings['email']['authrequired'] = True
+
         server.saveconfig()
 
     def loadmail(self):
