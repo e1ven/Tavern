@@ -177,7 +177,7 @@ class User(object):
             if 'stamps' in e['envelope']: 
                 stamps = e['envelope']['stamps']
                 for stamp in stamps:
-                    # if it was posted directly to Pluric.com, we can ip limit it, give it a +1
+                    # if it was posted directly to OUR server, we can ip limit it, give it a +1
                     if stamp['class'] == "origin":
                         if stamp['pubkey'] == server.ServerKeys.pubkey:
                             combinedrating += 1
@@ -197,8 +197,10 @@ class User(object):
             self.UserSettings['followedUsers'].remove(pubkey)
 
     def noFollowTopic(self,topic):
-        if topic in self.UserSettings['followedTopics']:
-            self.UserSettings['followedTopics'].remove(topic)    
+        # Compare the lowercase/sorted values
+        for followedtopic in self.UserSettings['followedTopics']:
+            if server.sorttopic(followedtopic) == server.sorttopic(topic):
+                self.UserSettings['followedTopics'].remove(followedtopic)    
                     
     def generate(self,email=None,hashedpass=None,username=None,skipkeys=False):
         """
@@ -253,19 +255,21 @@ class User(object):
                 self.UserSettings['privkey'] = None
                 self.Keys = Keys(pub=self.UserSettings['pubkey'])
 
-
-        
         if not 'time_created' in self.UserSettings:
             gmttime = time.gmtime()
             gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
             self.UserSettings['time_created'] = gmtstring
 
 
-        if len(self.UserSettings['followedTopics']) == 0:
-            self.followUser("StarTrek")
-            self.followUser("Python")
-            self.followUser("Egypt")
-            self.followUser("Funny")
+        if not 'followedTopics' in self.UserSettings:
+            self.UserSettings['followedTopics'] = []
+
+
+        if self.UserSettings['followedTopics'] == []:
+            self.followTopic("StarTrek")
+            self.followTopic("Python")
+            self.followTopic("Egypt")
+            self.followTopic("Funny")
 
         if not 'maxposts' in self.UserSettings:
             self.UserSettings['maxposts'] = 50
@@ -278,6 +282,8 @@ class User(object):
 
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
+
+
 
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)

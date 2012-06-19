@@ -10,8 +10,8 @@
 
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	{% if 'canon' in globals()%}
-		<link rel=canonical href="http://Pluric.com/{{canon}}"/>
-		<meta property="og:url" content="http://Pluric.com/{{canon}}"/>
+		<link rel=canonical href="http://{{server.ServerSettings['hostname']}}/{{canon}}"/>
+		<meta property="og:url" content="http://{{server.ServerSettings['hostname']}}/{{canon}}"/>
 		<meta property="og:blog" content="article"/>
 	{% end %}
 	<meta charset="utf-8" />
@@ -50,7 +50,7 @@
 <div id="limits">
 	<header id="top">
 		<a href="/"><img src="/static/images/logo.png" alt="Pluric" id="toplogo"/></a>
-		<meta property="og:image" content="http://Pluric.com/static/images/logo.png"/>
+		<meta property="og:image" content="http://{{server.ServerSettings['hostname']}}/static/images/logo.png"/>
 		<div id="menu">
 		    <div class="menu-text">
           	{% if user.UserSettings['privkey'] is None %}	

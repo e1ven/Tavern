@@ -109,7 +109,6 @@ class Envelope(object):
                       
     def validate(self):
         #Validate an Envelope   
-        #print(self.text())        
         
         #Check headers 
         if 'envelope' not in self.dict:
@@ -119,6 +118,7 @@ class Envelope(object):
         if self.dict['envelope']['payload_sha512'] != self.payload.hash():
             print("Possible tampering. SHA doesn't match. Abort.")
             return False
+
            
         #Ensure we have 1 and only 1 author signature stamp        
         stamps = self.dict['envelope']['stamps']
@@ -141,11 +141,14 @@ class Envelope(object):
         #Ensure Every stamp validates.
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
+
+            # Retrieve the key, ensure it's valid.
             stampkey = Keys(pub=stamp['pubkey'])
-            #print(type(self.payload.text()))
-            #print(self.payload.text())
-            #print(type(stamp['signature']))
-            #print(stamp['signature'])
+            if stampkey == None:
+                print("Key is invalid.")
+                return False
+
+            # Ensure it matches the signature.
             if stampkey.verify_string(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
                     print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False

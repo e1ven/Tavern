@@ -354,7 +354,6 @@ class TriPaneHandler(BaseHandler):
             else:
                 for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
-            print(len(subjects))
             if len(subjects) > 0:
                 displayenvelope = subjects[0]
                 messageid = subjects[0]['envelope']['payload_sha512'] 
@@ -388,7 +387,8 @@ class TriPaneHandler(BaseHandler):
             messageid = e.payload.hash()
             title = "Can't find your message"
             topic = "sitecontent"
-            canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+            # Set the canon URL to be whatever we just got, since obviously we just got it.
+            canon=self.request.path[1:]
             subjects = []
             for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
@@ -595,18 +595,18 @@ class UserHandler(BaseHandler):
         #Unquote it, then convert it to a PluricKey object so we can rebuild it.
         #Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
+        pubkey = Keys(pub=pubkey).pubkey
 
-        #Reformat it correctly
-        k = Keys(pub=pubkey)
-        pubkey = k.pubkey
-        print(pubkey)
-        messages = []
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",user=self.user,rsshead=None,type=None))
+        self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
 
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
-            messages.append(message)
+        if pubkey == self.user.UserSettings['pubkey']:
+            self.write(self.render_string('mysettings.html',user=self.user))
 
-        self.write(self.render_string('showuserposts.html',messages=messages))
+        envelopes = []
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
+            envelopes.append(envelope)
+
+        self.write(self.render_string('showuserposts.html',envelopes=envelopes))
         self.write(self.render_string('footer.html'))
                  
                  
@@ -614,7 +614,11 @@ class FollowUserHandler(BaseHandler):
 
     def post(self):    
         self.getvars()
-        self.user.followUser(tornado.escape.xhtml_escape(self.get_argument("pubkey")))
+
+        pubkey = urllib.parse.unquote(self.get_argument("pubkey"))
+        pubkey = Keys(pub=pubkey).pubkey
+
+        self.user.followUser()
         self.user.savemongo()
         self.servars()
 
@@ -627,7 +631,10 @@ class NoFollowUserHandler(BaseHandler):
 
     def post(self):    
         self.getvars()
-        self.user.noFollowUser(tornado.escape.xhtml_escape(self.get_argument("pubkey")))
+
+        pubkey = urllib.parse.unquote(self.get_argument("pubkey"))
+        pubkey = Keys(pub=pubkey).pubkey
+
         self.user.savemongo()
         self.setvars()
 
@@ -750,7 +757,10 @@ class UserTrustHandler(BaseHandler):
     def post(self):    
         self.getvars(ensurekeys=True)
 
-        client_trusted_pubkey =  self.get_argument("trusted_pubkey")    
+        trusted_pubkey = urllib.parse.unquote(self.get_argument("trusted_pubkey"))
+        trusted_pubkey = Keys(pub=trusted_pubkey).pubkey 
+
+
         client_trust =  self.get_argument("trust")
         client_topic =  self.get_argument("topic")
 
@@ -765,8 +775,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['class'] = "usertrust"
         e.payload.dict['trust'] = trust_val
         e.payload.dict['topic'] = client_topic   
-        k = Keys(pub=client_trusted_pubkey)
-        e.payload.dict['trusted_pubkey'] = k.pubkey
+        e.payload.dict['trusted_pubkey'] = trusted_pubkey
 
         #Instantiate the user who's currently logged in
 
@@ -812,7 +821,7 @@ class NewmessageHandler(BaseHandler):
     def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Post a new message",user=self.user,rsshead=None,type=None))
-         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,args=self.request.arguments))
+         self.write(self.render_string('newmessageform.html',regarding=regarding,topic=topic,args=self.request.arguments,user=self.user))
          self.write(self.render_string('footer.html'))
          self.finish(divs=['right','single'])
 
@@ -1004,6 +1013,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
         e = Envelope()
         e.payload.dict['class'] = "privatemessage"
+
         e.payload.dict['to'] = toKey.pubkey
         e.payload.dict['body'] = toKey.encryptToSelf(client_body)
         e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)

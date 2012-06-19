@@ -59,7 +59,7 @@ head.ready(function() {
 <form action="/register" method="post">
   {% raw xsrf_form_html() %}
 <p> Username (For Login): <input type="text" name="username"></p>
-<p>Note- Username is just for Logging in to Pluric.com, and has to be unique.<br>
+<p>Note- Username is just for Logging in to {{server.ServerSettings['hostname']}}, and has to be unique.<br>
 Once you are registered, you can change the name that shows up in posts to whatever you want.
 <br>
 </p>

@@ -16,8 +16,10 @@ class Keys(object):
         
         self.pubkey = pub
         self.privkey = priv
-        
-        self.format_keys()   
+        self.format_keys()
+
+        if self.key is None:
+            return None
             
              
     def format_keys(self):
@@ -29,10 +31,7 @@ class Keys(object):
         #Strip out the linebreaks
         #Re-Add the Linebreaks
         #Re-add the headers
-        print("------------")
-        print(self.privkey)
-        print(self.pubkey)
-        print("Apples--------")
+
         #Check for compressed versions-
         if self.privkey is not None:
             self.privkey = self.privkey.replace("-----BEGINRSAPRIVATEKEY-----","-----BEGIN RSA PRIVATE KEY-----")
@@ -64,16 +63,22 @@ class Keys(object):
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PUBLIC KEY-----\n" + withLinebreaks + "\n-----END PUBLIC KEY-----" 
 
-        if self.privkey == None and self.pubkey != None:
-            self.key = rsa.Key(self.pubkey,hash='sha512',padding="pss")
-            # self.pubkey = self.key.public.as_string()
-            # print("Going with Pubkey Only")
+        try:
+            if self.privkey == None and self.pubkey != None:
+                self.key = rsa.Key(self.pubkey,hash='sha512',padding="pss")
+                # self.pubkey = self.key.public.as_string()
+                # print("Going with Pubkey Only")
+            elif self.privkey != None:
+                self.key = rsa.Key(self.privkey,hash='sha512',padding="pss")
+                # self.pubkey = self.key.public.as_string()
+                # self.privkey = self.key.as_string()
+                print("Full Key")
+            else:
+                self.key = None
+        except:
+            self.key = None
 
-        if self.privkey != None:
-            self.key = rsa.Key(self.privkey,hash='sha512',padding="pss")
-            # self.pubkey = self.key.public.as_string()
-            # self.privkey = self.key.as_string()
-            print("Full Key")
+        return False
 
     def generate(self):
         """
