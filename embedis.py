@@ -66,8 +66,7 @@ class embedis:
         possible = embedis_re.match(self.url)
         if possible is None:
             return None
-        else:
-            print("Possible embedis URL")
+        print("Possible embedis URL")
         api_url = 'http://embed.is/iframe/'+ self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)

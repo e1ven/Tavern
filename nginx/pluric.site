@@ -52,7 +52,11 @@
                 expires max;
         }
         location /binaries/ {
-                rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
+                rewrite ^/binaries/(.*)/(.*)$ /binaries/$1;
+                if ($request_filename !~* ^.*\/(.*?)\.(jpg)|(png)|(gif)){
+                    add_header Content-Type "application/octet-stream";
+                    add_header Content-Disposition "attachment";
+                }
 		expires max;
                 gridfs test field=filename type=string;
                 mongo 127.0.0.1:27017;
