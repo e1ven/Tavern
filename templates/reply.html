@@ -93,10 +93,14 @@
 	    		</div>
 			{% end %}
 
-			{% if 'embed' in envelope['envelope']['local'] %}
+
+			{% if len (envelope['envelope']['local']['embed']) > 0 %}
+			<div class='embedded'>
+			Linked Content:<Br>
 				{% for embed in envelope['envelope']['local']['embed'] %}
 					{%raw embed %}				
 				{% end %}
+			</div>
 			{% end %}
 
 			<div class="comment_bottom">

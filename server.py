@@ -373,8 +373,8 @@ class Server(object):
                                             attachment.seek(0) 
                                             im = Image.open(attachment)
                                             img_width, img_height = im.size
-                                            if ((img_width > 150 ) or (img_height > 150 )): 
-                                                im = im.resize((150, 150),Image.ANTIALIAS)
+                                            if ((img_width > 640 ) or (img_height > 480 )): 
+                                                im = im.resize((640, 480),Image.ANTIALIAS)
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
                                             im.save(thumbnail,format='png')    
                                             thumbnail.close()
@@ -412,9 +412,6 @@ class Server(object):
                         if not 'embed' in envelope['envelope']['local']:
                             envelope['envelope']['local']['embed'] = []
                         envelope['envelope']['local']['embed'].append(result)
-
-            if envelope['envelope']['local']['embed'] == []:
-                envelope['envelope']['local']['embed'] = ["<span class='embeddables'></span>"]
 
         if '_id' in envelope:            
             del(envelope['_id'])        

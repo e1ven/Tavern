@@ -27,9 +27,9 @@ from gridfs import GridFS
 import hashlib
 import urllib.request, urllib.parse, urllib.error
 #import TopicList
-import urllib.request, urllib.parse, urllib.error
 from bs4 import BeautifulSoup
 import rss
+
 
 import re
 try: 
@@ -1058,6 +1058,13 @@ class NullHandler(BaseHandler):
     def post(self,url=None):
         return
 
+class AvatarHandler(BaseHandler):
+    """
+    For users who aren't using nginx (like in dev), this will pull in the avatars
+    """
+    def get(self,avatar):
+        print("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
+        self.redirect('https://robohash.org/' + avatar + "?" + "set="  + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size') )
         
 def main():
 
@@ -1079,7 +1086,6 @@ def main():
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
-        (r"/avatar/(.*)" ,NullHandler),
         (r"/login" ,LoginHandler),
         (r"/showuserposts/(.*)" ,UserHandler),  
         (r"/user/(.*)" ,UserHandler),  
@@ -1103,6 +1109,7 @@ def main():
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  
         (r"/privatemessage/(.*)" ,PrivateMessageHandler), 
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
+        (r"/avatar/(.*)" ,AvatarHandler),           
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
         (r"/(.*)/(.*)/(.*)" ,TriPaneHandler), 
         (r"/(.*)/(.*)" ,TriPaneHandler),

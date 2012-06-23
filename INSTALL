@@ -3,13 +3,14 @@
 
 # Ensure you have the proper system-level libraries.
 apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev
+sudo apt-get build-dep python-imaging
+
 
 ln -s /usr/bin/python3.2 /usr/bin/python
 
 brew install Boost
 brew install mongodb python3 
 
-https://github.com/grahame/pil-py3k
 
 #On 64 bit
 apt-get install lib32z1
@@ -106,6 +107,11 @@ python3 setup.py install
 cd /opt/Pluric/libs
 git clone https://github.com/grahame/pil-py3k
 cd /opt/Pluric/libs/pil-py3k
+# Enable jpg support by linking, on 64 bit.
+    vi setup.py
+    on page 196, add
+    add_directory(library_dirs, "/usr/lib/x86_64-linux-gnu")
+
 python3 setup.py install
 
 
