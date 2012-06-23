@@ -264,6 +264,10 @@ class User(object):
         if not 'followedTopics' in self.UserSettings:
             self.UserSettings['followedTopics'] = []
 
+        if not 'allowembed' in self.UserSettings:
+            self.UserSettings['allowembed'] = 0
+
+
 
         if self.UserSettings['followedTopics'] == []:
             self.followTopic("StarTrek")

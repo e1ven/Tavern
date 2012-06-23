@@ -620,5 +620,8 @@ background-color:#ddd;
 }
 
 
-
-
+.embededwarning {
+  display: none;
+  font-size: 85%;
+  line-height: 100%;
+}

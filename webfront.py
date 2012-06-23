@@ -56,8 +56,8 @@ class BaseHandler(tornado.web.RequestHandler):
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
         self.set_header("X-Fortune", str(server.fortune.random()))
-
-
+        self.set_header("X-FRAME-OPTIONS", "DENY")
+        
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates

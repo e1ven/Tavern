@@ -36,7 +36,6 @@ try:
    from hashlib import md5 as md5_func
 except ImportError:
    from md5 import new as md5_func
-import NofollowExtension
 
 
 define("port", default=8090, help="run on the given port", type=int)

@@ -133,15 +133,34 @@
     {            
         jQuery(this).click(function()
             {   
-            userdiv = "details_" + jQuery(this).attr('user');
-            if (jQuery("#" + userdiv).is(":visible"))
-            {
-                jQuery("#" + userdiv).hide()
-            }
-            else
-            {
-                jQuery("#" + userdiv).show()
-            }
-            return false;
+              userdiv = "details_" + jQuery(this).attr('user');
+              if (jQuery("#" + userdiv).is(":visible"))
+              {
+                  jQuery("#" + userdiv).hide()
+              }
+              else
+              {
+                  jQuery("#" + userdiv).show()
+              }
+              return false;
             });
+    });
+
+
+
+
+
+    jQuery('.embeddedcontentnote').each( function ()
+    {            
+        jQuery(this).click(function()
+            {  
+              if (jQuery(".embededwarning").is(":visible"))
+              {
+                  jQuery(".embededwarning").hide()
+              }
+              else
+              {
+                  jQuery(".embededwarning").show()
+              }
+            })
     });

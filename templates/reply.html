@@ -93,14 +93,23 @@
 	    		</div>
 			{% end %}
 
-
 			{% if len (envelope['envelope']['local']['embed']) > 0 %}
-			<div class='embedded'>
-			Linked Content:<Br>
-				{% for embed in envelope['envelope']['local']['embed'] %}
-					{%raw embed %}				
+				{% if user.UserSettings['allowembed'] == 1 %}
+					<div class='embedded'>
+					Linked Content:<Br>
+						{% for embed in envelope['envelope']['local']['embed'] %}
+							{%raw embed %}				
+						{% end %}
+					</div>
+				{% elif user.UserSettings['allowembed'] == 0  %}
+					<i class="icon-picture embeddedcontentnote"></i>
+					<div class="embededwarning">
+						This message includes some media (such as a Youtube video) that loads through an external source.<br>
+						This is very likely to be safe, but since it's loading through another website, that website could potentially keep a record of you.<br>
+						If you'd like, you can either <a href="">Display this content</a>, or <a href="">Hide this message</a>.
+					</div>
+				{% elif user.UserSettings['allowembed'] == -1 %}
 				{% end %}
-			</div>
 			{% end %}
 
 			<div class="comment_bottom">
