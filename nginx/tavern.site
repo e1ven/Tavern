@@ -3,7 +3,7 @@
         proxy_set_header X-Real-IP $remote_addr;
 
        location /static/ {
-           alias /opt/Pluric/static/;
+           alias /opt/Tavern/static/;
            expires max;
         }
 
@@ -45,11 +45,6 @@
 
         location @uploads {
                 proxy_pass   http://tornados;
-        }
-        location /static 
-        {
-                root /opt/Pluric/static;
-                expires max;
         }
         location /binaries/ {
                 rewrite ^/binaries/(.*)/(.*)$ /binaries/$1;
