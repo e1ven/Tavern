@@ -1,4 +1,4 @@
-Pluric is a Decentralized, Anonymous, Peer to Peer forum, written in Tornado and Python3.
+Tavern is a Decentralized, Anonymous, Peer to Peer forum, written in Tornado and Python3.
 It is designed to be censorship resistant, and is based on the idea of passing signed messages.
 
 There is a Specification for messages in the "Spec" directory, but the basic format is very simple.
@@ -9,4 +9,4 @@ We then pass these along to various servers, and organize them by Topics.
 The main web-interface runs in "webfront.py"
 The API runs in "api.py"
 
-Pluric is written in Python3 and Tornado2.
+Tavern is written in Python3 and Tornado2.

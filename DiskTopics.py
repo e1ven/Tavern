@@ -27,7 +27,7 @@ class DiskTopics(object):
             if not os.path.isdir(topicdir):
                 os.makedirs(topicdir)
                    
-            if not os.path.exists(topicdir + "/" + e.payload.hash() + ".7zPluricEnvelope"):
+            if not os.path.exists(topicdir + "/" + e.payload.hash() + ".7zTavernEnvelope"):
                 e.savefile(topicdir)
             
     def loaddir(self,directory):

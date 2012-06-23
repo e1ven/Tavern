@@ -307,7 +307,7 @@ class User(object):
     def savefile(self,filename=None):
         self.Keys.format_keys()
         if filename == None:
-            filename = self.UserSettings['username'] + ".PluricUser"                
+            filename = self.UserSettings['username'] + ".TavernUser"                
         filehandle = open(filename,'w')   
         filehandle.write(json.dumps(self.UserSettings,separators=(',',':'))) 
         filehandle.close()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2011 Pluric
+# Copyright 2011 Tavern
     
 
 import tornado.httpserver
@@ -157,7 +157,7 @@ class BaseHandler(tornado.web.RequestHandler):
         escapedtext = soupytxt.replace("\"","\\\"")
         escapedtext = escapedtext.replace("\n","")
         
-        return ( '''var pluric_replace = function() 
+        return ( '''var tavern_replace = function() 
                 {
                     var stateObj = 
                     {
@@ -184,8 +184,8 @@ class BaseHandler(tornado.web.RequestHandler):
                     });
                     jQuery('#spinner').hide();
                 };
-                pluric_replace();
-                pluric_replace = null;
+                tavern_replace();
+                tavern_replace = null;
                 ''' + server.cache['instance.js'] 
                 + 
                 '''
@@ -211,14 +211,14 @@ class BaseHandler(tornado.web.RequestHandler):
         usersettings = self.user.UserSettings
 
         # Create the Cookie value, and sign it.
-        signed = self.create_signed_value("pluric_preferences",json.dumps(usersettings))
+        signed = self.create_signed_value("tavern_preferences",json.dumps(usersettings))
 
         # Chunk up the cookie value, so we can spread across multiple cookies.
         numchunks = 0
         for chunk in self.chunks(signed,3000):
             numchunks += 1
-            self.set_cookie("pluric_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
-        self.set_secure_cookie("pluric_preferences_count",str(numchunks),httponly=True,expires_days=999)
+            self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
+        self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         print("numchunks + " + str(numchunks))
 
         print("Setting :::: " + json.dumps(usersettings))
@@ -228,15 +228,15 @@ class BaseHandler(tornado.web.RequestHandler):
         Retrieve the basic user variables out of your cookies.
         """
         self.user = User()
-        if self.get_secure_cookie("pluric_preferences_count") is not None:
+        if self.get_secure_cookie("tavern_preferences_count") is not None:
 
             # Restore the signed cookie, across many chunks
             restoredcookie = ""
-            for i in range(1,1 + int(self.get_secure_cookie("pluric_preferences_count"))):
-                restoredcookie += self.get_cookie("pluric_preferences" + str(i))
+            for i in range(1,1 + int(self.get_secure_cookie("tavern_preferences_count"))):
+                restoredcookie += self.get_cookie("tavern_preferences" + str(i))
 
             # Validate the cookie, and load if it passes
-            decodedcookie = self.get_secure_cookie("pluric_preferences",value=restoredcookie)
+            decodedcookie = self.get_secure_cookie("tavern_preferences",value=restoredcookie)
             if decodedcookie is not None:
                 self.user.load_string(decodedcookie.decode('utf-8'))
             else:
@@ -452,7 +452,7 @@ class SiteContentHandler(BaseHandler):
         envelope = server.formatEnvelope(envelope)
 
             
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],user=self.user,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))
+        self.write(self.render_string('header.html',title="Tavern :: " + envelope['envelope']['payload']['subject'],user=self.user,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html',formattedbody=envelope['envelope']['local']['formattedbody'],envelope=envelope))
         self.write(self.render_string('footer.html'))
  
@@ -465,7 +465,7 @@ class AttachmentHandler(BaseHandler):
         for envelope in envelopes:
             stack.append(envelope)
 
-        self.write(self.render_string('header.html',title="Pluric Attachment " + client_attachment_id,user=self.user,rsshead=client_attachment_id,type="attachment"))
+        self.write(self.render_string('header.html',title="Tavern Attachment " + client_attachment_id,user=self.user,rsshead=client_attachment_id,type="attachment"))
         self.write(self.render_string('attachments.html',attachment=client_attachment_id,stack=stack))
         self.write(self.render_string('footer.html'))
 
@@ -486,7 +486,7 @@ class PrivateMessageHandler(BaseHandler):
         else:    
                 formattedbody = server.formatText(text=envelope['envelope']['payload']['body'])
 
-        self.write(self.render_string('header.html',title="Pluric :: " + envelope['envelope']['payload']['subject'],user=self.user,type="privatemessage",rsshead=None))
+        self.write(self.render_string('header.html',title="Tavern :: " + envelope['envelope']['payload']['subject'],user=self.user,type="privatemessage",rsshead=None))
         self.write(self.render_string('singleprivatemessage.html',formattedbody=formattedbody,usertrust=usertrust,envelope=envelope))
         self.write(self.render_string('footer.html'))
 
@@ -592,7 +592,7 @@ class UserHandler(BaseHandler):
     def get(self,pubkey):
         self.getvars()
         
-        #Unquote it, then convert it to a PluricKey object so we can rebuild it.
+        #Unquote it, then convert it to a TavernKey object so we can rebuild it.
         #Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
         pubkey = Keys(pub=pubkey).pubkey
@@ -702,7 +702,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
-        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -783,7 +783,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
-        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
 
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
@@ -930,7 +930,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
-        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -973,7 +973,7 @@ class MyPrivateMessagesHandler(BaseHandler):
         messages = []
         self.user.load_mongo_by_pubkey(user['pubkey'])
         
-        self.write(self.render_string('header.html',title="Welcome to Pluric!",user=self.user,rsshead=None,type=None))
+        self.write(self.render_string('header.html',title="Welcome to the Tavern!",user=self.user,rsshead=None,type=None))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':self.user.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             message['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
@@ -1024,7 +1024,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
-        e.payload.dict['author']['useragent'] = "Pluric Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip

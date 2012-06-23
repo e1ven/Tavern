@@ -20,7 +20,7 @@ for envelope in server.mongos['default']['envelopes'].find({},as_class=OrderedDi
   if not os.path.isdir('MSGDUMP'):
      os.makedirs('MSGDUMP')
                    
-  if not os.path.exists('MSGDUMP'+ "/" + e.payload.hash() + ".7zPluricEnvelope"):
+  if not os.path.exists('MSGDUMP'+ "/" + e.payload.hash() + ".7zTavernEnvelope"):
       e.savefile('MSGDUMP')
             
 listing = os.listdir('MSGDUMP')    

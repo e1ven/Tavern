@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2011 Pluric
+# Copyright 2011 Tavern
     
 import codecs
 import tornado.httpserver

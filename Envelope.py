@@ -213,7 +213,7 @@ class Envelope(object):
         basename,ext = os.path.splitext(filename)
         filehandle = open(filename, 'rb')
         filecontents = filehandle.read() 
-        if (ext == '.7zPluricEnvelope'):
+        if (ext == '.7zTavernEnvelope'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
             filecontents = filecontents.decode('utf-8')
@@ -232,7 +232,7 @@ class Envelope(object):
 
         
     def reloadfile(self):
-        self.loadfile(self.payload.hash() + ".7zPluricEnvelope")
+        self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
         self.registerpayload()
         
                 
@@ -262,7 +262,7 @@ class Envelope(object):
         # print "Full Size " + str(sys.getsizeof(self.dict))        
 
         #We want to name this file to the SHA512 of the payload contents, so it is consistant across servers.
-        filehandle = open(directory + "/" + self.payload.hash() + ".7zPluricEnvelope",'wb')
+        filehandle = open(directory + "/" + self.payload.hash() + ".7zTavernEnvelope",'wb')
         filehandle.write(compressed)
         filehandle.close()
         

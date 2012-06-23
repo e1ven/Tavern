@@ -83,7 +83,7 @@ class Server(object):
         self.cache = OrderedDict()
 
         if settingsfile == None:
-            if os.path.isfile(platform.node() + ".PluricServerSettings"):
+            if os.path.isfile(platform.node() + ".TavernServerSettings"):
                 #Load Default file(hostnamestname)
                 self.loadconfig()
             else:
@@ -142,7 +142,7 @@ class Server(object):
     def loadconfig(self,filename=None):
         print("Loading config from file.")
         if filename == None:
-            filename = platform.node() + ".PluricServerSettings"
+            filename = platform.node() + ".TavernServerSettings"
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
         self.ServerSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
@@ -175,7 +175,7 @@ class Server(object):
     
     def saveconfig(self,filename=None):
         if filename == None:
-            filename = self.ServerSettings['hostname'] + ".PluricServerSettings"                
+            filename = self.ServerSettings['hostname'] + ".TavernServerSettings"                
         filehandle = open(filename,'w')   
         filehandle.write(json.dumps(self.ServerSettings,separators=(',',':'))) 
         filehandle.close()

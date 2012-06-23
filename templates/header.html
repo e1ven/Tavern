@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 	<!-- Hey, Source Reader!
-	Welcome to Pluric. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
-	Email me - colin@pluric.com
+	Welcome to Tavern. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
+	Email me - colin@Tavern.com
 	Anyway, Enjoy the site, eh?"
 	-->
 	
@@ -20,24 +20,24 @@
 
 
 	{% if len('title') > 1 %}
-	<meta NAME="Description" CONTENT="Pluric:: {{title}}">
+	<meta NAME="Description" CONTENT="Tavern:: {{title}}">
 	{% else %}
 	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
 	{% end %}
 
 	<meta http-equiv="X-Frame-Options" content="deny">
 
-	<meta property="og:site_name" content="Pluric"/>
+	<meta property="og:site_name" content="Tavern"/>
 
 	<title>
 		{% if len(title) > 1 %}
-		Pluric :: {{title}}
+		Tavern :: {{title}}
 		{% end %}
 		{% if len(title) < 2 %}
-		Pluric :: A distributed discussion
+		Tavern :: A distributed discussion
 		{% end %}
 	</title>
-	<meta property="og:title" content="{% if len(title) > 1 %}Pluric :: {{title}}{% end %}{% if len(title) < 2 %}Pluric :: A distributed discussion{% end %}"/>
+	<meta property="og:title" content="{% if len(title) > 1 %}Tavern :: {{title}}{% end %}{% if len(title) < 2 %}Tavern :: A distributed discussion{% end %}"/>
 
 	{% if type == 'topic' %}
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
@@ -50,7 +50,7 @@
 <body>
 <div id="limits">
 	<header id="top">
-		<a href="/"><img src="/static/images/logo.png" alt="Pluric" id="toplogo"/></a>
+		<a href="/"><img src="/static/images/logo.png" alt="Tavern" id="toplogo"/></a>
 		<meta property="og:image" content="http://{{server.ServerSettings['hostname']}}/static/images/logo.png"/>
 		<div id="menu">
 		    <div class="menu-text">
