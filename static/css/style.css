@@ -300,6 +300,7 @@ COLUMN WIDTH ELEMENTS
 	width: 50%;
 	background: #ffffff;
 	overflow:scroll;
+        -webkit-overflow-scrolling: touch;
 
 }
 
