@@ -74,7 +74,6 @@ class User(object):
 
 
     def gatherTrust(self,askingabout,incomingtrust=250):
- 
         # Ensure the formatting 
         key = Keys(pub = askingabout )
         askingabout = key.pubkey
@@ -97,10 +96,10 @@ class User(object):
         #Check mongo to see if we've recently computed this trust value.
         #Don't keep computing it over and over and over.
         #We can probably bring this cache to be a pretty high number. 60+ secs
-        cache = server.mongos['cache']['usertrusts'].find_one({"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
+        cache = server.mongos['cache']['usertrusts'].find_one({"asking":self.Keys.pubkey,"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
 
         if cache is not None:
-            if time.time() - cache['time'] < 20:
+            if time.time() - cache['time'] < server.ServerSettings['cache-user-trust-seconds']:
                 print("Using cached trust")
                 return cache['calculatedtrust']
                                 
@@ -113,21 +112,26 @@ class User(object):
         #Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0 etc     
         if incomingtrust <= 2:
             return 0
+     
         divideby = 1
-        #let's first check mongo to see if *THIS USER* directly rated the user we're checking for.
+
+        #let's first check mongo to see I directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
+
         print("Asking About -- " + askingabout)
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.payload_type":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
+        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
+        search = {"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  }
+        pprint.pprint(search)
         foundtrust = False
         if trustrow.count() > 0:
             #Get the most recent trust
             tr = trustrow[0]    
-            print("We trust this user directly.")
+            print("I rated this user directly.")
             pprint.pprint(tr)
             trust = int(tr['envelope']['payload']['trust'])
             foundtrust = True
         else:
-            print("We have not directly rated this user.")
+            print("I have not directly rated this user.")
         if foundtrust == False:
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
 
@@ -155,10 +159,28 @@ class User(object):
             trust = (-1 * maxtrust)
 
         cachedict = OrderedDict()
-        cachedict = {"_id": askingabout + str(incomingtrust), "askingabout":askingabout,"incomingtrust":incomingtrust,"calculatedtrust":trust,"time":time.time()}
+        # We're defining ID to ensure we overwrite the cached value
+        cachedict = {"_id": self.Keys.pubkey + askingabout + str(incomingtrust), "asking":self.Keys.pubkey, "askingabout":askingabout,"incomingtrust":incomingtrust,"calculatedtrust":trust,"time":time.time()}
         server.mongos['cache']['usertrusts'].save(cachedict)
         return round(trust)
     
+    def translateTrustToWords(self,trust):
+        if trust > 75:
+            return "strongly trust"
+        elif trust > 50:
+            return "moderately trust"
+        elif trust > 10:
+            return "slightly trust"
+        elif trust > -10:
+            return "are neutral toward"
+        elif trust > -50:
+            return "slightly distrust"
+        elif trust > -75:
+            return "moderately distrust"
+        else:
+            return "strongly distrust"
+
+
     def getRatings(self,postInQuestion):            
         #Move this. Maybe to Server??
         allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
@@ -183,25 +205,18 @@ class User(object):
                             combinedrating += 1
                         
         return combinedrating  
-    
-    def followUser(self,pubkey):
-        if pubkey not in self.UserSettings['followedUsers']:
-            self.UserSettings['followedUsers'].append(pubkey)
-
+ 
     def followTopic(self,topic):
         if topic not in self.UserSettings['followedTopics']:
             self.UserSettings['followedTopics'].append(topic)
 
-    def noFollowUser(self,pubkey):
-        if pubkey in self.UserSettings['followedUsers']:
-            self.UserSettings['followedUsers'].remove(pubkey)
-
-    def noFollowTopic(self,topic):
+    def unFollowTopic(self,topic):
         # Compare the lowercase/sorted values
+        pprint.pprint(self.UserSettings['followedTopics'])
         for followedtopic in self.UserSettings['followedTopics']:
             if server.sorttopic(followedtopic) == server.sorttopic(topic):
-                self.UserSettings['followedTopics'].remove(followedtopic)    
-                    
+                self.UserSettings['followedTopics'].remove(topic)
+
     def generate(self,email=None,hashedpass=None,username=None,skipkeys=False):
         """
         Fill in any missing user information

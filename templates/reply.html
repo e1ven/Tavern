@@ -36,8 +36,12 @@
 				    {% end %}
 
 				</a>
+					{% set trust = user.gatherTrust(askingabout=envelope['envelope']['payload']['author']['pubkey']) %}
 					<div class="UserDetails" id="details_{{envelope['envelope']['payload_sha512']}}">
-							<a href="/followuser/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Follow User</a>
+
+						You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
+
+							{% if trust < 100 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
 								<input type="hidden" name="trust" value="100">
@@ -45,7 +49,8 @@
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 								<input class="textbutton" type="submit" value="Allow this user to mark SPAM">
 							</form>
-
+							{% end %}
+							{% if trust > -100 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
 								<input type="hidden" name="trust" value="-100">
@@ -53,6 +58,7 @@
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 								<input class="textbutton" type="submit" value="Disallow this user to mark SPAM">
 							</form>
+							{% end %}
 							
 							<form action="/usernote" method="post" class="usernote">
 								 {% raw xsrf_form_html() %}

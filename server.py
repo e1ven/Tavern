@@ -108,7 +108,7 @@ class Server(object):
                 self.ServerSettings['sessions-mongo-hostname'] = 'localhost'
                 self.ServerSettings['sessions-mongo-port'] = 27017
                 self.ServerSettings['sessions-mongo-db'] = 'test'
-                
+                self.ServerSettings['cache-user-trust-seconds'] = 60
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             

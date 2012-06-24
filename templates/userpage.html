@@ -1,0 +1,30 @@
+
+
+
+<div id="single">
+<h1> Notes about this user <br />
+</h1>
+<p></p>
+<ul>
+
+
+
+{% set trust = me.gatherTrust(askingabout=thatguy) %}
+    You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
+    {% set note = me.getNote(thatguy) %}
+    {% if note is not None %}
+        You set the following note about this user:<Br>
+        <div class="note"><i>{{note}}</i></div>
+    {% end %}
+        <br><br>
+
+        Set a note about this user:<Br>
+        <form action="/usernote" method="post" class="usernote">
+             {% raw xsrf_form_html() %}
+            <input type="hidden" name="pubkey" value="{{thatguy}}">
+            <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
+        </form>
+
+
+</ul>
+</div> <!-- #single -->

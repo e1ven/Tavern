@@ -599,8 +599,12 @@ class UserHandler(BaseHandler):
 
         self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
 
-        if pubkey == self.user.UserSettings['pubkey']:
+        if pubkey == self.user.Keys.pubkey:
             self.write(self.render_string('mysettings.html',user=self.user))
+
+
+
+        self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey))
 
         envelopes = []
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
@@ -610,63 +614,22 @@ class UserHandler(BaseHandler):
         self.write(self.render_string('footer.html'))
                  
                  
-class FollowUserHandler(BaseHandler):
+class ChangeSingleSettingHandler(BaseHandler):
 
-    def post(self):    
-        self.getvars()
+    def post(self,setting):    
+        self.getvars(ensurekeys=True)
 
-        pubkey = urllib.parse.unquote(self.get_argument("pubkey"))
-        pubkey = Keys(pub=pubkey).pubkey
+        if setting == "followtopic":
+            self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
 
-        self.user.followUser()
-        self.user.savemongo()
-        self.servars()
+        if setting == "unfollowtopic":
+            self.user.unFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
 
-        if "js" in self.request.arguments:
-            self.finish(divs=['right'])
-        else:
-            self.redirect("/")
-
-class NoFollowUserHandler(BaseHandler):
-
-    def post(self):    
-        self.getvars()
-
-        pubkey = urllib.parse.unquote(self.get_argument("pubkey"))
-        pubkey = Keys(pub=pubkey).pubkey
 
         self.user.savemongo()
         self.setvars()
-
         if "js" in self.request.arguments:
-            self.finish(divs=['right'])
-        else:
-            self.redirect("/")
-
-class FollowTopicHandler(BaseHandler):
-
-    def post(self):    
-        self.getvars()
-
-        self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
-        self.user.savemongo()
-        self.setvars()
-
-        if "js" in self.request.arguments:
-            self.finish(divs=['right'])
-        else:
-            self.redirect("/")
-
-class NoFollowTopicHandler(BaseHandler):
-    def post(self):       
-        self.getvars()
-
-        self.user.noFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
-        self.user.savemongo()
-        self.setvars()
-
-        if "js" in self.request.arguments:
-            self.finish(divs=['right'])
+            self.finish(divs=['left'])
         else:
             self.redirect("/")
         
@@ -700,7 +663,7 @@ class RatingHandler(BaseHandler):
         #Instantiate the user who's currently logged in
         
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
@@ -719,7 +682,7 @@ class RatingHandler(BaseHandler):
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -781,7 +744,7 @@ class UserTrustHandler(BaseHandler):
 
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
 
@@ -802,7 +765,7 @@ class UserTrustHandler(BaseHandler):
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -814,6 +777,9 @@ class UserTrustHandler(BaseHandler):
         #Send to the server
         server.receiveEnvelope(e.text())
         print("Trust Submitted.")
+
+        # Remove cached version of this trust.
+        server.mongos['cache']['usertrusts'].remove({"asking":self.user.Keys.pubkey,"askingabout":trusted_pubkey})
 
 
       
@@ -928,7 +894,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
@@ -946,7 +912,7 @@ class NewmessageHandler(BaseHandler):
         usersig = self.user.Keys.signstring(e.payload.text())
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -1022,7 +988,7 @@ class NewPrivateMessageHandler(BaseHandler):
             e.payload.dict['regarding'] = client_regarding
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.UserSettings['pubkey']
+        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
@@ -1040,7 +1006,7 @@ class NewPrivateMessageHandler(BaseHandler):
         usersig = self.user.Keys.signstring(e.payload.text())
         stamp = OrderedDict()
         stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.UserSettings['pubkey']
+        stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
@@ -1100,10 +1066,7 @@ def main():
         (r"/usernote",UserNoteHandler),  
         (r"/attachment/(.*)" ,AttachmentHandler), 
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
-        (r"/followuser" ,FollowUserHandler),  
-        (r"/followtopic" ,FollowTopicHandler),  
-        (r"/nofollowuser" ,NoFollowUserHandler),  
-        (r"/nofollowtopic" ,NoFollowTopicHandler),  
+        (r"/changesetting/(.*)" ,ChangeSingleSettingHandler),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  

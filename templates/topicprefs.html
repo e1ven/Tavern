@@ -53,9 +53,9 @@
 					
 
 								{% if server.sorttopic(topic) in sortedtopic %}
-									<form class = "followtopic" action="/nofollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
+									<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
 									{% else %}
-									<form class = "followtopic" action="/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
+									<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
 								{% end %}
 								<p>
 								The following users are popular moderators, you might want to consider adding them:<br>

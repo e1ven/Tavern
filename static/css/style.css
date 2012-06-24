@@ -289,18 +289,21 @@ COLUMN WIDTH ELEMENTS
         height: 100%;
         padding: 0;
         overflow:auto;
+        -webkit-overflow-scrolling: touch;
+
 }
 
 
 #center {
 	background: #D8D8D8;
+
 }
 #right {
 	float: left;
 	width: 50%;
 	background: #ffffff;
 	overflow:scroll;
-        -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling: touch;
 
 }
 
