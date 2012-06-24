@@ -16,7 +16,7 @@ class DiskTopics(object):
         
         e = Envelope()
         
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.stamps.time_added': {'$gt' : since },'envelope.payload.topic' : topic },limit=limit,skip=skip,as_class=OrderedDict):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.time_added': {'$gt' : since },'envelope.payload.topic' : topic },limit=limit,skip=skip,as_class=OrderedDict):
             envelope = server.formatEnvelope(envelope)
             envstr = json.dumps(envelope,separators=(',',':'))
             e.loadstring(envstr)
