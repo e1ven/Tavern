@@ -269,7 +269,7 @@ class RSSHandler(BaseHandler):
                           'ForumLegion discussion about ' + param,
                           generator = 'ForumLegion',
                           pubdate = datetime.datetime.now())
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
+            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
                     "http://ForumLegion.ch/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -602,17 +602,47 @@ class UserHandler(BaseHandler):
         if pubkey == self.user.Keys.pubkey:
             self.write(self.render_string('mysettings.html',user=self.user))
 
-
-
         self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey))
 
         envelopes = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('value',-1):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
             envelopes.append(envelope)
 
         self.write(self.render_string('showuserposts.html',envelopes=envelopes))
         self.write(self.render_string('footer.html'))
-                 
+
+
+class ChangeManySettingsHandler(BaseHandler):    
+    def post(self):    
+        self.getvars(ensurekeys=True)
+
+        friendlyname = tornado.escape.xhtml_escape(self.get_argument('friendlyname'))
+        maxposts = int(self.get_argument('maxposts'))
+        maxreplies = int(self.get_argument('maxreplies'))
+        if 'include_location' in self.request.arguments:
+            include_location = True
+        else:
+            include_location = False
+        if 'allowembed' in self.request.arguments:
+            allowembed = 1
+        else:
+            allowembed = -1
+                     
+        self.user.UserSettings['friendlyname'] = friendlyname
+        self.user.UserSettings['maxposts'] = maxposts
+        self.user.UserSettings['maxreplies'] = maxreplies
+        self.user.UserSettings['include_location'] = include_location
+        self.user.UserSettings['allowembed'] = allowembed
+        self.user.savemongo()
+        self.setvars()
+
+        print("set")
+        if "js" in self.request.arguments:
+            self.finish(divs=['left'])
+        else:
+            keyurl = ''.join(self.user.Keys.pubkey.split())
+            self.redirect('/user/' + keyurl)
+                        
                  
 class ChangeSingleSettingHandler(BaseHandler):
 
@@ -621,10 +651,16 @@ class ChangeSingleSettingHandler(BaseHandler):
 
         if setting == "followtopic":
             self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
-
-        if setting == "unfollowtopic":
+        elif setting == "unfollowtopic":
             self.user.unFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
-
+        elif setting == "showembeds":
+            self.user.UserSettings['allowembed'] = 1
+            print("allowing embeds")
+        elif setting == "dontshowembeds":
+            self.user.UserSettings['allowembed'] = -1
+            print("forbidding embeds")
+        else:
+            print("Warning, you didn't do anything!")      
 
         self.user.savemongo()
         self.setvars()
@@ -664,7 +700,7 @@ class RatingHandler(BaseHandler):
         
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
-        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -745,7 +781,7 @@ class UserTrustHandler(BaseHandler):
 
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
-        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
 
 
@@ -895,7 +931,7 @@ class NewmessageHandler(BaseHandler):
 
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
-        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -989,7 +1025,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
-        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['username']
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
         if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
@@ -1066,7 +1102,8 @@ def main():
         (r"/usernote",UserNoteHandler),  
         (r"/attachment/(.*)" ,AttachmentHandler), 
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
-        (r"/changesetting/(.*)" ,ChangeSingleSettingHandler),  
+        (r"/changesetting/(.*)" ,ChangeSingleSettingHandler),
+        (r"/changesettings" ,ChangeManySettingsHandler),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 
         (r"/uploadprivatemessage/(.*)" ,NewPrivateMessageHandler),
         (r"/uploadprivatemessage" ,NewPrivateMessageHandler),  

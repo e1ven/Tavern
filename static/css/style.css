@@ -20,13 +20,15 @@ time, mark, audio, video {
 font-weight: inherit;
 font-style: inherit;
 font-family: inherit;
-        vertical-align: baseline;
+vertical-align: baseline;
 }
+
 /* HTML5 display-role reset for older browsers */
 article, aside, details, figcaption, figure,
 footer, header, hgroup, menu, nav, section {
         display: block;
 }
+
 body {
         line-height: 1;
 }
@@ -45,14 +47,21 @@ table {
         border-collapse: collapse;
         border-spacing: 0;
 }
+form {
+  display: inline;
+  margin: 0;
+  padding: 0;
+}
 
 .textbutton, a {
-    font-size:100%;
+     font-size:inherit;
      color: black;
      position:relative;
      border: 0px;
      background-color: transparent;
      text-decoration:none;  
+     margin: 0;
+     padding: 0;
 }
 .textbutton:hover, a:hover{
   color:#BBBBBB;
@@ -203,8 +212,6 @@ header#top {
 }
 
 form.vote {
-  padding:0px 0px 0px 0px !important;
-  margin: 0px 0px 0px 0px;
   position:relative;
   float: left;
   height:16px;
@@ -626,6 +633,6 @@ background-color:#ddd;
 
 .embededwarning {
   display: none;
-  font-size: 85%;
+  font-size: 85%; 
   line-height: 100%;
 }

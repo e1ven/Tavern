@@ -22,6 +22,12 @@ Then why do you embed YouTube/Vimeo videos?
 	Web Browsers are specifically designed to prevent content in iframes from interacting with the main page. 
 	Even if they wanted to, Google couldn't manipulate the main page, outside of the iframe, in any way.
 	
+Why can't I click on embeded (external) images, and go to them directly?
+	Tavern is using the HTML5 "Sandbox" element, to keep you safer from external links.
+	In supported browsers, prevents embed content from changing the page you're on, to avoid spoofing and many other attacks.
+	The disadvantage of this is that it also prevents clicking the thumbnail on embedded images from bringing you to the original.
+	Ideally, you'd fix this by upload the image directly, rather than linking.
+	Alternatively, click the link in the post, rather than the thumbnail.
 	
 	
 

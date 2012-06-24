@@ -40,7 +40,6 @@
 					<div class="UserDetails" id="details_{{envelope['envelope']['payload_sha512']}}">
 
 						You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
-
 							{% if trust < 100 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
@@ -50,7 +49,7 @@
 								<input class="textbutton" type="submit" value="Allow this user to mark SPAM">
 							</form>
 							{% end %}
-							{% if trust > -100 %}
+							{% if trust > -100 and trust < 250 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
 								<input type="hidden" name="trust" value="-100">
@@ -59,13 +58,13 @@
 								<input class="textbutton" type="submit" value="Disallow this user to mark SPAM">
 							</form>
 							{% end %}
-							
+							<br>
 							<form action="/usernote" method="post" class="usernote">
 								 {% raw xsrf_form_html() %}
 								<input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
 								<input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
 							</form>
-
+							<br>
 							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
 					</div>	
 			</div><!-- .thread_{{orient}} -->
@@ -104,7 +103,7 @@
 					<div class='embedded'>
 					Linked Content:<Br>
 						{% for embed in envelope['envelope']['local']['embed'] %}
-							{%raw embed %}				
+							{%raw embed %}				Y
 						{% end %}
 					</div>
 				{% elif user.UserSettings['allowembed'] == 0  %}
@@ -112,7 +111,9 @@
 					<div class="embededwarning">
 						This message includes some media (such as a Youtube video) that loads through an external source.<br>
 						This is very likely to be safe, but since it's loading through another website, that website could potentially keep a record of you.<br>
-						If you'd like, you can either <a href="">Display this content</a>, or <a href="">Hide this message</a>.
+						If you'd like, you can either 
+						<form action="/changesetting/showembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Display external content' class="textbutton "></form>
+						or <form action="/changesetting/dontshowembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Only display links to external content' class="textbutton "></form>.
 					</div>
 				{% elif user.UserSettings['allowembed'] == -1 %}
 				{% end %}

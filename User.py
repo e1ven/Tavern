@@ -165,6 +165,8 @@ class User(object):
         return round(trust)
     
     def translateTrustToWords(self,trust):
+        if trust == 250:
+            return "are"
         if trust > 75:
             return "strongly trust"
         elif trust > 50:
@@ -281,8 +283,6 @@ class User(object):
 
         if not 'allowembed' in self.UserSettings:
             self.UserSettings['allowembed'] = 0
-
-
 
         if self.UserSettings['followedTopics'] == []:
             self.followTopic("StarTrek")
