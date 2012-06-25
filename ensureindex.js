@@ -6,6 +6,8 @@ db.envelopes.ensureIndex( { "envelope.payload.regarding":1} );
 db.envelopes.ensureIndex( { "envelope.payload.binaries.sha_512":1} );
 db.envelopes.ensureIndex( { "envelope.payload_sha512":1} );
 db.envelopes.ensureIndex( { "envelope.payload.author.pubkey":1} );
-
-
-
+db.fs.files.ensureIndex({"filename":1});
+db.fs.files.ensureIndex({"uploadDate":-1});
+db.fs.files.ensureIndex({"_id":1});
+db.fs.chunks.ensureIndex({ files_id: 1 } );
+db.fs.chunks.ensureIndex({ files_id : 1 , n : 1 });

@@ -181,13 +181,14 @@ header#top {
 }
 
 #menubuttons li a { 
-        float: left;
-        padding: 10px 15px;
-	background: #231b32; 
+  float: left;
+  padding: 10px 15px;
+
+	background: #272321; 
 	color: #ffffff;
-        text-decoration: none;
-	border-top: 1px solid #170210;
-	border-bottom: 1px solid #7e446b;
+  text-decoration: none;
+  border-top: 1px solid #372F2b;
+  border-bottom: 1px solid #21110b;
 	-webkit-border-radius: 3px;
 	-moz-border-radius: 3px;
 	border-radius: 3px;
@@ -326,9 +327,12 @@ COLUMN WIDTH ELEMENTS
 	font-size: 14px; 
 	font-weight: bold; 
 	text-transform: uppercase;
-	background: #2f2445;
-	border-top: 1px solid #8f7bb5;
-	border-bottom: 1px solid #1e172c;
+	background: #272321;
+  border-top: 1px solid #372F2b;
+  border-bottom: 1px solid #21110b;
+
+
+
 	color: #ffffff;
 }
 #left ul li a { padding: 8px 15px; color: #ffffff; text-decoration: none; display: block }
@@ -355,14 +359,14 @@ COLUMN WIDTH ELEMENTS
 	font-size: 14px; 
 	font-weight: bold; 
 	text-transform: uppercase;
-	background: #adadad;
+	background: #A08E87;
 	border-top: 1px solid #e7e7e7;
-	border-bottom: 1px solid #595b63;
+	border-bottom: 1px solid #262220;
 	color: #2d2d2d;
 }
 #center ul li a { padding: 8px 15px; color: #2d2d2d; text-decoration: none; display: block; }
-#center ul li a:hover { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
-#center li.active { background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
+#center ul li a:hover { background: url(/static/images/center_arrow.png) center right no-repeat #A08E87; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
+#center li.active { background: url(/static/images/center_arrow.png) center right no-repeat #A08E87; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
 
 #center .newpost 
 {
@@ -376,7 +380,7 @@ COLUMN WIDTH ELEMENTS
 
 #center .newpost:hover 
 {
-  background: url(/static/images/center_arrow.png) center right no-repeat #acc0c0;
+  background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
   border-top: 1px solid #a1b1b1
   border-bottom: 1px solid #ffffff;
 }
@@ -404,7 +408,7 @@ COLUMN WIDTH ELEMENTS
 	font-size: 14px; 
 	font-weight: bold; 
 	text-transform: uppercase;
-	background: #d8d8d8;
+	background: #d6cdc9;
 	color: #2d2d2d;
 }
 #right h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
@@ -460,7 +464,7 @@ img.imginline { vertical-align: middle;  }
 #spinner{
 	display: none;
 	position: absolute;
-        background-color:black;
+  background-color:black;
 	top: 0%;
 	left: 0%;
 	width: 100%;
