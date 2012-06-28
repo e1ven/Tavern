@@ -252,11 +252,30 @@ class BaseHandler(tornado.web.RequestHandler):
         # If we've asked to make the keys.. Generate them.
         # This won't overwrite existing values, since user.generate() is additive.
         if ensurekeys == True:
-            if self.user.UserSettings['privkey'] is None:
-                print("Making key cookies")
-                self.user.generate(skipkeys=False)
+            validkey = False
+            if 'encryptedprivkey' in self.user.UserSettings:
+                if self.user.UserSettings['encryptedprivkey'] is not None:
+                    validkey = True
+            if not validkey:
+                print("Making keys with a random password.")
+
+                # Generate a random password with a random number of characters
+                numcharacters = 100 + random.randrange(1,100)
+                password = server.randstr(numcharacters)
+                self.user.generate(skipkeys=False,password=password)
+
+                # Save it out.
                 self.setvars()
                 self.user.savemongo()
+                self.set_secure_cookie('tavern_passkey',self.user.Keys.passkey(password),httponly=True,expires_days=999) 
+                self.user.passkey = self.user.Keys.passkey(password)
+
+
+        if not hasattr(self.user,'passkey'):
+            self.user.passkey = self.get_secure_cookie('tavern_passkey')
+        if self.user.passkey == None:   
+            self.user.passkey = self.get_secure_cookie('tavern_passkey')
+
 
         return self.user.UserSettings['username']
 
@@ -529,18 +548,25 @@ class RegisterHandler(BaseHandler):
             return    
             
         else:
-            hashedpass = self.user.hash_password(client_newpass)
-            self.user.generate(hashedpass=hashedpass,username=client_newuser.lower())
+            # Generate the user
+            self.user.generate(username=client_newuser.lower(),password=client_newpass)
+
             if client_email is not None:
                 self.user.UserSettings['email'] = client_email.lower()
+
             self.user.savemongo()
+
+            # Save the passkey out to a separate cookie.
+            self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_newpass),httponly=True,expires_days=999) 
+
             self.setvars()
             self.redirect("/")
 
 
 class LoginHandler(BaseHandler):
     def get(self):
-        self.getvars()        
+        self.getvars()  
+        pprint.pprint(self.user.UserSettings)      
         self.write(self.render_string('header.html',title="Login to your account",user=self.user,rsshead=None,type=None))
         self.write(self.render_string('loginform.html'))
         self.write(self.render_string('footer.html'))
@@ -573,10 +599,9 @@ class LoginHandler(BaseHandler):
                     login = True
             if login == True:
                 self.user = u
-                pprint.pprint(u.UserSettings)
+                self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
                 self.setvars()
                 print("Login Successful.")
-                pprint.pprint(self.user.UserSettings)
                 self.redirect("/")
                 return
 
@@ -714,7 +739,7 @@ class RatingHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
         
         #Sign this bad boy
-        usersig = self.user.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text(),self.user.passkey)
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
@@ -797,7 +822,7 @@ class UserTrustHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
 
         #Sign this bad boy
-        usersig = self.user.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text(),self.user.passkey)
         
         stamp = OrderedDict()
         stamp['class'] = 'author'
@@ -945,7 +970,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
         
         #Sign this bad boy
-        usersig = self.user.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text(),self.user.passkey)
         stamp = OrderedDict()
         stamp['class'] = 'author'
         stamp['pubkey'] = self.user.Keys.pubkey
@@ -973,7 +998,7 @@ class MyPrivateMessagesHandler(BaseHandler):
 
             
         messages = []
-        self.user.load_mongo_by_pubkey(user['pubkey'])
+        self.user.load_mongo_by_username(self.user['username'])
         
         self.write(self.render_string('header.html',title="Welcome to the Tavern!",user=self.user,rsshead=None,type=None))
         for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':self.user.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
@@ -1039,7 +1064,7 @@ class NewPrivateMessageHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
 
         #Sign this bad boy
-        usersig = self.user.Keys.signstring(e.payload.text())
+        usersig = self.user.Keys.signstring(e.payload.text(),self.user.passkey)
         stamp = OrderedDict()
         stamp['class'] = 'author'
         stamp['pubkey'] = self.user.Keys.pubkey
@@ -1075,11 +1100,20 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     print("Starting Web Frontend for " + server.ServerSettings['hostname'])
-    #####TAKE ME OUT IN PRODUCTION!!!!@! #####
     
+
+    # Generate a default user, to use when no one is logged in.
+    # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
+    if not 'guestacct' in server.ServerSettings:
+        serveruser = User()
+        serveruser.generate(skipkeys=False,password=server.ServerSettings['serverkey-password'])
+        server.ServerSettings['guestacct'] = serveruser.UserSettings
+        server.saveconfig()
+
+
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
-        "cookie_secret": "7cxqGjRMzxv7E9Vxq2mnXalZbeUhaoDgnoTSvn0B",
+        "cookie_secret": server.ServerSettings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path" : "templates",

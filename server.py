@@ -41,6 +41,7 @@ class Fortuna():
 
 
 class Server(object):
+
     class FancyDateTimeDelta(object):
         """
         Format the date / time difference between the supplied date and
@@ -61,6 +62,7 @@ class Server(object):
             self.second = delta.seconds - ( self.hour * 3600) - (60 * self.minute) 
             self.millisecond = delta.microseconds / 1000
 
+
         def format(self):
             #Round down. People don't want the exact time.
             #For exact time, reverse array.
@@ -74,6 +76,9 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
+    def randstr(self,length):
+        # Ensure it's printable.
+        return ''.join(chr(random.randint(48,122)) for i in range(length))
 
 
     def __init__(self,settingsfile=None):            
@@ -110,6 +115,8 @@ class Server(object):
                 self.ServerSettings['sessions-mongo-db'] = 'test'
                 self.ServerSettings['cache-user-trust-seconds'] = 60
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
+                self.ServerSettings['cookie-encryption'] = self.randstr(255)
+                self.ServerSettings['serverkey-password'] = self.randstr(255)
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
@@ -120,6 +127,7 @@ class Server(object):
                 self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
 
+                
                 self.saveconfig()   
 
 

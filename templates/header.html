@@ -54,7 +54,7 @@
 		<meta property="og:image" content="http://{{server.ServerSettings['hostname']}}/static/images/logo.png"/>
 		<div id="menu">
 		    <div class="menu-text">
-          	{% if user.UserSettings['privkey'] is None %}	
+          	{% if not user.isLoggedIn() %}	
                 Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
             {% else %}
 	                <ul id="menubuttons">

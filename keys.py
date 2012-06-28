@@ -18,9 +18,6 @@ class Keys(object):
         self.privkey = priv
         self.format_keys()
 
-        if self.key is None:
-            return None
-            
              
     def format_keys(self):
         """ 
