@@ -221,7 +221,6 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         print("numchunks + " + str(numchunks))
-
         print("Setting :::: " + json.dumps(usersettings))
 
     def getvars(self,ensurekeys=False):
@@ -600,14 +599,14 @@ class LoginHandler(BaseHandler):
                     login = True
             if login == True:
                 self.user = u
+                print("Passkey - " + self.user.Keys.passkey(client_password))
                 self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
                 self.setvars()
                 print("Login Successful.")
-                self.redirect("/")
-                return
-
-            print("Username/password fail." + client_password[:1].upper() + client_password[1:])
-            self.redirect("http://Google.com")
+                self.redirect('/')
+            else:
+                print("Username/password fail.")
+                self.redirect("http://Google.com")
 
 class LogoutHandler(BaseHandler):
      def post(self):

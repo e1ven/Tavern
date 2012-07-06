@@ -31,12 +31,13 @@ class User(object):
 
     def randstr(self,length):
         return ''.join(chr(random.randint(0,255)) for i in range(length))
-    def hash_password(self,password, maxtime=0.5, datalength=64):
+
+    def hash_password(self,password, maxtime=5, datalength=64):
         pword = scrypt.encrypt(self.randstr(datalength), password, maxtime=maxtime)
 
         return base64.b64encode(pword).decode('utf-8')
 
-    def verify_password(self, guessed_password,hashed_password=None, maxtime=0.5):
+    def verify_password(self, guessed_password,hashed_password=None, maxtime=5):
         try:
             if hashed_password == None:
                 hashed_password = self.UserSettings['hashedpass']
@@ -346,7 +347,7 @@ class User(object):
         #Local server Only
         user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
-        self.Keys = lockedKeys(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])
+        self.Keys = lockedKey(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])
         self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def savemongo(self):

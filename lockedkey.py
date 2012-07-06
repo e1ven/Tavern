@@ -40,9 +40,6 @@ class lockedKey(object):
         """
         if password == None:
             raise Exception("Password cannot be null.") 
-        print(self.pubkey)
-        print(password)
-        print(self.maxtime)
         # Alternate PBKDF2 version -  import pbkdf2 ; pbkdf2.crypt(password, self.pubkey,10000)
 
         # N CPU cost parameter.  ( N should be a power of two > 1)
