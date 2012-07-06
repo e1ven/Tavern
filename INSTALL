@@ -43,25 +43,25 @@ mkdir /opt/uploads
 chmod 777 /opt/uploads/
 
 cd /opt
-git clone git@github.com:e1ven/Pluric.git
+git clone git@github.com:e1ven/Tavern.git
 
-cd /opt/Pluric/nginx
+cd /opt/Tavern/nginx
 cp nginx.conf /opt/nginx/conf/
 
 
-cd /opt/Pluric/libs/distribute-0.6.24/
+cd /opt/Tavern/libs/distribute-0.6.24/
 python3 distribute_setup.py
 
 
-cd /opt/Pluric/libs/Cython-0.15.1
+cd /opt/Tavern/libs/Cython-0.15.1
 python3 setup.py install
 
-cd /opt/Pluric/libs/Mako-0.5.0
+cd /opt/Tavern/libs/Mako-0.5.0
 python3 setup.py install
 
-cd /opt/Pluric/lib
+cd /opt/Tavern/lib
 git clone https://github.com/mikeboers/PyTomCrypt.git
-cd /opt/Pluric/libs/PyTomCrypt
+cd /opt/Tavern/libs/PyTomCrypt
 # You need to make sure cython works for this step.
 # If you are on OS X, set add /usr/local/bin as top of /etc/paths
 sudo ln -s /usr/local/bin/python3 /usr/local/bin/python
@@ -73,40 +73,43 @@ python3 setup.py build
 python3 setup.py install
 
 
-cd /opt/Pluric/libs/tornado-2.1.1
+cd /opt/Tavern/libs/tornado-2.1.1
 python3 setup.py install
 
 
 mkdir -p /usr/local/share/GeoIP
-cp /opt/Pluric/libs/GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
+cp /opt/Tavern/libs/GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
 
-cd /opt/Pluric/libs/pygeoip-0.2.2
+cd /opt/Tavern/libs/pygeoip-0.2.2
 python3 setup.py install
 
 
-cd /opt/Pluric/libs/Markdown-2.1.0 
+cd /opt/Tavern/libs/Markdown-2.1.0 
 # 2to3 has already been run on git version
 # If you redownload, re-run it.
 python3 setup.py install
 
 
-cd /opt/Pluric/libs/pymongo3-1.9b1/
+cd /opt/Tavern/libs/pymongo3-1.9b1/
 python3 setup.py install
 
 
-cd /opt/Pluric/libs/postmarkup-1.1.4/
+cd /opt/Tavern/libs/postmarkup-1.1.4/
 # Use my modified version
 python3 setup.py install
 
-cd /opt/Pluric/libs/
+cd /opt/Tavern/libs/
 hg clone http://bitbucket.org/mhallin/py-scrypt
 cd py-scrypt
 python3 setup.py install
 
+cd /opt/Tavern/libs/pbkdf2-1.3
+python3 setup.py install
 
-cd /opt/Pluric/libs
+
+cd /opt/Tavern/libs
 git clone https://github.com/grahame/pil-py3k
-cd /opt/Pluric/libs/pil-py3k
+cd /opt/Tavern/libs/pil-py3k
 # Enable jpg support by linking, on 64 bit.
     vi setup.py
     on page 196, add
@@ -115,29 +118,29 @@ cd /opt/Pluric/libs/pil-py3k
 python3 setup.py install
 
 
-cd /opt/Pluric/libs
+cd /opt/Tavern/libs
 git clone https://github.com/fancycode/pylzma.git
-cd /opt/Pluric/libs/pylzma
+cd /opt/Tavern/libs/pylzma
 python3 setup.py install
 
-cd /opt/Pluric/libs/lxml-2.3/
+cd /opt/Tavern/libs/lxml-2.3/
 python3 setup.py build
 python3 setup.py install
 
-cd /opt/Pluric/libs/BeautifulSoup-4.0b
+cd /opt/Tavern/libs/BeautifulSoup-4.0b
 python3 setup.py install
 
-echo "/usr/bin/python /opt/Pluric/TopicList.py" > /etc/cron.hourly/generatetopics
-echo "/usr/bin/python /opt/Pluric/ModList.py" > /etc/cron.daily/findmods
+echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
+echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
 
 
-ln -s /opt/Pluric/libs/pluric /etc/init.d/
+ln -s /opt/Tavern/libs/Tavern /etc/init.d/
 
-cd /opt/Pluric/
+cd /opt/Tavern/
 python ./generateNginx.py 
 
 /etc/init.d/mongodb start
 /opt/nginx/sbin/nginx
 
-/etc/init.d/pluric start
+/etc/init.d/Tavern start
 

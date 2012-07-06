@@ -11,6 +11,8 @@ from server import server
 import scrypt
 import random
 import base64
+from lockedkey import lockedKey
+
 
 class User(object):
       
@@ -19,7 +21,13 @@ class User(object):
         self.UserSettings['followedUsers'] = []
         self.UserSettings['followedTopics'] = []
 
-
+    def isLoggedIn(self):
+        if self.UserSettings['pubkey'] == server.ServerSettings['guestacct']['pubkey']:
+            return False
+        if 'encryptedprivkey' in self.UserSettings:
+            if self.UserSettings['encryptedprivkey'] is not None:
+                return True
+        return False
 
     def randstr(self,length):
         return ''.join(chr(random.randint(0,255)) for i in range(length))
@@ -37,6 +45,7 @@ class User(object):
             return True
         except scrypt.error:
             return False
+
 
     def getNote(self,noteabout):
         """ 
@@ -219,11 +228,11 @@ class User(object):
             if server.sorttopic(followedtopic) == server.sorttopic(topic):
                 self.UserSettings['followedTopics'].remove(topic)
 
-    def generate(self,email=None,hashedpass=None,username=None,skipkeys=False):
+    def generate(self,email=None,username=None,skipkeys=False,password=None):
         """
-        Fill in any missing user information
+        Create a Tavern user, filling in any missing information for existing users.
+        Only creates keys if asked to.
         """
-
 
         # Ensure that these values are filled in. 
         # Either by Saved values, Passed-in values, or by Null objects.
@@ -239,38 +248,31 @@ class User(object):
         elif not 'email' in self.UserSettings:
             self.UserSettings['email'] = "email@example.com"
 
-        if hashedpass is not None:
-            self.UserSettings['hashedpass'] = hashedpass
-        elif not 'hashedpass' in self.UserSettings:
-            self.hashedpass = None
+        
+        if password is not None:
+            self.UserSettings['hashedpass'] = self.hash_password(password)
 
-        # Ensure we have a valid private key
-        validpriv = False
-        if 'privkey' in self.UserSettings:
-            if self.UserSettings['privkey'] is not None:
-                validpriv = True
+        # Ensure we have a valid public key, one way or another.
+        # If skipkeys = True, use the generic one in the server.
+        # If not, make a new one.
 
-        if not validpriv: 
-            # If we don't have a public key, decide if we need one by the 'skipkeys' value
-            # If we do, use the default system guest key.
-            # If there isn't one, add one.
-            # Adding this here, rather than on system start under Server, to avoid looping deps.
-            if skipkeys != True:
-                print("I was asked to make a key.")
-                self.Keys = Keys()
-                self.Keys.generate()
-                self.Keys.format_keys()
-                self.UserSettings['privkey'] = self.Keys.privkey
-                self.UserSettings['pubkey'] = self.Keys.pubkey
-            else:
-                if 'guestacct' not in server.ServerSettings:
-                    u = User()
-                    u.generate(skipkeys=False)
-                    server.ServerSettings['guestacct'] = u.UserSettings
-
+        if skipkeys == True:
+            if not 'pubkey' in self.UserSettings:
                 self.UserSettings['pubkey'] = server.ServerSettings['guestacct']['pubkey']
-                self.UserSettings['privkey'] = None
                 self.Keys = Keys(pub=self.UserSettings['pubkey'])
+        else:
+            # Make a real key if we don't have one.
+            validpriv = False
+            if 'encryptedprivkey' in self.UserSettings:
+                if self.UserSettings['encryptedprivkey'] is not None:
+                    validpriv = True
+            if not validpriv: 
+                self.Keys = lockedKey()
+                self.Keys.generate(password=password)
+                self.Keys.format_keys()
+                self.UserSettings['pubkey'] = self.Keys.pubkey
+                self.UserSettings['encryptedprivkey'] = self.Keys.encryptedprivkey
+
 
         if not 'time_created' in self.UserSettings:
             gmttime = time.gmtime()
@@ -302,22 +304,22 @@ class User(object):
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
 
-
+        print("Done making keys.")
 
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-        self.UserSettings['privkey'] = self.Keys.privkey
+        if 'encryptedprivkey' in self.UserSettings:
+            self.Keys = lockedKey(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])       
+            print("Reconstructed with encryptedprivkey")   
+        else: 
+            self.Keys = Keys(pub=self.UserSettings['pubkey'])          
+            print("reconstructed user without privkey")
         self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def load_file(self,filename):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
-        self.UserSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-        filehandle.close()    
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-        self.UserSettings['privkey'] = self.Keys.privkey
-        self.UserSettings['pubkey'] = self.Keys.pubkey
+        self.load_string(filecontents)
         
     def savefile(self,filename=None):
         self.Keys.format_keys()
@@ -328,17 +330,19 @@ class User(object):
         filehandle.close()
     
     def load_mongo_by_pubkey(self,pubkey):
+        """
+        Returns a user object for a given pubkey
+        """
         user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         if user is None:
-            #If the user doesn't exist in our service, he's only heard about.
-            #We won't know their privkey, so just return their pubkey back out.
+            # If the user doesn't exist in our service, he's only someone we've heard about.
+            # We won't know their privkey, so just return their pubkey back out.
             self.Keys = Keys(pub=pubkey) 
         else:    
-            #If we *do* find you locally, load in both Priv and Pubkeys
-            #And load in the user settings.
+            # If we *do* find you locally, load in both Priv and Pubkeys
+            # And load in the user settings.
             self.UserSettings = user
-            self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-            self.UserSettings['privkey'] = self.Keys.privkey
+            self.Keys = lockedKey(pub=self.UserSettings['pubkey'])
         self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def load_mongo_by_username(self,username):
@@ -346,16 +350,18 @@ class User(object):
         print(username)
         user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
-        print(self.UserSettings['pubkey'])
-        self.Keys = Keys(pub=self.UserSettings['pubkey'],priv=self.UserSettings['privkey'])
-        self.UserSettings['privkey'] = self.Keys.privkey
+        self.Keys = lockedKeys(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])
         self.UserSettings['pubkey'] = self.Keys.pubkey
         print("Loaded username " + username + "..." + self.UserSettings['pubkey'])
 
     def savemongo(self):
-        if not 'privkey' in self.UserSettings:
-            self.Keys.generate()    
+        if not 'encryptedprivkey' in self.UserSettings:
+            raise Exception("Asked to save a bad user")
+
         self.Keys.format_keys()
+        self.UserSettings['privkey'] = None
+        self.UserSettings['passkey'] = None
+        self.UserSettings['pubkey'] = self.Keys.pubkey
         self.UserSettings['_id'] = self.Keys.pubkey
         server.mongos['default']['users'].save(self.UserSettings) 
             
