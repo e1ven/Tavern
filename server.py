@@ -355,23 +355,35 @@ class Server(object):
                         #In order to display an image, it must be of the right MIME type, the right size, it must open in
                         #Python and be a valid image.
                         displayable = False;
-                        if attachment.length < 1024000:  #Don't try to make a preview if it's > 1M
+                        if attachment.length < 10485760 :  #Don't try to make a preview if it's > 10M
                             if 'content_type' in binary:
                                 if binary['content_type'].rsplit('/')[0].lower() == "image":
                                     imagetype = imghdr.what('ignoreme',h=attachment.read())
                                     acceptable_images = ['gif','jpeg','jpg','png','bmp']
                                     if imagetype in acceptable_images:
                                         #If we pass -all- the tests, create a thumb once.
-                                        if not self.bin_GridFS.exists(filename=binary['sha_512'] + "-thumb"):
+                                        displayable=binary['sha_512'] + "-thumb"
+                                        if not self.bin_GridFS.exists(filename=displayable):
                                             attachment.seek(0) 
                                             im = Image.open(attachment)
-                                            img_width, img_height = im.size
-                                            if ((img_width > 640 ) or (img_height > 480 )): 
-                                                im = im.resize((640, 480),Image.ANTIALIAS)
+
+                                            # resize if nec.
+                                            if im.size[0] > 640:
+                                              imAspect = float(im.size[1])/float(im.size[0])
+                                              newx = 640
+                                              newy = int(640 * imAspect)
+                                              im = im.resize((newx,newy),Image.ANTIALIAS)
+                                            if im.size[1] > 480:
+                                              imAspect = float(im.size[0])/float(im.size[1])
+                                              newy = 480
+                                              newx = int(480 * imAspect)
+                                              img = im.resize((newx,newy),Image.ANTIALIAS)
+
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
+                                            print(displayable)
                                             im.save(thumbnail,format='png')    
                                             thumbnail.close()
-                                        displayable=binary['sha_512'] + "-thumb"
+
                         attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:
