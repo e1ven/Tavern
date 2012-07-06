@@ -29,7 +29,8 @@ import urllib.request, urllib.parse, urllib.error
 #import TopicList
 from bs4 import BeautifulSoup
 import rss
-
+import Image
+import imghdr
 
 import re
 try: 
@@ -893,6 +894,14 @@ class NewmessageHandler(BaseHandler):
             print("Opening File " + fullpath + " as digest " + digest)
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath,'rb') as localfile:
+                    # If it's an image, strip EXIF data.
+                    # Do so here, rather than in server, so that server->server messages aren't touched
+                    imagetype = imghdr.what('ignoreme',h=localfile.read())
+                    acceptable_images = ['gif','jpeg','jpg','png','bmp']
+                    if imagetype in acceptable_images:
+                        Image.open(fullpath).save(fullpath,format=imagetype)
+                    localfile.seek(0)
+
                     oid = server.bin_GridFS.put(localfile,filename=digest, content_type=client_filetype)
                     stored = True
             else:
