@@ -87,8 +87,9 @@
 
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 							{% if 'displayable' in attachment %}
-	                                                    {% if attachment['displayable'] is not False %}
-								<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a> <br>
+	                            {% if attachment['displayable'] is not False %}
+									<a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}">
+									<img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
 							    {% end %} 
 							{% end %} 
 				            <a href="/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
@@ -109,11 +110,12 @@
 				{% elif user.UserSettings['allowembed'] == 0  %}
 					<i class="icon-picture embeddedcontentnote"></i>
 					<div class="embededwarning">
-						This message includes some media (such as a Youtube video) that loads through an external source.<br>
-						This is very likely to be safe, but since it's loading through another website, that website could potentially keep a record of you.<br>
-						If you'd like, you can either 
-						<form action="/changesetting/showembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Display external content' class="textbutton "></form>
-						or <form action="/changesetting/dontshowembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Only display links to external content' class="textbutton "></form>.
+						This message contains a link to external content, such as a movie or picture.<Br>
+						Tavern can automatically display these things, but if you do so, the site they come from will know you loaded it.<br>
+						You can always change this setting in <a href="/user/{{''.join(user.UserSettings['pubkey'].split())}}">your user preferences</a><br><br>
+
+						<form action="/changesetting/showembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Always load external content' class="textbutton "></form> | 
+						<form action="/changesetting/dontshowembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Only display links to external content' class="textbutton "></form>.
 					</div>
 				{% elif user.UserSettings['allowembed'] == -1 %}
 				{% end %}

@@ -630,7 +630,7 @@ class UserHandler(BaseHandler):
         self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey))
 
         envelopes = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey,'envelope.payload.class':'message'},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
             envelopes.append(envelope)
 
         self.write(self.render_string('showuserposts.html',envelopes=envelopes))

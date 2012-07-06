@@ -126,8 +126,6 @@ class Server(object):
                 self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
                 self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
-
-                
                 self.saveconfig()   
 
 
@@ -167,19 +165,6 @@ class Server(object):
         self.bin_GridFS = GridFS(self.mongos['binaries'])
         filehandle.close()
         self.saveconfig()
-
-    def getSortedMessages(topic=None):
-        messagesInTopic = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topic" : topic})
-
-        messagedate = e["envelope"]["local"]["time_added"]
-
-        numberOfStories = server.mongos['default']['envelopes'].find( {"envelope.payload.class" : "message","envelope.payload.topic" : topic,"envelope.local.time_added": {'$gt': messagedate }} ).count()
-
-        print("Original Date")
-        print(messagedate)
-        print("num since")
-        print(numberOfStories)
-
     
     def saveconfig(self,filename=None):
         if filename == None:

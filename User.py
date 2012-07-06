@@ -109,12 +109,12 @@ class User(object):
 
         if cache is not None:
             if time.time() - cache['time'] < server.ServerSettings['cache-user-trust-seconds']:
-                print("Using cached trust")
+                # print("Using cached trust")
                 return cache['calculatedtrust']
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
-            print("I trust me.")
+            # print("I trust me.")
             return round(incomingtrust)
 
         #Don't recurse forever, please.  
@@ -127,7 +127,7 @@ class User(object):
         #let's first check mongo to see I directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
 
-        print("Asking About -- " + askingabout)
+        # print("Asking About -- " + askingabout)
         trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         search = {"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  }
         pprint.pprint(search)
@@ -223,7 +223,6 @@ class User(object):
 
     def unFollowTopic(self,topic):
         # Compare the lowercase/sorted values
-        pprint.pprint(self.UserSettings['followedTopics'])
         for followedtopic in self.UserSettings['followedTopics']:
             if server.sorttopic(followedtopic) == server.sorttopic(topic):
                 self.UserSettings['followedTopics'].remove(topic)
@@ -304,8 +303,6 @@ class User(object):
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
 
-        print("Done making keys.")
-
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         if 'encryptedprivkey' in self.UserSettings:
@@ -347,12 +344,10 @@ class User(object):
 
     def load_mongo_by_username(self,username):
         #Local server Only
-        print(username)
         user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = lockedKeys(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])
         self.UserSettings['pubkey'] = self.Keys.pubkey
-        print("Loaded username " + username + "..." + self.UserSettings['pubkey'])
 
     def savemongo(self):
         if not 'encryptedprivkey' in self.UserSettings:
