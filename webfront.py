@@ -56,8 +56,15 @@ class BaseHandler(tornado.web.RequestHandler):
         #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
+
+        # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
+        # Do not allow the content to load in a frame.
+        # Should help prevent certain attacks
         self.set_header("X-FRAME-OPTIONS", "DENY")
+        # Don't try to guess content-type. 
+        # This helps avoid JS sent in an image.
+        self.set_header("X-Content-Type-Options","nosniff")
         
     def render_string(self, template_name, **kwargs):
         """
@@ -240,7 +247,9 @@ class BaseHandler(tornado.web.RequestHandler):
             if decodedcookie is not None:
                 self.user.load_string(decodedcookie.decode('utf-8'))
             else:
-                print("Cookie doesn't validate")
+                print("Cookie doesn't validate. Deleting...")
+                self.clear_cookie('tavern_preferences')
+                self.clear_cookie('tavern_preferences_count')
 
         # If there isn't already a cookie, make a very basic one.
         # Don't bother doing the keys, since that eats randomness.
@@ -283,15 +292,15 @@ class BaseHandler(tornado.web.RequestHandler):
 class RSSHandler(BaseHandler):
     def get(self,action,param):
         if action =="topic":
-            channel = rss.Channel('ForumLegion - ' + param,
-                          'http://ForumLegion.ch/rss/' + param,
-                          'ForumLegion discussion about ' + param,
-                          generator = 'ForumLegion',
+            channel = rss.Channel('Tavern - ' + param,
+                          'http://Tavern.com/rss/' + param,
+                          'Tavern discussion about ' + param,
+                          generator = 'Tavern',
                           pubdate = datetime.datetime.now())
             for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
-                    "http://ForumLegion.ch/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
+                    "http://Tavern.com/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
                     envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
@@ -807,7 +816,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release"
 
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
@@ -884,6 +893,12 @@ class NewmessageHandler(BaseHandler):
         for argument in self.request.arguments:
             if argument.startswith("attached_file") and argument.endswith('.path'):
                 filelist.append(argument.rsplit('.')[0])
+
+        if 'attached_file1.sha512' in self.request.arguments:
+            SHA512_precalced = False
+        else:
+            SHA512_precalced = True
+
         #Uniquify list
         filelist = list(dict([(i,1) for i in filelist]).keys())
         #Use this flag to know if we successfully stored or not.
@@ -905,16 +920,21 @@ class NewmessageHandler(BaseHandler):
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
             print("Taking Hash!") 
 
-            #Hash the file in chunks
-            SHA512 = hashlib.sha512()
-            File = open(fullpath, 'rb')
-            while True:
-                buf = File.read(0x100000)
-                if not buf:
-                    break
-                SHA512.update(buf)
-            File.close()
-            digest = SHA512.hexdigest()
+
+            if SHA512_precalced = False:
+                #Hash the file in chunks
+                SHA512 = hashlib.sha512()
+                File = open(fullpath, 'rb')
+                while True:
+                    buf = File.read(0x100000)
+                    if not buf:
+                        break
+                    SHA512.update(buf)
+                File.close()
+                digest = SHA512.hexdigest()
+            else:
+                digest = tornado.escape.xhtml_escape(self.get_argument(attached_file + ".sha512"))
+
             print("Opening File " + fullpath + " as digest " + digest)
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath,'rb') as localfile:

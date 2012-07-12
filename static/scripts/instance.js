@@ -129,26 +129,42 @@
         
     });  
 
+
     jQuery('a.details').each( function ()
     {            
         jQuery(this).click(function()
             {   
               userdiv = "details_" + jQuery(this).attr('user');
+              avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
+
+              jQuery("#" + userdiv).click(function()
+              { // hide on clicks to the function itself.
+                jQuery(this).hide();
+              });
+
               if (jQuery("#" + userdiv).is(":visible"))
               {
-                  jQuery("#" + userdiv).hide()
+                  jQuery("#" + userdiv).hide();
               }
               else
               {
-                  jQuery("#" + userdiv).show()
+                  jQuery("#" + userdiv).show();
+                  // Stupid WebKit workaround. - Webkit isn't pulling position on the Avatar correctly, so pull from the grandparent, then adjust
+                  pos = avatar.parent().parent().position();
+                  pos.left += avatar.width();
+
+                  if (jQuery(this).attr('orient') == "left")
+                  {
+                    jQuery("#" + userdiv).css({top: pos.top + avatar.height(), left: pos.left - avatar.width(), position: 'absolute'});
+                  }
+                  else
+                  {
+                    jQuery("#" + userdiv).css({top: pos.top + avatar.height(), right: pos.right, position: 'absolute'});
+                  }
               }
               return false;
             });
     });
-
-
-
-
 
     jQuery('.embeddedcontentnote').each( function ()
     {            

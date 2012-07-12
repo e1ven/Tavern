@@ -11,7 +11,7 @@
 {% end %}
 
 <div class="padder">
-<form enctype="multipart/form-data" action="/uploadnewmessage" method="post">
+<form enctype="multipart/form-data" action="/uploadnewmessage" method="post" class="messageform">
   {% raw xsrf_form_html() %}
 {% if topic is None %}
 Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny">
@@ -39,7 +39,7 @@ What would you like your reply to say?<br>
 
 <div id="js_files_list">
 	Attach one or more files:<br>
-	 <input id="first_upload_element" type="file" name="attached_file1"><br>
+	 <input id="first_upload_element" type="file" name="attached_file1" multiple="multiple"><br>
 	
 </div>
 

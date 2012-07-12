@@ -147,3 +147,13 @@ python ./generateNginx.py
 
 /etc/init.d/Tavern start
 
+
+SETTINGS
+Most settings should work automatically out of the box, but you may want to modify Domains to run things on your own.
+For instance, the serversetting 'embedserver' sends users to embed.is for embedded iframes.
+Feel free to run your own embed server, and change this setting to use it.
+
+Also, for production, you should change probably run a separate binaries server from / to a new domain.
+This will prevent cookie reading attacks.
+
+

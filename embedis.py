@@ -3,6 +3,7 @@ import urllib.request, urllib.parse, urllib.error
 import re,json
 import socket
 socket.setdefaulttimeout(30)
+from server import server
 
 
 
@@ -74,7 +75,7 @@ class embedis:
         #     return None
         # else:
         #     print("Possible embedis URL")
-        api_url = 'http://embed.is/iframe/'+ self.x + '/' + self.y + '/'
+        api_url = server.ServerSettings['embedserver']  + '/iframe/'+ self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
         try:
@@ -85,7 +86,7 @@ class embedis:
                 print("Embedis gave us - " + response)
                 return response
             else:
-                print ("No good from embed.is")
+                print ("No good from " +  server.ServerSettings['embedserver'])
                 return None
         except:
             return None

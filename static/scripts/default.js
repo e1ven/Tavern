@@ -1,6 +1,8 @@
 
 head.ready(function() {
     jQuery.noConflict();
+
+
     jQuery.fn.splitter = function(args){
     	args = args || {};
     	return this.each(function() {

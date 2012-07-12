@@ -427,15 +427,16 @@ COLUMN WIDTH ELEMENTS
 
 img.imginline { vertical-align: middle;  }
 
-.topic_right { float: left; width: 75%; }
-.topic_left { float: right; width: 75%;}
+.topic_right { float: left; width: 50%; }
+.topic_left { float: right; width: 50%;}
 
 
-.thread_right { float: left; width: 25%; text-align: right; }
+.thread_right { float: right; width: 50%; text-align: right; }
 .thread_right img.avatar { float: right; padding: 2px; border: 1px solid #ccc; margin-left: 10px; }
 .thread_left { float: left; text-align: left; }
 .thread_left img.avatar { float: left; padding: 2px; border: 1px solid #ccc; margin-right: 10px; }
 
+.float_right { float: right;}
 
 .thread_common a { color: #333333; text-decoration: none; }
 .thread_common a:hover { color: #602e4d; }
@@ -544,23 +545,24 @@ img.imginline { vertical-align: middle;  }
   The css :
 */
 
-.UserDetails {
+.details {
   position:relative;
+}
+
+
+.UserDetails {
+  position:absolute;
+  width:400px;
   color:#ffffff;
   cursor:normal;
   display:none;
   margin-top:12px;
-
-     font-weight: bold;
-     text-decoration:none;  
-     font-size: 12px;
-     line-height: 18px;
-   font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
-
-
- /* display:-moz-inline-stack;
-  display:inline-block;
- */ font-size:12px;
+  font-weight: bold;
+  text-decoration:none;  
+  font-size: 12px;
+  line-height: 18px;
+  font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+  font-size:12px;
   font-family:arial;
   padding:.5em 1em;
   text-align:center;
@@ -591,12 +593,11 @@ img.imginline { vertical-align: middle;  }
   background-image:-webkit-gradient(linear,left top,left bottom,color-stop(0,#555555),color-stop(1,#222222));
   filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
   -ms-filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
+  z-index:10;
 }
 .UserDetails:after{
   content:"\25B8";
   display:block;
-
-
   font-size:2em;
   height:0;
   line-height:0;
@@ -612,14 +613,25 @@ img.imginline { vertical-align: middle;  }
   -khtml-transform:rotate(-90deg);
   -webkit-transform:rotate(-90deg);
   width:30%;
+  z-index:10;
+}
+
+.UserDetails_right
+{
+  right:10px;
+}
+
+.UserDetails_left
+{
+  left:10px;
 }
 
 /* Proper floating per side! */
 .thread_right > .UserDetails:after{
-  margin-left:75%;
+  margin-left:78%;
 }
 .thread_left > .UserDetails:after{
-  margin-left:5%;
+  margin-left:-9%;
 }
 
 .UserDetails a:link, .UserDetails a:visited, a:active{

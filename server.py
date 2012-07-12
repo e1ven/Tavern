@@ -22,7 +22,6 @@ import imghdr
 import datetime
 import re
 import bbcodepy
-import embedis
 from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
@@ -117,6 +116,8 @@ class Server(object):
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
                 self.ServerSettings['cookie-encryption'] = self.randstr(255)
                 self.ServerSettings['serverkey-password'] = self.randstr(255)
+                self.ServerSettings['embedserver'] = 'http://embed.is'
+                self.ServerSettings['downloadserver'] = ''
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
@@ -492,3 +493,5 @@ class Server(object):
         
 server = Server()
 from User import User
+import embedis
+
