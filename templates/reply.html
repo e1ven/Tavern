@@ -2,11 +2,14 @@
 {% from collections import OrderedDict %}
 {% import datetime %}
 
-{% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
+{% set medialink = None %}
 
+{% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
+{% set permalink = 'http://ForumLegion.ch/message/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+
 
 {% if orient == "left" %}
 <ul class='response' id="{{envelope['envelope']['payload_sha512']}}">
@@ -88,7 +91,10 @@
 							{% if 'displayable' in attachment %}
 	                            {% if attachment['displayable'] is not False %}
 									<a href="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}">
-									<img src="/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+									<img src="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+									{% if medialink == None %}
+										{% set medialink = server.ServerSettings['downloadserver'] + '/binaries/' + attachment['displayable'] %}
+									{% end %}
 							    {% end %} 
 							{% end %} 
 				            <a href="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)<br>
@@ -121,7 +127,7 @@
 			{% end %}
 
 			<div class="comment_bottom">
-			&nbsp; <a rel="bookmark" class='internal' href="/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">Permalink</a>
+			&nbsp; <a rel="bookmark" class='internal' href="{{permalink}}">Permalink</a>
 			{% if 'regarding' in envelope['envelope']['payload'] %}
 				&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 			{% end %}
@@ -142,8 +148,18 @@
 					</form>
 				</div>  <!-- votes -->
 				{% if orient == "right" %}
+					{% if medialink is None %}
+						{% set medialink = 'http://www.pluric.com/static/images/logo.png' %}
+					{% end %}
 				<div class="externalsharing">
-				<a href="http://www.facebook.com/sharer.php?u=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}&t={{envelope['envelope']['local']['short_subject']}}"><i class="icon-facebook-sign"></i></a> <a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0Ahttp://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}" ><i class="icon-twitter-sign"></i></a> <a href="https://plusone.google.com/_/+1/confirm?hl=en&url=http://ForumLegion.ch/message/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}"><i class="icon-google-plus-sign"></i></a>
+				<a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+				<i class="icon-facebook-sign"></i></a>
+				<a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+				<i class="icon-twitter-sign"></i></a>
+				<a href="https://plusone.google.com/_/+1/confirm?hl=en&url={{permalink}}">
+				<i class="icon-google-plus-sign"></i></a>
+				<a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
+				<i class="icon-pinterest-sign"></i></a>
 				</div>
 				{% end %}
 				<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
