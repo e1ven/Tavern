@@ -20,7 +20,6 @@ import pymongo
 from tornado.options import define, options
 from server import server
 import pygeoip
-import pprint
 from keys import *
 from User import User
 from gridfs import GridFS
@@ -130,7 +129,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 #There are Additional Variables in this URL
                 finish = "?" + self.request.uri[nextvar+1:len(self.request.uri)]
             else:
-                print("No Next variables")
+                server.logger.info("No Next variables")
                 #There are no other variables. Delete until End of string
                 finish = ""
                 
@@ -146,7 +145,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     #There are Additional Variables in this URL
                     finish = "?" + modifiedurl[nextvar+1:len(modifiedurl)]
                 else:
-                    print("No Next variables")
+                    server.logger.info("No Next variables")
                     #There are no other variables. Delete until End of string
                     finish = ""
                 modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") -1] + finish
@@ -227,8 +226,8 @@ class BaseHandler(tornado.web.RequestHandler):
             numchunks += 1
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
-        print("numchunks + " + str(numchunks))
-        print("Setting :::: " + json.dumps(usersettings))
+        server.logger.info("numchunks + " + str(numchunks))
+        server.logger.info("Setting :::: " + json.dumps(usersettings))
 
     def getvars(self,ensurekeys=False):
         """
@@ -247,14 +246,14 @@ class BaseHandler(tornado.web.RequestHandler):
             if decodedcookie is not None:
                 self.user.load_string(decodedcookie.decode('utf-8'))
             else:
-                print("Cookie doesn't validate. Deleting...")
+                server.logger.info("Cookie doesn't validate. Deleting...")
                 self.clear_cookie('tavern_preferences')
                 self.clear_cookie('tavern_preferences_count')
 
         # If there isn't already a cookie, make a very basic one.
         # Don't bother doing the keys, since that eats randomness.
         else:
-            print("Making cookies")
+            server.logger.info("Making cookies")
             self.user.generate(skipkeys=True)
             self.setvars()
 
@@ -266,7 +265,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 if self.user.UserSettings['encryptedprivkey'] is not None:
                     validkey = True
             if not validkey:
-                print("Making keys with a random password.")
+                server.logger.info("Making keys with a random password.")
 
                 # Generate a random password with a random number of characters
                 numcharacters = 100 + random.randrange(1,100)
@@ -367,7 +366,7 @@ class TriPaneHandler(BaseHandler):
         for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
 
-        print(action)                        
+        server.logger.info(action)                        
         if action == "topic":
             # If you change the topic, refresh all three panels.
             divs.append("left")
@@ -375,7 +374,7 @@ class TriPaneHandler(BaseHandler):
             divs.append("right")
 
             subjects = []
-            print(server.sorttopic(topic))
+            server.logger.info(server.sorttopic(topic))
             if topic != "all":
                 for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
@@ -431,7 +430,7 @@ class TriPaneHandler(BaseHandler):
 
         # Detect people accessing via odd URLs
         if self.request.path[1:] != canon:
-            print("Redirecting URL " + self.request.path[1:] + " to " + canon )
+            server.logger.info("Redirecting URL " + self.request.path[1:] + " to " + canon )
             self.redirect("/" + canon, permanent=True)
             return
 
@@ -440,7 +439,6 @@ class TriPaneHandler(BaseHandler):
         self.write(self.render_string('tripane.html',topic=topic,user=self.user,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
-        pprint.pprint(divs)   
         if action == "message" or action == "topic":
             self.finish(divs=divs)
         else:
@@ -454,7 +452,6 @@ class TopicPropertiesHandler(BaseHandler):
 
         mods = []
         for mod in server.mongos['default']['modlist'].find({'_id.topic':server.sorttopic(topic)},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
-            pprint.pprint(mod)
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(mod['_id']['moderator'].encode('utf-8')).hexdigest() 
             mods.append(mod)
 
@@ -488,7 +485,7 @@ class AttachmentHandler(BaseHandler):
     def get(self,attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},fields={'envelope.payload_sha512':1,'envelope.payload.subject':1},as_class=OrderedDict)
+        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},as_class=OrderedDict)
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -575,7 +572,6 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self):
         self.getvars()  
-        pprint.pprint(self.user.UserSettings)      
         self.write(self.render_string('header.html',title="Login to your account",user=self.user,rsshead=None,type=None))
         self.write(self.render_string('loginform.html'))
         self.write(self.render_string('footer.html'))
@@ -608,13 +604,13 @@ class LoginHandler(BaseHandler):
                     login = True
             if login == True:
                 self.user = u
-                print("Passkey - " + self.user.Keys.passkey(client_password))
+                server.logger.info("Passkey - " + self.user.Keys.passkey(client_password))
                 self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
                 self.setvars()
-                print("Login Successful.")
+                server.logger.info("Login Successful.")
                 self.redirect('/')
             else:
-                print("Username/password fail.")
+                server.logger.info("Username/password fail.")
                 self.redirect("http://Google.com")
 
 class LogoutHandler(BaseHandler):
@@ -670,7 +666,7 @@ class ChangeManySettingsHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
 
-        print("set")
+        server.logger.info("set")
         if "js" in self.request.arguments:
             self.finish(divs=['left'])
         else:
@@ -689,12 +685,12 @@ class ChangeSingleSettingHandler(BaseHandler):
             self.user.unFollowTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
         elif setting == "showembeds":
             self.user.UserSettings['allowembed'] = 1
-            print("allowing embeds")
+            server.logger.info("allowing embeds")
         elif setting == "dontshowembeds":
             self.user.UserSettings['allowembed'] = -1
-            print("forbidding embeds")
+            server.logger.info("forbidding embeds")
         else:
-            print("Warning, you didn't do anything!")      
+            server.logger.info("Warning, you didn't do anything!")      
 
         self.user.savemongo()
         self.setvars()
@@ -777,7 +773,7 @@ class UserNoteHandler(BaseHandler):
         client_pubkey = self.get_argument("pubkey")    
         client_note = self.get_argument("note")
         self.user.setNote(client_pubkey,client_note)
-        print("Note Submitted.")
+        server.logger.info("Note Submitted.")
 
 
 
@@ -846,7 +842,7 @@ class UserTrustHandler(BaseHandler):
         
         #Send to the server
         server.receiveEnvelope(e.text())
-        print("Trust Submitted.")
+        server.logger.info("Trust Submitted.")
 
         # Remove cached version of this trust.
         server.mongos['cache']['usertrusts'].remove({"asking":self.user.Keys.pubkey,"askingabout":trusted_pubkey})
@@ -915,13 +911,13 @@ class NewmessageHandler(BaseHandler):
             client_filename =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".name"))
             client_filesize =  tornado.escape.xhtml_escape(self.get_argument(attached_file + ".size"))
            
-            print("Trying client_filepath of " + client_filepath ) 
+            server.logger.info("Trying client_filepath of " + client_filepath ) 
             fs_basename = os.path.basename(client_filepath)
             fullpath = server.ServerSettings['upload-dir'] + "/" + fs_basename
-            print("Taking Hash!") 
+            server.logger.info("Taking Hash!") 
 
 
-            if SHA512_precalced = False:
+            if SHA512_precalced == False:
                 #Hash the file in chunks
                 SHA512 = hashlib.sha512()
                 File = open(fullpath, 'rb')
@@ -935,7 +931,7 @@ class NewmessageHandler(BaseHandler):
             else:
                 digest = tornado.escape.xhtml_escape(self.get_argument(attached_file + ".sha512"))
 
-            print("Opening File " + fullpath + " as digest " + digest)
+            server.logger.info("Opening File " + fullpath + " as digest " + digest)
             if not server.bin_GridFS.exists(filename=digest):
                 with open(fullpath,'rb') as localfile:
                     # If it's an image, strip EXIF data.
@@ -950,7 +946,7 @@ class NewmessageHandler(BaseHandler):
                     stored = True
             else:
                 stored = True
-            print("Creating Messazge")
+            server.logger.info("Creating Messazge")
             #Create a message binary.    
             bin = Envelope.binary(hash=digest)
             #Set the Filesize. Clients can't trust it, but oh-well.
@@ -965,7 +961,7 @@ class NewmessageHandler(BaseHandler):
         e = Envelope()
 
         if client_regarding is not None:
-            print("Adding Regarding - " + client_regarding)
+            server.logger.info("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
 
             regardingmsg = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512':client_regarding},as_class=OrderedDict)
@@ -1073,7 +1069,7 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['body'] = toKey.encryptToSelf(client_body)
         e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)
         if client_regarding is not None:
-            print("Adding Regarding - " + client_regarding)
+            server.logger.info("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
 
         e.payload.dict['author'] = OrderedDict()
@@ -1118,7 +1114,7 @@ class AvatarHandler(BaseHandler):
     For users who aren't using nginx (like in dev), this will pull in the avatars
     """
     def get(self,avatar):
-        print("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
+        server.logger.info("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
         self.redirect('https://robohash.org/' + avatar + "?" + "set="  + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size') )
         
 def main():
@@ -1127,7 +1123,7 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    print("Starting Web Frontend for " + server.ServerSettings['hostname'])
+    server.logger.info("Starting Web Frontend for " + server.ServerSettings['hostname'])
     
 
     # Generate a default user, to use when no one is logged in.

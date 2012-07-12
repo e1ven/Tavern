@@ -16,7 +16,6 @@ from gridfs import GridFS
 import gridfs
 from Envelope import Envelope
 import sys
-import pprint
 import markdown
 import imghdr
 import datetime
@@ -34,7 +33,6 @@ class Fortuna():
         while line:
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
-        print("Fortunes Loaded.")
     def random(self):
         return random.choice(self.fortunes)
 
@@ -76,7 +74,7 @@ class Server(object):
             return fmt + " ago"
 
     def randstr(self,length):
-        # Ensure it's printable.
+        # Ensure it's self.logger.infoable.
         return ''.join(chr(random.randint(48,122)) for i in range(length))
 
 
@@ -92,7 +90,7 @@ class Server(object):
                 self.loadconfig()
             else:
                 #Generate New config   
-                print("Generating new Config") 
+                self.logger.info("Generating new Config") 
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
                 self.ServerSettings = OrderedDict()
@@ -129,25 +127,25 @@ class Server(object):
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
                 self.saveconfig()   
 
-
         else:
             self.loadconfig(settingsfile)
         
         self.ServerSettings['static-revision'] = int(time.time())
-
-        #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
-        logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         self.fortune = Fortuna()
+
+        self.logger = logging.getLogger('Tavern')
+        #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
+        logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
+        
 
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.js")
-        print("Cached JS")
+        self.logger.info("Cached JS")
         self.cache['instance.js'] = file.read()
         file.close()
 
 
     def loadconfig(self,filename=None):
-        print("Loading config from file.")
         if filename == None:
             filename = platform.node() + ".TavernServerSettings"
         filehandle = open(filename, 'r')
@@ -211,14 +209,14 @@ class Server(object):
         
         #First, ensure we're dealing with a good Env, before we proceed
         if not c.validate():
-            print("Validation Error")
-            print(c.text())
+            self.logger.info("Validation Error")
+            self.logger.info(c.text())
             return False
 
                 # First, pull the message.
-        existing = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : c.payload.hash() },as_class=OrderedDict)
+        existing = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : c.payload.hash() },as_class=OrderedDict)
         if existing is not None:
-            print("We already have that msg.")  
+            self.logger.info("We already have that msg.")  
             return c.dict['envelope']['payload_sha512']      
         
         #If we don't have a local section, add one.
@@ -265,16 +263,16 @@ class Server(object):
           if 'regarding' in c.dict['envelope']['payload']:
             repliedTo = Envelope()
             if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-              print(" I am :: " + c.dict['envelope']['payload_sha512'])
-              print(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['payload_sha512'])
+              self.logger.info(" I am :: " + c.dict['envelope']['payload_sha512'])
+              self.logger.info(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['payload_sha512'])
               repliedTo.addcite(c.dict['envelope']['payload_sha512'])
 
           # It could also be that this message is cited BY others we already have!
           # Sometimes we received them out of order. Better check.
-          for citedme in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
-            print('found existing cite, bad order. ')
-            print(" I am :: " + c.dict['envelope']['payload_sha512'])
-            print(" Found pre-existing cite at :: " + citedme['envelope']['payload_sha512']) 
+          for citedme in self.mongos['default']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
+            self.logger.info('found existing cite, bad order. ')
+            self.logger.info(" I am :: " + c.dict['envelope']['payload_sha512'])
+            self.logger.info(" Found pre-existing cite at :: " + citedme['envelope']['payload_sha512']) 
             citedme = self.formatEnvelope(citedme)
             c.addcite(citedme['envelope']['payload_sha512'])
       
@@ -313,8 +311,8 @@ class Server(object):
         # Find the top level of a post that we currently have.
         
         # First, pull the message.
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
-        envelope = server.formatEnvelope(envelope)
+        envelope = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
+        envelope = self.formatEnvelope(envelope)
         
     
         # IF we don't have a parent, or if it's null, return self./
@@ -325,7 +323,7 @@ class Server(object):
            
         # If we do have a parent, Check to see if it's in our datastore.
         parentid = envelope['envelope']['payload']['regarding']
-        parent = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : parentid },as_class=OrderedDict)
+        parent = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : parentid },as_class=OrderedDict)
         if parent is None:
             return messageid
             
@@ -381,14 +379,14 @@ class Server(object):
                                               img = im.resize((newx,newy),Image.ANTIALIAS)
 
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
-                                            print(displayable)
+                                            self.logger.info(displayable)
                                             im.save(thumbnail,format='png')    
                                             thumbnail.close()
 
                         attachmentdesc = {'sha_512' : binary['sha_512'], 'filename' : binary['filename'], 'filesize' : attachment.length, 'displayable': displayable }
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:
-                        print("Error, attachment gone ;(")
+                        self.logger.info("Error, attachment gone ;(")
         if 'body' in envelope['envelope']['payload']:                            
             if 'formatting' in envelope['envelope']['payload']:
                     formattedbody = self.formatText(text=envelope['envelope']['payload']['body'],formatting=envelope['envelope']['payload']['formatting'])

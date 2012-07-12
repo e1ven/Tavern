@@ -6,7 +6,6 @@ from keys import *
 import logging
 from collections import OrderedDict
 import pymongo
-import pprint
 from server import server
 import scrypt
 import random
@@ -88,7 +87,7 @@ class User(object):
         key = Keys(pub = askingabout )
         askingabout = key.pubkey
 
-        #print("My Key------" +  self.Keys.pubkey)
+        #server.logger.info("My Key------" +  self.Keys.pubkey)
         #Rating of myself = 250
         #Direct Rating = 100
         #Friend's Rating = 40
@@ -110,12 +109,12 @@ class User(object):
 
         if cache is not None:
             if time.time() - cache['time'] < server.ServerSettings['cache-user-trust-seconds']:
-                # print("Using cached trust")
+                # server.logger.info("Using cached trust")
                 return cache['calculatedtrust']
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
-            # print("I trust me.")
+            # server.logger.info("I trust me.")
             return round(incomingtrust)
 
         #Don't recurse forever, please.  
@@ -128,20 +127,18 @@ class User(object):
         #let's first check mongo to see I directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent. 
 
-        # print("Asking About -- " + askingabout)
+        # server.logger.info("Asking About -- " + askingabout)
         trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         search = {"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  }
-        pprint.pprint(search)
         foundtrust = False
         if trustrow.count() > 0:
             #Get the most recent trust
             tr = trustrow[0]    
-            print("I rated this user directly.")
-            pprint.pprint(tr)
+            server.logger.info("I rated this user directly.")
             trust = int(tr['envelope']['payload']['trust'])
             foundtrust = True
         else:
-            print("I have not directly rated this user.")
+            server.logger.info("I have not directly rated this user.")
         if foundtrust == False:
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
 
@@ -153,14 +150,14 @@ class User(object):
             #Now, iterate through each of those people. This will be slow, which is why we cache.
             for trusted in alltrusted:
                 friendcount += 1
-                print("BTW- I trust" + trusted['envelope']['payload']['trusted_pubkey'] +" \n\n\n\n")
+                server.logger.info("BTW- I trust" + trusted['envelope']['payload']['trusted_pubkey'] +" \n\n\n\n")
                 u = User()
                 u.load_mongo_by_pubkey(trusted['envelope']['payload']['trusted_pubkey'])
                 combinedFriendTrust += u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)
-                print("My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)))
+                server.logger.info("My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout,incomingtrust=maxtrust)))
             if friendcount > 0:    
                 trust = combinedFriendTrust / friendcount
-            print("total friend average" + str(trust))
+            server.logger.info("total friend average" + str(trust))
 
         #Add up the trusts from our friends, and cap at MaxTrust
         if trust > maxtrust:
@@ -308,10 +305,10 @@ class User(object):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         if 'encryptedprivkey' in self.UserSettings:
             self.Keys = lockedKey(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])       
-            print("Reconstructed with encryptedprivkey")   
+            server.logger.info("Reconstructed with encryptedprivkey")   
         else: 
             self.Keys = Keys(pub=self.UserSettings['pubkey'])          
-            print("reconstructed user without privkey")
+            server.logger.info("reconstructed user without privkey")
         self.UserSettings['pubkey'] = self.Keys.pubkey
 
     def load_file(self,filename):

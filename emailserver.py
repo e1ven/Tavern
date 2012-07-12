@@ -80,11 +80,11 @@ class EmailServer(object):
         for proc in range(0,server.ServerSettings['email']['workers']):
             newproc = multiprocessing.Process(target=self.sendmail, args=())
             self.procs.append(newproc)
-            print(" Created Process - " + str(proc))
+            server.logger.info(" Created Process - " + str(proc))
 
         for proc in self.procs:
              proc.start()
-             print(" Started " + str(count))
+             server.logger.info(" Started " + str(count))
              count += 1
 
     def kill(self):
@@ -92,12 +92,12 @@ class EmailServer(object):
         Terminate all subprocs
         """
         count = 0
-        print("stopping")
+        server.logger.info("stopping")
         for proc in self.procs:
              proc.terminate()
-             print(" Stopped " + str(count))
+             server.logger.info(" Stopped " + str(count))
              count += 1
-        print("You are now free to turn off your computer.")
+        server.logger.info("You are now free to turn off your computer.")
 
 
     def sendmail(self):
@@ -132,7 +132,7 @@ class EmailServer(object):
                 if count % newmailevery == 0:
                     if count > 0:
                         conn.close()
-                    print("Establishing Connection to emailserver " + server.ServerSettings['email']['smtpserver'])
+                    server.logger.info("Establishing Connection to emailserver " + server.ServerSettings['email']['smtpserver'])
                     if server.ServerSettings['email']['SSL'] == True:
                       conn = smtplib.SMTP_SSL(host=server.ServerSettings['email']['smtpserver'],port=server.ServerSettings['email']['port'])
                     else:
@@ -145,9 +145,9 @@ class EmailServer(object):
                     conn.sendmail(server.ServerSettings['email']['sender'], currentemail['address'], msg.as_string())   
                 finally:
                     count +=1
-                    print ("This thread has sent " + str(count))
+                    server.logger.info ("This thread has sent " + str(count))
             else:
                     sleeptime = server.ServerSettings['email']['sleeptime'] * random.random()
-                    print("Sleeping - " + str(sleeptime) + " seconds")
+                    server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
                     time.sleep(sleeptime)
         conn.close()  

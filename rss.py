@@ -22,7 +22,7 @@
 #
 # channel.additem(item)
 #
-# print(channel.toxml())
+# server.logger.info(channel.toxml())
 
 
 
@@ -237,7 +237,7 @@ class Channel(RSSBaseElement):
       return xml
 
    def toprettyxml(self, indent = '\t', newl = '\n', encoding = 'utf-8', tostr = True):
-      """Return a pretty-printed version of the xml document. 
+      """Return a pretty-server.logger.infoed version of the xml document. 
 
       indent   - the indentation string; default value is \t 
       newl     - the string emitted at the end of each line; default value is \n

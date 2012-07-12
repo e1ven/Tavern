@@ -74,7 +74,7 @@ class embedis:
         # if possible is None:
         #     return None
         # else:
-        #     print("Possible embedis URL")
+        #     server.logger.info("Possible embedis URL")
         api_url = server.ServerSettings['embedserver']  + '/iframe/'+ self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
@@ -83,10 +83,10 @@ class embedis:
             if f.getcode() == 200:
                 response = f.read().decode('utf-8')
                 f.close()
-                print("Embedis gave us - " + response)
+                server.logger.info("Embedis gave us - " + response)
                 return response
             else:
-                print ("No good from " +  server.ServerSettings['embedserver'])
+                server.logger.info ("No good from " +  server.ServerSettings['embedserver'])
                 return None
         except:
             return None

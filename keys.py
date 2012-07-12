@@ -4,8 +4,9 @@ import string
 import hashlib
 import base64
 from tomcrypt import cipher,rsa
+import logging
 
- 
+
 class Keys(object):
     
     def __init__(self,pub=None,priv=None):  
@@ -13,7 +14,7 @@ class Keys(object):
         Create a Key object.
         Pass in either pub=foo, or priv=foo, to use pre-existing keys.
         """
-        
+        self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
         self.format_keys()
@@ -42,19 +43,19 @@ class Keys(object):
             if "-----BEGIN RSA PRIVATE KEY-----" in self.privkey:
                 noHeaders=self.privkey[self.privkey.find("-----BEGIN RSA PRIVATE KEY-----")+31:self.privkey.find("-----END RSA PRIVATE KEY-----")]
             else:
-                print("USING NO HEADER VERSION OF PRIVKEY")
+                self.logger.info("USING NO HEADER VERSION OF PRIVKEY")
                 noHeaders = self.privkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]            
             self.privkey = "-----BEGIN RSA PRIVATE KEY-----\n" + withLinebreaks + "\n-----END RSA PRIVATE KEY-----"        
         #else:
-        #    print("No PRIVKEY")
+        #    self.logger.info("No PRIVKEY")
             
         if self.pubkey is not None:
             if "-----BEGIN PUBLIC KEY-----" in self.pubkey:
                 noHeaders=self.pubkey[self.pubkey.find("-----BEGIN PUBLIC KEY-----")+26:self.pubkey.find("-----END PUBLIC KEY-----")]
             else:
-                print("USING NO HEADER VERSION OF PUBKEY")
+                self.logger.info("USING NO HEADER VERSION OF PUBKEY")
                 noHeaders=self.pubkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
@@ -64,12 +65,12 @@ class Keys(object):
             if self.privkey == None and self.pubkey != None:
                 self.key = rsa.Key(self.pubkey,hash='sha512',padding="pss")
                 # self.pubkey = self.key.public.as_string()
-                # print("Going with Pubkey Only")
+                # self.logger.info("Going with Pubkey Only")
             elif self.privkey != None:
                 self.key = rsa.Key(self.privkey,hash='sha512',padding="pss")
                 # self.pubkey = self.key.public.as_string()
                 # self.privkey = self.key.as_string()
-                print("Full Key")
+                self.logger.info("Full Key")
             else:
                 self.key = None
         except:
@@ -81,7 +82,7 @@ class Keys(object):
         """
         Replaces whatever keys currently might exist with new ones.
         """
-        print("MAKING A KEY.")
+        self.logger.info("MAKING A KEY.")
         self.key = rsa.Key(2048,hash='sha512',padding="pss")
         self.pubkey = self.key.public.as_string()
         self.privkey = self.key.as_string()

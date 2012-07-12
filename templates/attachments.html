@@ -1,5 +1,34 @@
+{% set envelope = stack[0] %}
+{% import datetime %}
+
+
 <div id="single">
-<h1> Messages involving Attachment <br>- {{attachment}} </h1>
+<h1> General information regarding {{attachment}} </h1>
+
+<p></p>
+
+<br><br>
+<ul>
+{% for attach in envelope['envelope']['local']['attachmentlist'] %}
+	{% if attach['sha_512'] == attachment %}
+		This file is estimated to be {{round(float(attach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
+	{% end %}
+{% end %}
+
+It was first seen 
+ <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+
+
+</ul>
+<br><br>
+</div> <!-- #single -->
+
+
+
+
+<div id="single">
+<h1> Messages involving Attachment {{attachment}} </h1>
+
 <p></p>
 
 <br><br>

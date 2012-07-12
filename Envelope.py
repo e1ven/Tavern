@@ -2,12 +2,11 @@ import json
 import hashlib
 import sys
 import os
-from keys import *
+from keys import Keys
 import collections
 from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
-import pprint
 import pylzma
 
 
@@ -27,7 +26,7 @@ class Envelope(object):
             self.format()
             h = hashlib.sha512()
             h.update(self.text().encode('utf-8'))
-            # print "Hashing --" + self.text() + "--"
+            # server.logger.info "Hashing --" + self.text() + "--"
             return h.hexdigest()
         def text(self): 
             self.format()
@@ -35,11 +34,11 @@ class Envelope(object):
             return newstr  
         def validate(self):
             if 'author' not in self.dict:
-                print("No Author Information")
+                server.logger.info("No Author Information")
                 return False
             else:
                 if 'pubkey' not in self.dict['author']:
-                    print("No Pubkey line in Author info")
+                    server.logger.info("No Pubkey line in Author info")
                     return False
             self.format()
             return True                
@@ -47,19 +46,19 @@ class Envelope(object):
     class Message(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                print("Super does not Validate")
+                server.logger.info("Super does not Validate")
                 return False
             if 'subject' not in self.dict:
-                print("No subject")
+                server.logger.info("No subject")
                 return False
             if 'body' not in self.dict:
-                print("No Body")
+                server.logger.info("No Body")
                 return False
             if 'topic' not in self.dict:
-                print("No Topic")
+                server.logger.info("No Topic")
                 return False             
             if 'formatting' not in self.dict:
-                print("No Formatting")
+                server.logger.info("No Formatting")
                 return False            
             return True  
     
@@ -67,26 +66,26 @@ class Envelope(object):
     class PrivateMessage(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                print("Super does not Validate")
+                server.logger.info("Super does not Validate")
                 return False
             if 'to' not in self.dict:
-                print("No 'to' field")
+                server.logger.info("No 'to' field")
                 return False
             # if 'topic' in self.dict:
-            #     print("Topic not allowed in privmessage.")
+            #     server.logger.info("Topic not allowed in privmessage.")
             #     return False
             return True
             
     class Rating(Payload):
          def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                print("Super fails")
+                server.logger.info("Super fails")
                 return False
             if 'rating' not in self.dict:
-                print("No rating number")
+                server.logger.info("No rating number")
                 return False
             if self.dict['rating'] not in [-1,0,1]:
-                print("Evelope ratings must be either -1, 1, or 0.")
+                server.logger.info("Evelope ratings must be either -1, 1, or 0.")
                 return False
 
             return True
@@ -96,13 +95,13 @@ class Envelope(object):
             if not Envelope.Payload(self.dict).validate():
                 return False
             if 'trusted_pubkey' not in self.dict:
-                print("No trusted_pubkey to set trust for.")
+                server.logger.info("No trusted_pubkey to set trust for.")
                 return False
             if self.dict['trust'] not in [-100,0,100]:
-                print("Message ratings must be either -100, 0, or 100")
+                server.logger.info("Message ratings must be either -100, 0, or 100")
                 return False
             if 'topic' not in self.dict:
-                print("User trust must be per topic. Please include a topic.")
+                server.logger.info("User trust must be per topic. Please include a topic.")
                 return False
             return True             
                     
@@ -112,11 +111,11 @@ class Envelope(object):
         
         #Check headers 
         if 'envelope' not in self.dict:
-            print("Invalid Envelope. No Header")
+            server.logger.info("Invalid Envelope. No Header")
             return False
             
         if self.dict['envelope']['payload_sha512'] != self.payload.hash():
-            print("Possible tampering. SHA doesn't match. Abort.")
+            server.logger.info("Possible tampering. SHA doesn't match. Abort.")
             return False
 
            
@@ -128,14 +127,14 @@ class Envelope(object):
                 foundauthor += 1
                 # Ensure that the Author stamp matches the Author in the Payload section!
                 if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
-                    print("Author stamp must match payload author key.")
+                    server.logger.info("Author stamp must match payload author key.")
                     return False
 
         if foundauthor == 0:
-            print("No author stamp.")
+            server.logger.info("No author stamp.")
             return False    
         if foundauthor > 1:
-            print("Too Many author stamps")
+            server.logger.info("Too Many author stamps")
             return False
         
         #Ensure Every stamp validates.
@@ -145,17 +144,17 @@ class Envelope(object):
             # Retrieve the key, ensure it's valid.
             stampkey = Keys(pub=stamp['pubkey'])
             if stampkey == None:
-                print("Key is invalid.")
+                server.logger.info("Key is invalid.")
                 return False
 
             # Ensure it matches the signature.
             if stampkey.verify_string(stringtoverify=self.payload.text(),signature=stamp['signature']) != True:
-                    print("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
+                    server.logger.info("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
 
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
-                print("Payload does not validate.")
+                server.logger.info("Payload does not validate.")
                 return False
                 
         return True    
@@ -240,7 +239,6 @@ class Envelope(object):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
-        #pprint.pprint(self.dict)
         newstr = json.dumps(self.dict,separators=(',',':'))
         return newstr
 
@@ -258,8 +256,8 @@ class Envelope(object):
         
         #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(),dictionary=10,fastBytes=255)
-        # print "Compressed size " + str(sys.getsizeof(compressed))
-        # print "Full Size " + str(sys.getsizeof(self.dict))        
+        # server.logger.info "Compressed size " + str(sys.getsizeof(compressed))
+        # server.logger.info "Full Size " + str(sys.getsizeof(self.dict))        
 
         #We want to name this file to the SHA512 of the payload contents, so it is consistant across servers.
         filehandle = open(directory + "/" + self.payload.hash() + ".7zTavernEnvelope",'wb')

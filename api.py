@@ -22,7 +22,6 @@ from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
 from server import server
-import pprint
 from keys import *
 from User import User
 from gridfs import GridFS
@@ -103,11 +102,11 @@ class TopicHandler(BaseHandler):
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
-        print(server.ServerSettings['pubkey'])
+        server.logger.info(server.ServerSettings['pubkey'])
         for envelope in server.mongos['default']['envelopes'].find({'envelope.local.time_added': {'$gt' : since },'envelope.local.sorttopic' : server.sorttopic(client_topic) },limit=include,skip=offset,as_class=OrderedDict):
-            print("foo")
+            server.logger.info("foo")
             if client_perspective is not None:
-                print("FFFF")
+                server.logger.info("FFFF")
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
                 usertrust = u.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
@@ -137,7 +136,7 @@ class SubmitEnvelopeHandler(BaseHandler):
     def post(self):
         
         client_message = tornado.escape.to_unicode(self.get_argument("envelope"))
-        # Receive a message, print back it's SHA
+        # Receive a message, server.logger.info back it's SHA
         self.write(server.receiveEnvelope(client_message))
 
 class ServerStatus(BaseHandler):
@@ -157,7 +156,7 @@ def main():
     # timeout in seconds
     timeout = 10
     socket.setdefaulttimeout(timeout)
-    print("Starting Web Frontend for " + server.ServerSettings['hostname'])
+    server.logger.info("Starting Web Frontend for " + server.ServerSettings['hostname'])
      
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),

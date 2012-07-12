@@ -27,14 +27,17 @@ cd /usr/local/src
 wget http://nginx.org/download/nginx-1.0.2.tar.gz
 tar -zxvf nginx-1.0.2.tar.gz
 cd nginx-1.0.2
-wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
-tar -zxvf nginx_upload_module-2.2.0.tar.gz
+git clone https://github.com/vkholodkov/nginx-upload-module.git
+cd nginx-upload-module
+git checkout 2.2
+cd ..
+
 git clone https://github.com/mdirolf/nginx-gridfs.git
 cd nginx-gridfs
 git submodule init
 git submodule update
 cd ..
-./configure --add-module=/usr/local/src/nginx-1.0.2/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.0.2/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
+./configure --add-module=/usr/local/src/nginx-1.0.2/nginx-upload-module --add-module=/usr/local/src/nginx-1.0.2/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
 make
 make install
 
