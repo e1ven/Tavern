@@ -2,13 +2,13 @@
 {% from collections import OrderedDict %}
 {% import datetime %}
 
+{% set servername = 'Pluric.com' %}
 {% set medialink = None %}
-
 {% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
-{% set permalink = 'http://ForumLegion.ch/message/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set permalink = 'http://' + servername + '/message/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
 
 
 {% if orient == "left" %}
@@ -93,7 +93,11 @@
 									<a href="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}">
 									<img src="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
 									{% if medialink == None %}
-										{% set medialink = server.ServerSettings['downloadserver'] + '/binaries/' + attachment['displayable'] %}
+										{% if len(server.ServerSettings['downloadserver']) < 4 %}
+											{% set medialink = servername + '/binaries/' + attachment['displayable'] %}
+										{% else %}
+											{% set medialink = server.ServerSettings['downloadserver'] + '/binaries/' + attachment['displayable'] %}
+										{% end %}
 									{% end %}
 							    {% end %} 
 							{% end %} 
