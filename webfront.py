@@ -889,6 +889,11 @@ class NewmessageHandler(BaseHandler):
 
         for file_field in self.request.files:
             for individual_file in self.request.files[file_field]:
+                #     You get these keys from Tornado
+                #       body
+                #       content_type
+                #       filename
+
                 individual_file['fakefile'] = io.BytesIO()
                 individual_file['fakefile'].write(individual_file['body'])
                 SHA512 = hashlib.sha512()
@@ -901,14 +906,8 @@ class NewmessageHandler(BaseHandler):
                 digest = SHA512.hexdigest()
                 SHA512.update(individual_file['body'])
                 individual_file['hash'] = SHA512.hexdigest()
-
-                # for key in individual_file:
-                #     body
-                #     content_type
-                #     filename
                 individual_file['fakefile'].seek(0)
                 filelist.append(individual_file)
-                print("added file - " + individual_file['filename'] )
 
         #Use this flag to know if we successfully stored or not.
         stored = False   
@@ -991,7 +990,6 @@ class NewmessageHandler(BaseHandler):
         stamplist.append(stamp)
         e.dict['envelope']['stamps'] = stamplist
         
-        print(pprint.pprint(e.text()))        
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
         if newmsgid != False:
@@ -1095,6 +1093,19 @@ class NullHandler(BaseHandler):
     def post(self,url=None):
         return
 
+class BinariesHandler(tornado.web.RequestHandler):
+    """
+    Serves images/etc out of nginx.
+    Really shouldn't be used in prod.
+    Use the nginx handler instead
+    """
+    def get(self,hash,filename=None):
+        server.logger.info("The gridfs_nginx plugin is a much better option than this method")
+        self.set_header("Content-Type",'application/octet-stream')
+
+        req = server.bin_GridFS.get_last_version(filename=hash)
+        self.write(req.read())
+
 class AvatarHandler(BaseHandler):
     """
     For users who aren't using nginx (like in dev), this will pull in the avatars
@@ -1154,6 +1165,8 @@ def main():
         (r"/privatemessage/(.*)" ,PrivateMessageHandler), 
         (r"/sitecontent/(.*)" ,SiteContentHandler),  
         (r"/avatar/(.*)" ,AvatarHandler),           
+        (r"/binaries/(.*)/(.*)" ,BinariesHandler),             
+        (r"/binaries/(.*)" ,BinariesHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path": os.path.join(os.path.dirname(__file__),"static/")}),
         (r"/(.*)/(.*)/(.*)" ,TriPaneHandler), 
         (r"/(.*)/(.*)" ,TriPaneHandler),
