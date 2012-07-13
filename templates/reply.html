@@ -94,7 +94,7 @@
 									<img src="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
 									{% if medialink == None %}
 										{% if len(server.ServerSettings['downloadserver']) < 4 %}
-											{% set medialink = servername + '/binaries/' + attachment['displayable'] %}
+											{% set medialink = 'http://' + servername + '/binaries/' + attachment['displayable'] %}
 										{% else %}
 											{% set medialink = server.ServerSettings['downloadserver'] + '/binaries/' + attachment['displayable'] %}
 										{% end %}

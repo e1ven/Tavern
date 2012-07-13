@@ -4,4 +4,4 @@ kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup ./api.py &
 ./TopicList.py
 ./ModList.py
 #./DiskTopics.py
-tail -f `hostname`.log
+tail -f `hostname`.log nohup.out
