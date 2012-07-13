@@ -20,7 +20,12 @@
                 proxy_pass http://tornados/;
                 }
 
-       # location /uploadnewmessage {
+       location /uploadnewmessage {
+                proxy_pass http://tornados/;
+                client_max_body_size 2000M;
+                client_body_buffer_size 128k;
+
+
        #         upload_pass @uploads;
        #         upload_store /opt/uploads/;
        #         upload_resumable on;
@@ -42,7 +47,7 @@
        #         upload_pass_form_field "body";
        #         upload_pass_form_field "regarding";
        #         upload_pass_form_field "include_location";
-       # }
+        }
 
         location @uploads {
                 proxy_pass   http://tornados;
