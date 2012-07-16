@@ -887,6 +887,40 @@ class NewmessageHandler(BaseHandler):
      
         filelist = []
 
+
+        # We might be getting files either through nginx, or through directly.
+        # If we get the file through Nginx, parse out the arguments.
+        for argument in self.request.arguments:
+            if argument.startswith("attached_file") and argument.endswith('.path'):
+                individual_file = {}
+                individual_file['basename'] = argument.rsplit('.')[0]
+                individual_file['clean_up_file_afterward'] = True
+                individual_file['filename'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".name"))
+                individual_file['content_type'] =  tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".content_type"))
+                individual_file['path'] =  tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".path"))
+                individual_file['size'] =  tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".size"))
+
+                fs_basename = os.path.basename(individual_file['filename'])
+                individual_file['fullpath'] = server.ServerSettings['upload-dir'] + "/" + fs_basename
+
+                individual_file['filehandle'] = open(individual_file['path'], 'rb')
+                hashname = str(individual_file['basename'] + '.sha512')
+
+                # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
+                # If not, calc. it.
+                if hashname in self.request.arguments:
+                    individual_file['hash'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".sha512"))
+                else:
+                    while True:
+                        buf = individual_file['filehandle'].read(0x100000)
+                        if not buf:
+                            break
+                        SHA512.update(buf)
+                    individual_file['hash'] = SHA512.hexdigest()
+                attached_file['filehandle'].seek(0)
+                filelist.append(individual_file)
+
+        # If we get files directly, calculate what we need to know.
         for file_field in self.request.files:
             for individual_file in self.request.files[file_field]:
                 #     You get these keys from Tornado
@@ -894,20 +928,23 @@ class NewmessageHandler(BaseHandler):
                 #       content_type
                 #       filename
 
-                individual_file['fakefile'] = io.BytesIO()
-                individual_file['fakefile'].write(individual_file['body'])
+                individual_file['clean_up_file_afterward'] = False
+                individual_file['filehandle'] = io.BytesIO()
+                individual_file['filehandle'].write(individual_file['body'])
+                individual_file['size'] =  len(individual_file['body'])
                 SHA512 = hashlib.sha512()
                 while True:
-                    buf = individual_file['fakefile'].read(0x100000)
+                    buf = individual_file['filehandle'].read(0x100000)
                     if not buf:
                         break
                     SHA512.update(buf)
-                individual_file['fakefile'].seek(0)
+                individual_file['filehandle'].seek(0)
                 digest = SHA512.hexdigest()
                 SHA512.update(individual_file['body'])
                 individual_file['hash'] = SHA512.hexdigest()
-                individual_file['fakefile'].seek(0)
+                individual_file['filehandle'].seek(0)
                 filelist.append(individual_file)
+
 
         #Use this flag to know if we successfully stored or not.
         stored = False   
@@ -917,17 +954,17 @@ class NewmessageHandler(BaseHandler):
             #All the same, let's strip out all but the basename.           
             server.logger.info("Dealing with File " + attached_file['filename'] + " with hash " +  attached_file['hash'])
             if not server.bin_GridFS.exists(filename=attached_file['hash']):
-                attached_file['fakefile'].seek(0)
-                imagetype = imghdr.what('ignoreme',h=attached_file['fakefile'].read())
+                attached_file['filehandle'].seek(0)
+                imagetype = imghdr.what('ignoreme',h=attached_file['filehandle'].read())
                 acceptable_images = ['gif','jpeg','jpg','png','bmp']
                 print(imagetype)
                 if imagetype in acceptable_images:
-                    attached_file['fakefile'].seek(0)
+                    attached_file['filehandle'].seek(0)
                     # If it's an image, open and re-save to strip EXIF data.
                     # Do so here, rather than in server, so that server->server messages aren't touched
-                    Image.open(attached_file['fakefile']).save(attached_file['fakefile'],format=imagetype)
-                attached_file['fakefile'].seek(0)
-                oid = server.bin_GridFS.put(attached_file['fakefile'],filename=attached_file['hash'], content_type=individual_file['content_type'])
+                    Image.open(attached_file['filehandle']).save(attached_file['filehandle'],format=imagetype)
+                attached_file['filehandle'].seek(0)
+                oid = server.bin_GridFS.put(attached_file['filehandle'],filename=attached_file['hash'], content_type=individual_file['content_type'])
                 stored = True
             else:
                 stored = True
@@ -935,14 +972,17 @@ class NewmessageHandler(BaseHandler):
             #Create a message binary.    
             bin = Envelope.binary(hash=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
-            print('estimated size : ' + str(len(individual_file['body'])) )
-            bin.dict['filesize_hint'] =  len(individual_file['body'])
+            print('estimated size : ' + str(individual_file['size']  ))
+            bin.dict['filesize_hint'] =  individual_file['size']
             bin.dict['content_type'] = individual_file['content_type']
             bin.dict['filename'] = individual_file['filename']
             envelopebinarylist.append(bin.dict)
+
             #Don't keep spare copies on the webservers
-            attached_file['fakefile'].close()
-              
+            attached_file['filehandle'].close()
+            if attached_file['clean_up_file_afterward'] is True:
+                os.remove(attached_file['fullpath'])
+
         e = Envelope()
 
         if client_regarding is not None:
