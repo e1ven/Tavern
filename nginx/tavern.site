@@ -21,7 +21,7 @@
                 }
 
        location /uploadnewmessage {
-                proxy_pass http://tornados/;
+                proxy_pass http://tornados/uploadnewmessage;
                 client_max_body_size 2000M;
                 client_body_buffer_size 128k;
 

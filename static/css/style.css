@@ -627,3 +627,8 @@ background-color:#ddd;
   font-size: 85%; 
   line-height: 100%;
 }
+
+.textmodeinfo{
+  display:none;
+}
+  

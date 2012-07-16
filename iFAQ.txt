@@ -102,7 +102,15 @@ Why does the website do the processing/signing on the server, rather than in the
 	This means that any proxy that incercepts HTTPS requests to our server (as exist on some corporate proxies) could rewrite the JS, and steal your key.
 
 
-	If you want to ensure that no one but you ever sees your key, and are sure you can keep your system secure, you can keep your key locally by running a copy of the Tavern software on your local machine.
+	If you want to ensure that no one but you ever has any (even transient) access to your your key, and are sure you can keep your system secure, you can keep your key locally by running a copy of the Tavern software on your local machine.
+
+
+Why do you not accept Bitcoins as Payments or Donations?
+	I'd love to! But right now, accepting Bitcoins as payment is somewhat legally ambiguous. 
+	For example, see the EFF statement at https://www.eff.org/deeplinks/2011/06/eff-and-bitcoin/
+	While it'd be great to be able to do so, right now the law is not sufficiently clear on what is required, and I don't have a legal defense fund, so this isn't easily feasible.
+
+
 
 	
 Why Tornado, and not Flask

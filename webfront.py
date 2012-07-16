@@ -1176,6 +1176,8 @@ def main():
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8080)
     tornado.ioloop.IOLoop.instance().start()
+    server.logger.info(server.ServerSettings['hostname'] +' is ready for requests.')
+
 
 
 if __name__ == "__main__":
