@@ -900,10 +900,10 @@ class NewmessageHandler(BaseHandler):
                 individual_file['path'] =  tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".path"))
                 individual_file['size'] =  tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".size"))
 
-                fs_basename = os.path.basename(individual_file['filename'])
+                fs_basename = os.path.basename(individual_file['path'])
                 individual_file['fullpath'] = server.ServerSettings['upload-dir'] + "/" + fs_basename
 
-                individual_file['filehandle'] = open(individual_file['path'], 'rb')
+                individual_file['filehandle'] = open(individual_file['path'], 'rb+')
                 hashname = str(individual_file['basename'] + '.sha512')
 
                 # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
@@ -917,7 +917,7 @@ class NewmessageHandler(BaseHandler):
                             break
                         SHA512.update(buf)
                     individual_file['hash'] = SHA512.hexdigest()
-                attached_file['filehandle'].seek(0)
+                individual_file['filehandle'].seek(0)
                 filelist.append(individual_file)
 
         # If we get files directly, calculate what we need to know.

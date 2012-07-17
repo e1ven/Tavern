@@ -24,7 +24,7 @@
 
                 upload_pass @uploads;
                 upload_store /opt/uploads/;
-                upload_store_access all:rw;
+                upload_store_access user:rw group:rw all:rw;
                 upload_resumable on;
                 upload_buffer_size 128K;
                 upload_max_file_size 2000m;

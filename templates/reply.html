@@ -85,8 +85,8 @@
 				<div class="attachments">
 					{% if len(envelope['envelope']['local']['attachmentlist']) > 1 %}
 						Attached Files:<br>
-					{% else %}
-						Attached File:<br>
+					{% elif  len(envelope['envelope']['local']['attachmentlist']) > 0  %}
+						Attached File: <br>
 					{% end %}
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 							{% if 'displayable' in attachment %}
