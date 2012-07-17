@@ -83,6 +83,7 @@ class Server(object):
         self.mongocons = OrderedDict()
         self.mongos = OrderedDict()
         self.cache = OrderedDict()
+        self.logger = logging.getLogger('Tavern')
 
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".TavernServerSettings"):
@@ -133,7 +134,6 @@ class Server(object):
         self.ServerSettings['static-revision'] = int(time.time())
         self.fortune = Fortuna()
 
-        self.logger = logging.getLogger('Tavern')
         #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         
