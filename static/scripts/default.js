@@ -254,7 +254,8 @@ head.ready(function() {
             right.scrollTop = mytop; // - DivHeight;   
         }
     }
-    
+
+jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
     
 head.js('/static/scripts/instance.js');
     
