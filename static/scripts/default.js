@@ -15,6 +15,7 @@ head.ready(function() {
                 panes.css("-webkit-user-select", "none");   // Safari selects A/B text on a move
                 bar.addClass(opts.activeClass);
                 A._posSplit = A[0][opts.pxSplit] - evt[opts.eventPos];
+                jQuery.jStorage.set('current-elem', A.attr('id'));
                 jQuery(document)
                     .bind("mousemove", doSplitMouse)
                     .bind("mouseup", endSplitMouse);
@@ -33,7 +34,6 @@ head.ready(function() {
                 var newPos = A._posSplit+evt[opts.eventPos];
                 if ( opts.outline )
                 {
-
                     zombie.remove(); zombie = null;
                     try
                     {
@@ -42,12 +42,13 @@ head.ready(function() {
                     catch(err)
                     {
                     }
-
                 }
                 panes.css("-webkit-user-select", "text");   // let Safari select text again
                 jQuery(document)
                     .unbind("mousemove", doSplitMouse)
                     .unbind("mouseup", endSplitMouse);
+                    currentelement =  jQuery.jStorage.get('current-elem','');
+                    jQuery.jStorage.set('splitsize-' + currentelement, newPos); 
             }
             function resplit(newPos) {
                 // Constrain new splitbar position to fit pane size limits
@@ -207,15 +208,16 @@ head.ready(function() {
     {
 
         // Main vertical splitter, anchored to the browser window
+        splitsize = jQuery.jStorage.get('splitsize-left',150);
         jQuery("#content").splitter({
             type: "v",
             outline: true,
-            minLeft: 100, sizeLeft: 150,
+            minLeft: 100, sizeLeft: splitsize,
             anchorToWindow: true
         });
             // Second vertical splitter, nested in the right pane of the main one.
        
-        splitsize = jQuery.jStorage.get('splitsize',150);
+        splitsize = jQuery.jStorage.get('splitsize-center',150);
         jQuery("#centerandright").splitter({
             type: "v",
             outline: true,
