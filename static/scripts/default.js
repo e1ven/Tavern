@@ -1,7 +1,7 @@
 
 head.ready(function() {
     jQuery.noConflict();
-
+    var currentelement = "";
 
     jQuery.fn.splitter = function(args){
         args = args || {};
@@ -15,7 +15,7 @@ head.ready(function() {
                 panes.css("-webkit-user-select", "none");   // Safari selects A/B text on a move
                 bar.addClass(opts.activeClass);
                 A._posSplit = A[0][opts.pxSplit] - evt[opts.eventPos];
-                jQuery.jStorage.set('current-elem', A.attr('id'));
+                currentelement =  A.attr('id');
                 jQuery(document)
                     .bind("mousemove", doSplitMouse)
                     .bind("mouseup", endSplitMouse);
@@ -47,7 +47,6 @@ head.ready(function() {
                 jQuery(document)
                     .unbind("mousemove", doSplitMouse)
                     .unbind("mouseup", endSplitMouse);
-                    currentelement =  jQuery.jStorage.get('current-elem','');
                     jQuery.jStorage.set('splitsize-' + currentelement, newPos); 
             }
             function resplit(newPos) {
