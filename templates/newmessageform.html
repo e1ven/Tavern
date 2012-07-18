@@ -7,7 +7,7 @@
 {% end %}	
 
 {% if regarding is None %}
-<h1>Post a new message {% if topic is not None %} to {{topic}} {% end %}</h1>
+<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
 {% end %}
 
 <div class="padder">
@@ -18,7 +18,7 @@ Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Fu
 <br>
 {% end %}
 {% if regarding is None %}
-Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Mom's favorite joke" ><br>
+Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" ><br>
 {% end %}
 
 {% if regarding is not None %}

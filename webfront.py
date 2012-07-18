@@ -430,10 +430,26 @@ class TriPaneHandler(BaseHandler):
         # Make canon URL safe
         canon=server.urlize(canon) 
 
-        # Detect people accessing via odd URLs
-        if self.request.path[1:] != canon:
+        # Detect people accessing via odd URLs, but don't do it twice.
+        # Check for a redirected flag.
+
+        if 'redirected' in self.request.arguments:
+            redirected = tornado.escape.xhtml_escape(self.get_argument("redirected"))
+            if redirected == 'true':
+                redirected = True
+            else:
+                redirected = False
+        else:
+            redirected = None
+
+        if self.request.path[1:] != canon and redirected is None:
+            if not "?" in canon:
+                canonbubble = "?redirected=true"
+            else:
+                canonbubble = "&redirected=true"  
+
             server.logger.info("Redirecting URL " + self.request.path[1:] + " to " + canon )
-            self.redirect("/" + canon, permanent=True)
+            self.redirect("/" + canon + canonbubble, permanent=True)
             return
 
         #Gather up all the replies to this message, so we can send those to the template as well

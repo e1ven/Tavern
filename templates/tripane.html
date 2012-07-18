@@ -25,7 +25,7 @@
 					</ul>
 			</div><!-- #left -->
 
-			<div id="centerandright">
+			<div id="CenterAndRight">
 			<div id="center">
 				<h2>
 					{% if topic == 'sitecontent' %}
@@ -33,13 +33,13 @@
 					{% elif topic == 'all' %} 
                                         All Messages
                                         {% else %}    
-					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{{{server.sorttopic(topic)}}"><i class="icon-info-sign"><div class='textmodeinfo'>Change Topic settings</div></i></a>
+					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-info-sign"><div class='textmodeinfo'>Change Topic settings</div></i></a>
 					{% end %}
 				</h2>
 				{% if topic != 'sitecontent' and topic != 'all' %}	
-					<a href="/reply/{{{{server.sorttopic(topic)}}" class="internal">
+					<a href="/reply/{{server.sorttopic(topic)}}" class="internal">
 						<div class = "newpost">
-							<span class="newpost-text"><i class="icon-edit"></i> <a href="/reply/{{{{server.sorttopic(topic)}}" class="internal">New Message in {{topic}}</a></span>
+							<span class="newpost-text"><i class="icon-edit"></i> <a href="/reply/{{server.sorttopic(topic)}}" class="internal">New Message in {{topic}}</a></span>
 						</div>
 					</a>
 				{% end %}

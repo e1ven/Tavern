@@ -340,9 +340,22 @@ COLUMN WIDTH ELEMENTS
 
 	color: #ffffff;
 }
-#left ul li a { padding: 8px 15px; color: #ffffff; text-decoration: none; display: block }
-#left ul li a:hover { background: url(/static/images/left_arrow.png) center right no-repeat #202020; border-top: 1px solid #111111; border-bottom: 1px solid #434343; }
-#left li.active a { background: url(/static/images/left_arrow.png) center right no-repeat #202020; border-top: 1px solid #111111; border-bottom: 1px solid #434343; }
+#left ul li a { 
+  padding: 8px 15px;
+  color: #ffffff;
+  text-decoration: none;
+  display: block;
+}
+#left ul li a:hover {
+  background: url(/static/images/left_arrow.png) center right no-repeat #202020;
+  border-top: 1px solid #111111;
+  border-bottom: 1px solid #434343; 
+}
+#left li.active a {
+    background: url(/static/images/left_arrow.png) center right no-repeat #202020; 
+    border-top: 1px solid #111111; 
+    border-bottom: 1px solid #434343; 
+}
 
 /* ########## CENTER COLUMN ########## */
 #center { 
@@ -369,15 +382,28 @@ COLUMN WIDTH ELEMENTS
 	border-bottom: 1px solid #262220;
 	color: #2d2d2d;
 }
-#center ul li a { padding: 8px 15px; color: #2d2d2d; text-decoration: none; display: block; }
-#center ul li a:hover { background: url(/static/images/center_arrow.png) center right no-repeat #A08E87; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
-#center li.active { background: url(/static/images/center_arrow.png) center right no-repeat #A08E87; border-top: 1px solid #a1b1b1; border-bottom: 1px solid #ffffff; }
+#center ul li a {
+    padding: 8px 15px;
+    color: #2d2d2d; 
+    text-decoration: none; 
+    display: block; 
+}
+#center ul li a:hover { 
+  background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
+  border-top: 1px solid #a1b1b1;
+  border-bottom: 1px solid #ffffff; 
+}
+#center li.active {
+    background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
+    border-top: 1px solid #a1b1b1;
+    border-bottom: 1px solid #ffffff; 
+  }
 
 #center .newpost 
 {
     float:none;
     min-height:15px;
-    max-height:330px;
+    max-height:30px;
     overflow:hidden;
     padding-left:5px;
     padding-right:20px;

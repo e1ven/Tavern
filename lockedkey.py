@@ -13,7 +13,7 @@ class lockedKey(object):
     
     def __init__(self,pub=None,priv=None,password=None,encryptedprivkey=None):  
 
-        self.maxtime = .1
+        self.maxtime = 5
         tempkey = Keys(pub=pub,priv=priv)
         tempkey.format_keys()
         

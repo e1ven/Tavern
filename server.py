@@ -134,8 +134,8 @@ class Server(object):
         self.ServerSettings['static-revision'] = int(time.time())
         self.fortune = Fortuna()
 
-        #logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
-        logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
+        logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
+        #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         
 
         # Cache our JS, so we can include it later.
