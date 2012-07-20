@@ -220,7 +220,7 @@ class BaseHandler(tornado.web.RequestHandler):
         usersettings = self.user.UserSettings
 
         # Create the Cookie value, and sign it.
-        signed = self.create_signed_value("tavern_preferences",json.dumps(usersettings))
+        signed = self.create_signed_value("tavern_preferences",json.dumps(usersettings,separators=(',',':')))
 
         # Chunk up the cookie value, so we can spread across multiple cookies.
         numchunks = 0
@@ -229,7 +229,19 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         server.logger.info("numchunks + " + str(numchunks))
-        server.logger.info("Setting :::: " + json.dumps(usersettings))
+
+    def recentauth(self):
+        """
+        Ensure the user has authenticated recently.
+        To be used for things like change-password.
+        """
+        currenttime = int(time.time())
+
+        if currenttime  - self.user.UserSettings['lastauth'] > 300:
+            server.logger.info("User has not logged in recently. ;( ")
+            return False
+        else:
+            return True
 
     def getvars(self,ensurekeys=False):
         """
@@ -250,6 +262,9 @@ class BaseHandler(tornado.web.RequestHandler):
             else:
                 server.logger.info("Cookie doesn't validate. Deleting...")
                 self.clear_cookie('tavern_preferences')
+                self.clear_cookie('tavern_preferences1')
+                self.clear_cookie('tavern_preferences2')
+                self.clear_cookie('tavern_preferences3')
                 self.clear_cookie('tavern_preferences_count')
 
         # If there isn't already a cookie, make a very basic one.
@@ -624,6 +639,9 @@ class LoginHandler(BaseHandler):
                 self.user = u
                 server.logger.info("Passkey - " + self.user.Keys.passkey(client_password))
                 self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
+
+                self.user.UserSettings['lastauth'] = int(time.time())
+
                 self.setvars()
                 server.logger.info("Login Successful.")
                 self.redirect('/')
@@ -866,8 +884,17 @@ class UserTrustHandler(BaseHandler):
         server.mongos['cache']['usertrusts'].remove({"asking":self.user.Keys.pubkey,"askingabout":trusted_pubkey})
 
 
+class CrapHandler(BaseHandler):
+ def get(self,topic=None,regarding=None):
+         self.write(self.render_string('test.html'))
+
       
 class NewmessageHandler(BaseHandler):
+
+    def options(self,regarding=None):
+        self.set_header('Access-Control-Allow-Methods', 'OPTIONS, HEAD, GET, POST, PUT, DELETE')
+        self.set_header('Access-Control-Allow-Origin','*')
+
     def get(self,topic=None,regarding=None):
          self.getvars()
          self.write(self.render_string('header.html',title="Post a new message",user=self.user,rsshead=None,type=None))
@@ -875,33 +902,11 @@ class NewmessageHandler(BaseHandler):
          self.write(self.render_string('footer.html'))
          self.finish(divs=['right','single'])
 
-    def post(self):
+    def post(self,flag=None):
         self.getvars(ensurekeys=True)
-        client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
-
-        # Pull in our Form variables. 
-        # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
-        # It acts differently in the two scenerios.
-        if "topic" in self.request.arguments:
-            client_topic = tornado.escape.xhtml_escape(self.get_argument("topic"))
-            if client_topic == "":
-                client_topic = None
-        else:
-            client_topic = None
-        if "subject" in self.request.arguments:
-            client_subject = tornado.escape.xhtml_escape(self.get_argument("subject"))
-            if client_subject == "":
-                client_subject = None  
-        else:
-            client_subject = None
-        if "regarding" in self.request.arguments:
-            client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
-            if client_regarding == "":
-                client_regarding = None
-        else:
-            client_regarding = None
-     
         filelist = []
+
+
 
 
         # We might be getting files either through nginx, or through directly.
@@ -961,11 +966,11 @@ class NewmessageHandler(BaseHandler):
                 individual_file['filehandle'].seek(0)
                 filelist.append(individual_file)
 
-
-        #Use this flag to know if we successfully stored or not.
-        stored = False   
+        print("foo")
         client_filepath = None     
         envelopebinarylist = []
+
+        # Attach the files that are actually here, submitted alongside the message.
         for attached_file in filelist:
             #All the same, let's strip out all but the basename.           
             server.logger.info("Dealing with File " + attached_file['filename'] + " with hash " +  attached_file['hash'])
@@ -981,23 +986,79 @@ class NewmessageHandler(BaseHandler):
                     Image.open(attached_file['filehandle']).save(attached_file['filehandle'],format=imagetype)
                 attached_file['filehandle'].seek(0)
                 oid = server.bin_GridFS.put(attached_file['filehandle'],filename=attached_file['hash'], content_type=individual_file['content_type'])
-                stored = True
-            else:
-                stored = True
             server.logger.info("Creating Message")
             #Create a message binary.    
             bin = Envelope.binary(hash=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
-            print('estimated size : ' + str(individual_file['size']  ))
-            bin.dict['filesize_hint'] =  individual_file['size']
-            bin.dict['content_type'] = individual_file['content_type']
-            bin.dict['filename'] = individual_file['filename']
+            print('estimated size : ' + str(attached_file['size']  ))
+            bin.dict['filesize_hint'] =  attached_file['size']
+            bin.dict['content_type'] = attached_file['content_type']
+            bin.dict['filename'] = attached_file['filename']
             envelopebinarylist.append(bin.dict)
 
             #Don't keep spare copies on the webservers
             attached_file['filehandle'].close()
             if attached_file['clean_up_file_afterward'] is True:
                 os.remove(attached_file['fullpath'])
+
+        # Support the Javascript upload handler.
+        # return the JSON formatted reply it's looking for
+        if flag == "fileonly":
+            details = []
+            for attached_file in filelist:
+                detail = {}
+                detail['name'] = attached_file['filename']
+                detail['hash'] = attached_file['hash']
+                detail['size'] = attached_file['size']
+                detail['content_type'] = attached_file['content_type']
+
+                detail['url'] = server.ServerSettings['downloadsurl'] + attached_file['hash'] 
+                details.append(detail)
+            details_json = json.dumps(details,separators=(',',':'))
+            self.set_header("Content-Type","application/json")
+            self.write(details_json)
+            return
+
+        # Add the binaries which are referenced only
+        # The jQuery uploader will upload them seperately, so this isn't unusual.
+        for argument in self.request.arguments:
+            print(argument)
+            if argument.startswith("referenced_file1") and argument.endswith('_name'):
+                r = re.compile('referenced_file(.*?)_name')
+                m = r.search(argument)
+                binarycount = m.group(1)
+                bin = Envelope.binary(hash= tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_hash')))
+                bin.dict['filesize_hint'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_size'))
+                bin.dict['content_type'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_contenttype'))
+                bin.dict['filename'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_name'))
+                envelopebinarylist.append(bin.dict)
+
+        client_body =  tornado.escape.xhtml_escape(self.get_argument("body"))
+        # Pull in our Form variables. 
+        # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
+        # It acts differently in the two scenerios.
+        if "topic" in self.request.arguments:
+            client_topic = tornado.escape.xhtml_escape(self.get_argument("topic"))
+            if client_topic == "":
+                client_topic = None
+        else:
+            client_topic = None
+        if "subject" in self.request.arguments:
+            client_subject = tornado.escape.xhtml_escape(self.get_argument("subject"))
+            if client_subject == "":
+                client_subject = None  
+        else:
+            client_subject = None
+        if "regarding" in self.request.arguments:
+            client_regarding = tornado.escape.xhtml_escape(self.get_argument("regarding"))
+            if client_regarding == "":
+                client_regarding = None
+        else:
+            client_regarding = None
+     
+
+
+
 
         e = Envelope()
 
@@ -1016,7 +1077,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['class'] = "message"
         e.payload.dict['body'] = client_body
        
-        if stored is True:
+        if len(envelopebinarylist) > 0:
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
@@ -1200,11 +1261,13 @@ def main():
         (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
+        (r"/crap" ,CrapHandler),
         (r"/showuserposts/(.*)" ,UserHandler),  
         (r"/user/(.*)" ,UserHandler),  
-        (r"/logout" ,LogoutHandler),   
-        (r"/newmessage" ,NewmessageHandler),
+        (r"/logout" ,LogoutHandler),  
         (r"/rss/(.*)/(.*)" ,RSSHandler),
+        (r"/newmessage" ,NewmessageHandler),
+        (r"/uploadfile/(.*)" ,NewmessageHandler),
         (r"/reply/(.*)/(.*)" ,NewmessageHandler),
         (r"/reply/(.*)" ,NewmessageHandler),
         (r"/uploadnewmessage" ,NewmessageHandler), 

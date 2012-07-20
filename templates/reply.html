@@ -37,32 +37,39 @@
 				    </a>
 					<div class="UserDetails UserDetails_{{orient}}" id="details_{{envelope['envelope']['payload_sha512']}}">
 					{% set trust = user.gatherTrust(askingabout=envelope['envelope']['payload']['author']['pubkey']) %}
-
-						You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
+						<abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
+							 {% if trust > 50 %}
+							 This user is allowed to rate comments.
+							 {% elif trust < 50 and trust > 0 %}
+							 This user's ratings have a slight effect on a comment's score.
+							 {% elif trust <= 0 %}
+							 This user's ratings have no effect on a comment's score.
+							 {% end %}
+						</abbr><br>
 							{% if trust < 100 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
 								<input type="hidden" name="trust" value="100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Allow this user to mark SPAM">
+								<input class="textbutton" type="submit" value="Allow this user to rate comments">
 							</form>
 							<br>
 							{% end %}
-							{% if trust > -100 and trust < 250 %}
+							{% if trust > -100 and trust < 100 %}
 							<form action="/usertrust" method="post">
 								{% raw xsrf_form_html() %}
 								<input type="hidden" name="trust" value="-100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Disallow this user to mark SPAM">
+								<input class="textbutton" type="submit" value="Block this user from rating any comments">
 							</form>
 							{% end %}
 							<br>
 							<form action="/usernote" method="post" class="usernote">
 								 {% raw xsrf_form_html() %}
 								<input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
+								<input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
 							</form>
 							<br>
 							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
@@ -91,18 +98,14 @@
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 							{% if 'displayable' in attachment %}
 	                            {% if attachment['displayable'] is not False %}
-									<a href="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}">
-									<img src="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+									<a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+									<img src="{{server.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
 									{% if medialink == None %}
-										{% if len(server.ServerSettings['downloadserver']) < 4 %}
-											{% set medialink = 'http://' + servername + '/binaries/' + attachment['displayable'] %}
-										{% else %}
-											{% set medialink = server.ServerSettings['downloadserver'] + '/binaries/' + attachment['displayable'] %}
-										{% end %}
+										{% set medialink = server.ServerSettings['downloadsurl'] + attachment['displayable'] %}
 									{% end %}
 							    {% end %} 
 							{% end %} 
-				            <a href="{{server.ServerSettings['downloadserver']}}/binaries/{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
+				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
 				            <a href="/attachment/{{attachment['sha_512']}}"><i class='icon-info-sign'></i></a>
 	                        <br>
 				    {% end %}

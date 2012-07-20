@@ -1,64 +1,64 @@
-
+{% import time %}
+{% set timeid = int(time.time() * 1000000) %}
 
 {% if 'js' in args %}
-<div id="right">
+	<div id="right">
 {% else %}
-<div id="single">
+	<div id="single">
 {% end %}	
 
-{% if regarding is None %}
-<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
-{% end %}
+	{% if regarding is None %}
+	<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
+	{% end %}
+	<div class="padder">
+		<form enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
+			  {% raw xsrf_form_html() %}
+			{% if topic is None %}
+			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny">
+			<br>
+			{% end %}
+			{% if regarding is None %}
+			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" ><br>
+			{% end %}
 
-<div class="padder">
-<form enctype="multipart/form-data" action="/uploadnewmessage" method="post" class="messageform">
-  {% raw xsrf_form_html() %}
-{% if topic is None %}
-Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny">
-<br>
-{% end %}
-{% if regarding is None %}
-Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" ><br>
-{% end %}
+			{% if regarding is not None %}
+			<input type="hidden" name="regarding" value = "{{regarding}}"><br>
+			{% end %}
+			{% if topic is not None %}
+			<input type="hidden" name="topic" value = "{{topic}}"><br>
+			{% end %}
 
-{% if regarding is not None %}
-<input type="hidden" name="regarding" value = "{{regarding}}"><br>
-{% end %}
-{% if topic is not None %}
-<input type="hidden" name="topic" value = "{{topic}}"><br>
-{% end %}
-
-{% if regarding is None %}
-What would you like your message to say?<br> 
-{% else %}
-What would you like your reply to say?<br>
-{% end %}
+			{% if regarding is None %}
+				What would you like your message to say?<br> 
+			{% else %}
+				What would you like your reply to say?<br>
+			{% end %}
 
 
-<textarea name="body" rows=8 cols=80></textarea><br><br>
+			<textarea name="body" rows=8 cols=80></textarea><br><br>
 
-<div id="js_files_list">
-	Attach one or more files:<br>
-	 <input id="first_upload_element" type="file" name="attached_file1" multiple="multiple"><br>
+			<div id="filelist">
+			</div>
+
+			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>Include Location<br>
+			<input type="submit" value="Submit Message">
+		</form>
+
+		<form class='uploadfileform' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}">
+		{% raw xsrf_form_html() %}
+		<input  class='uploadonly' id="1234" type="file" name="files[]" multiple>
+		</form>
+
+		<div id='filelist_{{timeid}}'></div>
+		<div id='progress_{{timeid}}' style="display:none">%</div>
+
+		</div>
 	
-</div>
+		<script src="/static/scripts/jquery7.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script src="/static/scripts/jquery.ui.widget.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script src="/static/scripts/jquery.iframe-transport.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script src="/static/scripts/jquery.fileupload.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}");
 
-<div id="nonjs_files_list">
-	Additional Attached Files:<Br>
-	Attach File 2: <input type="file" name="attached_file2"><br>
-	Attach File 3: <input type="file" name="attached_file3"><br>
-	Attach File 4: <input type="file" name="attached_file4"><br>
-	Attach File 5: <input type="file" name="attached_file5"><br>
-</div>
-
-
-<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>Include Location<br>
-<input type="submit" value="Submit Message">
-</form>
-</div>
-<script>
-head.js("/static/scripts/jquery.min.js");
-head.js("/static/scripts/newmessage.js");
-</script>
 </div> <!-- newmessageform -->
 </div> <!-- #single -->

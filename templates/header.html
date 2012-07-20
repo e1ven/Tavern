@@ -44,12 +44,12 @@
 	{% end %}
 	<link href="/static/css/style.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/static/css/font-awesome.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-	<link rel="icon" href="/static/icons/32x32Icon.png" type="image/png" />
+	<link rel="icon" href="/static/icons/32x32Icon.png?revision={{server.ServerSettings['static-revision']}}" type="image/png" />
 
-	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png" />
-	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png" />
-	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png" />
-	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png" />
+	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?revision={{server.ServerSettings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?revision={{server.ServerSettings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?revision={{server.ServerSettings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?revision={{server.ServerSettings['static-revision']}}" />
 
     <script src="/static/scripts/head.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
@@ -58,7 +58,7 @@
 <body>
 <div id="limits">
 	<header id="top">
-		<a href="/"><img src="/static/images/logo.png" alt="Tavern" id="toplogo"/></a>
+		<a href="/"><img src="/static/images/logo.png?revision={{server.ServerSettings['static-revision']}}" alt="Tavern" id="toplogo"/></a>
 		<meta property="og:image" content="http://{{server.ServerSettings['hostname']}}/static/images/logo.png"/>
 		<div id="menu">
 		    <div class="menu-text">

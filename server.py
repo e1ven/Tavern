@@ -77,7 +77,6 @@ class Server(object):
         # Ensure it's self.logger.infoable.
         return ''.join(chr(random.randint(48,122)) for i in range(length))
 
-
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
         self.mongocons = OrderedDict()
@@ -116,7 +115,7 @@ class Server(object):
                 self.ServerSettings['cookie-encryption'] = self.randstr(255)
                 self.ServerSettings['serverkey-password'] = self.randstr(255)
                 self.ServerSettings['embedserver'] = 'http://embed.is'
-                self.ServerSettings['downloadserver'] = ''
+                self.ServerSettings['downloadsurl'] = '/binaries/'
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])

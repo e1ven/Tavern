@@ -2,6 +2,12 @@
         listen 80;
         proxy_set_header X-Real-IP $remote_addr;
 
+	error_page 405 =200 @405;
+	location @405 {
+    		proxy_pass http://tornados;
+	}
+
+
        location /static/ {
            alias /opt/Tavern/static/;
            expires max;

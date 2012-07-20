@@ -653,6 +653,12 @@ img.imginline { vertical-align: middle;  }
 .usernote {
 border:none;
 background-color:#ddd;
+width:90%;
+}
+
+.usernote::-moz-placeholder, .usernote::-webkit-input-placeholder
+{
+  text-align:center;
 }
 
 
