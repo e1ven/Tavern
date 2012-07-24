@@ -330,9 +330,12 @@ class Server(object):
         return self.find_top_parent(parentid)    
 
 
-    def urlize(self,url):   
-        url = "-".join(url.split())
-        url = urllib.parse.quote(url)
+
+    def urlize(self,url): 
+        # I do NOT want to urlencode this, because that encodes the unicode characters.
+        # Browsers are perfectly capable of handling these!
+        url = re.sub('[/? ]', '-', url)
+        url = re.sub(r'[^\w-]','', url)
         return url 
 
     def formatEnvelope(self,envelope):
@@ -340,7 +343,6 @@ class Server(object):
         if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload']['subject'][:50].rstrip()
-            temp_short = re.sub(r'[^a-zA-Z0-9 ]+', '', temp_short)
             envelope['envelope']['local']['short_subject'] = self.urlize(temp_short)
         if 'binaries' in envelope['envelope']['payload']:
             for binary in envelope['envelope']['payload']['binaries']:

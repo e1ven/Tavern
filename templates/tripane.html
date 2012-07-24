@@ -47,7 +47,7 @@
 				<ul>
 					{% for subject in subjects %}
 					<li  {% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} class="active"{% end %} >
-						<a class='internal' href="/message/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}"><bdi>{{subject['envelope']['payload']['subject']}}</bdi></a>
+						<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}"><bdi>{{subject['envelope']['payload']['subject']}}</bdi></a>
 					</li>
                     {% end %}
                     

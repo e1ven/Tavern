@@ -9,7 +9,6 @@ json.encoder.c_make_encoder = None
 import pymongo
 import pylzma
 
-
 class Envelope(object):
         
     class Payload(object):
@@ -33,6 +32,15 @@ class Envelope(object):
             newstr = json.dumps(self.dict,separators=(',',':'))
             return newstr  
         def validate(self):
+            if 'topic' in self.dict:
+                if len(self.dict['topic']) > 200:
+                    server.logger.info("Topic too long")
+                    return False
+            if 'subject' in self.dict:
+                if len(self.dict['subject']) > 200:
+                    server.logger.info("Topic too long")
+                    return False
+
             if 'author' not in self.dict:
                 server.logger.info("No Author Information")
                 return False
@@ -273,3 +281,4 @@ class Envelope(object):
         self.dict['_id'] = self.payload.hash()
         server.mongos['default']['envelopes'].save(self.dict)
     
+from server import server

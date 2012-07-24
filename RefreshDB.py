@@ -8,20 +8,20 @@ from collections import OrderedDict
 import json
 import os
 
-e = Envelope()
-for envelope in server.mongos['default']['envelopes'].find({},as_class=OrderedDict):
-  envelope = server.formatEnvelope(envelope)
-  envelope['local'] = ''
-  envstr = json.dumps(envelope,separators=(',',':'))
-  e.loadstring(envstr)
+# e = Envelope()
+# for envelope in server.mongos['default']['envelopes'].find({},as_class=OrderedDict):
+#   envelope = server.formatEnvelope(envelope)
+#   envelope['local'] = ''
+#   envstr = json.dumps(envelope,separators=(',',':'))
+#   e.loadstring(envstr)
             
 
-  # Make a dir if nec.
-  if not os.path.isdir('MSGDUMP'):
-     os.makedirs('MSGDUMP')
+#   # Make a dir if nec.
+#   if not os.path.isdir('MSGDUMP'):
+#      os.makedirs('MSGDUMP')
                    
-  if not os.path.exists('MSGDUMP'+ "/" + e.payload.hash() + ".7zTavernEnvelope"):
-      e.savefile('MSGDUMP')
+#   if not os.path.exists('MSGDUMP'+ "/" + e.payload.hash() + ".7zTavernEnvelope"):
+#       e.savefile('MSGDUMP')
             
 listing = os.listdir('MSGDUMP')    
 e = Envelope()

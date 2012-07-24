@@ -35,7 +35,7 @@
 		{
 			'formatting':'markdown',
 			'class':'message',
-			'topictag': 'Startrek',
+			'topic': 'Startrek',
 			'regarding': 'fa200fc2bbb11cfb2349668826685b5ec481d3555895877b5dd60d9981f411c665b2867023c61838cb78caf020ec61517aa3880ee225784fce6c560ecafeafaa',
 			'coords': '29.199505,-90.041242',
 			'author':
@@ -95,8 +95,8 @@ The server's signature should also be of the "Message" portion, not the entire c
 
 
 
-The "TopicTag" field may be used to specify the overall topic. This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.  
-You may specify any number of topics you wish, but many servers will not carry a message if it has too many. (Pluric.com limits you to 3)
+The "topic" field may be used to specify the overall topic. This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.  
+There may only ever be ONE topic. This topic must not be longer than 200 characters.
 
 The optional "TO" field allows you to specify a public key of a person to whom the message is directed. Their client may or may not look for this field.
 You may specify any number of "TO" fields, but many servers will not carry a message if it has too many. (Pluric.com limits you to 100)
@@ -120,6 +120,7 @@ The "Subject" should contain the subject of the message. If you are replying to 
 	There's no reason to modify the subject, but it won't hurt anything.
 	Adding a  "RE: " is stupid. 
 	Just set the "regarding" field.
+	The subject field may not be longer than 200 characters.
 
 The "Body" section should be plaintext, formatted in markdown or bbcode. 
 	Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 

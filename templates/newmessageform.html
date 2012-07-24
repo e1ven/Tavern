@@ -14,11 +14,11 @@
 		<form enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
 			  {% raw xsrf_form_html() %}
 			{% if topic is None %}
-			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny">
+			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200'>
 			<br>
 			{% end %}
 			{% if regarding is None %}
-			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" ><br>
+			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'><br>
 			{% end %}
 
 			{% if regarding is not None %}
@@ -58,7 +58,7 @@
 		<script src="/static/scripts/jquery.ui.widget.js?revision={{server.ServerSettings['static-revision']}}"></script>
 		<script src="/static/scripts/jquery.iframe-transport.js?revision={{server.ServerSettings['static-revision']}}"></script>
 		<script src="/static/scripts/jquery.fileupload.js?revision={{server.ServerSettings['static-revision']}}"></script>
-		<script src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}");
+		<script src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
 </div> <!-- newmessageform -->
 </div> <!-- #single -->

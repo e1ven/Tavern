@@ -152,12 +152,19 @@ class BaseHandler(tornado.web.RequestHandler):
                     finish = ""
                 modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") -1] + finish
 
-
-
-        soup = BeautifulSoup(self.html)    
+        try:
+            soup = BeautifulSoup(self.html)   
+        except:
+            print('malformed data: %r' % data)
+            raise     
         soupyelement = soup.find(id=element)
-        newtitle = soup.html.head.title.string.rstrip().lstrip()
-        
+        if soup.html is not None:
+            newtitle = soup.html.head.title.string.rstrip().lstrip()
+        else:
+            print("Equals None?!")
+            print(self.html)
+            newtitle = soup.html.head.title.string.rstrip().lstrip()
+
         soupytxt = ""
         if soupyelement is not None:
             for child in soupyelement.contents:
@@ -316,7 +323,7 @@ class RSSHandler(BaseHandler):
             for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
-                    "http://Tavern.com/message/" + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
+                    "http://Tavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
                     envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
@@ -338,7 +345,6 @@ class TriPaneHandler(BaseHandler):
         # But in this scenerio, we want the second param to be the text, if there are three, and have the ID as #3
         # But if there are only two, the second param should be the ID.
 
-
         # Count up our number of parameters.
         if param3 == None:
             if param2 == None:
@@ -348,17 +354,19 @@ class TriPaneHandler(BaseHandler):
                     numparams = 1
             else:
                 numparams = 2
+                param2 = tornado.escape.xhtml_escape(urllib.parse.unquote(param2))
         else:
             numparams = 3
-            
-            
+            param3 = tornado.escape.xhtml_escape(urllib.parse.unquote(param3))
+
+
         #Decide what to do, based on the number of incoming actions.    
         if numparams < 2:
             # Defaults all around
             action = "topic"
             topic = "sitecontent"
         else:
-            action = tornado.escape.xhtml_escape(param1) 
+            action = param1
             if action == "t" or action == "topic" or action == "topictag":
                 action = "topic"
             elif action == "m" or action == "message":
@@ -368,11 +376,11 @@ class TriPaneHandler(BaseHandler):
 
             if action == "message":       
                 if numparams == 2:
-                    messageid = tornado.escape.xhtml_escape(param2)
+                    messageid = param2
                 if numparams == 3:
-                    messageid = tornado.escape.xhtml_escape(param3)
+                    messageid = param3
             elif action == "topic":
-                topic = server.sorttopic(param2)
+                topic = param2
                     
         #TODO KILL THIS!!
         #THIS WILL WASTE CPU
@@ -421,7 +429,8 @@ class TriPaneHandler(BaseHandler):
                 subjects = []
                 for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                     subjects.append(envelope)
-                canon="message/" + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+
+                canon="message/" + envelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
             
         if displayenvelope is None:
@@ -438,12 +447,10 @@ class TriPaneHandler(BaseHandler):
                 subjects.append(envelope)
 
         usertrust = self.user.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
-        messagerating = self.user.getRatings(messageid)
+        #messagerating = self.user.getRatings(messageid)
         displayenvelope = server.formatEnvelope(displayenvelope)
-        displayenvelope['envelope']['local']['messagerating'] = messagerating
+        #displayenvelope['envelope']['local']['messagerating'] = messagerating
    
-        # Make canon URL safe
-        canon=server.urlize(canon) 
 
         # Detect people accessing via odd URLs, but don't do it twice.
         # Check for a redirected flag.
@@ -462,10 +469,9 @@ class TriPaneHandler(BaseHandler):
                 canonbubble = "?redirected=true"
             else:
                 canonbubble = "&redirected=true"  
-
             server.logger.info("Redirecting URL " + self.request.path[1:] + " to " + canon )
-            self.redirect("/" + canon + canonbubble, permanent=True)
-            return
+     #       self.redirect("/" + canon + canonbubble, permanent=True)
+     #       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
@@ -884,11 +890,7 @@ class UserTrustHandler(BaseHandler):
         server.mongos['cache']['usertrusts'].remove({"asking":self.user.Keys.pubkey,"askingabout":trusted_pubkey})
 
 
-class CrapHandler(BaseHandler):
- def get(self,topic=None,regarding=None):
-         self.write(self.render_string('test.html'))
 
-      
 class NewmessageHandler(BaseHandler):
 
     def options(self,regarding=None):
@@ -905,9 +907,6 @@ class NewmessageHandler(BaseHandler):
     def post(self,flag=None):
         self.getvars(ensurekeys=True)
         filelist = []
-
-
-
 
         # We might be getting files either through nginx, or through directly.
         # If we get the file through Nginx, parse out the arguments.
@@ -1261,7 +1260,6 @@ def main():
         (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
         (r"/login" ,LoginHandler),
-        (r"/crap" ,CrapHandler),
         (r"/showuserposts/(.*)" ,UserHandler),  
         (r"/user/(.*)" ,UserHandler),  
         (r"/logout" ,LogoutHandler),  

@@ -2,14 +2,14 @@
 {% from collections import OrderedDict %}
 {% import datetime %}
 
-{% set servername = 'Pluric.com' %}
 {% set medialink = None %}
 {% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
-{% set permalink = 'http://' + servername + '/message/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set permalink = '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
 
+{% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
 
 {% if orient == "left" %}
 <ul class='response' id="{{envelope['envelope']['payload_sha512']}}">
@@ -29,7 +29,8 @@
 			<div class="thread_{{orient}}">
 				    <a class="details" orient={{orient}} user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
 				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40px" height="40px" alt="User Details - " src="/avatar/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40" />
-				    	{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}
+				    	{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br>
+				    	{% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
 				    	{% set note = user.getNote(envelope['envelope']['payload']['author']['pubkey']) %}
 				    	{% if note is not None %}
 				    		<div class="note"><i>{{note}}</i></div>
@@ -137,7 +138,7 @@
 			<div class="comment_bottom">
 			&nbsp; <a rel="bookmark" class='internal' href="{{permalink}}">Permalink</a>
 			{% if 'regarding' in envelope['envelope']['payload'] %}
-				&nbsp; <a class='internal' href="/message/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
+				&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
 			{% end %}
 			&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
 				<div class="votes">

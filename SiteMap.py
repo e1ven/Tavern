@@ -60,7 +60,7 @@ for i in range(sitemapcount):
     
     a = server.mongos['default']['envelopes'].find({"envelope.local.short_subject":{"$exists":True}})[start:end]
     for envelope in a:
-        url = 'http://ForumLegion.com/message/' + envelope['envelope']['local']['short_subject'] + "/" +  envelope['envelope']['payload_sha512'] 
+        url = 'http://ForumLegion.com/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" +  envelope['envelope']['payload_sha512'] 
         date = datetime.datetime.utcfromtimestamp(envelope['envelope']['stamps'][0]['time_added'])
         datestr = date.isoformat()
         datecur = datestr[0:datestr.find(".")] + "+00:00"
