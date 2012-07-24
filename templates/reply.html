@@ -107,7 +107,7 @@
 							    {% end %} 
 							{% end %} 
 				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
-				            <a href="/attachment/{{attachment['sha_512']}}"><i class='icon-info-sign'></i></a>
+				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-sign'></i></a>
 	                        <br>
 				    {% end %}
 	    		</div>

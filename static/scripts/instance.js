@@ -124,7 +124,7 @@
         var jQuerymsg = jQuery(this).attr('message');
         var jQueryhref = jQuery(this).attr('href');
         jQuery.get(jQueryhref + "?getonly=true",function(data) {
-          jQuery('#reply_'+jQuerymsg).empty().append("<br>" + data);
+          jQuery('#reply_'+jQuerymsg).html(data);
         });   
         
     });  

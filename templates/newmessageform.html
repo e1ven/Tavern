@@ -14,41 +14,50 @@
 		<form enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
 			  {% raw xsrf_form_html() %}
 			{% if topic is None %}
-			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200'>
-			<br>
+			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
+			<br/>
 			{% end %}
 			{% if regarding is None %}
-			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'><br>
+			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
 			{% end %}
 
 			{% if regarding is not None %}
-			<input type="hidden" name="regarding" value = "{{regarding}}"><br>
+			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
 			{% end %}
 			{% if topic is not None %}
-			<input type="hidden" name="topic" value = "{{topic}}"><br>
+			<input type="hidden" name="topic" value = "{{topic}}"/><br/>
 			{% end %}
 
 			{% if regarding is None %}
-				What would you like your message to say?<br> 
+				What would you like your message to say?<br/> 
 			{% else %}
-				What would you like your reply to say?<br>
+				What would you like your reply to say?<br/>
 			{% end %}
 
 
-			<textarea name="body" rows=8 cols=80></textarea><br><br>
+			<textarea name="body" rows=8 cols=80></textarea><br/><br/>
+
+			<input class="single_file_upload" type="file" name="attached_file1"/><br/>
 
 			<div id="filelist">
 			</div>
-
-			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>Include Location<br>
-			<input type="submit" value="Submit Message">
+			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
+			<input type="submit" value="Submit Message"/>
 		</form>
-
-		<form class='uploadfileform' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}">
+		<br/><br/>
+	
+		<form class='uploadfileform' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}" style="position:relative;bottom:5px">
+		<div class='uploadbox'>
+			<i class='icon-upload'></i>
+		</div>
 		{% raw xsrf_form_html() %}
-		<input  class='uploadonly' id="1234" type="file" name="files[]" multiple>
+		<input  class='uploadonly' id="1234" type="file" name="files[]" multiple/>
+		<p>Drag and Drop or choose files to attach.</p>
 		</form>
 
+		<div id='spacer'></div>
+
+		<br>
 		<div id='filelist_{{timeid}}'></div>
 		<div id='progress_{{timeid}}' style="display:none">%</div>
 

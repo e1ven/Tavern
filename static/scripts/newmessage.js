@@ -1,5 +1,8 @@
 jQuery(document).ready(function () {
     jQuery.noConflict();
+    jQuery(".uploadfileform").show();
+    jQuery(".single_file_upload").hide();
+
     var referenced_files = 1;
     var referenced_form = '';
     jQuery(function () {
@@ -25,7 +28,9 @@ jQuery(document).ready(function () {
 
                     referenced_files +=1;
                 });
-                jQuery('#progress_' +jQuery(this).attr('references')).hide();
+                jQuery('#progress_' + jQuery(this).attr('references')).hide();
+                jQuery('.icon-upload').css('color','#000000');
+                jQuery('.uploadbox').css('border-color','#000000');
             }
         });
 

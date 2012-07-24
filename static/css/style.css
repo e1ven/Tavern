@@ -251,7 +251,7 @@ form.vote {
 	border:2px solid;
 	border-color: #a9a9a9;
 	}
-	
+
 #single p {
     padding-left: 20px;
     padding-top: .5em;
@@ -672,3 +672,33 @@ width:90%;
   display:none;
 }
   
+.uploadfileform{
+  margin-top:-20px;
+  display:none;
+}
+
+.uploadonly{
+  margin-top:10px;
+}
+
+.uploadbox{
+    height: 50px;
+    width:50px;
+    border: 2px dashed;
+    float:left;
+    border-color:#999999;
+}
+.icon-upload{
+  font-size: 35px;
+  bottom:-16px;
+  left:13px;
+  position:relative;
+  color:#999999;
+}
+.icon-upload:hover{
+  color:#000000;
+}
+.uploadfileform > p
+{
+  padding-left: 75px !important;
+}
