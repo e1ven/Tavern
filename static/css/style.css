@@ -679,6 +679,7 @@ width:90%;
 
 .uploadonly{
   margin-top:10px;
+  margin-left:10px;
 }
 
 .uploadbox{
@@ -691,7 +692,7 @@ width:90%;
 .icon-upload{
   font-size: 35px;
   bottom:-16px;
-  left:13px;
+  right:-5px;
   position:relative;
   color:#999999;
 }
