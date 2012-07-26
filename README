@@ -1,12 +1,9 @@
-Tavern is a Decentralized, Anonymous, Peer to Peer forum, written in Tornado and Python3.
-It is designed to be censorship resistant, and is based on the idea of passing signed messages.
+uaParser
 
-There is a Specification for messages in the "Spec" directory, but the basic format is very simple.
-Each message is a JSON document, signed by a RSA Public Key that is unique to each user.
+Drew Stephens <drew@dinomite.net>
+2010-10-06
 
-We then pass these along to various servers, and organize them by Topics.
+Extricating the user agent parsing code from browserscope.
+I pulled this from their SVN repo at r715, currently updated to r749.
 
-The main web-interface runs in "webfront.py"
-The API runs in "api.py"
-
-Tavern is written in Python3 and Tornado2.
+See http://www.browserscope.org and the code at http://code.google.com/p/browserscope
