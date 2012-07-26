@@ -306,7 +306,6 @@ COLUMN WIDTH ELEMENTS
 
 #left, #center {
         float: left;
-        width: 25%;
         height: 100%;
         padding: 0;
         overflow-y:auto;
@@ -314,12 +313,13 @@ COLUMN WIDTH ELEMENTS
         -webkit-overflow-scrolling: touch;
 }
 
-#centerandright {
-        height: 100%;
-}
-
 #center {
 	background: #D8D8D8;
+  width: 25%;
+}
+
+#centerandright {
+        height: 100%;
 }
 
 #right {
@@ -330,7 +330,7 @@ COLUMN WIDTH ELEMENTS
 	background: #ffffff;
 	overflow:scroll;
   -webkit-overflow-scrolling: touch;
-
+  min-width:10px;
 }
 
 .resizableContainer{
@@ -346,6 +346,9 @@ COLUMN WIDTH ELEMENTS
 	background: url(/static/images/column_shadow.png) top right repeat-y #2d2d2d;
 	color: #ffffff;
 	font-size: 14px;
+  width:25%;
+  min-width:10px;
+
 }
 #left h2 { 
 	font-size: 14px; 
