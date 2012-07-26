@@ -674,7 +674,6 @@ width:90%;
   
 .uploadfileform{
   margin-top:-20px;
-  display:none;
 }
 
 .uploadonly{
@@ -702,4 +701,7 @@ width:90%;
 .uploadfileform > p
 {
   padding-left: 75px !important;
+}
+.hiddenupload{
+  display:none;
 }

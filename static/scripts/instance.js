@@ -1,5 +1,4 @@
- 
-        
+
     jQuery('a.internal').each( function ()
     {            
         jQuery(this).click(function()

@@ -91,7 +91,14 @@ Using the following Libraries:
 	jQuery Tools v1.2.6 - Some CSS was copied for the Tooltip.
 	It gives the following license " * NO COPYRIGHTS OR LICENSES. DO WHAT YOU LIKE."
 		
-		
+	uaParser (Apache license)
+	
+	pyYaml (MIT)
+	
+	Python-Magic (PSF)
+
+	httpagentparser (MIT)
+
 --- yENC license ---
 
 Hi Colin,

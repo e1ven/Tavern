@@ -73,6 +73,18 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
+    def getavatar(self,myid):
+        result = server.mongos['cache']['usertrusts'].find_one({"_id":myid})
+        if result is not None:
+            return result['data']
+        else:
+            f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
+            result = {}
+            result['data'] = f.read()
+            result['_id'] = myid
+            server.mongos['cache']['data'].save(result)
+            return result['data']
+            
     def randstr(self,length):
         # Ensure it's self.logger.infoable.
         return ''.join(chr(random.randint(48,122)) for i in range(length))

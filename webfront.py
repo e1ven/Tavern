@@ -32,6 +32,7 @@ import pprint
 import Image
 import imghdr
 import io
+import httpagentparser
 
 import re
 try: 
@@ -72,7 +73,8 @@ class BaseHandler(tornado.web.RequestHandler):
         Overwrite the default render_string to ensure the "server" variable is always available to templates
         """    
         args = dict(
-             server=server
+             server=server,
+             browser=self.browser
         )
         args.update(kwargs)
         return tornado.web.RequestHandler.render_string(self,template_name, **args) 
@@ -83,7 +85,6 @@ class BaseHandler(tornado.web.RequestHandler):
             self.html += html.decode('utf-8')
         else:
              self.html += html
-
     def gettext(self):
         ptext = ""
         for a in self.pagetext:
@@ -254,6 +255,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Retrieve the basic user variables out of your cookies.
         """
+
         self.user = User()
         if self.get_secure_cookie("tavern_preferences_count") is not None:
 
@@ -308,7 +310,33 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.user.passkey == None:   
             self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
+        # Get the Browser version.
+        self.browser = httpagentparser.detect(self.request.headers['User-Agent'])
+        self.browser['browser']['fullversion'] = self.browser['browser']['version']
+        self.browser['browser']['version'] = int(self.browser['browser']['version'].split('.')[0])
 
+
+        # Check to see if we have support for datauris in our browser.
+        # If we do, send the first ~10 pages with datauris.
+        # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
+        if not 'stickingaround' in self.user.UserSettings:
+            if random.randrange(1,10) == 5:
+                self.user.UserSettings['stickingaround'] = True
+        if 'stickingaround' in self.user.UserSettings:
+            self.user.datauri = False
+        elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 8:
+            self.user.datauri = False
+        elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] <= 8:
+            self.user.datauri = True
+        else:
+            self.user.datauri = True
+        if 'datauri' in self.request.arguments:
+            if self.get_argument("datauri").lower() == 'true':
+                self.user.datauri = True
+            elif self.get_argument("datauri").lower() == 'false':
+                self.user.datauri = False
+
+                
         return self.user.UserSettings['username']
 
 
