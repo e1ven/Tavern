@@ -311,7 +311,11 @@ class BaseHandler(tornado.web.RequestHandler):
             self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Get the Browser version.
-        self.browser = httpagentparser.detect(self.request.headers['User-Agent'])
+        if 'User-Agent' in self.request.headers:
+            ua = self.request.headers['User-Agent']
+        else:
+            ua = "Unknown 1.0"
+        self.browser = httpagentparser.detect(ua)
         self.browser['browser']['fullversion'] = self.browser['browser']['version']
         self.browser['browser']['version'] = int(self.browser['browser']['version'].split('.')[0])
 
@@ -336,7 +340,7 @@ class BaseHandler(tornado.web.RequestHandler):
             elif self.get_argument("datauri").lower() == 'false':
                 self.user.datauri = False
 
-                
+
         return self.user.UserSettings['username']
 
 
