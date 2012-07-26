@@ -1,6 +1,6 @@
 
 head.ready(function() {
-    jQuery.noConflict();
+    $jQuery = jQuery.noConflict();
     var currentelement = "";
 
     jQuery.fn.splitter = function(args){

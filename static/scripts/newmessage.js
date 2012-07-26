@@ -1,8 +1,9 @@
 jQuery(document).ready(function () {
     jQuery.noConflict();
-    jQuery(".uploadfileform").show();
+    
+    jQuery("#dragdroptext").html("Drag and Drop or choose files to attach")
+    jQuery(".hiddenupload").show();
     jQuery(".single_file_upload").hide();
-
     var referenced_files = 1;
     var referenced_form = '';
     jQuery(function () {

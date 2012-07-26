@@ -28,7 +28,17 @@
 			<div class="thread_common">
 			<div class="thread_{{orient}}">
 				    <a class="details" orient={{orient}} user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
-				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40px" height="40px" alt="User Details - " src="/avatar/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40" />
+				    
+				    	{% if user.datauri == True %}
+				    		{% set src = server.getavatar(''.join(envelope['envelope']['payload']['author']['pubkey'].split())) %}
+				    	{% else %}
+				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=40x40' %}
+				    	{% end %}
+
+				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40px" height="40px" alt="User Details - " src="{{src}}" />
+
+
+
 				    	{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br>
 				    	{% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
 				    	{% set note = user.getNote(envelope['envelope']['payload']['author']['pubkey']) %}

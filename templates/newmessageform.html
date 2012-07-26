@@ -46,20 +46,20 @@
 		</form>
 		<br/><br/>
 	
-		<form class='uploadfileform' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}" style="position:relative;bottom:5px">
+		<form class='uploadfileform hiddenupload' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}" style="position:relative;bottom:5px">
 		<div class='uploadbox'>
 			<i class='icon-upload'></i>
 		</div>
 		{% raw xsrf_form_html() %}
 		<input  class='uploadonly' id="1234" type="file" name="files[]" multiple/>
-		<p>Drag and Drop or choose files to attach.</p>
+		<p class='hiddenupload' id='dragdroptext'></p>
 		</form>
 
 		<div id='spacer'></div>
 
 		<br>
-		<div id='filelist_{{timeid}}'></div>
-		<div id='progress_{{timeid}}' style="display:none">%</div>
+		<div id='filelist_{{timeid}}' class='uploadfileform hiddenupload'></div>
+		<div id='progress_{{timeid}}' style="display:none"></div>
 
 		</div>
 	
