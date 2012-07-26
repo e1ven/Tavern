@@ -18,12 +18,12 @@ if (head.browser.ie)
     
   if ( parseFloat(head.browser.version) > 7 )
   {
-    head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}");
+    head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/vsplit.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}");
   }
 }
 else
 {
-  head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}");
+  head.js("/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/vsplit.js?revision={{server.ServerSettings['static-revision']}}","/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}");
 }
 </script>
 

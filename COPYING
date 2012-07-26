@@ -17,9 +17,6 @@ Using the following Libraries:
 
 	Beautiful Soup (Python License)
 		http://www.crummy.com/software/BeautifulSoup/
-	
-	JQuery Splitter (Under LGPL)
-		http://plugins.jquery.com/project/splitter
 
 	yENC (under LGPL, see email below)
 		For converting Binaries to Text.

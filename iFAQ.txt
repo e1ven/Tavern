@@ -94,14 +94,10 @@ Why does the website do the processing/signing on the server, rather than in the
 	An encrypted version of the key is stored on the server, and the passphrase for the encryption is stored locally via cookies.
 
 	This means that even we don't have access to your key, except during the times when you're logged in.
-
-
 	Beyond misbehaved local threats, storing the key in the client also wouldn't add much security.
 	Ultimately, since the Javascript is loading from our server, it has access to the key anyway.
 
 	This means that any proxy that incercepts HTTPS requests to our server (as exist on some corporate proxies) could rewrite the JS, and steal your key.
-
-
 	If you want to ensure that no one but you ever has any (even transient) access to your your key, and are sure you can keep your system secure, you can keep your key locally by running a copy of the Tavern software on your local machine.
 
 
@@ -110,9 +106,13 @@ Why do you not accept Bitcoins as Payments or Donations?
 	For example, see the EFF statement at https://www.eff.org/deeplinks/2011/06/eff-and-bitcoin/
 	While it'd be great to be able to do so, right now the law is not sufficiently clear on what is required, and I don't have a legal defense fund, so this isn't easily feasible.
 
+Why are user avatars sometimes Data:URIs and sometimes linked images?
+	The first 10 or so times you come to the page, browsers that support it will receive data:uris.
+	These are significantly faster for adhoc page loads, and should make the initial experience better.
+	The downside to data:uris, however, is that they aren't cached- Which means if you ARE sticking around, they'll end up being the slower way to handle things.
+	After the server determines you're sticking around, it will begin sending img files, which will be faster once caching kicks in.
 
 
-	
 Why Tornado, and not Flask
 	Flask didn't support Python3 at the time this project was created. Tornado, even when not doing the async tools, provides a really nice, low-magic framework for webdev.
 

@@ -29,6 +29,7 @@ footer, header, hgroup, menu, nav, section {
         display: block;
 }
 
+
 body {
         line-height: 1;
 }
@@ -288,36 +289,54 @@ form.vote {
 
 
 
-
-
-
 /* **********
 *************
 COLUMN WIDTH ELEMENTS 
 ************* 
 ************* */
+
+#content{
+  position:absolute;
+  height:80%;
+  width:100%;
+  overflow:hidden;
+  float:left;
+}
+
+
 #left, #center {
         float: left;
         width: 25%;
         height: 100%;
         padding: 0;
-        overflow:auto;
+        overflow-y:auto;
+        overflow-x:hidden;
         -webkit-overflow-scrolling: touch;
-
 }
 
+#centerandright {
+        height: 100%;
+}
 
 #center {
 	background: #D8D8D8;
-
 }
+
 #right {
+  width:100%;
+  height:100%;
 	float: left;
 	width: 50%;
 	background: #ffffff;
 	overflow:scroll;
   -webkit-overflow-scrolling: touch;
 
+}
+
+.resizableContainer{
+  overflow:none;
+  float:left;
+  height:100%;
 }
 
 #left h2, #center h2, #right h1 { padding: 3px 15px; }
@@ -430,6 +449,7 @@ COLUMN WIDTH ELEMENTS
 
 #right{
     border-top: 2px solid #ffffff;
+    overflow:scroll;
 }
 #right .thread {
      margin-top: 0px;
@@ -516,44 +536,28 @@ img.imginline { vertical-align: middle;  }
 
 /*Splitter*/
 
-.SplitterPane {
-        background: #eef;
-        overflow: auto;
-}
-.vsplitbar {
-        width: 6px;
-        background: #29111b url(/static/images/vgrabber.png) no-repeat center;
-}
-.vsplitbar.active, .vsplitbar:hover {
-        background-color: #29111b;
-        width: 6px;
-        opacity: 0.5;
-        filter: alpha(opacity=50); /* IE */
-}
+.splitter {
+      background: #29111b url(/static/images/vgrabber.png) no-repeat center;
+      padding: 0;
+      margin: 0;
+      cursor: e-resize;
+      text-align: center;
+      width:5px !important;
+    }
 
-.vsplitbar {
-        width: 6px;
-        background: #29111b url(/static/images/vgrabber.png) no-repeat center;
-}
-.vsplitbar.active, .vsplitbar:hover {
-        background-color: #29111b;
-        width: 6px;
-        opacity: 0.5;
-        filter: alpha(opacity=50); /* IE */
-}
-.hsplitbar {
-        height: 6px;
-        background: #29111b url(/static/images/hgrabber.png) no-repeat center;
-        /* No margin, border, or padding allowed */
-}
-.hsplitbar.active, .hsplitbar:hover {
-        background: #29111b url(/static/images/hgrabber.png) no-repeat center;
-}
+    .splitter hr {
+      height: 90%;
+      width:50%;
+      margin: 30% auto 0 auto;
+      background: #29111b;
 
+    }
 
-
-
-
+    .splitter:hover{
+      opacity: 0.5;
+      filter: alpha(opacity=50); /* IE */
+    }
+  
 .details {
   position:relative;
 }

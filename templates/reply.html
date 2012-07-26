@@ -32,7 +32,7 @@
 				    	{% if user.datauri == True %}
 				    		{% set src = server.getavatar(''.join(envelope['envelope']['payload']['author']['pubkey'].split())) %}
 				    	{% else %}
-				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=40x40' %}
+				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.jpg?set=any&amp;bgset=any&amp;size=40x40' %}
 				    	{% end %}
 
 				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40px" height="40px" alt="User Details - " src="{{src}}" />
@@ -156,14 +156,14 @@
 					  {% raw xsrf_form_html() %}
 					<input type="hidden" name="rating" value="1">
 					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post"></abbr>
+					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16px" width="16px"></abbr>
 					</form>
 
 					<form action="/vote" method="post" class="vote">
 					  {% raw xsrf_form_html() %}
 					<input type="hidden" name="rating" value="-1" >
 					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post"></abbr>
+					<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16px" width="16px"></abbr>
 					</form>
 				</div>  <!-- votes -->
 				{% if orient == "right" %}

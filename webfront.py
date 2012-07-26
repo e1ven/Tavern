@@ -323,11 +323,11 @@ class BaseHandler(tornado.web.RequestHandler):
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
-        if not 'stickingaround' in self.user.UserSettings:
+        if not 'datauri' in self.user.UserSettings:
             if random.randrange(1,10) == 5:
-                self.user.UserSettings['stickingaround'] = True
-        if 'stickingaround' in self.user.UserSettings:
-            self.user.datauri = False
+                self.user.UserSettings['datauri'] = False
+        if 'datauri' in self.user.UserSettings:
+            self.user.datauri = self.user.UserSettings['datauri']
         elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 8:
             self.user.datauri = False
         elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] <= 8:
