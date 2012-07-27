@@ -1,9 +1,9 @@
+<script src="/static/scripts/jquery.mailcheck.min.js"></script>
+<script src="/static/scripts/zxcvbn.js"></script>
+
 <script>
-head.js("/static/scripts/zxcvbn.js");
-
-
 head.ready(function() {
-	head.js("/static/scripts/jquery.mailcheck.min.js");
+	head.js("");
 
 	$('#email').blur(function() {
 	    $(this).mailcheck({
@@ -52,7 +52,7 @@ head.ready(function() {
 
 
 
-<div id="single">
+<div class="single">
 <h1>Register for an account</h1>
 <p></p>
 
@@ -75,4 +75,4 @@ Verify Password: <input id='pass2' type="password" name="pass2">
 </p>
 </form>
 
-</div> <!-- #single -->
+</div> <!-- .single -->

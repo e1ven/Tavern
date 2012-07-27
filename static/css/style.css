@@ -238,9 +238,19 @@ form.vote {
   text-decoration:none;
 }
 
-#single {
+.userportrait {
+  width: 500px;
+  }
+
+.portrait{
+  display: block;
+  margin-left: auto;
+  margin-right: auto; 
+}
+
+.single {
     top: 20px;
-    height: 25%;
+    height: auto;
     margin-right: auto;
     margin-left: auto;
     margin-bottom: 50px;
@@ -253,27 +263,27 @@ form.vote {
 	border-color: #a9a9a9;
 	}
 
-#single p {
+.single p {
     padding-left: 20px;
     padding-top: .5em;
     padding-bottom: 0px;
 }	
 
-#single form, #single ul {
+.single form, .single ul {
     padding-left: 20px;
     padding-bottom: 10px;
 }	
 
-#single li {
+.single li {
     padding-left: 20px;
     padding-top: .5em;
 
 }	
 
 	
-#single .padder { background: #ffffff; }
+.single .padder { background: #ffffff; }
 
-#single h1 {
+.single > h1 {
 	font-size: 14px; 
 	font-weight: bold; 
 	text-transform: uppercase;
@@ -284,7 +294,7 @@ form.vote {
 	padding-left: 20px;
 
 }
-#single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
+.single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
 
 
 

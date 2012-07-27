@@ -4,6 +4,7 @@ import re,json
 import socket
 socket.setdefaulttimeout(30)
 from server import server
+import functools
 
 
 
@@ -20,6 +21,7 @@ class embedis:
                          self.embedis,
                         ]
 
+    @functools.lru_cache(maxsize=262144)
     def lookup(self,url):
         self.url = url
         self.query = urlparse(url)

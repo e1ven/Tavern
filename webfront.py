@@ -40,6 +40,9 @@ try:
 except ImportError:
     from md5 import new as md5_func
 
+import cProfile
+
+
 
 class BaseHandler(tornado.web.RequestHandler):
     
@@ -313,12 +316,19 @@ class BaseHandler(tornado.web.RequestHandler):
         # Get the Browser version.
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
-        else:
-            ua = "Unknown 1.0"
+            print(ua)
         self.browser = httpagentparser.detect(ua)
-        self.browser['browser']['fullversion'] = self.browser['browser']['version']
-        self.browser['browser']['version'] = int(self.browser['browser']['version'].split('.')[0])
 
+        # Make sure we have something.
+        try:
+            self.browser['browser']['fullversion'] = self.browser['browser']['version']
+            self.browser['browser']['version'] = int(self.browser['browser']['version'].split('.')[0])
+        except:
+            self.browser = {}
+            self.browser['browser'] = {}
+            self.browser['browser']['name'] = 'unknown'
+            self.browser['browser']['fullversion'] = 'unknown'
+            self.browser['browser']['version'] = 0.0
 
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
@@ -706,12 +716,11 @@ class UserHandler(BaseHandler):
         if pubkey == self.user.Keys.pubkey:
             self.write(self.render_string('mysettings.html',user=self.user))
 
-        self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey))
-
         envelopes = []
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey,'envelope.payload.class':'message'},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
             envelopes.append(envelope)
 
+        self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey,envelopes=envelopes))
         self.write(self.render_string('showuserposts.html',envelopes=envelopes))
         self.write(self.render_string('footer.html'))
 

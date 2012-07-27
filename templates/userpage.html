@@ -1,11 +1,14 @@
 
 
 
-<div id="single">
-<h1> Notes about this user <br />
+<div class="single userportrait">
+<h1> Details about {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} <br />
 </h1>
 <p></p>
 <ul>
+
+<img id="avatar_{{thatguy}}" class="portrait" width="400px" height="400px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.split()) + '.png?set=any&amp;bgset=any&amp;size=400x400'}}" /><br>
+
 
 
 
@@ -27,4 +30,4 @@
 
 
 </ul>
-</div> <!-- #single -->
+</div> <!-- .single -->

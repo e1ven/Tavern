@@ -4,7 +4,7 @@
 {% if 'js' in args %}
 	<div id="right">
 {% else %}
-	<div id="single">
+	<div class="single">
 {% end %}	
 
 	{% if regarding is None %}
@@ -69,4 +69,4 @@
 		<script src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
 </div> <!-- newmessageform -->
-</div> <!-- #single -->
+</div> <!-- .single -->

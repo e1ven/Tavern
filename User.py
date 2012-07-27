@@ -33,7 +33,6 @@ class User(object):
 
     def hash_password(self,password, maxtime=5, datalength=64):
         pword = scrypt.encrypt(self.randstr(datalength), password, maxtime=maxtime)
-
         return base64.b64encode(pword).decode('utf-8')
 
     def verify_password(self, guessed_password,hashed_password=None, maxtime=5):

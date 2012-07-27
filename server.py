@@ -24,6 +24,7 @@ import bbcodepy
 from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
+import functools
 
 class Fortuna():
     def __init__(self,fortunefile="fortunes"):
@@ -73,17 +74,10 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
+    @functools.lru_cache(maxsize=262144)
     def getavatar(self,myid):
-        result = server.mongos['cache']['usertrusts'].find_one({"_id":myid})
-        if result is not None:
-            return result['data']
-        else:
             f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
-            result = {}
-            result['data'] = f.read()
-            result['_id'] = myid
-            server.mongos['cache']['data'].save(result)
-            return result['data']
+            return f.read()
             
     def randstr(self,length):
         # Ensure it's self.logger.infoable.

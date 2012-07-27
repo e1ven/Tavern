@@ -1,6 +1,8 @@
 from keys import Keys
 import scrypt
 import base64
+import functools
+
 
 class lockedKey(object):
     """
@@ -98,6 +100,7 @@ class lockedKey(object):
         tempkey = Keys(pub=self.pubkey,priv=self.privkey(passkey))
         return tempkey.encrypt(encryptstring=encryptstring)
 
+    @functools.lru_cache(maxsize=262144)
     def decrypt(self,decryptstring,passkey):
         """
         Decrypt a given string, after unlocking the local privkey to do so.
