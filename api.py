@@ -12,7 +12,6 @@ import time
 import datetime
 import os
 import imghdr
-import random
 import socket
 import pymongo
 import json
