@@ -197,7 +197,7 @@ class BaseHandler(tornado.web.RequestHandler):
                             jQuery("#spinner").height(jQuery(this).parent().height());
                             jQuery("#spinner").width(jQuery(this).parent().width());
                             jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
-                            head.js(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
+                            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
                             return false;
                         });
                         jQuery(this).attr("link-destination",this.href);
@@ -759,9 +759,9 @@ class ChangeManySettingsHandler(BaseHandler):
                  
 class ChangeSingleSettingHandler(BaseHandler):
 
-    def post(self,setting):    
+    def post(self,setting,option=None):    
         self.getvars(ensurekeys=True)
-
+        redirect = True
         if setting == "followtopic":
             self.user.followTopic(tornado.escape.xhtml_escape(self.get_argument("topic")))
         elif setting == "unfollowtopic":
@@ -769,6 +769,9 @@ class ChangeSingleSettingHandler(BaseHandler):
         elif setting == "showembeds":
             self.user.UserSettings['allowembed'] = 1
             server.logger.info("allowing embeds")
+            if option == 'ajax':
+                self.write('Tavern will now display all external media.')
+                redirect = False
         elif setting == "dontshowembeds":
             self.user.UserSettings['allowembed'] = -1
             server.logger.info("forbidding embeds")
@@ -780,7 +783,8 @@ class ChangeSingleSettingHandler(BaseHandler):
         if "js" in self.request.arguments:
             self.finish(divs=['left'])
         else:
-            self.redirect("/")
+            if redirect == True:
+                self.redirect("/")
         
 
 class RatingHandler(BaseHandler):
@@ -1315,6 +1319,7 @@ def main():
         (r"/usernote",UserNoteHandler),  
         (r"/attachment/(.*)" ,AttachmentHandler), 
         (r"/topicinfo/(.*)",TopicPropertiesHandler),  
+        (r"/changesetting/(.*)/(.*)" ,ChangeSingleSettingHandler),
         (r"/changesetting/(.*)" ,ChangeSingleSettingHandler),
         (r"/changesettings" ,ChangeManySettingsHandler),  
         (r"/showprivates" ,MyPrivateMessagesHandler), 

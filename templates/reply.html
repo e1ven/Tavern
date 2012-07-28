@@ -133,13 +133,22 @@
 					</div>
 				{% elif user.UserSettings['allowembed'] == 0  %}
 					<i class="icon-picture embeddedcontentnote"></i>
-					<div class="embededwarning">
-						This message contains a link to external content, such as a movie or picture.<Br>
-						Tavern can automatically display these things, but if you do so, the site they come from will know you loaded it.<br>
-						You can always change this setting in <a href="/user/{{''.join(user.UserSettings['pubkey'].split())}}">your user preferences</a><br><br>
+					<div id="embededcontent_{{envelope['envelope']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
+						{% for embed in envelope['envelope']['local']['embed'] %}
+							{%raw embed %}
+						{% end %}">
+						<br>
+						This message contains a link to a picture or movie hosted by some other service.<Br>
+						Tavern can automatically display a lot of linked content, but (like any webpage) the site it's loaded from will know you viewed it.<br>
+						<br>
+						<form action="/changesetting/showembeds" method="post" class='alwaysdisplay'> 
+							{% raw xsrf_form_html() %} 
+							<input type="submit" value='Always display external content' class="textbutton"> <br>
+						</form>
+						<br>
+						<p>You can always change this setting in <a href="/user/{{''.join(user.UserSettings['pubkey'].split())}}">your user preferences</a></p>
 
-						<form action="/changesetting/showembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Always load external content' class="textbutton "></form> | 
-						<form action="/changesetting/dontshowembeds" method="post"> {% raw xsrf_form_html() %} <input type="submit" value='Only display links to external content' class="textbutton "></form>.
+
 					</div>
 				{% elif user.UserSettings['allowembed'] == -1 %}
 				{% end %}

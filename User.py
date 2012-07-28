@@ -222,7 +222,7 @@ class User(object):
         # Compare the lowercase/sorted values
         for followedtopic in self.UserSettings['followedTopics']:
             if server.sorttopic(followedtopic) == server.sorttopic(topic):
-                self.UserSettings['followedTopics'].remove(topic)
+                self.UserSettings['followedTopics'].remove(followedtopic)
 
     def generate(self,email=None,username=None,skipkeys=False,password=None):
         """

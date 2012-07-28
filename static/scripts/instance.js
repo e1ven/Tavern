@@ -6,7 +6,7 @@
             jQuery("#spinner").height(jQuery(this).parent().height());
             jQuery("#spinner").width(jQuery(this).parent().width());
             jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show()
-            head.js(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
+            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
             return false;
             });
         jQuery(this).attr("link-destination",this.href);
@@ -91,7 +91,7 @@
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
           function( data ) {
               ref.empty().append("Done.");
-              head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
+              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
           }
         );
 
@@ -111,7 +111,7 @@
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
           function( data ) {
               ref.empty().append("Done.");
-              head.js('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
+              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
           }
         );
 
@@ -165,17 +165,51 @@
             });
     });
 
+    // Hide any linked content by default.
+    // Don't even LOAD it. Just know where it is.
+    // If they click to load, then adjust the page to retrieve
     jQuery('.embeddedcontentnote').each( function ()
-    {            
+    {           
+        var embededcontent = jQuery(this).next(); 
         jQuery(this).click(function()
             {  
-              if (jQuery(".embededwarning").is(":visible"))
+              if (embededcontent.is(":visible"))
               {
-                  jQuery(".embededwarning").hide()
+                  embededcontent.hide();
               }
               else
               {
-                  jQuery(".embededwarning").show()
+                  embededcontent.show();
+                  embededcontent.prepend(embededcontent.attr('stufftoshow') + "<br>");
               }
             })
     });
+
+
+    // Ensure there is a checkbox, which looks nicer, in the JS version, rather than the textbutton.
+    jQuery('.alwaysdisplay > .textbutton').hide();
+    jQuery('.alwaysdisplay').append('<input type="checkbox" name="showembeds" value="True" class="checkalways" /> Always display external content <br />')
+
+    jQuery('.checkalways').click( function(e){
+        var displayform = jQuery( this ).parent();         
+        url = displayform.attr( 'action' );
+        displayform.hide();
+        jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},                  
+            function( data ) 
+                  {
+                     displayform.empty().append( data );
+                     displayform.show();
+
+                  });
+        // If you clicked it, show all the media on THIS page, too.
+        // It's the little stuff, you know?
+        jQuery('.embeddedcontentnote').each( function ()
+          {
+              var embededcontent = jQuery(this).next(); 
+              embededcontent.show();
+              embededcontent.empty().append(embededcontent.attr('stufftoshow') + "<br>");
+          });
+        jQuery('.icon-picture').hide();
+
+    });
+

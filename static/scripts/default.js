@@ -1,5 +1,5 @@
 
-jQuery().ready(function() {
+jQuery(document).ready(function() {
     $jQuery = jQuery.noConflict();
 
     if (jQuery("#centerandright").length)
@@ -83,5 +83,6 @@ jQuery().ready(function() {
     }
 
 jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
-    
+jQuery.getScript('/static/scripts/instance.js');
+  
 });
