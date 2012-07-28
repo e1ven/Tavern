@@ -11,7 +11,7 @@ var VerticalSplitter = (function() {
 		firstItemId: "",
 		secondItemId: "",
 		splitterId: "splitter",
-		splitterWidth: 10,
+		splitterWidth: 5,
 	}
 	
 	return {

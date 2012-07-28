@@ -24,7 +24,9 @@ Using the following Libraries:
 			
 	py3 (LGPL)
 		For reducing the size of on-disk saves.
-		
+
+	jQuery.splitter.js (MIT)
+		http://methvin.com/splitter/ - The Image of the grabber is used.		
 
 	Mongo and the Mongo-Python-Driver (Apache)
 		https://github.com/mongodb/mongo-python-driver

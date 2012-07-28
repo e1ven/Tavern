@@ -1,4 +1,5 @@
 
+
 jQuery(document).ready(function() {
     $jQuery = jQuery.noConflict();
 
@@ -29,10 +30,7 @@ jQuery(document).ready(function() {
             jQuery('#right').width(jQuery('#centerandright').width() * .75)
         }
         
-        // Now, do the splitting.
-        VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
-        VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
-    }
+     }
 
 
 
@@ -84,5 +82,12 @@ jQuery(document).ready(function() {
 
 jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
 jQuery.getScript('/static/scripts/instance.js');
-  
+});
+
+
+jQuery(window).load(function() {
+// Do the split after all other positioning/etc
+VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
+VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });  
+
 });

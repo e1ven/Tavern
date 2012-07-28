@@ -215,11 +215,16 @@
 // Set out footer size.
 function sizewindow()
 {
-  //Set the content window
-  jQuery('#content').css('height', jQuery(document).height() - jQuery('header').height() - 50  )
-  // Set out footer position
-  jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10})
-}
+  if (! jQuery('.single').length)
+  {
+    // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
+    jQuery('#content').css('position','absolute');
+    //Set the content window
+    jQuery('#content').css('height', jQuery(window).height() - jQuery('header').height() - 50  );
+  }
+    // Set out footer position
+    jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10});
+} 
 
 jQuery(document).ready(function() {
   sizewindow()

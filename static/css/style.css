@@ -207,14 +207,7 @@ header#top {
 	border-radius: 3px;
 }
 
-#content {
-	margin: 20px auto;
-	-moz-box-shadow: 0 0 10px #555;
-	-webkit-box-shadow: 0 0 10px #555;
-	box-shadow: 0 0 10px #555;
-	overflow: hidden;
-    border-bottom: 3px solid  #a9a9a9;
-}
+
 
 .comment_bottom {
     padding-top: 5px;
@@ -313,7 +306,12 @@ COLUMN WIDTH ELEMENTS
 ************* */
 
 #content{
-  position:absolute;
+  margin: 20px auto;
+  -moz-box-shadow: 0 0 10px #555;
+  -webkit-box-shadow: 0 0 10px #555;
+  box-shadow: 0 0 10px #555;
+  overflow: hidden;
+  border-bottom: 3px solid  #a9a9a9;
   height:80%;
   width:100%;
   overflow:hidden;
@@ -354,6 +352,8 @@ COLUMN WIDTH ELEMENTS
   overflow:none;
   float:left;
   height:100%;
+  padding: 0;
+  margin: 0 0 0 0;
 }
 
 #left h2, #center h2, #right h1 { padding: 3px 15px; }
