@@ -1,16 +1,24 @@
 
 <div class="single">
-<h1> List of Posts for : <b>{{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} <br />
-</h1>
+
+{% if len(envelopes) != 0 %}    
+<h1> Posts for  {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} </h1>
+{% else %}
+<h1> Posts for {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_pubkey_sha1']}} </h1>
+{% end %}
+
 <p></p>
 <ul>
 
-{% for envelope in envelopes %}
-    {% if envelope['envelope']['payload']['class'] == 'message' %}
-        <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+{% if len(envelopes) != 0 %}
+    {% for envelope in envelopes %}
+        {% if envelope['envelope']['payload']['class'] == 'message' %}
+            <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+        {% end %}
     {% end %}
+{% else %}
+    {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_pubkey_sha1']}} has not yet posted any messages.
 {% end %}
-
 
 </ul>
 </div> <!-- .single -->

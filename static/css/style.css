@@ -101,11 +101,18 @@ body {
 }
 
 footer {
+  overflow: hidden;
+  bottom: 0px;
+  position: absolute;
+  z-index: -1;
+  margin: 0 0 0 0;
 	color: white;
 }
 footer a {
 	color: white;
 }
+
+
 h1,h2,h3,h4,h5,h6 { font-family: Helvetica, "Myriad Pro", Arial, sans-serif; }
 h1 { font-size: 28px; line-height: 44px; padding: 10px 0; }
 h2 { font-size: 22px; line-height: 32px; padding: 10px 0; }  
@@ -238,23 +245,14 @@ form.vote {
   text-decoration:none;
 }
 
-.userportrait {
-  width: 500px;
-  }
-
-.portrait{
-  display: block;
-  margin-left: auto;
-  margin-right: auto; 
-}
-
 .single {
     top: 20px;
     height: auto;
     margin-right: auto;
     margin-left: auto;
     margin-bottom: 50px;
-    
+    min-width:500px;  
+
 	width: 75%;
 	background: #ffffff;
 	position:relative; 
@@ -296,6 +294,15 @@ form.vote {
 }
 .single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
 
+.userportrait {
+  width: 500px ;
+  }
+
+.portrait{
+  display: block;
+  margin-left: auto;
+  margin-right: auto; 
+}
 
 
 

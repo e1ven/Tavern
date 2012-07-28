@@ -199,7 +199,6 @@
                   {
                      displayform.empty().append( data );
                      displayform.show();
-
                   });
         // If you clicked it, show all the media on THIS page, too.
         // It's the little stuff, you know?
@@ -213,3 +212,19 @@
 
     });
 
+// Set out footer size.
+function sizewindow()
+{
+  //Set the content window
+  jQuery('#content').css('height', jQuery(document).height() - jQuery('header').height() - 50  )
+  // Set out footer position
+  jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10})
+}
+
+jQuery(document).ready(function() {
+  sizewindow()
+});
+
+jQuery(window).on('resize',function() {
+  sizewindow()
+});

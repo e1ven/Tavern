@@ -711,17 +711,24 @@ class UserHandler(BaseHandler):
         pubkey = urllib.parse.unquote(pubkey)
         pubkey = Keys(pub=pubkey).pubkey
 
-        self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
-
-        if pubkey == self.user.Keys.pubkey:
-            self.write(self.render_string('mysettings.html',user=self.user))
+        u = User()
+        u.UserSettings['pubkey']=pubkey
+        u.generate(self,skipkeys=True)
+        u.UserSettings['author_pubkey_sha1'] = hashlib.sha1(pubkey.encode('utf-8')).hexdigest() 
 
         envelopes = []
         for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey,'envelope.payload.class':'message'},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
             envelopes.append(envelope)
 
-        self.write(self.render_string('userpage.html',me=self.user,thatguy=pubkey,envelopes=envelopes))
-        self.write(self.render_string('showuserposts.html',envelopes=envelopes))
+        self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
+
+        if pubkey == self.user.Keys.pubkey:
+            self.write(self.render_string('mysettings.html',user=self.user))
+
+        self.write(self.render_string('userpage.html',me=self.user,thatguy=u,envelopes=envelopes))
+        
+        self.write(self.render_string('showuserposts.html',envelopes=envelopes,thatguy=u))
+
         self.write(self.render_string('footer.html'))
 
 

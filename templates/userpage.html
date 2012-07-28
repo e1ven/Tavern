@@ -1,18 +1,21 @@
 
 <div class="single userportrait">
-<h1> Details about {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} <br />
-</h1>
+{% if len(envelopes) != 0 %}
+<h1> Details about {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} </h1>
+{% else %}
+<h1> Details about {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_pubkey_sha1']}} </h1>
+{% end %}
 <p></p>
 <ul>
 
-<img id="avatar_{{thatguy}}" class="portrait" width="400px" height="400px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.split()) + '.png?set=any&amp;bgset=any&amp;size=400x400'}}" /><br>
+<img id="avatar_{{''.join(thatguy.UserSettings['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
 
 
 
-{% set trust = me.gatherTrust(askingabout=thatguy) %}
+{% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['pubkey']) %}
     You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
-    {% set note = me.getNote(thatguy) %}
+    {% set note = me.getNote(thatguy.UserSettings['pubkey']) %}
     {% if note is not None %}
         You set the following note about this user:<Br>
         <div class="note"><i>{{note}}</i></div>
@@ -22,10 +25,11 @@
         Set a note about this user:<Br>
         <form action="/usernote" method="post" class="usernote">
              {% raw xsrf_form_html() %}
-            <input type="hidden" name="pubkey" value="{{thatguy}}">
+            <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['pubkey']}}">
             <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
         </form>
 
-
 </ul>
+<Br><br><br>
+
 </div> <!-- .single -->
