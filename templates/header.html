@@ -70,14 +70,12 @@
 							    	<img class="avatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 							    </a><br>
 								<a href="/user/{{user.UserSettings['pubkey']}}">
-							    	{{user.UserSettings['username']}}<br>
-							    	{% if user.UserSettings['username'] != user.UserSettings['friendlyname'] %}Posting as {{user.UserSettings['friendlyname']}}<br>  {% end %}
-								</a>
+							    	{{user.UserSettings['username']}}<br>{% if user.UserSettings['username'] != user.UserSettings['friendlyname'] %}Posting as {{user.UserSettings['friendlyname']}}<br> 	 {% end %}</a>
 		 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton menu-login"></form>
 							</div>
-	            {% end %}
-            </div> <!-- #menu-text -->
-        </div> <!-- #menu -->
+	        {% end %}
+            </div> 
+        </div>
 	</header>
 		<div id="spinner" class="black_overlay">
 		</div> <!-- #Spinner is inserted via JS, so it won't show up in lynx or with CSS disabled-->

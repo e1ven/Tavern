@@ -100,6 +100,12 @@ class BaseHandler(tornado.web.RequestHandler):
             if "singlediv" in self.request.arguments:
                 divs = [self.get_argument('singlediv')]
             #if JS is set at all, send the JS script version.
+
+            # If we're a newbie, send the header, too; We probably don't have it yet.
+            if 'time_privkey' in self.user.UserSettings:
+                if int(time.time()) - self.user.UserSettings['time_privkey'] < 60:
+                    divs.append('menu')
+
             for div in divs:
                 super(BaseHandler, self).write(self.getjs(div))
 

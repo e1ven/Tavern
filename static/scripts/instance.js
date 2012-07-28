@@ -87,10 +87,12 @@
         var jQueryform = jQuery( this ),
             url = jQueryform.attr( 'action' );
 
+        ref.children().hide()
+        ref.append('One moment please..')
         /* Send the data using post and put the results in a div */
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
           function( data ) {
-              ref.empty().append("Done.");
+              ref.empty().append("All set.");
               jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
           }
         );
@@ -106,11 +108,12 @@
         /* get some values from elements on the page: */
         var jQueryform = jQuery( this ),
             url = jQueryform.attr( 'action' );
-
+        ref.children().hide()
+        ref.append('One moment please..')
         /* Send the data using post and put the results in a div */
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
           function( data ) {
-              ref.empty().append("Done.");
+              ref.empty().append("All set.");
               jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );            
           }
         );

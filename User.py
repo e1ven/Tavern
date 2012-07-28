@@ -268,12 +268,11 @@ class User(object):
                 self.Keys.format_keys()
                 self.UserSettings['pubkey'] = self.Keys.pubkey
                 self.UserSettings['encryptedprivkey'] = self.Keys.encryptedprivkey
+                self.UserSettings['time_privkey'] = int(time.time())
 
 
         if not 'time_created' in self.UserSettings:
-            gmttime = time.gmtime()
-            gmtstring = time.strftime("%Y-%m-%dT%H:%M:%SZ",gmttime)
-            self.UserSettings['time_created'] = gmtstring
+            self.UserSettings['time_created'] = int(time.time())
 
 
         if not 'followedTopics' in self.UserSettings:
