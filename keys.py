@@ -5,6 +5,7 @@ import hashlib
 import base64
 from tomcrypt import cipher,rsa
 import logging
+import functools
 
 
 class Keys(object):
@@ -19,7 +20,8 @@ class Keys(object):
         self.privkey = priv
         self.format_keys()
 
-             
+
+    @functools.lru_cache(maxsize=262144)             
     def format_keys(self):
         """ 
         Ensure the keys are in the proper format, with linebreaks. 

@@ -29,7 +29,8 @@ class User(object):
         return False
 
     def randstr(self,length):
-        return ''.join(chr(random.randint(0,255)) for i in range(length))
+        # Random.randint isn't secure, use the OS urandom instead.
+        return ''.join(chr(int.from_bytes(os.urandom(1),'big')) for i in range(length))
 
     def hash_password(self,password, maxtime=5, datalength=64):
         pword = scrypt.encrypt(self.randstr(datalength), password, maxtime=maxtime)

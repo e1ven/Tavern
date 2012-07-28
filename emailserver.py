@@ -147,7 +147,7 @@ class EmailServer(object):
                     count +=1
                     server.logger.info ("This thread has sent " + str(count))
             else:
-                    sleeptime = server.ServerSettings['email']['sleeptime'] * random.random()
+                    sleeptime = server.ServerSettings['email']['sleeptime']
                     server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
                     time.sleep(sleeptime)
         conn.close()  

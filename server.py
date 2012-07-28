@@ -7,7 +7,6 @@ from keys import *
 import Image
 import logging
 import string
-import random
 import collections
 from collections import OrderedDict
 import collections
@@ -34,8 +33,13 @@ class Fortuna():
         while line:
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
+
     def random(self):
-        return random.choice(self.fortunes)
+        """
+        Return a Random Fortune from the stack
+        """
+        fortuneindex = server.randrange(0,len(self.fortunes))
+        return self.fortunes[fortuneindex]
 
 
 class Server(object):
@@ -78,10 +82,45 @@ class Server(object):
     def getavatar(self,myid):
             f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
             return f.read()
-            
+    
+    def randrange(self,start,stop):
+        """
+        The random that comes with Python is blocking.
+        Re-create the randrange function, using /dev/urandom
+        Only use this for not critical functions, like random header fortunes ;)
+        """
+
+        # os.urandom generates X bytes of randomness
+        # If it's a small number requested, look up the fewest bits needed.
+        # If it's a larger number, calculate the fewest.
+        # This saves bits on the server ;)
+        diff = abs(stop - start) + 1
+        if diff < 255:
+            bytes = 1
+        elif diff <= 65535:
+            bytes = 2
+        elif diff <= 16777215:
+            bytes = 3
+        elif diff <= 4294967295:
+            bytes = 4
+        else:
+            # If it's this big, calculate it out.
+            num = 4294967295
+            bytes = 3
+            while num <= diff:
+                bytes +=1
+                integerstring = ''
+                for i in range(0,(bytes * 8)):
+                    integerstring += '1'
+                num = int(integerstring,2)
+
+        randnum = int.from_bytes(os.urandom(bytes),'big')
+        rightsize = randnum % diff
+        return start + rightsize
+
     def randstr(self,length):
         # Ensure it's self.logger.infoable.
-        return ''.join(chr(random.randint(48,122)) for i in range(length))
+        return ''.join(chr(self.randrange(48,122)) for i in range(length))
 
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()

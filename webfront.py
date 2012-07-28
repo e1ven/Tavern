@@ -11,7 +11,6 @@ import tornado.escape
 import time
 import datetime
 import os
-import random
 import socket
 import json
 from Envelope import Envelope
@@ -303,7 +302,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 server.logger.info("Making keys with a random password.")
 
                 # Generate a random password with a random number of characters
-                numcharacters = 100 + random.randrange(1,100)
+                numcharacters = 100 + server.randrange(1,100)
                 password = server.randstr(numcharacters)
                 self.user.generate(skipkeys=False,password=password)
 
@@ -323,7 +322,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
             print(ua)
-        self.browser = httpagentparser.detect(ua)
+            self.browser = httpagentparser.detect(ua)
 
         # Make sure we have something.
         try:
@@ -340,7 +339,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
         if not 'datauri' in self.user.UserSettings:
-            if random.randrange(1,10) == 5:
+            if server.randrange(1,10) == 5:
                 self.user.UserSettings['datauri'] = False
         if 'datauri' in self.user.UserSettings:
             self.user.datauri = self.user.UserSettings['datauri']
