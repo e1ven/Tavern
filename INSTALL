@@ -73,8 +73,6 @@ python3 setup.py install
 
 brew install exiv2
 
-
-
 cd /opt/Tavern/lib
 git clone https://github.com/mikeboers/PyTomCrypt.git
 cd /opt/Tavern/libs/PyTomCrypt

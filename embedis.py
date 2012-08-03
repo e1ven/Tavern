@@ -5,6 +5,7 @@ import socket
 socket.setdefaulttimeout(30)
 from server import server
 import functools
+from decorators import memorise
 
 
 
@@ -21,7 +22,7 @@ class embedis:
                          self.embedis,
                         ]
 
-    @functools.lru_cache(maxsize=262144)
+    @memorise(ttl=server.ServerSettings['cache']['embeded']['seconds'],maxsize=server.ServerSettings['cache']['embeded']['size'])
     def lookup(self,url):
         self.url = url
         self.query = urlparse(url)
@@ -93,4 +94,9 @@ class embedis:
         except:
             return None
 
+    @memorise(ttl=server.ServerSettings['cache']['avatarcache']['seconds'],maxsize=server.ServerSettings['cache']['avatarcache']['size'])
+    def getavatar(self,myid):
+            f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
+            return f.read()
+            
 emb = embedis

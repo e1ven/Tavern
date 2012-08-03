@@ -11,6 +11,7 @@ import scrypt
 import random
 import base64
 from lockedkey import lockedKey
+from decorators import memorise
 
 
 class User(object):
@@ -47,6 +48,7 @@ class User(object):
             return False
 
 
+    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-note']['seconds'],maxsize=server.ServerSettings['cache']['user-note']['size'])
     def getNote(self,noteabout):
         """ 
         Retrieve any note by user A about user B
@@ -56,10 +58,7 @@ class User(object):
 
         key = Keys(pub = noteabout )
         noteabout = key.pubkey
-
-        
         # Retrieve the note from mongo
-
         note = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
         if note is not None:
             return note['note']
@@ -67,7 +66,6 @@ class User(object):
             return None
 
     def setNote(self,noteabout,note=""):
-        
         # Format the Key.
         key = Keys(pub = noteabout )
         noteabout = key.pubkey
@@ -81,7 +79,7 @@ class User(object):
         newnote['note'] = note
         server.mongos['default']['notes'].save(newnote) 
 
-
+    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-trust']['seconds'],maxsize=server.ServerSettings['cache']['user-trust']['size'])
     def gatherTrust(self,askingabout,incomingtrust=250):
         # Ensure the formatting 
         key = Keys(pub = askingabout )
@@ -101,16 +99,6 @@ class User(object):
         #The Max trust we can return goes down by 40% each time.
         #I trust my self implicly, and I trust each FoF link 40% less.
         maxtrust = .4 * incomingtrust     
-
-        #Check mongo to see if we've recently computed this trust value.
-        #Don't keep computing it over and over and over.
-        #We can probably bring this cache to be a pretty high number. 60+ secs
-        cache = server.mongos['cache']['usertrusts'].find_one({"asking":self.Keys.pubkey,"askingabout":askingabout,"incomingtrust":incomingtrust},as_class=OrderedDict)
-
-        if cache is not None:
-            if time.time() - cache['time'] < server.ServerSettings['cache-user-trust-seconds']:
-                # server.logger.info("Using cached trust")
-                return cache['calculatedtrust']
                                 
         #We trust ourselves implicitly       
         if askingabout == self.Keys.pubkey:
@@ -165,10 +153,6 @@ class User(object):
         if trust < (-1 * maxtrust):
             trust = (-1 * maxtrust)
 
-        cachedict = OrderedDict()
-        # We're defining ID to ensure we overwrite the cached value
-        cachedict = {"_id": self.Keys.pubkey + askingabout + str(incomingtrust), "asking":self.Keys.pubkey, "askingabout":askingabout,"incomingtrust":incomingtrust,"calculatedtrust":trust,"time":time.time()}
-        server.mongos['cache']['usertrusts'].save(cachedict)
         return round(trust)
     
     def translateTrustToWords(self,trust):
@@ -189,7 +173,7 @@ class User(object):
         else:
             return "strongly distrust"
 
-
+    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-ratings']['seconds'],maxsize=server.ServerSettings['cache']['user-ratings']['size'])
     def getRatings(self,postInQuestion):            
         #Move this. Maybe to Server??
         allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)

@@ -24,6 +24,18 @@ from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
 import functools
+from decorators import memorise
+
+
+def print_timing(func):
+    def wrapper(*arg):
+        t1 = time.time()
+        res = func(*arg)
+        t2 = time.time()
+        print( (t2-t1) * 1000.0)
+        return res
+    return wrapper
+
 
 class Fortuna():
     def __init__(self,fortunefile="fortunes"):
@@ -78,11 +90,7 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
-    @functools.lru_cache(maxsize=262144)
-    def getavatar(self,myid):
-            f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
-            return f.read()
-    
+
     def randrange(self,start,stop):
         """
         The random that comes with Python is blocking.
@@ -149,24 +157,43 @@ class Server(object):
                 self.ServerSettings['bin-mongo-hostname'] = 'localhost'
                 self.ServerSettings['bin-mongo-port'] = 27017
                 self.ServerSettings['bin-mongo-db'] = 'test'
-                self.ServerSettings['cache-mongo-hostname'] = 'localhost'
-                self.ServerSettings['cache-mongo-port'] = 27017
-                self.ServerSettings['cache-mongo-db'] = 'test'
                 self.ServerSettings['sessions-mongo-hostname'] = 'localhost'
                 self.ServerSettings['sessions-mongo-port'] = 27017
                 self.ServerSettings['sessions-mongo-db'] = 'test'
-                self.ServerSettings['cache-user-trust-seconds'] = 60
+
+
+                self.ServerSettings['cache']={}
+
+                self.ServerSettings['cache']['user-trust'] = {}
+                self.ServerSettings['cache']['user-trust']['seconds'] = 300
+                self.ServerSettings['cache']['user-trust']['size'] = 10000
+
+                self.ServerSettings['cache']['user-ratings'] = {}
+                self.ServerSettings['cache']['user-ratings']['seconds'] = 300
+                self.ServerSettings['cache']['user-ratings']['size'] = 10000
+
+                self.ServerSettings['cache']['avatarcache'] = {}
+                self.ServerSettings['cache']['avatarcache']['size'] = 100000
+                self.ServerSettings['cache']['avatarcache']['seconds'] = None
+
+                self.ServerSettings['cache']['embeded'] = {}
+                self.ServerSettings['cache']['embeded']['size'] = 1000
+                self.ServerSettings['cache']['embeded']['seconds'] = 3600
+
+                self.ServerSettings['cache']['user-note'] = {}
+                self.ServerSettings['cache']['user-note']['size'] = 10000
+                self.ServerSettings['cache']['user-note']['seconds'] = 60
+
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
                 self.ServerSettings['cookie-encryption'] = self.randstr(255)
                 self.ServerSettings['serverkey-password'] = self.randstr(255)
                 self.ServerSettings['embedserver'] = 'http://embed.is'
                 self.ServerSettings['downloadsurl'] = '/binaries/'
+
                 self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
                 self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
                 self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
                 self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
-                self.mongocons['cache'] = pymongo.Connection(self.ServerSettings['cache-mongo-hostname'], self.ServerSettings['cache-mongo-port'])
-                self.mongos['cache'] = self.mongocons['cache'][self.ServerSettings['cache-mongo-db']]
                 self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
                 self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
                 self.bin_GridFS = GridFS(self.mongos['binaries'])
@@ -181,13 +208,17 @@ class Server(object):
         logging.basicConfig(stream=sys.stdout,level=logging.DEBUG)
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
         
-
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.js")
         self.logger.info("Cached JS")
         self.cache['instance.js'] = file.read()
         file.close()
 
+    def init2(self):
+        """
+        Stuff that needs to be done later, so other pieces might be ready
+        """
+        self.external = embedis.embedis()
 
     def loadconfig(self,filename=None):
         if filename == None:
@@ -201,8 +232,6 @@ class Server(object):
         self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
         self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
         self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
-        self.mongocons['cache'] = pymongo.Connection(self.ServerSettings['cache-mongo-hostname'], self.ServerSettings['cache-mongo-port'])
-        self.mongos['cache'] = self.mongocons['cache'][self.ServerSettings['cache-mongo-db']]
         self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
         self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
         self.bin_GridFS = GridFS(self.mongos['binaries'])
@@ -455,9 +484,8 @@ class Server(object):
             if envelope['envelope']['local']['embed'] == []:
                 # Don't check more than once.
                 soup = BeautifulSoup(formattedbody)
-                emb = embedis.embedis()
                 for href in soup.findAll('a'):
-                    result = emb.lookup(href.get('href'))
+                    result = self.external.lookup(href.get('href'))
                     if result is not None:
                         if not 'embed' in envelope['envelope']['local']:
                             envelope['envelope']['local']['embed'] = []
@@ -537,5 +565,5 @@ class Server(object):
         
 server = Server()
 from User import User
-import embedis
-
+import embedis        
+server.init2()

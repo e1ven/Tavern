@@ -6,7 +6,7 @@ import base64
 from tomcrypt import cipher,rsa
 import logging
 import functools
-
+from decorators import memorise
 
 class Keys(object):
     
@@ -18,10 +18,10 @@ class Keys(object):
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
+        self.key = None
         self.format_keys()
 
 
-    @functools.lru_cache(maxsize=262144)             
     def format_keys(self):
         """ 
         Ensure the keys are in the proper format, with linebreaks. 
