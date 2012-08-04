@@ -3,6 +3,7 @@
     {            
         jQuery(this).click(function()
             {   
+            event.preventDefault(); 
             jQuery("#spinner").height(jQuery(this).parent().height());
             jQuery("#spinner").width(jQuery(this).parent().width());
             jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show()
@@ -252,3 +253,26 @@ jQuery('.splitter').on("mouseup",function(event){
     VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
 
 });
+
+function getCookie(c_name)
+{
+var i,x,y,ARRcookies=document.cookie.split(";");
+for (i=0;i<ARRcookies.length;i++)
+{
+  x=ARRcookies[i].substr(0,ARRcookies[i].indexOf("="));
+  y=ARRcookies[i].substr(ARRcookies[i].indexOf("=")+1);
+  x=x.replace(/^\s+|\s+$/g,"");
+  if (x==c_name)
+    {
+    return unescape(y);
+    }
+  }
+}
+
+//  Notice if SHA1 has changed, and clear localstorage. Primarily used if we logout, etc.
+// Cosmetic, but useful for clearing old upvotes, primarily.
+if (jQuery.jStorage.get('pubkey_sha1','') != getCookie('pubkey_sha1')   )
+{
+  jQuery.jStorage.set('pubkey_sha1', getCookie('pubkey_sha1')); 
+  $.jStorage.flush();
+}

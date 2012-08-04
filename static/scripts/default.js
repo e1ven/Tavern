@@ -67,9 +67,11 @@ jQuery(document).ready(function() {
         }
     }
 
+
 jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
 jQuery.getScript('/static/scripts/instance.js');
 });
+
 
 
 jQuery(window).load(function() {

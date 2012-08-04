@@ -240,6 +240,7 @@ class User(object):
         if skipkeys == True:
             if not 'pubkey' in self.UserSettings:
                 self.UserSettings['pubkey'] = server.ServerSettings['guestacct']['pubkey']
+                self.UserSettings['pubkey_sha1'] = server.ServerSettings['guestacct']['pubkey_sha1']
                 self.Keys = Keys(pub=self.UserSettings['pubkey'])
         else:
             # Make a real key if we don't have one.
@@ -254,8 +255,8 @@ class User(object):
                 self.UserSettings['pubkey'] = self.Keys.pubkey
                 self.UserSettings['encryptedprivkey'] = self.Keys.encryptedprivkey
                 self.UserSettings['time_privkey'] = int(time.time())
-
-
+                self.UserSettings['pubkey_sha1'] = hashlib.sha1(self.UserSettings['pubkey'].encode('utf-8')).hexdigest() 
+       
         if not 'time_created' in self.UserSettings:
             self.UserSettings['time_created'] = int(time.time())
 
@@ -283,6 +284,7 @@ class User(object):
 
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
+
 
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)

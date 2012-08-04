@@ -143,7 +143,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 #There are Additional Variables in this URL
                 finish = "?" + self.request.uri[nextvar+1:len(self.request.uri)]
             else:
-                server.logger.info("No Next variables")
                 #There are no other variables. Delete until End of string
                 finish = ""
                 
@@ -159,7 +158,6 @@ class BaseHandler(tornado.web.RequestHandler):
                     #There are Additional Variables in this URL
                     finish = "?" + modifiedurl[nextvar+1:len(modifiedurl)]
                 else:
-                    server.logger.info("No Next variables")
                     #There are no other variables. Delete until End of string
                     finish = ""
                 modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") -1] + finish
@@ -234,7 +232,7 @@ class BaseHandler(tornado.web.RequestHandler):
         Saves out the current userobject to a cookie, or series of cookies.
         These are encrypted using the built-in Tornado cookie encryption.
         """
-        
+
         # Zero out the stuff in 'local', since it's big.
         usersettings = self.user.UserSettings
 
@@ -248,6 +246,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         server.logger.info("numchunks + " + str(numchunks))
+        self.set_cookie('pubkey_sha1',self.user.UserSettings['pubkey_sha1'],httponly=False,expires_days=999)
 
     def recentauth(self):
         """
@@ -269,7 +268,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
         self.user = User()
         if self.get_secure_cookie("tavern_preferences_count") is not None:
-
             # Restore the signed cookie, across many chunks
             restoredcookie = ""
             for i in range(1,1 + int(self.get_secure_cookie("tavern_preferences_count"))):
@@ -277,19 +275,26 @@ class BaseHandler(tornado.web.RequestHandler):
 
             # Validate the cookie, and load if it passes
             decodedcookie = self.get_secure_cookie("tavern_preferences",value=restoredcookie)
+            if not isinstance(decodedcookie, str):
+                decodedcookie = decodedcookie.decode('utf-8')
+
             if decodedcookie is not None:
-                self.user.load_string(decodedcookie.decode('utf-8'))
+                self.user.load_string(decodedcookie)
             else:
+                # We shouldn't get here.
                 server.logger.info("Cookie doesn't validate. Deleting...")
                 self.clear_cookie('tavern_preferences')
                 self.clear_cookie('tavern_preferences1')
                 self.clear_cookie('tavern_preferences2')
                 self.clear_cookie('tavern_preferences3')
                 self.clear_cookie('tavern_preferences_count')
+                self.clear_cookie('tavern_passkey')
+                self.clear_cookie('pubkey_sha1')
 
         # If there isn't already a cookie, make a very basic one.
         # Don't bother doing the keys, since that eats randomness.
-        else:
+        # Not an else, so we can be triggered by corrupt cookie above.
+        if self.get_secure_cookie("tavern_preferences_count") is None:
             server.logger.info("Making cookies")
             self.user.generate(skipkeys=True)
             self.setvars()
@@ -315,11 +320,10 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.set_secure_cookie('tavern_passkey',self.user.Keys.passkey(password),httponly=True,expires_days=999) 
                 self.user.passkey = self.user.Keys.passkey(password)
 
-
-        if not hasattr(self.user,'passkey'):
-            self.user.passkey = self.get_secure_cookie('tavern_passkey')
-        if self.user.passkey == None:   
-            self.user.passkey = self.get_secure_cookie('tavern_passkey')
+            if not hasattr(self.user,'passkey'):
+                self.user.passkey = self.get_secure_cookie('tavern_passkey')
+            if self.user.passkey == None:   
+                self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Get the Browser version.
         if 'User-Agent' in self.request.headers:
@@ -452,7 +456,7 @@ class TriPaneHandler(BaseHandler):
 
         if action == "message":
 
-            divs = ['center','right']
+            divs = ['right']
 
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
