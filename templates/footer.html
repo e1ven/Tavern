@@ -8,18 +8,6 @@
 
 	</footer>
 </div><!-- #limits -->
-{% if browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 9 %}
-  <script src="/static/scripts/IE9.js?revision={{server.ServerSettings['static-revision']}}"></script>  
-{% end %}
-{% if (browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] >= 8) or (browser['browser'] != 'Microsoft Internet Explorer') %}
-  <script defer src="/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/vsplit.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}"></script>
-{% end %}
-
-
 </body>
 </html>
 

@@ -32,6 +32,7 @@ import Image
 import imghdr
 import io
 import httpagentparser
+from TopicTool import TopicTool
 
 import re
 try: 
@@ -117,12 +118,14 @@ class BaseHandler(tornado.web.RequestHandler):
         super(BaseHandler,self).finish(message) 
    
     def getdiv(self,element):
+        print("getting" + element)
         soup = BeautifulSoup(self.html)
         soupyelement = soup.find(id=element)
         soupytxt = ""
         if soupyelement is not None:
             for child in soupyelement.contents:
                 soupytxt += str(child)
+        print(soupytxt)
         return soupytxt
         
     def getjs(self,element):
@@ -145,7 +148,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 finish = ""
                 
             modifiedurl = self.request.uri[0:self.request.uri.find("js=") -1] + finish
-            
+
             #Also strip out the "timestamp" param
             jsvar = modifiedurl.find("timestamp=")
             if jsvar > -1:
@@ -202,7 +205,7 @@ class BaseHandler(tornado.web.RequestHandler):
                             jQuery("#spinner").height(jQuery(this).parent().height());
                             jQuery("#spinner").width(jQuery(this).parent().width());
                             jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
-                            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
+                            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );  
                             return false;
                         });
                         jQuery(this).attr("link-destination",this.href);
@@ -420,7 +423,6 @@ class TriPaneHandler(BaseHandler):
                 action = "message"
             else:
                 action = "message"
-
             if action == "message":       
                 if numparams == 2:
                     messageid = param2
@@ -428,37 +430,17 @@ class TriPaneHandler(BaseHandler):
                     messageid = param3
             elif action == "topic":
                 topic = param2
-                    
-        #TODO KILL THIS!!
-        #THIS WILL WASTE CPU
-        #tl = TopicList.TopicList()                
-        
-        divs = []
-        toptopics = []
-        for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
-            toptopics.append(quicktopic)
 
-        server.logger.info(action)                        
+        if "before" in self.request.arguments:
+            # Used for multiple pages, because skip() is slow
+            before = float(self.get_argument('before'))
+        else:
+            before = time.time()
+
+
         if action == "topic":
-            # If you change the topic, refresh all three panels.
-            divs.append("left")
-            divs.append("center")
-            divs.append("right")
-
-            subjects = []
-            server.logger.info(server.sorttopic(topic))
-            if topic != "all":
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
-                    subjects.append(envelope)
-            else:
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
-                    subjects.append(envelope)
-            if len(subjects) > 0:
-                displayenvelope = subjects[0]
-                messageid = subjects[0]['envelope']['payload_sha512'] 
-            else:
-                displayenvelope = None
-            
+            divs = ['center','right']
+    
             if topic != 'sitecontent':
                 canon="topic/" + topic 
                 title=topic
@@ -466,18 +448,16 @@ class TriPaneHandler(BaseHandler):
                 canon=""
                 title="An anonymous, shared discussion"
 
+            displayenvelope = TopicTool(topic).messages()[0]
+
         if action == "message":
-            divs.append("center")
-            divs.append("right")
+
+            divs = ['center','right']
 
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
-                subjects = []
-                for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
-                    subjects.append(envelope)
-
-                canon="message/" + envelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+                canon="message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
             
         if displayenvelope is None:
@@ -489,14 +469,9 @@ class TriPaneHandler(BaseHandler):
             topic = "sitecontent"
             # Set the canon URL to be whatever we just got, since obviously we just got it.
             canon=self.request.path[1:]
-            subjects = []
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
-                subjects.append(envelope)
 
-        usertrust = self.user.gatherTrust(displayenvelope['envelope']['payload']['author']['pubkey'])
-        #messagerating = self.user.getRatings(messageid)
+
         displayenvelope = server.formatEnvelope(displayenvelope)
-        #displayenvelope['envelope']['local']['messagerating'] = messagerating
    
 
         # Detect people accessing via odd URLs, but don't do it twice.
@@ -522,7 +497,7 @@ class TriPaneHandler(BaseHandler):
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html',topic=topic,user=self.user,toptopics=toptopics,subjects=subjects,envelope=displayenvelope))
+        self.write(self.render_string('tripane.html',topic=topic,user=self.user,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
         if action == "message" or action == "topic":

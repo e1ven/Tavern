@@ -1,55 +1,6 @@
-<script src="/static/scripts/jquery.mailcheck.min.js"></script>
-<script src="/static/scripts/zxcvbn.js"></script>
-
-<script>
-jQuery(document).ready(function() {
-
-	$('#email').blur(function() {
-	    $(this).mailcheck({
-	      suggested: function(element, suggestion) {
-	        $('#EmailStatus').html('<p><i>&nbsp;&nbsp;&nbsp; Did you mean '+suggestion.address+'@'+'<strong>'+suggestion.domain+'</strong>?</i></p>').show();
-
-	        $('#EmailStatus').click(function(event) {
-	        	$('#email').val(suggestion.full);
-	        	$('#EmailStatus').hide();
-	        });
-	      
-
-	      },
-	      empty: function(element) {
-	        $('#EmailStatus').html('').hide();
-	      }
-	    });
-	});
-
-
-	$('#pass').keyup(function() {
-		result = zxcvbn( this.value );
-		pass1 = this.value
-		PassDescriptions = ['Not Very Strong', 'Average', 'Good', 'Very Good', 'Great'];
-		$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Password Strength: " + PassDescriptions[result.score]) + "</i></p>";
-	});
-	$('#pass2').keyup(function() {
-		if (this.value != pass1 )
-		{
-			$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Passwords do not match</i></p>");
-		}
-		else
-		{
-			$('#PasswordStatus').html("<p><i>&nbsp;&nbsp;&nbsp;Passwords match</i></p>");
-		}
-	});
-
-
-
-
-
-});
-
-
-</script>
-
-
+ <script defer src="/static/scripts/jquery.mailcheck.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+<script defer src="/static/scripts/zxcvbn.js?revision={{server.ServerSettings['static-revision']}}"></script>
+<script defer src="/static/scripts/register.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
 <div class="single">
 <h1>Register for an account</h1>

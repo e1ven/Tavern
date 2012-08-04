@@ -4,7 +4,7 @@
 {% if 'js' in args %}
 	<div id="right">
 {% else %}
-	<div class="single">
+	<div class="single" id='single'>
 {% end %}	
 
 	{% if regarding is None %}
@@ -63,10 +63,10 @@
 
 		</div>
 	
-		<script src="/static/scripts/jquery.ui.widget.js?revision={{server.ServerSettings['static-revision']}}"></script>
-		<script src="/static/scripts/jquery.iframe-transport.js?revision={{server.ServerSettings['static-revision']}}"></script>
-		<script src="/static/scripts/jquery.fileupload.js?revision={{server.ServerSettings['static-revision']}}"></script>
-		<script src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script defer src="/static/scripts/jquery.ui.widget.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script defer src="/static/scripts/jquery.iframe-transport.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script defer src="/static/scripts/jquery.fileupload.js?revision={{server.ServerSettings['static-revision']}}"></script>
+		<script defer src="/static/scripts/newmessage.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
 </div> <!-- newmessageform -->
 </div> <!-- .single -->

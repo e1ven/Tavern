@@ -184,6 +184,14 @@ class Server(object):
                 self.ServerSettings['cache']['user-note']['size'] = 10000
                 self.ServerSettings['cache']['user-note']['seconds'] = 60
 
+                self.ServerSettings['cache']['subjects-in-topic'] = {}
+                self.ServerSettings['cache']['subjects-in-topic']['size'] = 1000
+                self.ServerSettings['cache']['subjects-in-topic']['seconds'] = 30
+
+                self.ServerSettings['cache']['toptopics'] = {}
+                self.ServerSettings['cache']['toptopics']['size'] = 1
+                self.ServerSettings['cache']['toptopics']['seconds'] = 3600
+
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
                 self.ServerSettings['cookie-encryption'] = self.randstr(255)
                 self.ServerSettings['serverkey-password'] = self.randstr(255)
@@ -326,7 +334,8 @@ class Server(object):
             c.dict['envelope']['local']['sorttopic'] = self.sorttopic(c.dict['envelope']['payload']['topic'])
 
         c.dict['envelope']['stamps'] = stamps
-        c.dict['envelope']['local']['time_added']  = int(utctime) 
+        # Do NOT round UTC time, in LOCAL. This allows us to page properly, rather than using skip() which is expensive.
+        c.dict['envelope']['local']['time_added']  = utctime 
         
         if c.dict['envelope']['payload']['class'] == "message":       
           # If the message referenes anyone, mark the original, for ease of finding it later.

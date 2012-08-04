@@ -49,6 +49,19 @@
 	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?revision={{server.ServerSettings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?revision={{server.ServerSettings['static-revision']}}" />
 
+{% if browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 9 %}
+  <script src="/static/scripts/IE9.js?revision={{server.ServerSettings['static-revision']}}"></script>  
+{% end %}
+{% if (browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] >= 8) or (browser['browser'] != 'Microsoft Internet Explorer') %}
+  <script defer src="/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/vsplit.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}"></script>
+
+{% end %}
+
+
 </head>
 <body>
   <div style="display: none"><a href="javascript:void(0)" id="stopgifs">hi</a></div>
