@@ -69,6 +69,18 @@ jQuery(document).ready(function() {
 
 
 jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
+
+jQuery(document).on('click','.internal',function(event)
+    {
+    event.preventDefault();
+    jQuery('#spinner').show()
+    jQuery("#spinner").height(jQuery(this).parent().height());
+    jQuery("#spinner").width(jQuery(this).parent().width());
+    jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
+    jQuery.getScript( jQuery(this).attr('href') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );
+    jQuery('#spinner').hide()
+    });
+
 jQuery.getScript('/static/scripts/instance.js');
 });
 

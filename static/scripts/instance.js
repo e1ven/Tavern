@@ -1,17 +1,3 @@
-
-    jQuery('a.internal').each( function ()
-    {            
-        jQuery(this).click(function()
-            {   
-            event.preventDefault(); 
-            jQuery("#spinner").height(jQuery(this).parent().height());
-            jQuery("#spinner").width(jQuery(this).parent().width());
-            jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show()
-            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );            
-            return false;
-            });
-        jQuery(this).attr("link-destination",this.href);
-    });
     jQuery('#spinner').hide();
 
     jQuery(".usernote").submit(function(event) {
