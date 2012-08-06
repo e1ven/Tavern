@@ -25,7 +25,7 @@ from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
 import functools
 from decorators import memorise
-
+from uasparser import UASparser
 
 def print_timing(func):
     def wrapper(*arg):
@@ -221,6 +221,11 @@ class Server(object):
         self.logger.info("Cached JS")
         self.cache['instance.js'] = file.read()
         file.close()
+
+        self.logger.info("Loading Browser info")
+        self.browserdetector = UASparser()
+
+
 
     def init2(self):
         """

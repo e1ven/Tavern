@@ -1,5 +1,3 @@
-    jQuery('#spinner').hide();
-
     jQuery(".usernote").submit(function(event) {
         /* stop form from submitting normally */
         noteref = jQuery(this);

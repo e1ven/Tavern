@@ -40,19 +40,22 @@
 	{% if type == 'topic' %}
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
 	{% end %}
+
+	{% if browser['ua_family'] != 'Netscape Navigator' or int(browser['ua_version']) < 6 %}
 	<link href="/static/css/style.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	<link href="/static/css/font-awesome.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/icons/32x32Icon.png?revision={{server.ServerSettings['static-revision']}}" type="image/png" />
+	{% end %}
 
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?revision={{server.ServerSettings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?revision={{server.ServerSettings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?revision={{server.ServerSettings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?revision={{server.ServerSettings['static-revision']}}" />
 
-{% if browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 9 %}
+{% if browser['ua_family'] == 'IE' and int(browser['ua_version']) < 9 %}
   <script src="/static/scripts/IE9.js?revision={{server.ServerSettings['static-revision']}}"></script>  
 {% end %}
-{% if (browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] >= 8) or (browser['browser'] != 'Microsoft Internet Explorer') %}
+{% if (browser['ua_family'] == 'IE' and int(browser['ua_version']) >= 8) or (browser['ua_family'] != 'IE') %}
   <script defer src="/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}"></script>

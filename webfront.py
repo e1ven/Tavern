@@ -31,7 +31,6 @@ import pprint
 import Image
 import imghdr
 import io
-import httpagentparser
 from TopicTool import TopicTool
 
 import re
@@ -328,19 +327,8 @@ class BaseHandler(tornado.web.RequestHandler):
         # Get the Browser version.
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
-            print(ua)
-            self.browser = httpagentparser.detect(ua)
+            self.browser = server.browserdetector.parse(ua)
 
-        # Make sure we have something.
-        try:
-            self.browser['browser']['fullversion'] = self.browser['browser']['version']
-            self.browser['browser']['version'] = int(self.browser['browser']['version'].split('.')[0])
-        except:
-            self.browser = {}
-            self.browser['browser'] = {}
-            self.browser['browser']['name'] = 'unknown'
-            self.browser['browser']['fullversion'] = 'unknown'
-            self.browser['browser']['version'] = 0.0
 
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
@@ -350,9 +338,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.UserSettings['datauri'] = False
         if 'datauri' in self.user.UserSettings:
             self.user.datauri = self.user.UserSettings['datauri']
-        elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] < 8:
+        elif self.browser['ua_family'] == 'IE' and int(self.browser['ua_version']) < 8:
             self.user.datauri = False
-        elif self.browser['browser'] == 'Microsoft Internet Explorer' and self.browser['browser']['version'] <= 8:
+        elif self.browser['ua_family'] == 'IE' and int(self.browser['ua_version']) >= 8:
             self.user.datauri = True
         else:
             self.user.datauri = True
