@@ -1,6 +1,4 @@
 jQuery(document).ready(function () {
-    jQuery.noConflict();
-    
     jQuery("#dragdroptext").html("Drag and Drop or choose files to attach")
     jQuery(".hiddenupload").show();
     jQuery(".single_file_upload").hide();

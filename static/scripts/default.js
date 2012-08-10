@@ -1,4 +1,3 @@
-jQuery.ajaxSetup({
   //We're already adding a requests parameter, just like jQuery would.
   //We don't need both ;)
   cache: true
@@ -46,9 +45,15 @@ function sizewindow()
   }
     // Set out footer position
     jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10});
+    
+
+    // Redraw the splitters, if there is content to split.
+  if (jQuery("#centerandright").length)
+  {
     VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
     VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
-
+  } 
+   
 } 
 
 // Set default positions for the various columns.
@@ -164,8 +169,7 @@ jQuery(document).ready(function() {
                     // If we're here, we've moved the sliders, not just clicked on them.
                     savedivsizes();
                     // Redraw the splitter, so ensure that if we move Splitter 1 and push splitter2 offscreen, we still redraw it.
-                    VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
-
+                    sizewindow();
                }
     });
 
@@ -407,11 +411,6 @@ jQuery.getScript('/static/scripts/instance.js');
 
 
 jQuery(window).load(function() {
-    if (jQuery("#centerandright").length)
-    {
         // Do the split after all other positioning/etc
-        VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
-        VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });  
-    }
+        sizewindow(); 
 });
-
