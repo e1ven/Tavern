@@ -231,7 +231,6 @@ class BaseHandler(tornado.web.RequestHandler):
         Saves out the current userobject to a cookie, or series of cookies.
         These are encrypted using the built-in Tornado cookie encryption.
         """
-
         # Zero out the stuff in 'local', since it's big.
         usersettings = self.user.UserSettings
 
@@ -245,7 +244,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         server.logger.info("numchunks + " + str(numchunks))
-        self.set_cookie('pubkey_sha1',self.user.UserSettings['pubkey_sha1'],httponly=False,expires_days=999)
+        self.set_cookie('pubkey_sha1',self.user.UserSettings['pubkey_sha1'])
 
     def recentauth(self):
         """
@@ -338,9 +337,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.UserSettings['datauri'] = False
         if 'datauri' in self.user.UserSettings:
             self.user.datauri = self.user.UserSettings['datauri']
-        elif self.browser['ua_family'] == 'IE' and int(self.browser['ua_version']) < 8:
+        elif self.browser['ua_family'] == 'IE' and self.browser['ua_versions'][0] < 8:
             self.user.datauri = False
-        elif self.browser['ua_family'] == 'IE' and int(self.browser['ua_version']) >= 8:
+        elif self.browser['ua_family'] == 'IE' and self.browser['ua_versions'][0] >= 8:
             self.user.datauri = True
         else:
             self.user.datauri = True
@@ -444,7 +443,8 @@ class TriPaneHandler(BaseHandler):
 
         if action == "message":
 
-            divs = ['right']
+            # We need both center and right, since the currently active message changes in the center.
+            divs = ['center','right']
 
             displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
@@ -488,8 +488,9 @@ class TriPaneHandler(BaseHandler):
      #       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
+        print("Topic = " + topic)
         self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html',topic=topic,user=self.user,envelope=displayenvelope))
+        self.write(self.render_string('tripane.html',user=self.user,envelope=displayenvelope))
         self.write(self.render_string('footer.html'))  
            
         if action == "message" or action == "topic":

@@ -188,6 +188,15 @@ class UASparser:
                 ret['ua_version'] = 'unknown'
             result = re.findall('[^\[\]]+', ret['ua_name'])       
 
+        if ret['ua_version'] is not None:
+            versions = []
+            for i in ret['ua_version'].split('.'):
+                try:
+                    versions.append(int(i))
+                except:
+                    pass
+            ret['ua_versions'] = versions
+
         return ret   
     
     def _parseIniFile(self,file):

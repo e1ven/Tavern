@@ -223,6 +223,20 @@ form.vote {
   float: left;
   height:16px;
   border:1px solid #dddddd;
+
+
+  animation-duration: 0.001s;
+  -o-animation-duration: 0.001s;
+  -ms-animation-duration: 0.001s;
+  -moz-animation-duration: 0.001s;
+  -webkit-animation-duration: 0.001s;
+  animation-name: nodeInserted;
+  -o-animation-name: nodeInserted;
+  -ms-animation-name: nodeInserted;        
+  -moz-animation-name: nodeInserted;
+  -webkit-animation-name: nodeInserted;
+
+
 }
 
 .externalsharing a {
@@ -729,3 +743,54 @@ width:90%;
 .hiddenupload{
   display:none;
 }
+
+
+
+
+
+
+@keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-moz-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-webkit-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-ms-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-o-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+} 
+
