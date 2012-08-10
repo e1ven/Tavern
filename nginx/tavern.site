@@ -15,13 +15,16 @@
     	error_page 405 =200 @405;
     	location @405 
         {
-        		proxy_pass http://tornados;
+           proxy_pass http://tornados;
     	}
 
 
        location /static/ {
-           alias /opt/Tavern/static/;
-           expires max;
+          proxy_pass http://tornados/static/;
+          proxy_cache static-cache;
+          proxy_cache_valid  200 1y;
+          proxy_cache_valid  404 302  1m;  
+          expires max;
         }
 
         location /avatar/ {
