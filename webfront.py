@@ -679,6 +679,8 @@ class UserHandler(BaseHandler):
         self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
 
         if pubkey == self.user.Keys.pubkey:
+            if not 'author_pubkey_sha1' in self.user.UserSettings:
+                self.user.UserSettings['author_pubkey_sha1'] = u.UserSettings['author_pubkey_sha1']
             self.write(self.render_string('mysettings.html',user=self.user))
 
         self.write(self.render_string('userpage.html',me=self.user,thatguy=u,envelopes=envelopes))

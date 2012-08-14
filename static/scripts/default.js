@@ -5,7 +5,7 @@ jQuery.ajaxSetup({
 });
 
 
-
+// Detect if CSS Animation support is enabled.
 function detectAnimation()
 {
     elm = document.documentElement;
@@ -84,10 +84,10 @@ jQuery(document).ready(function() {
 
         // If we've saved any values to storage, retrieve them, and keep the page the size it was.
 
-        left = jQuery.jStorage.get('#left.width','');
-        centerandright = jQuery.jStorage.get('#centerandright.width','');
-        center = jQuery.jStorage.get('#center.width','');
-        right =  jQuery.jStorage.get('#right.width','');
+        left = jQuery.jStorage.get('#left.width',0);
+        centerandright = jQuery.jStorage.get('#centerandright.width',0);
+        center = jQuery.jStorage.get('#center.width',0);
+        right =  jQuery.jStorage.get('#right.width',0);
 
         // Set minimum sizes
         if (left < 50)
@@ -99,7 +99,7 @@ jQuery(document).ready(function() {
         if (right < 50)
           right = 50;
 
-        if (left + centerandright + center + right != '' )
+        if (left + centerandright + center + right > 250 )
         {
             jQuery('#left').width(left);
             jQuery('#centerandright').width(centerandright);
@@ -406,14 +406,12 @@ jQuery.getScript('/static/scripts/instance.js');
         });
     }
 
-
-
-
 });
-
 
 
 jQuery(window).load(function() {
         // Do the split after all other positioning/etc
         sizewindow(); 
+
 });
+

@@ -68,12 +68,12 @@
 				
 				<ul>
 					{% if beforecount > 0 %}
-						<li class="newpost-newer">
+						<li {% if beforecount > 0 and aftercount > 0 %} class="newpost-newer" {% else %} class="newpost" {% end %}>
 							<a href="/topic/{{topic}}?before={{newbefore}}" class="internal newpost-text "> <i class="icon-arrow-left"></i>Newer Messages</a>
 						</li>
 					{% end %}
 					{% if aftercount > 0 %}
-					<li class="newpost-older">
+					<li  {% if beforecount > 0 and aftercount > 0 %} class="newpost-older" {% else %} class="newpost" {% end %}>
 						<a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal newpost-text"> <i class="icon-arrow-right"></i>Older Messages</a>
 					</li>
 					{% end %}
