@@ -195,18 +195,6 @@ class BaseHandler(tornado.web.RequestHandler):
                         window.history.pushState(stateObj, "","''' + modifiedurl + '''");
                     }
                     document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
-                    jQuery('div#''' + element  + ''' a.internal').each( function ()
-                    {            
-                        jQuery(this).click(function()
-                        {   
-                            jQuery("#spinner").height(jQuery(this).parent().height());
-                            jQuery("#spinner").width(jQuery(this).parent().width());
-                            jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
-                            jQuery.getScript(jQuery(this).attr('link-destination') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );  
-                            return false;
-                        });
-                        jQuery(this).attr("link-destination",this.href);
-                    });
                     jQuery('#spinner').hide();
                 };
                 tavern_replace();
@@ -426,11 +414,10 @@ class TriPaneHandler(BaseHandler):
             # Used for multiple pages, because skip() is slow
             before = float(self.get_argument('before'))
         else:
-            before = time.time()
-
+            before = None
 
         if action == "topic":
-            divs = ['center','right']
+            divs = ['left','center','right']
     
             if topic != 'sitecontent':
                 canon="topic/" + topic 
@@ -438,8 +425,7 @@ class TriPaneHandler(BaseHandler):
             else:
                 canon=""
                 title="An anonymous, shared discussion"
-
-            displayenvelope = TopicTool(topic).messages()[0]
+            displayenvelope = TopicTool(topic).messages(server.inttime())[0]
 
         if action == "message":
 
@@ -464,8 +450,6 @@ class TriPaneHandler(BaseHandler):
 
 
         displayenvelope = server.formatEnvelope(displayenvelope)
-   
-
         # Detect people accessing via odd URLs, but don't do it twice.
         # Check for a redirected flag.
 
@@ -488,9 +472,8 @@ class TriPaneHandler(BaseHandler):
      #       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
-        print("Topic = " + topic)
         self.write(self.render_string('header.html',title=title,user=self.user,canon=canon,type="topic",rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html',user=self.user,envelope=displayenvelope))
+        self.write(self.render_string('tripane.html',user=self.user,envelope=displayenvelope,before=before,topic=topic))
         self.write(self.render_string('footer.html'))  
            
         if action == "message" or action == "topic":

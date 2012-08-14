@@ -1,8 +1,20 @@
 {% from server import server %}
 {% from TopicTool import TopicTool %}
-{% set topic = envelope['envelope']['payload']['topic'] %}
+
+{% if before is not None %}
+	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=before) %}
+	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+{% else %}
+	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(server.inttime()) %}
+	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+{% end %}
+
+{% set newbefore = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added']) %}				
+{% set beforecount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added'],countonly=True) %}				
 
 
+
+{{envelope['envelope']['local']['time_added']}}
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>
@@ -18,7 +30,7 @@
 				<h2>Top Topics</h2>
 					<ul>
 					{% for quicktopic in TopicTool().toptopics() %}
-                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} >
+                    <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
                     	<a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
                     </li>
                     {% end %}
@@ -35,27 +47,37 @@
 					{% if topic == 'sitecontent' %}
 					Messages from {{server.ServerSettings['hostname']}}
 					{% elif topic == 'all' %} 
-                                        All Messages
-                                        {% else %}    
-					Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-info-sign"><div class='textmodeinfo'>Change Topic settings</div></i></a>
+                    	All Messages
+                    {% else %}    
+						Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-info-sign"><div class='textmodeinfo'>Change Topic settings</div></i></a>
 					{% end %}
 				</h2>
 				{% if topic != 'sitecontent' and topic != 'all' %}	
-					<a href="/reply/{{server.sorttopic(topic)}}" class="internal">
-						<div class = "newpost">
-							<span class="newpost-text"><i class="icon-edit"></i> <a href="/reply/{{server.sorttopic(topic)}}" class="internal">New Message in {{topic}}</a></span>
-						</div>
-					</a>
+						<ul><li class="newpost">
+						<a href="/reply/{{server.sorttopic(topic)}}" class="internal newpost-text"> <i class="icon-edit"></i>New Message in <bdi>{{envelope['envelope']['payload']['topic']}}</bdi></a>
+						</li></ul>
 				{% end %}
 
 				<ul>
-					{% for subject in TopicTool(topic).messages() %}
-					<li  {% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} class="active"{% end %} >
+					{% for subject in subjects %}
+					<li  class="message{% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} active{% end %}" >
 						<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}"><bdi>{{subject['envelope']['payload']['subject']}}</bdi></a>
 					</li>
-                    {% end %}
-                    
+                    {% end %}    
 				</ul>	
+				
+				<ul>
+					{% if beforecount > 0 %}
+						<li class="newpost-newer">
+							<a href="/topic/{{topic}}?before={{newbefore}}" class="internal newpost-text "> <i class="icon-arrow-left"></i>Newer Messages</a>
+						</li>
+					{% end %}
+					{% if aftercount > 0 %}
+					<li class="newpost-older">
+						<a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal newpost-text"> <i class="icon-arrow-right"></i>Older Messages</a>
+					</li>
+					{% end %}
+				</ul>
 	
 			</div><!-- #center -->
 			

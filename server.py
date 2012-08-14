@@ -374,6 +374,12 @@ class Server(object):
         c.saveMongo()
         return  c.dict['envelope']['payload_sha512']
         
+    def inttime(self):
+        """
+        Force 1 sec precision, so multiple requests per second cache.
+        """
+        return int(time.time())
+
     def formatText(self,text=None,formatting='markdown'):    
         if formatting == 'markdown':
             formatted = self.autolink(markdown.markdown(self.gfm(text)))

@@ -442,15 +442,18 @@ COLUMN WIDTH ELEMENTS
     display: block; 
 }
 #center ul li a:hover { 
-  background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
   border-top: 1px solid #a1b1b1;
   border-bottom: 1px solid #ffffff; 
 }
 #center li.active {
-    background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
+    background: url(/static/images/center_arrow_left.png) center right no-repeat #A08E87;
     border-top: 1px solid #a1b1b1;
     border-bottom: 1px solid #ffffff; 
   }
+
+#center .message:hover{
+    background: url(/static/images/center_arrow_left.png) center right no-repeat #A08E87;
+}
 
 #center .newpost 
 {
@@ -458,23 +461,43 @@ COLUMN WIDTH ELEMENTS
     min-height:15px;
     max-height:30px;
     overflow:hidden;
-    padding-left:5px;
-    padding-right:20px;
-    padding-top: 5px;
-    padding-bottom: 5px;
-
 }
 
 #center .newpost:hover 
 {
-  background: url(/static/images/center_arrow.png) center right no-repeat #A08E87;
+  background: url('/static/images/center_arrow_left.png') center right no-repeat #A08E87;
   border-top: 1px solid #a1b1b1
   border-bottom: 1px solid #ffffff;
 }
 
 #center .newpost .newpost-text {
-  float:right;
+  height:100%;
+  display: inline-block;
 }
+
+#center .newpost-older
+{
+    width:50%;
+    text-align:right;
+    float:right;
+}
+#center .newpost-older:hover
+{
+    background: url('/static/images/center_arrow_right.png') center left no-repeat #A08E87 !important;
+}
+#center .newpost-newer
+{
+    width:50%;
+    text-align:left;
+    float:left;
+}
+#center .newpost-newer:hover
+{
+    background: url('/static/images/center_arrow_left.png') center right no-repeat #A08E87  !important;
+
+}
+
+
 
 
 

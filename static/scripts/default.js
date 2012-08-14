@@ -1,3 +1,4 @@
+jQuery.ajaxSetup({
   //We're already adding a requests parameter, just like jQuery would.
   //We don't need both ;)
   cache: true
@@ -88,7 +89,6 @@ jQuery(document).ready(function() {
         center = jQuery.jStorage.get('#center.width','');
         right =  jQuery.jStorage.get('#right.width','');
 
-
         // Set minimum sizes
         if (left < 50)
           left = 50;
@@ -99,7 +99,7 @@ jQuery(document).ready(function() {
         if (right < 50)
           right = 50;
 
-        if (left + centerandright + center + right != 'Bobo' )
+        if (left + centerandright + center + right != '' )
         {
             jQuery('#left').width(left);
             jQuery('#centerandright').width(centerandright);
@@ -155,8 +155,11 @@ jQuery(document).ready(function() {
         jQuery("#spinner").height(jQuery(this).parent().height());
         jQuery("#spinner").width(jQuery(this).parent().width());
         jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
-        jQuery.getScript( jQuery(this).attr('href') + "?js=yes&timestamp=" + Math.round(new Date().getTime())  );
-        jQuery('#spinner').hide()
+        if (jQuery(this).attr('href').indexOf('?') == -1 )
+          urlsep = '?';
+        else
+          urlsep = '&';
+        jQuery.getScript( jQuery(this).attr('href') + urlsep + "js=yes&timestamp=" + Math.round(new Date().getTime())  );
         });
 
     jQuery(document).on("mouseup", ".splitter", function(event){
