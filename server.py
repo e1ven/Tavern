@@ -147,65 +147,92 @@ class Server(object):
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
                 self.ServerSettings = OrderedDict()
+
+
+            self.logger.info("Generating any missing config values") 
+            
+            if not 'pubkey' in self.ServerSettings:
                 self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
+            if not 'privkey' in self.ServerSettings:
                 self.ServerSettings['privkey'] = self.ServerKeys.privkey
+            if not 'hostname' in self.ServerSettings:
                 self.ServerSettings['hostname'] = platform.node()
+            if not 'logfile' in self.ServerSettings:
                 self.ServerSettings['logfile'] = self.ServerSettings['hostname'] + '.log'
+            if not 'mongo-hostname' in self.ServerSettings:
                 self.ServerSettings['mongo-hostname'] = 'localhost'
-                self.ServerSettings['mongo-port'] = 27017            
-                self.ServerSettings['mongo-db'] = 'test'  
+            if not 'mongo-port' in self.ServerSettings:    
+                self.ServerSettings['mongo-port'] = 27017  
+            if not 'mongo-db' in self.ServerSettings:              
+                self.ServerSettings['mongo-db'] = 'test'
+            if not 'bin-mongo-hostname' in self.ServerSettings:  
                 self.ServerSettings['bin-mongo-hostname'] = 'localhost'
+            if not 'bin-mongo-port' in self.ServerSettings: 
                 self.ServerSettings['bin-mongo-port'] = 27017
+            if not 'bin-mongo-db' in self.ServerSettings: 
                 self.ServerSettings['bin-mongo-db'] = 'test'
-                self.ServerSettings['sessions-mongo-hostname'] = 'localhost'
-                self.ServerSettings['sessions-mongo-port'] = 27017
-                self.ServerSettings['sessions-mongo-db'] = 'test'
 
 
+            if not 'cache' in self.ServerSettings:
                 self.ServerSettings['cache']={}
 
+            if not 'user-trust' in self.ServerSettings['cache']:
                 self.ServerSettings['cache']['user-trust'] = {}
                 self.ServerSettings['cache']['user-trust']['seconds'] = 300
                 self.ServerSettings['cache']['user-trust']['size'] = 10000
 
-                self.ServerSettings['cache']['user-ratings'] = {}
-                self.ServerSettings['cache']['user-ratings']['seconds'] = 300
-                self.ServerSettings['cache']['user-ratings']['size'] = 10000
+            if not 'user-ratings' in self.ServerSettings['cache']:
+               self.ServerSettings['cache']['user-ratings'] = {}
+               self.ServerSettings['cache']['user-ratings']['seconds'] = 300
+               self.ServerSettings['cache']['user-ratings']['size'] = 10000
 
-                self.ServerSettings['cache']['avatarcache'] = {}
-                self.ServerSettings['cache']['avatarcache']['size'] = 100000
-                self.ServerSettings['cache']['avatarcache']['seconds'] = None
+            if not 'avatarcache' in self.ServerSettings['cache']:
+               self.ServerSettings['cache']['avatarcache'] = {}
+               self.ServerSettings['cache']['avatarcache']['size'] = 100000
+               self.ServerSettings['cache']['avatarcache']['seconds'] = None
 
-                self.ServerSettings['cache']['embeded'] = {}
-                self.ServerSettings['cache']['embeded']['size'] = 1000
-                self.ServerSettings['cache']['embeded']['seconds'] = 3600
+            if not 'embedded' in self.ServerSettings['cache']:
+                self.ServerSettings['cache']['embedded'] = {}
+                self.ServerSettings['cache']['embedded']['size'] = 1000
+                self.ServerSettings['cache']['embedded']['seconds'] = 3600
 
+            if not 'user-note' in self.ServerSettings['cache']:  
                 self.ServerSettings['cache']['user-note'] = {}
                 self.ServerSettings['cache']['user-note']['size'] = 10000
                 self.ServerSettings['cache']['user-note']['seconds'] = 60
 
+            if not 'subjects-in-topic' in self.ServerSettings['cache']:  
                 self.ServerSettings['cache']['subjects-in-topic'] = {}
                 self.ServerSettings['cache']['subjects-in-topic']['size'] = 1000
                 self.ServerSettings['cache']['subjects-in-topic']['seconds'] = 30
 
+            if not 'toptopics' in self.ServerSettings['cache']:
                 self.ServerSettings['cache']['toptopics'] = {}
                 self.ServerSettings['cache']['toptopics']['size'] = 1
                 self.ServerSettings['cache']['toptopics']['seconds'] = 3600
 
+            if not 'upload-dir' in self.ServerSettings:
                 self.ServerSettings['upload-dir'] = '/opt/uploads'
-                self.ServerSettings['cookie-encryption'] = self.randstr(255)
-                self.ServerSettings['serverkey-password'] = self.randstr(255)
-                self.ServerSettings['embedserver'] = 'http://embed.is'
-                self.ServerSettings['downloadsurl'] = '/binaries/'
 
-                self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-                self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
-                self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
-                self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
-                self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
-                self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
-                self.bin_GridFS = GridFS(self.mongos['binaries'])
-                self.saveconfig()   
+            if not 'cookie-encryption' in self.ServerSettings:
+                self.ServerSettings['cookie-encryption'] = self.randstr(255)
+            if not 'serverkey-password' in self.ServerSettings:
+                self.ServerSettings['serverkey-password'] = self.randstr(255)
+            if not 'embedserver' in self.ServerSettings:
+                self.ServerSettings['embedserver'] = 'http://embed.is'
+            if not 'downloadsurl' in self.ServerSettings:
+                self.ServerSettings['downloadsurl'] = '/binaries/'
+            if not 'maxembeddedurls' in self.ServerSettings:
+                self.ServerSettings['maxembeddedurls'] = 10
+
+            self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
+            self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
+            self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
+            self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+            self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
+            self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
+            self.bin_GridFS = GridFS(self.mongos['binaries'])
+            self.saveconfig()   
 
         else:
             self.loadconfig(settingsfile)
@@ -498,6 +525,7 @@ class Server(object):
         # Don't check a given message more than once.
         # Iterate through the list of possible embeddables.
 
+        foundurls = 0 # Don't embed too many URLs
         if 'body' in envelope['envelope']['payload']:
             if not 'embed' in envelope['envelope']['local']:
                 envelope['envelope']['local']['embed'] = []
@@ -506,10 +534,11 @@ class Server(object):
                 soup = BeautifulSoup(formattedbody)
                 for href in soup.findAll('a'):
                     result = self.external.lookup(href.get('href'))
-                    if result is not None:
+                    if result is not None and foundurls < self.ServerSettings['maxembeddedurls']:
                         if not 'embed' in envelope['envelope']['local']:
                             envelope['envelope']['local']['embed'] = []
                         envelope['envelope']['local']['embed'].append(result)
+                        foundurls +=1;
 
         if '_id' in envelope:            
             del(envelope['_id'])        

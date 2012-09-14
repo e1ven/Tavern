@@ -13,8 +13,7 @@
 {% else %}
 <p>You have not registered yet. Your settings will be saved, but you will not be able to log in from any other browsers or devices until you register.</p>
 {% end %}
-
-<p>Your posts will be posted under the name: <input type="text" size=25 name="friendlyname" value="{{user.UserSettings['friendlyname']}}">@{{user.UserSettings['author_pubkey_sha1']}} </p> 
+<p>Your messages will display the alias: <input type="text" size=25 name="friendlyname" value="{{user.UserSettings['friendlyname']}}">@{{user.UserSettings['author_pubkey_sha1']}} </p> 
 <br><p>
 Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{user.UserSettings['maxposts']}}"><br>
 Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{user.UserSettings['maxreplies']}}"><br>

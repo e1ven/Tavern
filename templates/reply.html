@@ -63,7 +63,7 @@
 								<input type="hidden" name="trust" value="100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Allow this user to rate comments">
+								<input class="textbutton" type="submit" value="Allow this user to rate posts">
 							</form>
 							<br>
 							{% end %}
@@ -73,7 +73,7 @@
 								<input type="hidden" name="trust" value="-100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Block this user from rating any comments">
+								<input class="textbutton" type="submit" value="Ignore ratings from this user">
 							</form>
 							{% end %}
 							<br>

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Copyright 2011 Tavern
+# Copyright 2012 Tavern
     
 
 import tornado.httpserver
@@ -57,7 +57,6 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Wrap the default RequestHandler with extra methods
         """    
-        #Ensure we have a html variable set.
         self.html = ""
         super(BaseHandler,self).__init__(*args,**kwargs)
 
