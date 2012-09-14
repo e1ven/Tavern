@@ -23,6 +23,8 @@ Show images and video from external sources:
 <input type='checkbox' name='allowembed' {% if user.UserSettings['allowembed'] == 1 %} checked {% end %} >
 <br><p>
 Include location with posts by default : <input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>
+<br><p>
+Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if user.UserSettings['display_useragent'] == True %}checked{% end %}>
 <br>
 
 <input type="submit" value="Update Settings">

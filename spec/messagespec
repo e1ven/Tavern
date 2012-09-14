@@ -43,7 +43,11 @@
 					'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
 					'friendlyname': 'E1ven',
 					'about': '0cb128a753dec8d8d56eedc41e43083d02ec365407ca827fac7b18745eefa282ab6df1c8b97ddaed8b57ba87225bc6a0096c03effd71f8c68aea87db9fea4a43',
-					'useragent': 'Pluric for Android 1.0'
+					'useragent': 
+						{
+							name: 'Pluric for Android',
+							version: '1.0'
+						} 
 				},
 				'subject': 'Need more Startrek',
 				'body': 'When are they going to create a *new* series? I think the movies have re...',
@@ -110,7 +114,7 @@ The "Author" fields are included to positively tie a message with an author. Thi
 	The 'friendlyname' is a friendly-short name, that is not necessarily unique across services. We don't call it a username, since that implies uniqueness.
 
 
-The client string is intentionally free-form- While it would be tempting to use a client signature here to 'prove' what client it is, it is ultimately untrustworthy.
+The useragent dictionary MUST contain at least two entries- 'name' and 'version' - Version should be a number, while name may be whatever you want.
 	Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.
 	Since this is impossible to secure, it's best to treat this like a web browser's USER-AGENT. Interesting to know, but Entirely untrusted.
 	If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.

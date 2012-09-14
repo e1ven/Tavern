@@ -260,6 +260,9 @@ class User(object):
         if not 'time_created' in self.UserSettings:
             self.UserSettings['time_created'] = int(time.time())
 
+        if not 'display_useragent' in self.UserSettings:
+            self.UserSettings['display_useragent'] = False
+
 
         if not 'followedTopics' in self.UserSettings:
             self.UserSettings['followedTopics'] = []

@@ -700,11 +700,19 @@ class ChangeManySettingsHandler(BaseHandler):
             include_location = True
         else:
             include_location = False
+
+        # AllowEmbed is a int, not a bool, so we can support a 0 state, which means, never set.
         if 'allowembed' in self.request.arguments:
             allowembed = 1
         else:
             allowembed = -1
+        if 'display_useragent' in self.request.arguments:
+            display_useragent = True
+        else:
+            display_useragent = False
                      
+
+        self.user.UserSettings['display_useragent'] = display_useragent
         self.user.UserSettings['friendlyname'] = friendlyname
         self.user.UserSettings['maxposts'] = maxposts
         self.user.UserSettings['maxreplies'] = maxreplies
@@ -782,7 +790,9 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = {}
+        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+        e.payload.dict['author']['useragent']['version'] = .01
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -863,7 +873,9 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release"
+        e.payload.dict['author']['useragent'] = {}
+        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+        e.payload.dict['author']['useragent']['version'] = .01
 
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
@@ -1091,7 +1103,10 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = {}
+        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+        e.payload.dict['author']['useragent']['version'] = .01
+
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -1184,7 +1199,10 @@ class NewPrivateMessageHandler(BaseHandler):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = "Tavern Web frontend Pre-release 0.1"
+        e.payload.dict['author']['useragent'] = {}
+        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+        e.payload.dict['author']['useragent']['version'] = .01
+
         if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
             gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
             ip = self.request.remote_ip

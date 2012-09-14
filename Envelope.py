@@ -160,6 +160,19 @@ class Envelope(object):
                     server.logger.info("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['pubkey'])
                     return False
 
+        # Check for a valid useragent
+        try:
+            if len(self.dict['envelope']['payload']['author']['useragent']['name']) < 1:
+                server.logger.info("Bad Useragent name")
+                return False
+            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'],int):
+                if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'],float):
+                    server.logger.info("Bad Useragent version must be a float or integer")
+                    return False
+        except:
+            server.logger.info("Bad Useragent")
+            return False
+
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
                 server.logger.info("Payload does not validate.")
