@@ -20,7 +20,7 @@
 	{% if len('title') > 1 %}
 	<meta NAME="Description" CONTENT="Tavern:: {{title}}">
 	{% else %}
-	<meta NAME="Description" CONTENT="A federated, distributed, P2P forum .">
+	<meta NAME="Description" CONTENT="A shared discussion about the topics that matter.">
 	{% end %}
 
 	<meta http-equiv="X-Frame-Options" content="deny">
@@ -35,7 +35,7 @@
 		Tavern :: A distributed discussion
 		{% end %}
 	</title>
-	<meta property="og:title" content="{% if len(title) > 1 %}Tavern :: {{title}}{% end %}{% if len(title) < 2 %}Tavern :: A distributed discussion{% end %}"/>
+	<meta property="og:title" content="{% if len(title) > 1 %}Tavern :: {{title}}{% end %}{% if len(title) < 2 %}Tavern :: Discuss what matters {% end %}"/>
 
 	{% if type == 'topic' %}
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 

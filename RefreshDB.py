@@ -9,7 +9,7 @@ import json
 import os
 
 # e = Envelope()
-# for envelope in server.mongos['default']['envelopes'].find({},as_class=OrderedDict):
+# for envelope in server.mongos['unsafe']['envelopes'].find({},as_class=OrderedDict):
 #   envelope = server.formatEnvelope(envelope)
 #   envelope['local'] = ''
 #   envstr = json.dumps(envelope,separators=(',',':'))

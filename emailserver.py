@@ -58,15 +58,15 @@ class EmailServer(object):
         Load in the emails
         """
 
-        for email in server.mongos['default']['optout-emails'].find():
+        for email in server.mongos['safe']['optout-emails'].find():
             self.optouts.append(email['address'])
 
 
         # Move messages to an in-memory queue which can go to multiple processes
-        for email in server.mongos['default']['notifications_queue'].find({'type':'email'}):
+        for email in server.mongos['unsafe']['notifications_queue'].find({'type':'email'}):
             if email['address'] not in self.optouts:
                 self.emails.put(email)
-            server.mongos['default']['notifications_queue'].remove(email)
+            server.mongos['unsafe']['notifications_queue'].remove(email)
 
 
     def start(self):

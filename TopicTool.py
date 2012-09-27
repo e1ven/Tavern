@@ -24,10 +24,10 @@ class TopicTool(object):
         """
         subjects = []
         if self.topic != "all":
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
         else:
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}},limit=self.maxposts,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 subjects.append(envelope)
 
         if countonly == True:
@@ -46,10 +46,10 @@ class TopicTool(object):
 
         subjects = []
         if self.topic != "all":
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$gt':after}},limit=self.maxposts +1 ,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
+            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$gt':after}},limit=self.maxposts +1 ,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
                 subjects.append(envelope)
         else:
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$gt':after}},limit=self.maxposts +1 ,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
+            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$gt':after}},limit=self.maxposts +1 ,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.ASCENDING):
                 subjects.append(envelope)
         
         # Adding 1 to self.maxposts above, because we're going to use this to get the 10 posts AFTER the date we return from this function.
@@ -73,14 +73,14 @@ class TopicTool(object):
     @memorise(parent_keys=['sorttopic','maxposts'],ttl=server.ServerSettings['cache']['subjects-in-topic']['seconds'],maxsize=server.ServerSettings['cache']['subjects-in-topic']['size'])
     def moreafter(self,before):
         if self.topic != "all":
-            count = server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}}).count()
+            count = server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic' : self.sorttopic,'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}}).count()
         else:
-            count = server.mongos['default']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}}).count()
+            count = server.mongos['unsafe']['envelopes'].find({'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False},'envelope.local.time_added':{'$lt':before}}).count()
         return count
 
     @memorise(ttl=server.ServerSettings['cache']['toptopics']['seconds'],maxsize=server.ServerSettings['cache']['toptopics']['size'])
     def toptopics(self):
         toptopics = []
-        for quicktopic in server.mongos['default']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
+        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=14,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
         return toptopics

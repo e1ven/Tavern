@@ -348,7 +348,7 @@ class RSSHandler(BaseHandler):
                           'Tavern discussion about ' + param,
                           generator = 'Tavern',
                           pubdate = datetime.datetime.now())
-            for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(param),'envelope.payload.class':'message'},limit=100,as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
                 item = rss.Item(channel,
                     envelope['envelope']['payload']['subject'],
                     "http://Tavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -423,7 +423,7 @@ class TriPaneHandler(BaseHandler):
                 title=topic
             else:
                 canon=""
-                title="An anonymous, shared discussion"
+                title="Discuss what matters"
             displayenvelope = TopicTool(topic).messages(server.inttime())[0]
 
         if action == "message":
@@ -431,7 +431,7 @@ class TriPaneHandler(BaseHandler):
             # We need both center and right, since the currently active message changes in the center.
             divs = ['center','right']
 
-            displayenvelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
+            displayenvelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 canon="message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
@@ -487,15 +487,15 @@ class TopicPropertiesHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
 
         mods = []
-        for mod in server.mongos['default']['modlist'].find({'_id.topic':server.sorttopic(topic)},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
+        for mod in server.mongos['unsafe']['modlist'].find({'_id.topic':server.sorttopic(topic)},as_class=OrderedDict,max_scan=10000).sort('value.trust',direction=pymongo.DESCENDING):
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(mod['_id']['moderator'].encode('utf-8')).hexdigest() 
             mods.append(mod)
 
         toptopics = []
-        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict):
+        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic' : server.sorttopic(topic),'envelope.payload.class':'message','envelope.payload.regarding':{'$exists':False}},limit=self.user.UserSettings['maxposts'],as_class=OrderedDict):
             subjects.append(envelope)
 
         title = "Properties for " + topic    
@@ -509,7 +509,7 @@ class SiteContentHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
         
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
         envelope = server.formatEnvelope(envelope)
 
             
@@ -521,7 +521,7 @@ class AttachmentHandler(BaseHandler):
     def get(self,attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.mongos['default']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},as_class=OrderedDict)
+        envelopes = server.mongos['unsafe']['envelopes'].find({'envelope.payload.binaries.sha_512' : client_attachment_id},as_class=OrderedDict)
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -535,7 +535,7 @@ class PrivateMessageHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
 
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
 
         usertrust = self.user.gatherTrust(envelope['envelope']['payload']['author']['pubkey'])
         
@@ -579,12 +579,12 @@ class RegisterHandler(BaseHandler):
             return
 
         if client_email is not None:
-            users_with_this_email = server.mongos['default']['users'].find({"email":client_email.lower()},as_class=OrderedDict)
+            users_with_this_email = server.mongos['safe']['users'].find({"email":client_email.lower()},as_class=OrderedDict)
             if users_with_this_email.count() > 0:
                 self.write("I'm sorry, this email address has already been used.")  
                 return
             
-        users_with_this_username = server.mongos['default']['users'].find({"username":client_newuser.lower()},as_class=OrderedDict)
+        users_with_this_username = server.mongos['safe']['users'].find({"username":client_newuser.lower()},as_class=OrderedDict)
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")  
             return    
@@ -619,7 +619,7 @@ class LoginHandler(BaseHandler):
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
 
         login = False
-        user = server.mongos['default']['users'].find_one({"username":client_username.lower()},as_class=OrderedDict)
+        user = server.mongos['safe']['users'].find_one({"username":client_username.lower()},as_class=OrderedDict)
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
@@ -672,7 +672,7 @@ class UserHandler(BaseHandler):
         u.UserSettings['author_pubkey_sha1'] = hashlib.sha1(pubkey.encode('utf-8')).hexdigest() 
 
         envelopes = []
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.author.pubkey':pubkey,'envelope.payload.class':'message'},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
+        for envelope in server.mongos['safe']['envelopes'].find({'envelope.payload.author.pubkey':pubkey,'envelope.payload.class':'message'},as_class=OrderedDict).sort('envelope.local.time_added',pymongo.DESCENDING):
             envelopes.append(envelope)
 
         self.write(self.render_string('header.html',title="User page",user=self.user,rsshead=None,type=None))
@@ -1086,7 +1086,7 @@ class NewmessageHandler(BaseHandler):
             server.logger.info("Adding Regarding - " + client_regarding)
             e.payload.dict['regarding'] = client_regarding
 
-            regardingmsg = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512':client_regarding},as_class=OrderedDict)
+            regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512':client_regarding},as_class=OrderedDict)
             e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
             e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
         else:
@@ -1149,7 +1149,7 @@ class MyPrivateMessagesHandler(BaseHandler):
         self.user.load_mongo_by_username(self.user['username'])
         
         self.write(self.render_string('header.html',title="Welcome to the Tavern!",user=self.user,rsshead=None,type=None))
-        for message in server.mongos['default']['envelopes'].find({'envelope.payload.to':self.user.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
+        for message in server.mongos['unsafe']['envelopes'].find({'envelope.payload.to':self.user.Keys.pubkey},fields={'envelope.payload_sha512','envelope.payload.subject'},limit=10,as_class=OrderedDict).sort('value',-1):
             message['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(message['envelope']['payload']['subject'])
             messages.append(message)
 

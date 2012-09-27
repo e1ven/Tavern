@@ -38,7 +38,7 @@ class ModList(object):
                 }
                 """)
                 
-        server.mongos['default']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
+        server.mongos['unsafe']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
         
 M = ModList()
 

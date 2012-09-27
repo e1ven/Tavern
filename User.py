@@ -59,7 +59,7 @@ class User(object):
         key = Keys(pub = noteabout )
         noteabout = key.pubkey
         # Retrieve the note from mongo
-        note = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
+        note = server.mongos['unsafe']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
         if note is not None:
             return note['note']
         else:
@@ -73,11 +73,11 @@ class User(object):
         newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
 
         # Retrieve any existing note, so that the _id is the same. Then, we'll gut it, and put in our own values.
-        newnote = server.mongos['default']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
+        newnote = server.mongos['unsafe']['notes'].find_one({"user":self.Keys.pubkey,"noteabout":noteabout},as_class=OrderedDict)
         if newnote is None:
                 newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
         newnote['note'] = note
-        server.mongos['default']['notes'].save(newnote) 
+        server.mongos['unsafe']['notes'].save(newnote) 
 
     @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-trust']['seconds'],maxsize=server.ServerSettings['cache']['user-trust']['size'])
     def gatherTrust(self,askingabout,incomingtrust=250):
@@ -116,7 +116,7 @@ class User(object):
         #TODO - Let's change this to get the most recent. 
 
         # server.logger.info("Asking About -- " + askingabout)
-        trustrow = server.mongos['default']['envelopes'].find({"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
+        trustrow = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  },as_class=OrderedDict).sort("envelope.local.time_added",pymongo.DESCENDING)
         search = {"envelope.payload.class":"usertrust","envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust" : {"$exists":"true"},"envelope.payload.author.pubkey" : str(self.Keys.pubkey)  }
         foundtrust = False
         if trustrow.count() > 0:
@@ -131,7 +131,7 @@ class User(object):
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
 
             #First, find the people WE'VE trusted
-            alltrusted = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.Keys.pubkey  },as_class=OrderedDict)
+            alltrusted = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class" : "usertrust", "envelope.payload.trust" : {"$gt":0}, "envelope.payload.author.pubkey" : self.Keys.pubkey  },as_class=OrderedDict)
             combinedFriendTrust = 0
             friendcount = 0
             
@@ -176,7 +176,7 @@ class User(object):
     @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-ratings']['seconds'],maxsize=server.ServerSettings['cache']['user-ratings']['size'])
     def getRatings(self,postInQuestion):            
         #Move this. Maybe to Server??
-        allvotes = server.mongos['default']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
+        allvotes = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)
         combinedrating = 0
         for vote in allvotes:
             author = vote['envelope']['payload']['author']['pubkey']
@@ -186,7 +186,7 @@ class User(object):
                 combinedrating += rating
                 
         # Stamp based ratings give a baseline, like SpamAssassin. 
-        e = server.mongos['default']['envelopes'].find_one({"envelope.payload_sha512" : postInQuestion},as_class=OrderedDict)
+        e = server.mongos['unsafe']['envelopes'].find_one({"envelope.payload_sha512" : postInQuestion},as_class=OrderedDict)
         
         if e is not None:
             if 'stamps' in e['envelope']: 
@@ -316,7 +316,7 @@ class User(object):
         """
         Returns a user object for a given pubkey
         """
-        user = server.mongos['default']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
+        user = server.mongos['safe']['users'].find_one({"pubkey":pubkey},as_class=OrderedDict)
         if user is None:
             # If the user doesn't exist in our service, he's only someone we've heard about.
             # We won't know their privkey, so just return their pubkey back out.
@@ -330,7 +330,7 @@ class User(object):
 
     def load_mongo_by_username(self,username):
         #Local server Only
-        user = server.mongos['default']['users'].find_one({"username":username},as_class=OrderedDict)
+        user = server.mongos['safe']['users'].find_one({"username":username},as_class=OrderedDict)
         self.UserSettings = user
         self.Keys = lockedKey(pub=self.UserSettings['pubkey'],encryptedprivkey=self.UserSettings['encryptedprivkey'])
         self.UserSettings['pubkey'] = self.Keys.pubkey
@@ -344,5 +344,5 @@ class User(object):
         self.UserSettings['passkey'] = None
         self.UserSettings['pubkey'] = self.Keys.pubkey
         self.UserSettings['_id'] = self.Keys.pubkey
-        server.mongos['default']['users'].save(self.UserSettings) 
+        server.mongos['safe']['users'].save(self.UserSettings) 
             

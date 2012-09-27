@@ -3,7 +3,7 @@
 {% import datetime %}
 
 {% set medialink = None %}
-{% set envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
+{% set envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}

@@ -11,8 +11,7 @@ from decorators import memorise
 
 class embedis:
     """Embedis is a quick class/API for translating embeddable media"""
-
-    def __init__(self,x=640,y=480):  
+    def __init__(self,x=640,y=480):
 
         self.x = str(x)
         self.y = str(y)
@@ -34,7 +33,6 @@ class embedis:
         return None
 
 
-                     
     def youtube(self):
         yid = None
         if self.query.hostname == 'youtu.be':
@@ -67,7 +65,7 @@ class embedis:
             return None
         else:
             return None
- 
+
     def embedis(self):
         """
         Embed.is integration
@@ -98,5 +96,5 @@ class embedis:
     def getavatar(self,myid):
             f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
             return f.read()
-            
+
 emb = embedis

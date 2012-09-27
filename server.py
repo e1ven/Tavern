@@ -11,6 +11,7 @@ import collections
 from collections import OrderedDict
 import collections
 import pymongo
+import pymongo.read_preferences
 from gridfs import GridFS
 import gridfs
 from Envelope import Envelope
@@ -147,96 +148,106 @@ class Server(object):
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
                 self.ServerSettings = OrderedDict()
-
-
-            self.logger.info("Generating any missing config values") 
-            
-            if not 'pubkey' in self.ServerSettings:
-                self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
-            if not 'privkey' in self.ServerSettings:
-                self.ServerSettings['privkey'] = self.ServerKeys.privkey
-            if not 'hostname' in self.ServerSettings:
-                self.ServerSettings['hostname'] = platform.node()
-            if not 'logfile' in self.ServerSettings:
-                self.ServerSettings['logfile'] = self.ServerSettings['hostname'] + '.log'
-            if not 'mongo-hostname' in self.ServerSettings:
-                self.ServerSettings['mongo-hostname'] = 'localhost'
-            if not 'mongo-port' in self.ServerSettings:    
-                self.ServerSettings['mongo-port'] = 27017  
-            if not 'mongo-db' in self.ServerSettings:              
-                self.ServerSettings['mongo-db'] = 'test'
-            if not 'bin-mongo-hostname' in self.ServerSettings:  
-                self.ServerSettings['bin-mongo-hostname'] = 'localhost'
-            if not 'bin-mongo-port' in self.ServerSettings: 
-                self.ServerSettings['bin-mongo-port'] = 27017
-            if not 'bin-mongo-db' in self.ServerSettings: 
-                self.ServerSettings['bin-mongo-db'] = 'test'
-
-
-            if not 'cache' in self.ServerSettings:
-                self.ServerSettings['cache']={}
-
-            if not 'user-trust' in self.ServerSettings['cache']:
-                self.ServerSettings['cache']['user-trust'] = {}
-                self.ServerSettings['cache']['user-trust']['seconds'] = 300
-                self.ServerSettings['cache']['user-trust']['size'] = 10000
-
-            if not 'user-ratings' in self.ServerSettings['cache']:
-               self.ServerSettings['cache']['user-ratings'] = {}
-               self.ServerSettings['cache']['user-ratings']['seconds'] = 300
-               self.ServerSettings['cache']['user-ratings']['size'] = 10000
-
-            if not 'avatarcache' in self.ServerSettings['cache']:
-               self.ServerSettings['cache']['avatarcache'] = {}
-               self.ServerSettings['cache']['avatarcache']['size'] = 100000
-               self.ServerSettings['cache']['avatarcache']['seconds'] = None
-
-            if not 'embedded' in self.ServerSettings['cache']:
-                self.ServerSettings['cache']['embedded'] = {}
-                self.ServerSettings['cache']['embedded']['size'] = 1000
-                self.ServerSettings['cache']['embedded']['seconds'] = 3600
-
-            if not 'user-note' in self.ServerSettings['cache']:  
-                self.ServerSettings['cache']['user-note'] = {}
-                self.ServerSettings['cache']['user-note']['size'] = 10000
-                self.ServerSettings['cache']['user-note']['seconds'] = 60
-
-            if not 'subjects-in-topic' in self.ServerSettings['cache']:  
-                self.ServerSettings['cache']['subjects-in-topic'] = {}
-                self.ServerSettings['cache']['subjects-in-topic']['size'] = 1000
-                self.ServerSettings['cache']['subjects-in-topic']['seconds'] = 30
-
-            if not 'toptopics' in self.ServerSettings['cache']:
-                self.ServerSettings['cache']['toptopics'] = {}
-                self.ServerSettings['cache']['toptopics']['size'] = 1
-                self.ServerSettings['cache']['toptopics']['seconds'] = 3600
-
-            if not 'upload-dir' in self.ServerSettings:
-                self.ServerSettings['upload-dir'] = '/opt/uploads'
-
-            if not 'cookie-encryption' in self.ServerSettings:
-                self.ServerSettings['cookie-encryption'] = self.randstr(255)
-            if not 'serverkey-password' in self.ServerSettings:
-                self.ServerSettings['serverkey-password'] = self.randstr(255)
-            if not 'embedserver' in self.ServerSettings:
-                self.ServerSettings['embedserver'] = 'http://embed.is'
-            if not 'downloadsurl' in self.ServerSettings:
-                self.ServerSettings['downloadsurl'] = '/binaries/'
-            if not 'maxembeddedurls' in self.ServerSettings:
-                self.ServerSettings['maxembeddedurls'] = 10
-
-            self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-            self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
-            self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
-            self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
-            self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
-            self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
-            self.bin_GridFS = GridFS(self.mongos['binaries'])
-            self.saveconfig()   
-
         else:
             self.loadconfig(settingsfile)
         
+
+        self.logger.info("Generating any missing config values") 
+        
+        if not 'pubkey' in self.ServerSettings:
+            self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
+        if not 'privkey' in self.ServerSettings:
+            self.ServerSettings['privkey'] = self.ServerKeys.privkey
+        if not 'hostname' in self.ServerSettings:
+            self.ServerSettings['hostname'] = platform.node()
+        if not 'logfile' in self.ServerSettings:
+            self.ServerSettings['logfile'] = self.ServerSettings['hostname'] + '.log'
+        if not 'mongo-hostname' in self.ServerSettings:
+            self.ServerSettings['mongo-hostname'] = 'localhost'
+        if not 'mongo-port' in self.ServerSettings:    
+            self.ServerSettings['mongo-port'] = 27017  
+        if not 'mongo-db' in self.ServerSettings:              
+            self.ServerSettings['mongo-db'] = 'test'
+        if not 'bin-mongo-hostname' in self.ServerSettings:  
+            self.ServerSettings['bin-mongo-hostname'] = 'localhost'
+        if not 'bin-mongo-port' in self.ServerSettings: 
+            self.ServerSettings['bin-mongo-port'] = 27017
+        if not 'bin-mongo-db' in self.ServerSettings: 
+            self.ServerSettings['bin-mongo-db'] = 'test'
+
+
+        if not 'cache' in self.ServerSettings:
+            self.ServerSettings['cache']={}
+
+        if not 'user-trust' in self.ServerSettings['cache']:
+            self.ServerSettings['cache']['user-trust'] = {}
+            self.ServerSettings['cache']['user-trust']['seconds'] = 300
+            self.ServerSettings['cache']['user-trust']['size'] = 10000
+
+        if not 'user-ratings' in self.ServerSettings['cache']:
+           self.ServerSettings['cache']['user-ratings'] = {}
+           self.ServerSettings['cache']['user-ratings']['seconds'] = 300
+           self.ServerSettings['cache']['user-ratings']['size'] = 10000
+
+        if not 'avatarcache' in self.ServerSettings['cache']:
+           self.ServerSettings['cache']['avatarcache'] = {}
+           self.ServerSettings['cache']['avatarcache']['size'] = 100000
+           self.ServerSettings['cache']['avatarcache']['seconds'] = None
+
+        if not 'embedded' in self.ServerSettings['cache']:
+            self.ServerSettings['cache']['embedded'] = {}
+            self.ServerSettings['cache']['embedded']['size'] = 1000
+            self.ServerSettings['cache']['embedded']['seconds'] = 3600
+
+        if not 'user-note' in self.ServerSettings['cache']:  
+            self.ServerSettings['cache']['user-note'] = {}
+            self.ServerSettings['cache']['user-note']['size'] = 10000
+            self.ServerSettings['cache']['user-note']['seconds'] = 60
+
+        if not 'subjects-in-topic' in self.ServerSettings['cache']:  
+            self.ServerSettings['cache']['subjects-in-topic'] = {}
+            self.ServerSettings['cache']['subjects-in-topic']['size'] = 1000
+            self.ServerSettings['cache']['subjects-in-topic']['seconds'] = 30
+
+        if not 'toptopics' in self.ServerSettings['cache']:
+            self.ServerSettings['cache']['toptopics'] = {}
+            self.ServerSettings['cache']['toptopics']['size'] = 1
+            self.ServerSettings['cache']['toptopics']['seconds'] = 3600
+
+        if not 'upload-dir' in self.ServerSettings:
+            self.ServerSettings['upload-dir'] = '/opt/uploads'
+
+        if not 'cookie-encryption' in self.ServerSettings:
+            self.ServerSettings['cookie-encryption'] = self.randstr(255)
+        if not 'serverkey-password' in self.ServerSettings:
+            self.ServerSettings['serverkey-password'] = self.randstr(255)
+        if not 'embedserver' in self.ServerSettings:
+            self.ServerSettings['embedserver'] = 'http://embed.is'
+        if not 'downloadsurl' in self.ServerSettings:
+            self.ServerSettings['downloadsurl'] = '/binaries/'
+        if not 'maxembeddedurls' in self.ServerSettings:
+            self.ServerSettings['maxembeddedurls'] = 10
+
+        if not 'mongo-connections' in self.ServerSettings:
+            self.ServerSettings['mongo-connections'] = 10
+
+
+        # Create a fast, unsafe mongo connection. Writes might get lost.
+        self.mongocons['unsafe'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'],read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED,max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongos['unsafe'] =  self.mongocons['unsafe'][self.ServerSettings['mongo-db']]    
+
+        # Slower, more reliable mongo connection. 
+        self.mongocons['safe'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'],safe=True,journal=True,max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongos['safe'] =  self.mongocons['safe'][self.ServerSettings['mongo-db']]    
+
+        self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'],max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
+        self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
+        self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
+        self.bin_GridFS = GridFS(self.mongos['binaries'])
+        self.saveconfig()   
+
+
         self.ServerSettings['static-revision'] = int(time.time())
         self.fortune = Fortuna()
 
@@ -267,14 +278,7 @@ class Server(object):
         filecontents = filehandle.read()
         self.ServerSettings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],priv=self.ServerSettings['privkey'])
-        self.connection = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-        self.mongocons['default'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'])
-        self.mongos['default'] =  self.mongocons['default'][self.ServerSettings['mongo-db']]             
-        self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'])
-        self.mongos['binaries'] = self.mongocons['binaries'][self.ServerSettings['bin-mongo-db']]
-        self.mongocons['sessions'] =  pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
-        self.mongos['sessions'] = self.mongocons['sessions'][self.ServerSettings['sessions-mongo-db']]
-        self.bin_GridFS = GridFS(self.mongos['binaries'])
+
         filehandle.close()
         self.saveconfig()
     
@@ -327,7 +331,7 @@ class Server(object):
             return False
 
                 # First, pull the message.
-        existing = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : c.payload.hash() },as_class=OrderedDict)
+        existing = self.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : c.payload.hash() },as_class=OrderedDict)
         if existing is not None:
             self.logger.info("We already have that msg.")  
             return c.dict['envelope']['payload_sha512']      
@@ -383,7 +387,7 @@ class Server(object):
 
           # It could also be that this message is cited BY others we already have!
           # Sometimes we received them out of order. Better check.
-          for citedme in self.mongos['default']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
+          for citedme in self.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']),'envelope.payload.regarding':c.dict['envelope']['payload_sha512']},as_class=OrderedDict):
             self.logger.info('found existing cite, bad order. ')
             self.logger.info(" I am :: " + c.dict['envelope']['payload_sha512'])
             self.logger.info(" Found pre-existing cite at :: " + citedme['envelope']['payload_sha512']) 
@@ -431,7 +435,7 @@ class Server(object):
         # Find the top level of a post that we currently have.
         
         # First, pull the message.
-        envelope = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
+        envelope = self.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict)
         envelope = self.formatEnvelope(envelope)
         
     
@@ -443,7 +447,7 @@ class Server(object):
            
         # If we do have a parent, Check to see if it's in our datastore.
         parentid = envelope['envelope']['payload']['regarding']
-        parent = self.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : parentid },as_class=OrderedDict)
+        parent = self.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : parentid },as_class=OrderedDict)
         if parent is None:
             return messageid
             

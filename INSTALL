@@ -104,7 +104,7 @@ cd /opt/Tavern/libs/Markdown-2.1.0
 python3 setup.py install
 
 
-cd /opt/Tavern/libs/pymongo3-1.9b1/
+cd /opt/Tavern/libs/pymongo2.3/
 python3 setup.py install
 
 

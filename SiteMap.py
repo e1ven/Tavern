@@ -28,7 +28,7 @@ sitemapindex.write("""<?xml version="1.0" encoding="UTF-8"?>
 </sitemap>""")
 
 # Now, generate the per-envelope sitemaps.
-countEnvelopes = server.mongos['default']['envelopes'].find({"envelope.payload.class": "message"}).count()
+countEnvelopes = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class": "message"}).count()
 
 divisor = 40000
 start = options.start
@@ -58,7 +58,7 @@ for i in range(sitemapcount):
     sitemapindex.write("<lastmod>" + datenow +  "</lastmod>\n")
     sitemapindex.write("</sitemap>\n")
     
-    a = server.mongos['default']['envelopes'].find({"envelope.local.short_subject":{"$exists":True}})[start:end]
+    a = server.mongos['unsafe']['envelopes'].find({"envelope.local.short_subject":{"$exists":True}})[start:end]
     for envelope in a:
         url = 'http://ForumLegion.com/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" +  envelope['envelope']['payload_sha512'] 
         date = datetime.datetime.utcfromtimestamp(envelope['envelope']['stamps'][0]['time_added'])

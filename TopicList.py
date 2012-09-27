@@ -44,5 +44,5 @@ class TopicList(object):
                  
                 """)
 
-        server.mongos['default']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+        server.mongos['unsafe']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 T = TopicList()

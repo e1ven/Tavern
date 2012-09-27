@@ -62,7 +62,7 @@ class NotFoundHandler(BaseHandler):
 class ListActiveTopics(BaseHandler):  
     def get(self):      
         toptopics = []
-        for quicktopic in server.mongos['default']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
+        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value',-1):
             toptopics.append(quicktopic['_id']['tag']) 
         self.write(json.dumps(toptopics,separators=(',',':')))
         self.finish()
@@ -76,7 +76,7 @@ class MessageHandler(BaseHandler):
         else: 
             client_perspective = None
             
-        envelope = server.mongos['default']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
+        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -102,7 +102,7 @@ class TopicHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
         server.logger.info(server.ServerSettings['pubkey'])
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.local.time_added': {'$gt' : since },'envelope.local.sorttopic' : server.sorttopic(client_topic) },limit=include,skip=offset,as_class=OrderedDict):
+        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.time_added': {'$gt' : since },'envelope.local.sorttopic' : server.sorttopic(client_topic) },limit=include,skip=offset,as_class=OrderedDict):
             server.logger.info("foo")
             if client_perspective is not None:
                 server.logger.info("FFFF")
@@ -123,7 +123,7 @@ class PrivateMessagesHandler(BaseHandler):
         client_pubkey =  tornado.escape.xhtml_escape(pubkey)             
         envelopes = []
 
-        for envelope in server.mongos['default']['envelopes'].find({'envelope.payload.to':client_pubkey},as_class=OrderedDict):
+        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.payload.to':client_pubkey},as_class=OrderedDict):
             formattedtext = server.formatText(envelope,formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
