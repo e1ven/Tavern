@@ -3,13 +3,18 @@
           127.0.0.1 1;
           GetTavern.com 1;
           localhost 1;
+          tavern.com 1;
+          files.tavern.is 1;
+          static.tavern.is 1;
     	}    
+
 	server {
         listen 80;
         proxy_set_header X-Real-IP $remote_addr;
 
-        if ($allowedhosts = 0 ) {
-        rewrite  ^/(.*)$  http://gettavern.com/$1  permanent;
+        if ($allowedhosts = 0 )
+        {
+            rewrite  ^/(.*)$  http://gettavern.com/$1  permanent;
         }
 
     	error_page 405 =200 @405;
