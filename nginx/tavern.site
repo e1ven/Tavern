@@ -1,4 +1,5 @@
-    map $host $allowedhosts {
+    map $host $allowedhosts 
+    {
           default 0;
           127.0.0.1 1;
           GetTavern.com 1;
@@ -6,9 +7,57 @@
           tavern.com 1;
           files.tavern.is 1;
           static.tavern.is 1;
-    	}    
+    }    
 
-	server {
+
+    # The Binaries server
+    # All binaries must go through this server name, to ensure that it won't have access to cookies.
+    # Also, so it can be moved later if nec.
+
+    server 
+    {
+        server_name files.tavern.is;
+        listen 443;
+        ssl    on;
+        ssl_certificate    /etc/ssl/certs/files.tavern.is.crt;
+        ssl_certificate_key    /etc/ssl/certs/files.tavern.is.key;
+        ssl_session_cache  shared:SSL:100m;
+        ssl_ciphers RC4:AES128-SHA:AES:CAMELLIA128-SHA:!MD5:!ADH:!DH:!ECDH:!PSK:!SSLv2;
+        proxy_http_version 1.1;
+        proxy_set_header Connection "";
+        proxy_set_header X-Real-IP $remote_addr;
+
+        error_page 405 =200 @405;
+        location @405 
+        {
+           proxy_pass http://tornados;
+        }
+
+        location /binaries/ {
+                # Set additional headers to force download if it's not an image
+                # Kinda complex to do in nginx, but it works ;)
+
+                if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
+                {
+                    set $image 1;
+                }
+                if ($image != 1)
+                {
+                        add_header Content-Type "application/octet-stream";
+                        add_header Content-Disposition "attachment";
+                }
+
+                rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
+                expires max;
+                gridfs test field=filename type=string;
+                mongo 127.0.0.1:27017;
+        }
+    }
+
+
+    # The main server.
+    server 
+    {
         listen 80;
         proxy_set_header X-Real-IP $remote_addr;
 
@@ -17,12 +66,11 @@
             rewrite  ^/(.*)$  http://gettavern.com/$1  permanent;
         }
 
-    	error_page 405 =200 @405;
-    	location @405 
+        error_page 405 =200 @405;
+        location @405 
         {
            proxy_pass http://tornados;
-    	}
-
+        }
 
        location /static/ {
           proxy_pass http://tornados/static/;
@@ -93,26 +141,6 @@
 
         location @uploads {
                 proxy_pass   http://tornados;
-        }
-
-        location /binaries/ {
-                # Set additional headers to force download if it's not an image
-                # Kinda complex to do in nginx, but it works ;)
-
-                if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
-                {
-                    set $image 1;
-                }
-                if ($image != 1)
-                {
-                        add_header Content-Type "application/octet-stream";
-                        add_header Content-Disposition "attachment";
-                }
-
-                rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
-		expires max;
-                gridfs test field=filename type=string;
-                mongo 127.0.0.1:27017;
         }
 
         location / {
