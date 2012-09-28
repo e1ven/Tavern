@@ -49,7 +49,7 @@ class embedis:
         if yid == None:
             return None
         else:
-            return "<iframe class='youtube-player' type='text/html' width='" + self.x + "' height='" + self.y + "' src='https://www.youtube.com/embed/" + yid + "?wmode=opaque' frameborder='0'></iframe>"
+            return "<iframe class='youtube-player' type='text/html' width='" + self.x + "' height='" + self.y + "' src='https://www.youtube.com/embed/" + yid + "?wmode=opaque&html5=1' frameborder='0' sandbox='allow-scripts'></iframe>"
 
     def vimeo(self):
         if self.query.hostname in ('vimeo.com', 'www.vimeo.com'):
