@@ -325,13 +325,11 @@ jQuery(document).ready(function() {
           return false;
     });
 
-
-
     // Hide any linked content by default.
     // Don't even LOAD it. Just know where it is.
     // If they click to load, then adjust the page to retrieve
     jQuery(document).on('click','.embeddedcontentnote',function (event)
-    {           
+    {   
         var embededcontent = jQuery(event.target).next(); 
         if (embededcontent.is(":visible"))
         {
@@ -354,7 +352,7 @@ jQuery(document).ready(function() {
         jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},                  
             function( data ) 
                   {
-                     displayform.empty().append( data );
+                     displayform.html( data );
                      displayform.show();
                   });
         // If you clicked it, show all the media on THIS page, too.
@@ -363,7 +361,7 @@ jQuery(document).ready(function() {
           {
               var embededcontent = jQuery(this).next(); 
               embededcontent.show();
-              embededcontent.empty().append(embededcontent.attr('stufftoshow') + "<br>");
+              embededcontent.html(embededcontent.attr('stufftoshow') + "<br>");
           });
         jQuery('.icon-picture').hide();
     });

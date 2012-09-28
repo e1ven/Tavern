@@ -29,7 +29,11 @@ footer, header, hgroup, menu, nav, section {
         display: block;
 }
 
-
+/* set the Z-index to ensure this is on-top and clickable */
+i {
+  position:relative;
+  z-index:10;
+}
 body {
         line-height: 1;
 }
@@ -125,6 +129,7 @@ p { padding-bottom: 22px; }
           padding-bottom: 0px;
           padding-right: 15px;
 }
+
 .clear { clear: both; }
 
 .configbutton {
