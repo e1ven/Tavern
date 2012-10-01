@@ -2,7 +2,7 @@ import json
 import pymongo
 import Envelope
 import time
-from decorators import memorise
+from TavernCache import memorise
 from server import server
 from collections import OrderedDict
 import sys

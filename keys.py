@@ -6,7 +6,7 @@ import base64
 from tomcrypt import cipher,rsa
 import logging
 import functools
-from decorators import memorise
+from TavernCache import memorise
 
 class Keys(object):
     

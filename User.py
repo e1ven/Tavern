@@ -11,8 +11,8 @@ import scrypt
 import random
 import base64
 from lockedkey import lockedKey
-from decorators import memorise
-
+from TavernCache import memorise
+from pprint import pprint
 
 class User(object):
       
@@ -48,7 +48,7 @@ class User(object):
             return False
 
 
-    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-note']['seconds'],maxsize=server.ServerSettings['cache']['user-note']['size'])
+    @memorise(parent_keys=['UserSettings.encryptedprivkey'],ttl=server.ServerSettings['cache']['user-note']['seconds'],maxsize=server.ServerSettings['cache']['user-note']['size'])
     def getNote(self,noteabout):
         """ 
         Retrieve any note by user A about user B
@@ -78,8 +78,10 @@ class User(object):
                 newnote = {"user":self.Keys.pubkey,"noteabout":noteabout,"note":note}
         newnote['note'] = note
         server.mongos['unsafe']['notes'].save(newnote) 
+        self.getNote(noteabout=noteabout,forcerecache=True)
 
-    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-trust']['seconds'],maxsize=server.ServerSettings['cache']['user-trust']['size'])
+
+    @memorise(parent_keys=['UserSettings.pubkey'],ttl=server.ServerSettings['cache']['user-trust']['seconds'],maxsize=server.ServerSettings['cache']['user-trust']['size'])
     def gatherTrust(self,askingabout,incomingtrust=250):
         # Ensure the formatting 
         key = Keys(pub = askingabout )
@@ -173,7 +175,7 @@ class User(object):
         else:
             return "strongly distrust"
 
-    @memorise(parent_keys=['UserSettings'],ttl=server.ServerSettings['cache']['user-ratings']['seconds'],maxsize=server.ServerSettings['cache']['user-ratings']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'],ttl=server.ServerSettings['cache']['user-ratings']['seconds'],maxsize=server.ServerSettings['cache']['user-ratings']['size'])
     def getRatings(self,postInQuestion):            
         #Move this. Maybe to Server??
         allvotes = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class" : "rating", "envelope.payload.rating" : {"$exists":"true"},"envelope.payload.regarding" : postInQuestion },as_class=OrderedDict)

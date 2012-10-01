@@ -834,8 +834,10 @@ class UserNoteHandler(BaseHandler):
         client_pubkey = self.get_argument("pubkey")    
         client_note = self.get_argument("note")
         self.user.setNote(client_pubkey,client_note)
-        server.logger.info("Note Submitted.")
 
+        # Write it back to the page
+        self.write('<input class="usernote" type="text" value="" name="note" placeholder="' + client_note + '">')
+        server.logger.info("Note Submitted.")
 
 
 

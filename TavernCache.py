@@ -1,13 +1,31 @@
 """memorised module - container for the memorise python-memcache decorator"""
-__author__ = 'Colin Davis <colin [at] e1ven [dot] com>'
-__docformat__ = 'restructuredtext en'
-__version__ = '2.0.0'
 
 import itertools
 from functools import wraps
 import inspect
 from collections import OrderedDict
 import time
+import json
+
+
+from collections import OrderedDict
+
+
+class TavernCache(object):
+        def __init__(self):
+            self.mc = OrderedDict()
+TavernCache = TavernCache()
+
+
+def objresolve(obj, attrspec):
+    for attr in attrspec.split("."):
+        try:
+            obj = obj[attr]
+        except (TypeError, KeyError):
+            obj = getattr(obj, attr)
+    return obj
+
+
 
 class memorise(object):
         """Decorate any function or class method/staticmethod with a memcace
@@ -27,15 +45,19 @@ class memorise(object):
           `ttl` : integer
             Tells memcached the time which this value should expire.
             We default to 0 == cache forever. None is turn off caching.
+
+            If the original function has a "forcerecache" paramater, re will respect it.
         """
 
-        def __init__(self, parent_keys=[], set=None, ttl=60,maxsize=None):
+        def __init__(self, parent_keys=[], recache=True,set=None, ttl=60,maxsize=None):
                 # Instance some default values, and customisations
                 self.parent_keys = parent_keys
+
                 self.set = set
                 self.ttl = ttl
-                self.mc = OrderedDict()
                 self.maxsize = maxsize
+
+
 
         def __call__(self, fn):
                 @wraps(fn)
@@ -49,6 +71,7 @@ class memorise(object):
                         argnames = fn.__code__.co_varnames[:fn.__code__.co_argcount]
                         method = False
                         static = False
+                        forcerecache = False
                         if len(argnames) > 0:
                                 if argnames[0] == 'self' or argnames[0] == 'cls':
                                         method = True
@@ -61,15 +84,20 @@ class memorise(object):
                         for i,v in sorted(itertools.chain(zip(argnames, args), iter(kwargs.items()))):
                                 if i != 'self':
                                         if i != 'cls':
+                                            if i != 'forcerecache':
                                                 arg_values_hash.append("%s=%s" % (i,v))
+                                            else:
+                                                forcerecache = v
 
                         class_name = None
                         if method:
                                 keys = []
                                 if len(self.parent_keys) > 0:
                                         for key in self.parent_keys:
-                                                keys.append("%s=%s" % (key, getattr(args[0], key)))
-                                keys = ','.join(keys)
+                                                tempkey={}
+                                                tempkey[key] = objresolve(args[0],key)
+                                                keys.append(tempkey)
+                                keys = json.dumps(keys,separators=(',',':'))
                                 if static:
                                 # Get the class name from the cls argument
                                         class_name = args[0].__name__
@@ -84,19 +112,22 @@ class memorise(object):
                                 parent_name = inspect.getmodule(fn).__name__
                         # Create a unique hash of the function/method call
                         key = "%s%s(%s)" % (parent_name, fn.__name__, ",".join(arg_values_hash))
-
-
                         # Check to see if we have the value, we're inside the TTL, and we're not over maxsize.
                         # If not true to both, then re-calculate and store.
 
                         usecached = False
-                        if key in self.mc:
-                            output = self.mc[key]['value']
-                            if self.ttl is None or (time.time() - self.mc[key]['timeset']) < self.ttl:
-                                output = self.mc[key]['value']
+                        if key in TavernCache.mc:
+                            output = TavernCache.mc[key]['value']
+                            if self.ttl is None or (time.time() - TavernCache.mc[key]['timeset']) < self.ttl:
+                                output = TavernCache.mc[key]['value']
                                 usecached = True
 
-                        if usecached == False:
+                        if usecached == False or forcerecache == True:
+                            # Allow the caller to send in a "forcerecache" entry 
+                            # This will cause us to NOT use the cache
+
+                            if 'forcerecache' in kwargs:
+                                kwargs.pop('forcerecache')
                             output = fn(*args, **kwargs)
                             if output is None:
                                 set_value = memcache_none()
@@ -109,10 +140,9 @@ class memorise(object):
                             # That if we get out of whack, this will correct it.
 
                             if self.maxsize is not None:
-                                while len(self.mc) >= self.maxsize:
-                                    self.mc.popitem(last=False)
-                            self.mc[key] = { 'value':set_value, 'timeset':time.time() }
-
+                                while len(TavernCache.mc) >= self.maxsize:
+                                    TavernCache.mc.popitem(last=False)
+                            TavernCache.mc[key] = { 'value':set_value, 'timeset':time.time() }
 
                         if output.__class__ is memcache_none:
                                 # Because not-found keys return
@@ -130,7 +160,6 @@ class memorise(object):
                                 # want to pickle the instance
                                 set_attr = getattr(fn.__class__, self.set)
                                 set_attr = output
-
                         return output
                 return wrapper
 

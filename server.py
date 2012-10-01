@@ -25,7 +25,6 @@ from urllib.parse import urlparse,parse_qs
 from bs4 import BeautifulSoup
 import urllib.request, urllib.parse, urllib.error
 import functools
-from decorators import memorise
 from uasparser import UASparser
 
 def print_timing(func):
@@ -137,6 +136,7 @@ class Server(object):
         self.mongos = OrderedDict()
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
+        self.mc = OrderedDict
 
         if settingsfile == None:
             if os.path.isfile(platform.node() + ".TavernServerSettings"):

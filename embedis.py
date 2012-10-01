@@ -5,7 +5,7 @@ import socket
 socket.setdefaulttimeout(30)
 from server import server
 import functools
-from decorators import memorise
+from TavernCache import memorise
 
 
 
