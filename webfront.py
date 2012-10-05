@@ -78,7 +78,12 @@ class BaseHandler(tornado.web.RequestHandler):
              browser=self.browser
         )
         args.update(kwargs)
-        return tornado.web.RequestHandler.render_string(self,template_name, **args) 
+        template = 'default'
+        # Only accept valid templates
+        if 'template' in self.user.UserSettings:
+            if self.user.UserSettings['template'] in server.availabletemplates:
+               template = self.user.UserSettings['template']
+        return tornado.web.RequestHandler.render_string(self,template+'/'+template_name, **args) 
 
 
     def write(self,html):

@@ -48,7 +48,7 @@ class User(object):
             return False
 
 
-    @memorise(parent_keys=['UserSettings.encryptedprivkey'],ttl=server.ServerSettings['cache']['user-note']['seconds'],maxsize=server.ServerSettings['cache']['user-note']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'],ttl=server.ServerSettings['cache']['user-note']['seconds'],maxsize=server.ServerSettings['cache']['user-note']['size'])
     def getNote(self,noteabout):
         """ 
         Retrieve any note by user A about user B
