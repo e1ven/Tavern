@@ -78,12 +78,12 @@ class BaseHandler(tornado.web.RequestHandler):
              browser=self.browser
         )
         args.update(kwargs)
-        template = 'default'
+        theme = 'default'
         # Only accept valid templates
-        if 'template' in self.user.UserSettings:
-            if self.user.UserSettings['template'] in server.availabletemplates:
-               template = self.user.UserSettings['template']
-        return tornado.web.RequestHandler.render_string(self,template+'/'+template_name, **args) 
+        if 'theme' in self.user.UserSettings:
+            if self.user.UserSettings['theme'] in server.availablethemes:
+               theme = self.user.UserSettings['theme']
+        return tornado.web.RequestHandler.render_string(self,theme+'/'+template_name, **args) 
 
 
     def write(self,html):
@@ -716,10 +716,10 @@ class ChangeManySettingsHandler(BaseHandler):
         else:
             display_useragent = False
                      
-        if 'template' in self.request.arguments:
-            newtemplate = tornado.escape.xhtml_escape(self.get_argument('template'))
-            if newtemplate in server.availabletemplates:
-                self.user.UserSettings['template'] = newtemplate
+        if 'theme' in self.request.arguments:
+            newtheme = tornado.escape.xhtml_escape(self.get_argument('theme'))
+            if newtheme in server.availablethemes:
+                self.user.UserSettings['theme'] = newtheme
 
 
         self.user.UserSettings['display_useragent'] = display_useragent
@@ -1293,7 +1293,7 @@ def main():
         "cookie_secret": server.ServerSettings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
-        "template_path" : "templates",
+        "template_path" : "themes",
         "autoescape" : "xhtml_escape"
     }
     application = tornado.web.Application([

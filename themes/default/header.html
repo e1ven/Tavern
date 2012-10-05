@@ -42,7 +42,12 @@
 	{% end %}
 
 	{% if browser['ua_family'] != 'Netscape Navigator' or browser['ua_versions'][0] < 6 %}
-	<link href="/static/css/style.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+	
+	{% if 'theme' in user.UserSettings %}
+	<link href="/static/css/style-{{user.UserSettings['theme']}}.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+	{% else %}
+	<link href="/static/css/style-default.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+	{% end %}
 	<link href="/static/css/font-awesome.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	<link rel="icon" href="/static/icons/32x32Icon.png?revision={{server.ServerSettings['static-revision']}}" type="image/png" />
 	{% end %}

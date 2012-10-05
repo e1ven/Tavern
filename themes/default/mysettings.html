@@ -26,15 +26,29 @@ Include location with posts by default : <input type="checkbox" name="include_lo
 <br><p>
 Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if user.UserSettings['display_useragent'] == True %}checked{% end %}>
 
-{% if len(server.availabletemplates) > 1 %}
-<br>
-Which theme should Tavern use: 
-<select name='template'>
-    {% for i in server.availabletemplates %}
-    <option value="{{i}}">{{i}}</option>
+
+
+
+    {% comment %}
+    # The following block of code shows the available themes, if there are any, and lets you choose one.
+    # The business with the popping is to pull the current theme, and put it at the top of the list, so it's the first-displayed choice.
     {% end %}
-</select>
+
+{% if len(server.availablethemes) > 1 %}
+    {% set themelist = server.availablethemes %}
+    {% if user.UserSettings['theme'] in themelist %}
+        {% set current = themelist.pop(themelist.index(user.UserSettings['theme']))   %}
+        {% set themelist.insert(0,current) %}
+    {% end %}
+    <br>
+    Which theme should Tavern use: 
+    <select name='theme'>
+        {% for i in themelist %}
+        <option value="{{i}}">{{i}}</option>
+        {% end %}
+    </select>
 {% end %}
+
 
 
 <br>

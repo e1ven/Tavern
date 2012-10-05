@@ -248,11 +248,11 @@ class Server(object):
         self.saveconfig()   
 
         # Get a list of all the valid templates that can be used, to compare against later on.
-        self.availabletemplates = []
-        for name in os.listdir('templates'):
-            if os.path.isdir(os.path.join('templates', name)):
+        self.availablethemes = []
+        for name in os.listdir('themes'):
+            if os.path.isdir(os.path.join('themes', name)):
                 if name[:1] != ".":
-                    self.availabletemplates.append(name)
+                    self.availablethemes.append(name)
         
         self.ServerSettings['static-revision'] = int(time.time())
         self.fortune = Fortuna()

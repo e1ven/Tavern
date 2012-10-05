@@ -265,6 +265,9 @@ class User(object):
         if not 'display_useragent' in self.UserSettings:
             self.UserSettings['display_useragent'] = False
 
+        if not 'theme' in self.UserSettings:
+            self.UserSettings['theme'] = 'default'
+
 
         if not 'followedTopics' in self.UserSettings:
             self.UserSettings['followedTopics'] = []
