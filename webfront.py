@@ -716,6 +716,11 @@ class ChangeManySettingsHandler(BaseHandler):
         else:
             display_useragent = False
                      
+        if 'template' in self.request.arguments:
+            newtemplate = tornado.escape.xhtml_escape(self.get_argument('template'))
+            if newtemplate in server.availabletemplates:
+                self.user.UserSettings['template'] = newtemplate
+
 
         self.user.UserSettings['display_useragent'] = display_useragent
         self.user.UserSettings['friendlyname'] = friendlyname
@@ -723,6 +728,7 @@ class ChangeManySettingsHandler(BaseHandler):
         self.user.UserSettings['maxreplies'] = maxreplies
         self.user.UserSettings['include_location'] = include_location
         self.user.UserSettings['allowembed'] = allowembed
+
         self.user.savemongo()
         self.setvars()
 
