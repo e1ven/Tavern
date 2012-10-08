@@ -945,7 +945,7 @@ class NewmessageHandler(BaseHandler):
         # We might be getting files either through nginx, or through directly.
         # If we get the file through Nginx, parse out the arguments.
         for argument in self.request.arguments:
-            if argument.startswith("attached_file") and argument.endswith('.path'):
+            if (argument.startswith("attached_file") and argument.endswith('.path')) or (argument =='files[].path'):
                 individual_file = {}
                 individual_file['basename'] = argument.rsplit('.')[0]
                 individual_file['clean_up_file_afterward'] = True
@@ -965,6 +965,7 @@ class NewmessageHandler(BaseHandler):
                 if hashname in self.request.arguments:
                     individual_file['hash'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".sha512"))
                 else:
+                    print("Calculating Hash in Python. Nginx should do this.")
                     while True:
                         buf = individual_file['filehandle'].read(0x100000)
                         if not buf:
@@ -1049,6 +1050,7 @@ class NewmessageHandler(BaseHandler):
                 details.append(detail)
             details_json = json.dumps(details,separators=(',',':'))
             self.set_header("Content-Type","application/json")
+            print(details_json)
             self.write(details_json)
             return
 

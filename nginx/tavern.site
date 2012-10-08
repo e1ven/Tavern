@@ -120,6 +120,14 @@
                 upload_pass_form_field "body";
                 upload_pass_form_field "regarding";
                 upload_pass_form_field "include_location";
+                upload_pass_form_field "files";
+                upload_pass_form_field "referenced_file1_hash";
+                upload_pass_form_field "referenced_file1_name";
+                upload_pass_form_field "referenced_file1_size";
+                upload_pass_form_field "referenced_file1_contenttype";
+
+
+
         }
 
        location /uploadfile/fileonly {
@@ -142,6 +150,8 @@
 
                 upload_pass_form_field "submit";
                 upload_pass_form_field "_xsrf";
+                upload_pass_form_field "files";
+                upload_pass_form_field "files\[\]";
         }
 
         location @uploads {
