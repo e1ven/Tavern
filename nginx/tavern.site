@@ -17,7 +17,7 @@
     server 
     {
         server_name files.tavern.is;
-        listen 443;
+        listen 96.126.105.180:443;
         ssl    on;
         ssl_certificate    /etc/ssl/certs/files.tavern.is.crt;
         ssl_certificate_key    /etc/ssl/certs/files.tavern.is.key;
@@ -54,11 +54,22 @@
         }
     }
 
+   server
+   {
+   listen 80;
+   rewrite ^(.*) https://$host$1 permanent;
+   }
 
     # The main server.
     server 
     {
-        listen 80;
+        listen 198.74.56.235:443;
+        ssl    on;
+        ssl_certificate    /etc/ssl/certs/gettavern.com.crt;
+        ssl_certificate_key    /etc/ssl/certs/gettavern.com.key;
+        ssl_session_cache  shared:SSL:100m;
+        ssl_ciphers RC4:AES128-SHA:AES:CAMELLIA128-SHA:!MD5:!ADH:!DH:!ECDH:!PSK:!SSLv2;
+
         proxy_set_header X-Real-IP $remote_addr;
 
         if ($allowedhosts = 0 )
