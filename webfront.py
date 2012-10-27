@@ -311,13 +311,12 @@ class BaseHandler(tornado.web.RequestHandler):
                 # Save it out.
                 self.setvars()
                 self.user.savemongo()
-                self.clear_cookie('tavern_passkey')
                 self.set_secure_cookie('tavern_passkey',self.user.Keys.passkey(password),httponly=True,expires_days=999) 
                 self.user.passkey = self.user.Keys.passkey(password)
 
             if not hasattr(self.user,'passkey'):
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
-            if self.user.passkey == None:   
+            if self.user.passkey == None:
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Get the Browser version.
@@ -684,6 +683,7 @@ class LogoutHandler(BaseHandler):
 class ChangepasswordHandler(BaseHandler):    
     def get(self):
         self.getvars()
+
         if not self.recentauth():
             numcharacters = 100 + server.randrange(1,100)
             slug = server.randstr(numcharacters,printable=True)
@@ -704,18 +704,16 @@ class ChangepasswordHandler(BaseHandler):
             return
 
         client_oldpasskey = self.get_secure_cookie("tavern_passkey")
+
         # Encrypt the the privkey with the new password
         self.user.Keys.changepass(oldpasskey=client_oldpasskey,newpass=client_newpass)
+        self.user.UserSettings['encryptedprivkey'] = self.user.Keys.encryptedprivkey
 
         # Set the Passkey, to be able to unlock the Privkey
-        server.logger.info("New Passkey - " + self.user.Keys.passkey(client_newpass))
-        self.clear_cookie('tavern_passkey')
-        self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_newpass),httponly=True,expires_days=999) 
-        
-
+        self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(password=client_newpass),httponly=True,expires_days=999) 
+    
         self.user.UserSettings['lastauth'] = int(time.time())
         hashedpass = self.user.hash_password(client_newpass)
-        print(client_newpass + " --- " + hashedpass)
         self.user.UserSettings['hashedpass'] = hashedpass
 
         self.setvars()
