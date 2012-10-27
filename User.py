@@ -293,6 +293,21 @@ class User(object):
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
 
+    def changepass(self,oldpasskey,newpass):
+        """
+        Change the User's password
+        """
+        # Re-encrypt our Privkey
+        self.Keys.changepass(oldpasskey=oldpasskey,newpass=newpass)
+        self.UserSettings['encryptedprivkey'] = self.Keys.encryptedprivkey
+
+        hashedpass = self.hash_password(newpass)
+        self.UserSettings['hashedpass'] = hashedpass
+        self.UserSettings['lastauth'] = int(time.time())
+
+        self.savemongo()
+
+
 
     def load_string(self,incomingstring):
         self.UserSettings = json.loads(incomingstring,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)

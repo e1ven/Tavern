@@ -249,7 +249,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 print("User has not logged in recently. ;( ")
                 return False
             else:
-                print("Last login - "  + str(currenttime  - self.user.UserSettings['lastauth']))
+                print("Last login - "  + str(currenttime  - self.user.UserSettings['lastauth']) + " seconds ago")
                 return True
         else:
             # The user has NEVER logged in.
@@ -632,7 +632,6 @@ class LoginHandler(BaseHandler):
         if 'slug' in self.request.arguments:
             slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
             sluglookup = server.mongos['unsafe']['redirects'].find_one({'slug':slug })
-            print(sluglookup)
             if sluglookup is not None:
                 if sluglookup['url'] is not None:
                     successredirect = sluglookup['url']
@@ -644,7 +643,6 @@ class LoginHandler(BaseHandler):
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
-            print(u) 
             # Allow four forms of password
             # Normal password
             # swapped case (caps lock)
@@ -706,19 +704,13 @@ class ChangepasswordHandler(BaseHandler):
         client_oldpasskey = self.get_secure_cookie("tavern_passkey")
 
         # Encrypt the the privkey with the new password
-        self.user.Keys.changepass(oldpasskey=client_oldpasskey,newpass=client_newpass)
-        self.user.UserSettings['encryptedprivkey'] = self.user.Keys.encryptedprivkey
+        self.user.changepass(oldpasskey=client_oldpasskey,newpass=client_newpass)
 
         # Set the Passkey, to be able to unlock the Privkey
-        self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(password=client_newpass),httponly=True,expires_days=999) 
-    
-        self.user.UserSettings['lastauth'] = int(time.time())
-        hashedpass = self.user.hash_password(client_newpass)
-        self.user.UserSettings['hashedpass'] = hashedpass
+        self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(password=client_newpass),httponly=True,expires_days=999)     
 
         self.setvars()
         server.logger.info("Password Change Successful.")
-        self.user.savemongo()
         self.redirect("/")
 
    
@@ -1061,7 +1053,6 @@ class NewmessageHandler(BaseHandler):
                 individual_file['filehandle'].seek(0)
                 filelist.append(individual_file)
 
-        print("foo")
         client_filepath = None     
         envelopebinarylist = []
 
