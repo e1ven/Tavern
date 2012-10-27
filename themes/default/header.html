@@ -18,7 +18,7 @@
 
 
 	{% if len('title') > 1 %}
-	<meta NAME="Description" CONTENT="Tavern:: {{title}}">
+	<meta NAME="Description" CONTENT="Tavern ;) - {{title}}">
 	{% else %}
 	<meta NAME="Description" CONTENT="A shared discussion about the topics that matter.">
 	{% end %}
@@ -29,10 +29,10 @@
 
 	<title>
 		{% if len(title) > 1 %}
-		Tavern :: {{title}}
+		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{title}}
 		{% end %}
 		{% if len(title) < 2 %}
-		Tavern :: A distributed discussion
+		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Discuss what matters.
 		{% end %}
 	</title>
 	<meta property="og:title" content="{% if len(title) > 1 %}Tavern :: {{title}}{% end %}{% if len(title) < 2 %}Tavern :: Discuss what matters {% end %}"/>

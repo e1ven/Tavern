@@ -236,19 +236,24 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_cookie("tavern_preferences" + str(numchunks),chunk,httponly=True,expires_days=999)
         self.set_secure_cookie("tavern_preferences_count",str(numchunks),httponly=True,expires_days=999)
         server.logger.info("numchunks + " + str(numchunks))
-        self.set_cookie('pubkey_sha1',self.user.UserSettings['pubkey_sha1'])
 
-    def recentauth(self):
+    def recentauth(self,seconds=300):
         """
         Ensure the user has authenticated recently.
         To be used for things like change-password.
         """
         currenttime = int(time.time())
 
-        if currenttime  - self.user.UserSettings['lastauth'] > 300:
-            server.logger.info("User has not logged in recently. ;( ")
-            return False
+        if 'lastauth' in self.user.UserSettings:
+            if currenttime  - self.user.UserSettings['lastauth'] > seconds:
+                print("User has not logged in recently. ;( ")
+                return False
+            else:
+                print("Last login - "  + str(currenttime  - self.user.UserSettings['lastauth']))
+                return True
         else:
+            # The user has NEVER logged in.
+            print("Never Logged in Before")
             return True
 
     def getvars(self,ensurekeys=False):
@@ -279,7 +284,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.clear_cookie('tavern_preferences3')
                 self.clear_cookie('tavern_preferences_count')
                 self.clear_cookie('tavern_passkey')
-                self.clear_cookie('pubkey_sha1')
 
         # If there isn't already a cookie, make a very basic one.
         # Don't bother doing the keys, since that eats randomness.
@@ -307,6 +311,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 # Save it out.
                 self.setvars()
                 self.user.savemongo()
+                self.clear_cookie('tavern_passkey')
                 self.set_secure_cookie('tavern_passkey',self.user.Keys.passkey(password),httponly=True,expires_days=999) 
                 self.user.passkey = self.user.Keys.passkey(password)
 
@@ -597,6 +602,7 @@ class RegisterHandler(BaseHandler):
         else:
             # Generate the user
             self.user.generate(username=client_newuser.lower(),password=client_newpass)
+            self.user.UserSettings['lastauth'] = int(time.time())
 
             if client_email is not None:
                 self.user.UserSettings['email'] = client_email.lower()
@@ -611,24 +617,35 @@ class RegisterHandler(BaseHandler):
 
 
 class LoginHandler(BaseHandler):
-    def get(self):
+    def get(self,slug=None):
         self.getvars()  
         self.write(self.render_string('header.html',title="Login to your account",user=self.user,rsshead=None,type=None))
-        self.write(self.render_string('loginform.html'))
+        self.write(self.render_string('loginform.html',slug=slug))
         self.write(self.render_string('footer.html'))
+
     def post(self):
         self.getvars()
         self.write(self.render_string('header.html',title='Login to your account',user=self.user,rsshead=None,type=None))
 
+        successredirect = '/'
         client_username =  tornado.escape.xhtml_escape(self.get_argument("username"))
         client_password =  tornado.escape.xhtml_escape(self.get_argument("pass"))
+        if 'slug' in self.request.arguments:
+            slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
+            sluglookup = server.mongos['unsafe']['redirects'].find_one({'slug':slug })
+            print(sluglookup)
+            if sluglookup is not None:
+                if sluglookup['url'] is not None:
+                    successredirect = sluglookup['url']
+
+
 
         login = False
         user = server.mongos['safe']['users'].find_one({"username":client_username.lower()},as_class=OrderedDict)
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
-            
+            print(u) 
             # Allow four forms of password
             # Normal password
             # swapped case (caps lock)
@@ -637,6 +654,7 @@ class LoginHandler(BaseHandler):
             
             if u.verify_password(client_password):
                 login = True
+                print("Successful login via direct password")
             elif u.verify_password(client_password.swapcase()):
                     login = True
             elif u.verify_password(client_password[:1].upper() + client_password[1:]):
@@ -646,13 +664,14 @@ class LoginHandler(BaseHandler):
             if login == True:
                 self.user = u
                 server.logger.info("Passkey - " + self.user.Keys.passkey(client_password))
-                self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
 
+                self.clear_cookie('tavern_passkey')
+                self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_password),httponly=True,expires_days=999) 
                 self.user.UserSettings['lastauth'] = int(time.time())
 
                 self.setvars()
                 server.logger.info("Login Successful.")
-                self.redirect('/')
+                self.redirect(successredirect)
             else:
                 server.logger.info("Username/password fail.")
                 self.redirect("http://Google.com")
@@ -661,6 +680,50 @@ class LogoutHandler(BaseHandler):
      def post(self):
          self.clear_all_cookies()
          self.redirect("/")
+
+class ChangepasswordHandler(BaseHandler):    
+    def get(self):
+        self.getvars()
+        if not self.recentauth():
+            numcharacters = 100 + server.randrange(1,100)
+            slug = server.randstr(numcharacters,printable=True)
+            server.mongos['unsafe']['redirects'].insert({'slug':slug,'url':'/changepassword','time':int(time.time())})
+            self.redirect('/login/' + slug)
+        else:
+            self.write(self.render_string('header.html',title="Change Password",user=self.user,rsshead=None,type=None))
+            self.write(self.render_string('changepassword.html'))  
+            self.write(self.render_string('footer.html'))   
+    def post(self):
+        self.getvars(ensurekeys=True)
+
+        client_newpass =  tornado.escape.xhtml_escape(self.get_argument("pass"))
+        client_newpass2 = tornado.escape.xhtml_escape(self.get_argument("pass2"))
+
+        if client_newpass != client_newpass2:
+            self.write("I'm sorry, your passwords don't match.") 
+            return
+
+        client_oldpasskey = self.get_secure_cookie("tavern_passkey")
+        # Encrypt the the privkey with the new password
+        self.user.Keys.changepass(oldpasskey=client_oldpasskey,newpass=client_newpass)
+
+        # Set the Passkey, to be able to unlock the Privkey
+        server.logger.info("New Passkey - " + self.user.Keys.passkey(client_newpass))
+        self.clear_cookie('tavern_passkey')
+        self.set_secure_cookie("tavern_passkey",self.user.Keys.passkey(client_newpass),httponly=True,expires_days=999) 
+        
+
+        self.user.UserSettings['lastauth'] = int(time.time())
+        hashedpass = self.user.hash_password(client_newpass)
+        print(client_newpass + " --- " + hashedpass)
+        self.user.UserSettings['hashedpass'] = hashedpass
+
+        self.setvars()
+        server.logger.info("Password Change Successful.")
+        self.user.savemongo()
+        self.redirect("/")
+
+   
 
 class UserHandler(BaseHandler):
     def get(self,pubkey):
@@ -1301,9 +1364,11 @@ def main():
     application = tornado.web.Application([
         (r"/" ,TriPaneHandler),
         (r"/register" ,RegisterHandler),
+        (r"/login/(.*)" ,LoginHandler),
         (r"/login" ,LoginHandler),
         (r"/showuserposts/(.*)" ,UserHandler),  
-        (r"/user/(.*)" ,UserHandler),  
+        (r"/user/(.*)" ,UserHandler),
+        (r"/changepassword" ,ChangepasswordHandler),
         (r"/logout" ,LogoutHandler),  
         (r"/rss/(.*)/(.*)" ,RSSHandler),
         (r"/newmessage" ,NewmessageHandler),

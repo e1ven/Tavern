@@ -33,7 +33,7 @@ class lockedKey(object):
         Internal-only method to encrypt the private key.
         """
 
-        key = scrypt.encrypt(input=privkey,password=self.passkey(password),maxtime=self.maxtime_create)
+        key = scrypt.encrypt(inputf=privkey,password=self.passkey(password),maxtime=self.maxtime_create)
         return base64.b64encode(key).decode('utf-8')
    
     def passkey(self,password):
@@ -55,8 +55,13 @@ class lockedKey(object):
         """
         Decode and return the private key.
         """
+        print("Passkey -" + str(passkey))
         byteprivatekey = base64.b64decode(self.encryptedprivkey.encode('utf-8'))
         return scrypt.decrypt(input=byteprivatekey,password=passkey,maxtime=self.maxtime_verify)
+
+    def changepass(self,oldpasskey,newpass):
+        privkey = self.privkey(oldpasskey)
+        self.encryptedprivkey = self.__encryptprivkey(password=newpass.encode('utf-8'),privkey=privkey)
 
         
     def generate(self,password):

@@ -1,5 +1,5 @@
 <div class="single">
-	<h1>Login to Pluric</h1>
+	<h1>Login to Tavern</h1>
 	<p></p>
 
 <form action="/login" method="post">
@@ -8,6 +8,11 @@
 Username: <input type="text" name="username">
 </p><p>
 Password: <input type="password" name="pass">
+
+{% if slug is not None %}
+<input type='hidden' name='slug' value='{{slug}}'>
+{% end %}
+
 </p>
 <p>
 <input type="submit" value="Login">

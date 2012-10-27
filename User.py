@@ -37,7 +37,7 @@ class User(object):
         pword = scrypt.encrypt(self.randstr(datalength), password, maxtime=maxtime)
         return base64.b64encode(pword).decode('utf-8')
 
-    def verify_password(self, guessed_password,hashed_password=None, maxtime=5):
+    def verify_password(self, guessed_password,hashed_password=None, maxtime=50):
         try:
             if hashed_password == None:
                 hashed_password = self.UserSettings['hashedpass']

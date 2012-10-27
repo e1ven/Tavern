@@ -126,10 +126,14 @@ class Server(object):
         rightsize = randnum % diff
         return start + rightsize
 
-    def randstr(self,length):
+    def randstr(self,length,printable=False):
         # Ensure it's self.logger.infoable.
-        return ''.join(chr(self.randrange(48,122)) for i in range(length))
-
+        if printable == True:
+            # TODO - Expand this using a python builtin.
+            ran = ''.join(chr(self.randrange(65,90)) for i in range(length))
+        else:
+            ran = ''.join(chr(self.randrange(48,122)) for i in range(length))
+        return ran
     def __init__(self,settingsfile=None):            
         self.ServerSettings = OrderedDict()
         self.mongocons = OrderedDict()
