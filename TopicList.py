@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 import pymongo
 from datetime import datetime, timedelta
-from pymongo.code import Code
+import pymongo
+import bson
 import Envelope
 from server import server
 class TopicList(object):
     def __init__(self):
-        MAP_FUNCTION = Code("""
+        MAP_FUNCTION = bson.code.Code("""
                 function(){
                         if (this.envelope.payload.class == 'message')
                         {
@@ -31,7 +32,7 @@ class TopicList(object):
                 }
                 """)
 
-        REDUCE_FUNCTION = Code("""
+        REDUCE_FUNCTION = bson.code.Code("""
                 function(key, values){
                     var count = 0;
                     values.forEach(function(v)

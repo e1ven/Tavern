@@ -167,13 +167,20 @@ class Server(object):
         if not 'mongo-port' in self.ServerSettings:    
             self.ServerSettings['mongo-port'] = 27017  
         if not 'mongo-db' in self.ServerSettings:              
-            self.ServerSettings['mongo-db'] = 'test'
+            self.ServerSettings['mongo-db'] = 'Tavern'
         if not 'bin-mongo-hostname' in self.ServerSettings:  
             self.ServerSettings['bin-mongo-hostname'] = 'localhost'
         if not 'bin-mongo-port' in self.ServerSettings: 
             self.ServerSettings['bin-mongo-port'] = 27017
         if not 'bin-mongo-db' in self.ServerSettings: 
-            self.ServerSettings['bin-mongo-db'] = 'test'
+            self.ServerSettings['bin-mongo-db'] = 'Tavern-Binaries'
+        if not 'sessions-mongo-hostname' in self.ServerSettings:  
+            self.ServerSettings['sessions-mongo-hostname'] = 'localhost'
+        if not 'sessions-mongo-port' in self.ServerSettings: 
+            self.ServerSettings['sessions-mongo-port'] = 27017
+        if not 'sessions-mongo-db' in self.ServerSettings: 
+            self.ServerSettings['sessions-mongo-db'] = 'Tavern-Sessions'
+
 
 
         if not 'cache' in self.ServerSettings:
