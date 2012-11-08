@@ -1,0 +1,13 @@
+Cython
+Mako
+MarkupSafe
+distribute
+tornado
+Markdown
+pygeoip
+postmarkup
+tornado
+pymongo
+scrypt
+BeautifulSoup==4.0b
+lxml==2.3

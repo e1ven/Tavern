@@ -477,6 +477,10 @@ class Server(object):
         return url 
 
     def formatEnvelope(self,envelope):
+        """
+        Ensure an envelope has proper formatting.
+        Supposed to be called when you receive an envelope, not on view.
+        """
         attachmentList = []        
         if 'subject' in envelope['envelope']['payload']:
             #First 50 characters, in a URL-friendly-manner
