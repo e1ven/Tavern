@@ -83,11 +83,16 @@
            proxy_pass http://tornados;
         }
 
-       location /static/ {
-          if ($request_filename ~* ^.*?\.(eot)|(ttf)|(woff)$)
-          { 
-              add_header Access-Control-Allow-Origin *; 
-          }
+        location /static/ {
+            if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
+            {
+                set $font 1;
+            }
+            if ($font = 1)
+            {
+                add_header Access-Control-Allow-Origin *; 
+            }
+
           proxy_pass http://tornados/static/;
           proxy_cache static-cache;
           proxy_cache_valid  200 1y;
