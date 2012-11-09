@@ -85,8 +85,7 @@
 
         location /static/fonts/
         {
- add_header Access-Control-Allow-Origin *;
-
+          add_header Access-Control-Allow-Origin *;
           proxy_pass http://tornados/static/fonts/;
           proxy_cache static-cache;
           proxy_cache_valid  200 1y;
