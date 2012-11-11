@@ -5,5 +5,5 @@ kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup ./api.py &
 ./ensureindex.sh
 ./TopicList.py
 ./ModList.py
-#./DiskTopics.py
+#./DiskTopics.py -l
 tail -f `hostname`.log nohup.out

@@ -21,7 +21,7 @@ class embedis:
                          self.embedis,
                         ]
 
-    @memorise(ttl=server.ServerSettings['cache']['embedded']['seconds'],maxsize=server.ServerSettings['cache']['embeded']['size'])
+    @memorise(ttl=server.ServerSettings['cache']['embedded']['seconds'],maxsize=server.ServerSettings['cache']['embedded']['size'])
     def lookup(self,url):
         self.url = url
         self.query = urlparse(url)

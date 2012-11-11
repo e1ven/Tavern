@@ -3,10 +3,12 @@ import pymongo
 from datetime import datetime, timedelta
 from pymongo.code import Code
 from server import server
+import bson
+
 
 class ModList(object):
     def __init__(self):
-        MAP_FUNCTION = Code("""
+        MAP_FUNCTION = bson.code.Code("""
                 function(){
                         if (this.envelope.payload.class == 'usertrust')
                         {
@@ -26,7 +28,7 @@ class ModList(object):
                     }
                 """)
                 
-        REDUCE_FUNCTION = Code("""
+        REDUCE_FUNCTION = bson.code.Code("""
                 function (key, values){
                     var count = 0;
                     var trust = 0;

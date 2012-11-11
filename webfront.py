@@ -457,7 +457,6 @@ class TriPaneHandler(BaseHandler):
             canon=self.request.path[1:]
 
 
-        displayenvelope = server.formatEnvelope(displayenvelope)
         # Detect people accessing via odd URLs, but don't do it twice.
         # Check for a redirected flag.
 
@@ -519,7 +518,6 @@ class SiteContentHandler(BaseHandler):
         client_message_id = tornado.escape.xhtml_escape(message)
         
         envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : client_message_id },as_class=OrderedDict)
-        envelope = server.formatEnvelope(envelope)
 
             
         self.write(self.render_string('header.html',title="Tavern :: " + envelope['envelope']['payload']['subject'],user=self.user,canon="sitecontent/" + envelope['envelope']['payload_sha512'],rss="/rss/topic/" + envelope['envelope']['payload']['topic'],topic=envelope['envelope']['payload']['topic']))

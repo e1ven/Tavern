@@ -90,12 +90,24 @@
            proxy_pass http://tornados;
         }
 
-       location /static/ {
+        location /static/fonts/
+        {
+          add_header Access-Control-Allow-Origin *;
+          proxy_pass http://tornados/static/fonts/;
+          proxy_cache static-cache;
+          proxy_cache_valid  200 1y;
+          proxy_cache_valid  404 302  1m;
+          expires max;
+        }
+
+        location /static/
+        {
           proxy_pass http://tornados/static/;
           proxy_cache static-cache;
           proxy_cache_valid  200 1y;
           proxy_cache_valid  404 302  1m;  
           expires max;
+
         }
 
         # Do **NOT** allow /binaries to work on the main URL
@@ -181,3 +193,4 @@
                 }
 
   }
+
