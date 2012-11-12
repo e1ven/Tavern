@@ -244,12 +244,17 @@ form.vote {
 
 }
 
+
+.externalsharing [class^="icon-"]::before, i {
+  margin-right:0px;
+  padding-right:0px;
+  }
+
 .externalsharing a {
     top: -15px;
     float:right;
     font-size:15px;
     color:#BBBBBB;
-    padding-right: 3px;
   }
 
 .externalsharing a :hover{
