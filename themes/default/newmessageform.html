@@ -11,7 +11,7 @@
 	<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
 	{% end %}
 	<div class="padder">
-		<form enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
+		<form  data-persist="garlic" enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
 			  {% raw xsrf_form_html() %}
 			{% if topic is None %}
 			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />

@@ -122,7 +122,7 @@
 							    {% end %} 
 							{% end %} 
 				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
-				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-sign'></i></a>
+				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
 	                        <br>
 				    {% end %}
 	    		</div>
@@ -186,13 +186,13 @@
 					{% end %}
 				<div class="externalsharing">
 				<a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
-				<i class="icon-facebook-sign"></i></a>
+				<i class="icon-facebook-squared"></i></a>
 				<a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
-				<i class="icon-twitter-sign"></i></a>
+				<i class="icon-twitter-squared"></i></a>
 				<a href="https://plusone.google.com/_/+1/confirm?hl=en&url={{permalink}}">
-				<i class="icon-google-plus-sign"></i></a>
+				<i class="icon-gplus-squared"></i></a>
 				<a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
-				<i class="icon-pinterest-sign"></i></a>
+				<i class="icon-pinterest-squared"></i></a>
 				</div>
 				{% end %}
 				<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>

@@ -43,13 +43,24 @@
 
 	{% if browser['ua_family'] != 'Netscape Navigator' or browser['ua_versions'][0] < 6 %}
 	
-	{% if 'theme' in user.UserSettings %}
-	<link href="/static/css/style-{{user.UserSettings['theme']}}.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-	{% else %}
-	<link href="/static/css/style-default.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-	{% end %}
-	<link href="/static/css/font-awesome.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-	<link rel="icon" href="/static/icons/32x32Icon.png?revision={{server.ServerSettings['static-revision']}}" type="image/png" />
+		{% if 'theme' in user.UserSettings %}
+			<link href="/static/css/style-{{user.UserSettings['theme']}}.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			{% else %}
+			<link href="/static/css/style-default.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+		{% end %}
+		    <link rel="stylesheet" href="/static/css/fontello.css"><!--[if IE 7]>
+    		<link rel="stylesheet" href="/static/css/fontello-ie7.css"><![endif]-->
+    			<script>
+			      function toggleCodes(on) {
+			        var obj = document.getElementById('icons');
+			        if (on) {
+			          obj.className += ' codesOn';
+			        } else {
+			          obj.className = obj.className.replace(' codesOn', '');
+			        }
+			      }
+	    		</script>
+		<link rel="icon" href="/static/icons/32x32Icon.png?revision={{server.ServerSettings['static-revision']}}" type="image/png" />
 	{% end %}
 
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?revision={{server.ServerSettings['static-revision']}}" />
@@ -66,6 +77,7 @@
   <script defer src="/static/scripts/jquery.json.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/vsplit.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/default.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/garlic.js?revision={{server.ServerSettings['static-revision']}}"></script>
 
 {% end %}
 

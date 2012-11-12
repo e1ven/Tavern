@@ -49,7 +49,7 @@
 					{% elif topic == 'all' %} 
                     	All Messages
                     {% else %}    
-						Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-info-sign"><div class='textmodeinfo'>Change Topic settings</div></i></a>
+						Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-tools"><div class='textmodeinfo'>Change Topic settings</div></i></a>
 					{% end %}
 				</h2>
 				{% if topic != 'sitecontent' and topic != 'all' %}	
