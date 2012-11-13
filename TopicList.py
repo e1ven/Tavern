@@ -5,6 +5,8 @@ import pymongo
 import bson
 import Envelope
 from server import server
+
+
 class TopicList(object):
     def __init__(self):
         MAP_FUNCTION = bson.code.Code("""
@@ -22,13 +24,13 @@ class TopicList(object):
                                 tag = this.envelope.payload.topic;
                                 if (tag != 'sitecontent')
                                 {
-                                        emit({tag:tag},{count:1}); 
+                                        emit({tag:tag},{count:1});
                                 }
 
                             }
 
                         }
-                                              
+
                 }
                 """)
 
@@ -42,8 +44,9 @@ class TopicList(object):
 
                     return {count: count};
                 }
-                 
+
                 """)
 
-        server.mongos['unsafe']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+        server.mongos['unsafe']['envelopes'].map_reduce(
+            map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 T = TopicList()

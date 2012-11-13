@@ -8,13 +8,30 @@ import time
 import json
 
 
-from collections import OrderedDict
-
-
 class TavernCache(object):
         def __init__(self):
             self.mc = OrderedDict()
+            self.store = OrderedDict()
 TavernCache = TavernCache()
+
+
+def storething(*args, ttl=60, maxsize=None, value,key=None):
+    if key == None:
+        key = json.dumps(args, separators=(',', ':'))
+    if maxsize is not None:
+        while len(TavernCache.store) >= maxsize:
+            TavernCache.store.popitem(last=False)
+    TavernCache.store[key] = {'value': value, 'timeset': time.time()}
+    print(TavernCache.store)
+
+def getthing(*args, ttl=60,key=None):
+    if key == None:
+        key = json.dumps(args, separators=(',', ':'))
+    output = None
+    if key in TavernCache.store:
+        if ttl is None or (time.time() - TavernCache.store[key]['timeset']) < ttl:
+            output = TavernCache.store[key]['value']
+    return output
 
 
 def objresolve(obj, attrspec):
@@ -24,7 +41,6 @@ def objresolve(obj, attrspec):
         except (TypeError, KeyError):
             obj = getattr(obj, attr)
     return obj
-
 
 
 class memorise(object):
@@ -49,15 +65,13 @@ class memorise(object):
             If the original function has a "forcerecache" paramater, re will respect it.
         """
 
-        def __init__(self, parent_keys=[], recache=True,set=None, ttl=60,maxsize=None):
+        def __init__(self, parent_keys=[], recache=True, set=None, ttl=60, maxsize=None):
                 # Instance some default values, and customisations
                 self.parent_keys = parent_keys
 
                 self.set = set
                 self.ttl = ttl
                 self.maxsize = maxsize
-
-
 
         def __call__(self, fn):
                 @wraps(fn)
@@ -68,7 +82,8 @@ class memorise(object):
                         # wrapped instances lose frame and no longer contain a
                         # reference to their parent instance/class within this
                         # frame
-                        argnames = fn.__code__.co_varnames[:fn.__code__.co_argcount]
+                        argnames = fn.__code__.co_varnames[
+                            :fn.__code__.co_argcount]
                         method = False
                         static = False
                         forcerecache = False
@@ -81,11 +96,12 @@ class memorise(object):
                         arg_values_hash = []
                         # Grab all the keyworded and non-keyworded arguements so
                         # that we can use them in the hashed memcache key
-                        for i,v in sorted(itertools.chain(zip(argnames, args), iter(kwargs.items()))):
+                        for i, v in sorted(itertools.chain(zip(argnames, args), iter(kwargs.items()))):
                                 if i != 'self':
                                         if i != 'cls':
                                             if i != 'forcerecache':
-                                                arg_values_hash.append("%s=%s" % (i,v))
+                                                arg_values_hash.append(
+                                                    "%s=%s" % (i, v))
                                             else:
                                                 forcerecache = v
 
@@ -94,24 +110,28 @@ class memorise(object):
                                 keys = []
                                 if len(self.parent_keys) > 0:
                                         for key in self.parent_keys:
-                                                tempkey={}
-                                                tempkey[key] = objresolve(args[0],key)
+                                                tempkey = {}
+                                                tempkey[key] = objresolve(
+                                                    args[0], key)
                                                 keys.append(tempkey)
-                                keys = json.dumps(keys,separators=(',',':'))
+                                keys = json.dumps(keys, separators=(',', ':'))
                                 if static:
                                 # Get the class name from the cls argument
                                         class_name = args[0].__name__
                                 else:
                                 # Get the class name from the self argument
                                         class_name = args[0].__class__.__name__
-                                module_name = inspect.getmodule(args[0]).__name__
-                                parent_name = "%s.%s[%s]::" % (module_name, class_name, keys)
+                                module_name = inspect.getmodule(
+                                    args[0]).__name__
+                                parent_name = "%s.%s[%s]::" % (
+                                    module_name, class_name, keys)
                         else:
                                 # Function passed in, use the module name as the
                                 # parent
                                 parent_name = inspect.getmodule(fn).__name__
                         # Create a unique hash of the function/method call
-                        key = "%s%s(%s)" % (parent_name, fn.__name__, ",".join(arg_values_hash))
+                        key = "%s%s(%s)" % (parent_name,
+                                            fn.__name__, ",".join(arg_values_hash))
                         # Check to see if we have the value, we're inside the TTL, and we're not over maxsize.
                         # If not true to both, then re-calculate and store.
 
@@ -123,7 +143,7 @@ class memorise(object):
                                 usecached = True
 
                         if usecached == False or forcerecache == True:
-                            # Allow the caller to send in a "forcerecache" entry 
+                            # Allow the caller to send in a "forcerecache" entry
                             # This will cause us to NOT use the cache
 
                             if 'forcerecache' in kwargs:
@@ -134,15 +154,14 @@ class memorise(object):
                             else:
                                 set_value = output
 
-
                             # We're going to store a key.
                             # Make room if nec; This shouldn't run more than once, but the while will ensure
                             # That if we get out of whack, this will correct it.
-
                             if self.maxsize is not None:
                                 while len(TavernCache.mc) >= self.maxsize:
                                     TavernCache.mc.popitem(last=False)
-                            TavernCache.mc[key] = { 'value':set_value, 'timeset':time.time() }
+                            TavernCache.mc[key] = {'value':
+                                                   set_value, 'timeset': time.time()}
 
                         if output.__class__ is memcache_none:
                                 # Because not-found keys return
@@ -162,6 +181,7 @@ class memorise(object):
                                 set_attr = output
                         return output
                 return wrapper
+
 
 class memcache_none:
         """Stub class for storing None values in memcache,

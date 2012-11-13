@@ -21,13 +21,13 @@ class ModList(object):
                                     var topic = this.envelope.payload.topic;
                                     var moderator = this.envelope.payload.trusted_pubkey;
                                     var trust = this.envelope.payload.trust;
-                                    emit({topic:topic,moderator:moderator},{trust:trust,count:1}); 
+                                    emit({topic:topic,moderator:moderator},{trust:trust,count:1});
                                 }
 
-                        }                       
+                        }
                     }
                 """)
-                
+
         REDUCE_FUNCTION = bson.code.Code("""
                 function (key, values){
                     var count = 0;
@@ -35,12 +35,12 @@ class ModList(object):
                     values.forEach(function(v) {
                         count += v['count'];
                         trust += v['trust'];
-                     });                                                                                 
+                     });
                     return {trust:trust,count:count};
                 }
                 """)
-                
-        server.mongos['unsafe']['envelopes'].map_reduce(map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
-        
-M = ModList()
 
+        server.mongos['unsafe']['envelopes'].map_reduce(
+            map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
+
+M = ModList()

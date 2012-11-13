@@ -23,6 +23,8 @@ Why are you identifying with a SHA512 rather than a HMAC? Isn't that insecure?
 	Instead, the SHA512 value is separate from the identification - It's there to give the message a unique ID.
 	This allow us to store the message in the server, have a single identifier to mark descendants, etc.
 	Essentially, we are using the SHA512 purely as a message reference, not as authentication.
+	If you swap out both the key, the signature, and the messagem It's essentially a new message from a new sender.
+
 
 	
 Why doesn't Tavern.com use Google Analytics or other Javascript trackers?

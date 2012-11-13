@@ -1,28 +1,27 @@
-from urllib.parse import urlparse,parse_qs
-import urllib.request, urllib.parse, urllib.error
-import re,json
+from urllib.parse import urlparse, parse_qs
+import urllib.request
+import urllib.parse
+import urllib.error
 import socket
 socket.setdefaulttimeout(30)
 from server import server
-import functools
 from TavernCache import memorise
-
 
 
 class embedis:
     """Embedis is a quick class/API for translating embeddable media"""
-    def __init__(self,x=640,y=480):
+    def __init__(self, x=640, y=480):
 
         self.x = str(x)
         self.y = str(y)
 
-        self.functionlist =  [self.youtube,
-                         self.vimeo,
-                         self.embedis,
-                        ]
+        self.functionlist = [self.youtube,
+                             self.vimeo,
+                             self.embedis,
+                             ]
 
-    @memorise(ttl=server.ServerSettings['cache']['embedded']['seconds'],maxsize=server.ServerSettings['cache']['embedded']['size'])
-    def lookup(self,url):
+    @memorise(ttl=server.ServerSettings['cache']['embedded']['seconds'], maxsize=server.ServerSettings['cache']['embedded']['size'])
+    def lookup(self, url):
         self.url = url
         self.query = urlparse(url)
 
@@ -32,21 +31,20 @@ class embedis:
                 return result
         return None
 
-
     def youtube(self):
         yid = None
         if self.query.hostname == 'youtu.be':
-            yid =  self.query.path[1:]
+            yid = self.query.path[1:]
         if self.query.hostname in ('www.youtube.com', 'youtube.com'):
             if self.query.path == '/watch':
                 p = parse_qs(self.query.query)
-                yid =  p['v'][0]
+                yid = p['v'][0]
             if self.query.path[:7] == '/embed/':
-                yid =  self.query.path.split('/')[2]
+                yid = self.query.path.split('/')[2]
             if self.query.path[:3] == '/v/':
                 yid = self.query.path.split('/')[2]
         # fail?
-        if yid == None:
+        if yid is None:
             return None
         else:
             return "<iframe class='youtube-player' type='text/html' width='" + self.x + "' height='" + self.y + "' src='https://www.youtube.com/embed/" + yid + "?wmode=opaque' frameborder='0'></iframe>"
@@ -76,7 +74,8 @@ class embedis:
         #     return None
         # else:
         #     server.logger.info("Possible embedis URL")
-        api_url = server.ServerSettings['embedserver']  + '/iframe/'+ self.x + '/' + self.y + '/'
+        api_url = server.ServerSettings['embedserver'] + \
+            '/iframe/' + self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
         try:
@@ -87,13 +86,14 @@ class embedis:
                 server.logger.info("Embedis gave us - " + response)
                 return response
             else:
-                server.logger.info ("No good from " +  server.ServerSettings['embedserver'])
+                server.logger.info(
+                    "No good from " + server.ServerSettings['embedserver'])
                 return None
         except:
             return None
 
-    @memorise(ttl=server.ServerSettings['cache']['avatarcache']['seconds'],maxsize=server.ServerSettings['cache']['avatarcache']['size'])
-    def getavatar(self,myid):
+    @memorise(ttl=server.ServerSettings['cache']['avatarcache']['seconds'], maxsize=server.ServerSettings['cache']['avatarcache']['size'])
+    def getavatar(self, myid):
         """
         Retrieve the Avatar from Robohash.org, for use in the datauri embed.
         """

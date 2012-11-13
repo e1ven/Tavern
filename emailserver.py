@@ -16,13 +16,14 @@ import time
 import random
 from server import server
 
+
 class EmailServer(object):
     """
     Sends email from the mongo queue of emails.
-    """ 
-        
-    def __init__(self):            
-        """ 
+    """
+
+    def __init__(self):
+        """
         Initialize our main module, and create threads.
         """
         # Create a hopper for all the emails to reside in
@@ -32,17 +33,18 @@ class EmailServer(object):
         if 'email' not in server.ServerSettings:
             self.makedefaults()
 
-
     def makedefaults(self):
         """
         Stick default settings in a file.
         """
         server.ServerSettings['email'] = {}
-        server.ServerSettings['email']['sender'] = "noreply <noreply@example.com>"
+        server.ServerSettings['email'][
+            'sender'] = "noreply <noreply@example.com>"
         server.ServerSettings['email']['smtpserver'] = 'smtp.example.com'
         server.ServerSettings['email']['username'] = "user@example.com"
         server.ServerSettings['email']['password'] = "password"
-        server.ServerSettings['email']['workers'] = multiprocessing.cpu_count() - 1
+        server.ServerSettings['email'][
+            'workers'] = multiprocessing.cpu_count() - 1
         server.ServerSettings['email']['saveinterval'] = 1000
         server.ServerSettings['email']['debug'] = True
         server.ServerSettings['email']['SSL'] = False
@@ -61,13 +63,11 @@ class EmailServer(object):
         for email in server.mongos['safe']['optout-emails'].find():
             self.optouts.append(email['address'])
 
-
         # Move messages to an in-memory queue which can go to multiple processes
-        for email in server.mongos['unsafe']['notifications_queue'].find({'type':'email'}):
+        for email in server.mongos['unsafe']['notifications_queue'].find({'type': 'email'}):
             if email['address'] not in self.optouts:
                 self.emails.put(email)
             server.mongos['unsafe']['notifications_queue'].remove(email)
-
 
     def start(self):
         """
@@ -77,15 +77,15 @@ class EmailServer(object):
 
         self.kill()
         self.procs = []
-        for proc in range(0,server.ServerSettings['email']['workers']):
+        for proc in range(0, server.ServerSettings['email']['workers']):
             newproc = multiprocessing.Process(target=self.sendmail, args=())
             self.procs.append(newproc)
             server.logger.info(" Created Process - " + str(proc))
 
         for proc in self.procs:
-             proc.start()
-             server.logger.info(" Started " + str(count))
-             count += 1
+            proc.start()
+            server.logger.info(" Started " + str(count))
+            count += 1
 
     def kill(self):
         """
@@ -94,18 +94,16 @@ class EmailServer(object):
         count = 0
         server.logger.info("stopping")
         for proc in self.procs:
-             proc.terminate()
-             server.logger.info(" Stopped " + str(count))
-             count += 1
+            proc.terminate()
+            server.logger.info(" Stopped " + str(count))
+            count += 1
         server.logger.info("You are now free to turn off your computer.")
-
 
     def sendmail(self):
         """
         Actually connect to the server, and push out the message.
         """
 
-    
         count = 0
         # Grab some emails from the stack
         while True:
@@ -134,20 +132,22 @@ class EmailServer(object):
                         conn.close()
                     server.logger.info("Establishing Connection to emailserver " + server.ServerSettings['email']['smtpserver'])
                     if server.ServerSettings['email']['SSL'] == True:
-                      conn = smtplib.SMTP_SSL(host=server.ServerSettings['email']['smtpserver'],port=server.ServerSettings['email']['port'])
+                        conn = smtplib.SMTP_SSL(host=server.ServerSettings['email']['smtpserver'], port=server.ServerSettings['email']['port'])
                     else:
-                      conn = smtplib.SMTP(host=server.ServerSettings['email']['smtpserver'],port=server.ServerSettings['email']['port'])
+                        conn = smtplib.SMTP(host=server.ServerSettings['email']['smtpserver'], port=server.ServerSettings['email']['port'])
 
                     if server.ServerSettings['email']['authrequired'] == True:
-                        conn.login(server.ServerSettings['email']['username'], server.ServerSettings['email']['password'])
+                        conn.login(server.ServerSettings['email']['username'],
+                                   server.ServerSettings['email']['password'])
 
                 try:
-                    conn.sendmail(server.ServerSettings['email']['sender'], currentemail['address'], msg.as_string())   
+                    conn.sendmail(server.ServerSettings['email']['sender'],
+                                  currentemail['address'], msg.as_string())
                 finally:
-                    count +=1
-                    server.logger.info ("This thread has sent " + str(count))
+                    count += 1
+                    server.logger.info("This thread has sent " + str(count))
             else:
-                    sleeptime = server.ServerSettings['email']['sleeptime']
-                    server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
-                    time.sleep(sleeptime)
-        conn.close()  
+                sleeptime = server.ServerSettings['email']['sleeptime']
+                server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
+                time.sleep(sleeptime)
+        conn.close()
