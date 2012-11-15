@@ -15,8 +15,8 @@ class TavernCache(object):
 TavernCache = TavernCache()
 
 
-def storething(*args, ttl=60, maxsize=None, value,key=None):
-    if key == None:
+def storething(*args, ttl=60, maxsize=None, value, key=None):
+    if key is None:
         key = json.dumps(args, separators=(',', ':'))
     if maxsize is not None:
         while len(TavernCache.store) >= maxsize:
@@ -24,8 +24,9 @@ def storething(*args, ttl=60, maxsize=None, value,key=None):
     TavernCache.store[key] = {'value': value, 'timeset': time.time()}
     print(TavernCache.store)
 
-def getthing(*args, ttl=60,key=None):
-    if key == None:
+
+def getthing(*args, ttl=60, key=None):
+    if key is None:
         key = json.dumps(args, separators=(',', ':'))
     output = None
     if key in TavernCache.store:

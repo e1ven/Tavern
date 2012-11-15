@@ -283,8 +283,6 @@ class Server(object):
         self.cache['instance.js'] = file.read()
         file.close()
 
-
-
     def init2(self):
         """
         Stuff that needs to be done later, so other pieces might be ready

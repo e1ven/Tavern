@@ -137,7 +137,7 @@ class BaseHandler(tornado.web.RequestHandler):
         print(soupytxt)
         return soupytxt
 
-    @memorise(parent_keys=['request.uri','html'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
     def getjs(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
@@ -214,11 +214,11 @@ class BaseHandler(tornado.web.RequestHandler):
                 tavern_replace();
                 tavern_replace = null;
                 ''' + server.cache['instance.js']
-                 +
-                 '''
+                +
+                '''
                 // Any other code here.
                 '''
-                 )
+                )
 
     def chunks(self, s, n):
         """
@@ -338,7 +338,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
             self.browser = server.browserdetector.parse(ua)
-            print("MY BROWSER IS - " + str(self.browser) )
+            print("MY BROWSER IS - " + str(self.browser))
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader

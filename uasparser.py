@@ -53,6 +53,7 @@ from Envelope import *
 from keys import *
 from server import server
 
+
 class UASException(Exception):
     pass
 
@@ -65,7 +66,7 @@ class UASparser:
     os_img_url = None
     info_url = None
 
-    @memorise(parent_keys=['ua_img_url','os_img_url','info_url'],ttl=server.ServerSettings['cache']['uasparser']['seconds'], maxsize=server.ServerSettings['cache']['uasparser']['size'])
+    @memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=server.ServerSettings['cache']['uasparser']['seconds'], maxsize=server.ServerSettings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):
         """
         Get the information of an useragent string
