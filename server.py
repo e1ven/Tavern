@@ -235,10 +235,6 @@ class Server(object):
         if not 'max-upload-preview-size' in self.ServerSettings:
             self.ServerSettings['max-upload-preview-size'] = 10485760
 
- 
-
-            
-
         if not 'cookie-encryption' in self.ServerSettings:
             self.ServerSettings['cookie-encryption'] = self.randstr(255)
         if not 'serverkey-password' in self.ServerSettings:

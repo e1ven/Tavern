@@ -1,7 +1,9 @@
 {% set envelope = stack[0] %}
 {% import datetime %}
+{% set medialink = None %}
+{% set permalink = request.protocol + "://" + server.ServerSettings['hostname'] + '/attachment/' + attachment  %}
 
-
+{{preview}}
 <div class="single">
 <h1> General information regarding {{attachment}} </h1>
 
@@ -14,7 +16,16 @@ This file is estimated to be {{round(float(myattach['filesize'] / 1024.0 /1024.0
 It was first seen 
  <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
 
-
+<div class="externalsharing">
+                <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                <i class="icon-facebook-squared"></i></a>
+                <a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                <i class="icon-twitter-squared"></i></a>
+                <a href="https://plus.google.com/share?url={{permalink}}">
+                <i class="icon-gplus-squared"></i></a>
+                <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}">
+                <i class="icon-pinterest-squared"></i></a>
+                </div>
 </ul>
 <br><br>
 </div> <!-- .single -->
@@ -37,19 +48,16 @@ It was first seen
         {% end %}
         {% if myattach['detected_mime'] in ['audio/mpeg'] %}
         <audio preload="auto" class="center">
-          <source src="{{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
+          <source src="{{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
         </audio>
         {% end %}
     {% end %}   
 
 
-    {% if 'displayable' in attachment %}
-        {% if attachment['displayable'] is not False %}
-            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-            <img src="{{server.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
-            {% if medialink == None %}
-                {% set medialink = server.ServerSettings['downloadsurl'] + attachment['displayable'] %}
-            {% end %}
+    {% if 'displayable' in myattach %}
+        {% if myattach['displayable'] is not False %}
+            <a href="{{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
+            <img class='center' src="{{server.ServerSettings['downloadsurl']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
         {% end %} 
     {% end %} 
 

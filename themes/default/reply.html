@@ -7,7 +7,7 @@
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
-{% set permalink = '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set permalink = request.protocol + "://" + server.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
 
 {% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
 
@@ -213,7 +213,7 @@
 				<i class="icon-facebook-squared"></i></a>
 				<a href="http://twitter.com/home?status=Check out this post, via @ForumLegion - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
 				<i class="icon-twitter-squared"></i></a>
-				<a href="https://plusone.google.com/_/+1/confirm?hl=en&url={{permalink}}">
+				<a href="https://plus.google.com/share?url={{permalink}}">
 				<i class="icon-gplus-squared"></i></a>
 				<a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
 				<i class="icon-pinterest-squared"></i></a>
