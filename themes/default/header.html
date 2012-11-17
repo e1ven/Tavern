@@ -83,6 +83,14 @@
 
 <link href="/static/css/video-js.css" rel="stylesheet">
 <script src="/static/scripts/video.js"></script>
+<script src="/static/scripts/audio.js"></script>
+<script>
+  audiojs.events.ready(function() {
+    var as = audiojs.createAll();
+  });
+</script>
+
+
 {% end %}
 
 

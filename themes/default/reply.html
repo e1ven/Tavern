@@ -68,7 +68,7 @@
 								<input type="hidden" name="trust" value="100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Allow this user to rate posts">
+								<input class="textbutton" type="submit" value="Recommended this users to others.">
 							</form>
 							<br>
 							{% end %}
@@ -78,7 +78,7 @@
 								<input type="hidden" name="trust" value="-100">
 								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
 								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Ignore ratings from this user">
+								<input class="textbutton" type="submit" value="Warn others about this user.">
 							</form>
 							{% end %}
 							<br>
@@ -115,6 +115,7 @@
 
 
 						    {% if 'detected_mime' in attachment %}
+						     {{attachment['detected_mime']}}
 						    	{% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
 									<video id="my_video_1" class="video-js vjs-default-skin" controls
 		 							preload="auto" width="640" height="264"
@@ -122,6 +123,13 @@
 		  								<source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
 									</video>
 								{% end %}
+						    	{% if attachment['detected_mime'] in ['audio/mpeg'] %}
+							    <audio preload="auto">
+							      <source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+							    </audio>
+
+								{% end %}
+
 							{% end %}	
 
 
@@ -136,7 +144,7 @@
 							{% end %} 
 
 
-							
+
 				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
 				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
 	                        <br>

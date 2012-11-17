@@ -11,6 +11,7 @@ ln -s /usr/bin/python3.2 /usr/bin/python
 brew install Boost
 brew install mongodb python3 
 brew install libmagic
+brew install exiv2
 
 
 #On 64 bit
@@ -47,20 +48,6 @@ make
 make install
 
 
-#HAChoir - Doesn't pip install on Py3.
-cd /opt/Tavern/libs
-hg clone https://bitbucket.org/haypo/hachoir
-cd hachoir
-for i in `find . -name *.py`; do 2to3-3.2 -wn $i; done
-
-2to3-3.2 -wn *.py
-python3 setup.py install
-cd ../hachoir-metadata/
-2to3-3.2 -wn *.py
-python3 setup.py install --disable-qt
-
-
-
 mkdir /opt/uploads
 chmod 777 /opt/uploads/
 
@@ -72,12 +59,11 @@ cp nginx.conf /opt/nginx/conf/
 
 
 cd /opt/Tavern/libs
-curl -O http://python-distribute.org/distribute_setup.py
-python3 distribute_setup.py
-
-
-brew install exiv2
-
+curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.30.tar.gz
+tar -xzvf distribute-0.6.30.tar.gz
+cd distribute-0.6.30
+python setup.py install
+/usr/local/bin/easy_install-3.2 pip
 
 ## TomCrypt ##
 

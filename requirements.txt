@@ -6,7 +6,6 @@ tornado
 Markdown
 pygeoip
 postmarkup
-tornado
 pymongo
 scrypt
 BeautifulSoup==4.0b
