@@ -118,13 +118,13 @@
 						     {{attachment['detected_mime']}}
 						    	{% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
 									<video id="my_video_1" class="video-js vjs-default-skin" controls
-		 							preload="auto" width="640" height="264"
+		 							preload="metadata" width="640" height="264"
 		  							data-setup="{}">
 		  								<source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
 									</video>
 								{% end %}
 						    	{% if attachment['detected_mime'] in ['audio/mpeg'] %}
-							    <audio preload="auto">
+							    <audio preload="metadata">
 							      <source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
 							    </audio>
 

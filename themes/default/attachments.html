@@ -5,15 +5,11 @@
 <div class="single">
 <h1> General information regarding {{attachment}} </h1>
 
-<p></p>
-
 <br><br>
 <ul>
-{% for attach in envelope['envelope']['local']['attachmentlist'] %}
-	{% if attach['sha_512'] == attachment %}
-		This file is estimated to be {{round(float(attach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
-	{% end %}
-{% end %}
+
+This file is estimated to be {{round(float(myattach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
+
 
 It was first seen 
  <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
@@ -24,6 +20,45 @@ It was first seen
 </div> <!-- .single -->
 
 
+
+{% if preview == True %}
+    <div class="single">
+    <h1> Preview </h1>
+    <br><br>
+    <ul>
+
+    {% if 'detected_mime' in myattach %}
+        {% if myattach['detected_mime'] in ['video/mp4','video/webm'] %}
+            <video id="my_video_1" class="video-js vjs-default-skin center" controls
+            preload="auto" width="640" height="264"
+            data-setup="{}">
+                <source src="{{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" type='{{myattach['detected_mime']}}'>
+            </video>
+        {% end %}
+        {% if myattach['detected_mime'] in ['audio/mpeg'] %}
+        <audio preload="auto" class="center">
+          <source src="{{server.ServerSettings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
+        </audio>
+        {% end %}
+    {% end %}   
+
+
+    {% if 'displayable' in attachment %}
+        {% if attachment['displayable'] is not False %}
+            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+            <img src="{{server.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+            {% if medialink == None %}
+                {% set medialink = server.ServerSettings['downloadsurl'] + attachment['displayable'] %}
+            {% end %}
+        {% end %} 
+    {% end %} 
+
+
+    </ul>
+    <br><br>
+    </div> <!-- .single -->
+
+{% end %} 
 
 
 <div class="single">

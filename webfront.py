@@ -550,9 +550,25 @@ class AttachmentHandler(BaseHandler):
         for envelope in envelopes:
             stack.append(envelope)
 
+
+        # Find info from one of the messages
+        for attach in envelope['envelope']['local']['attachmentlist']:
+            if attach['sha_512'] == client_attachment_id:
+                myattach = attach
+
+        # Determine if we can preview it 
+        preview=False
+        if 'detected_mime' in myattach:
+            if myattach['detected_mime'] in ['video/mp4','video/webm','audio/mpeg']:
+                preview=True
+
+        if 'displayable' in attachment:
+            if attachment['displayable'] is not False:
+                preview = True
+
         self.write(self.render_string('header.html', title="Tavern Attachment " + client_attachment_id, user=self.user, rsshead=client_attachment_id, type="attachment"))
         self.write(self.render_string(
-            'attachments.html', attachment=client_attachment_id, stack=stack))
+            'attachments.html', myattach=myattach,preview=preview,attachment=client_attachment_id, stack=stack))
         self.write(self.render_string('footer.html'))
 
 

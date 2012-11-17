@@ -312,7 +312,8 @@ form.vote {
 .single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
 
 .userportrait {
-  width: 500px ;
+  width: 50% ;
+  min-width: 350px;
   }
 
 .portrait{
@@ -575,6 +576,10 @@ img.imginline { vertical-align: middle;  }
 * html .clearfix             { zoom: 1; } /* IE6 */
 *:first-child+html .clearfix { zoom: 1; } /* IE7 */
 
+
+.center {
+    margin: 0 auto;
+}
 
 #userblock{
      position:relative;
