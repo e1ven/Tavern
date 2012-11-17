@@ -113,9 +113,7 @@
 					{% end %}
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 
-
 						    {% if 'detected_mime' in attachment %}
-						     {{attachment['detected_mime']}}
 						    	{% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
 									<video id="my_video_1" class="video-js vjs-default-skin" controls
 		 							preload="metadata" width="640" height="264"

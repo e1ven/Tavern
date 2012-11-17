@@ -517,8 +517,10 @@ class Server(object):
                             attachment.read(self.ServerSettings['max-upload-preview-size']), mime=True).decode('utf-8')
                         displayable = False
                         if attachment.length < self.ServerSettings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                            print(binary)
                             if 'content_type' in binary:
                                 if binary['content_type'].rsplit('/')[0].lower() == "image":
+                                    attachment.seek(0)
                                     imagetype = imghdr.what(
                                         'ignoreme', h=attachment.read())
                                     acceptable_images = [
@@ -547,7 +549,6 @@ class Server(object):
                                             self.logger.info(displayable)
                                             im.save(thumbnail, format='png')
                                             thumbnail.close()
-
                         attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable, 'detected_mime': detected_mime}
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:

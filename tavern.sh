@@ -13,7 +13,7 @@ else
     echo "If you want nginx murdered, use sudo."
 fi
 
-if [ $1 == 'daemon' ]
+if [ "$1" == 'daemon' ]
 then
     kill `ps aux | grep [w]ebfront | awk {'print $2'}`; nohup ./webfront.py &
     kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup ./api.py &
@@ -25,7 +25,7 @@ fi
 ./DiskTopics.py -l
 
 # If we're not in daemon mode, fire up the server
-if [ $1 == 'daemon' ]
+if [ "$1" == 'daemon' ]
 then
     tail -f `hostname`.log nohup.out
 else
