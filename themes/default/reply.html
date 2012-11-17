@@ -112,6 +112,19 @@
 						Attached File: <br>
 					{% end %}
 				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+
+
+						    {% if 'detected_mime' in attachment %}
+						    	{% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
+									<video id="my_video_1" class="video-js vjs-default-skin" controls
+		 							preload="auto" width="640" height="264"
+		  							data-setup="{}">
+		  								<source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
+									</video>
+								{% end %}
+							{% end %}	
+
+
 							{% if 'displayable' in attachment %}
 	                            {% if attachment['displayable'] is not False %}
 									<a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
@@ -121,6 +134,9 @@
 									{% end %}
 							    {% end %} 
 							{% end %} 
+
+
+							
 				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
 				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
 	                        <br>

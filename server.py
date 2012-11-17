@@ -20,7 +20,7 @@ import datetime
 import re
 import bbcodepy
 from bs4 import BeautifulSoup
-
+import magic
 
 def print_timing(func):
     def wrapper(*arg):
@@ -508,6 +508,8 @@ class Server(object):
                             binary['filename'] = "unknown_file"
                         #In order to display an image, it must be of the right MIME type, the right size, it must open in
                         #Python and be a valid image.
+                        attachment.seek(0)
+                        detected_mime = magic.from_buffer(attachment.read(1024),mime=True).decode('utf-8')
                         displayable = False
                         if attachment.length < 10485760:  # Don't try to make a preview if it's > 10M
                             if 'content_type' in binary:
@@ -541,7 +543,7 @@ class Server(object):
                                             im.save(thumbnail, format='png')
                                             thumbnail.close()
 
-                        attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable}
+                        attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable,'detected_mime':detected_mime}
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:
                         self.logger.info("Error, attachment gone ;(")
