@@ -339,7 +339,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
             self.browser = server.browserdetector.parse(ua)
-            print("MY BROWSER IS - " + str(self.browser))
+
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader

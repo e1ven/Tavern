@@ -517,7 +517,6 @@ class Server(object):
                             attachment.read(self.ServerSettings['max-upload-preview-size']), mime=True).decode('utf-8')
                         displayable = False
                         if attachment.length < self.ServerSettings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
-                            print(binary)
                             if 'content_type' in binary:
                                 if binary['content_type'].rsplit('/')[0].lower() == "image":
                                     attachment.seek(0)
@@ -543,7 +542,7 @@ class Server(object):
                                                 imAspect = float(im.size[0]) / float(im.size[1])
                                                 newy = 480
                                                 newx = int(480 * imAspect)
-                                                img = im.resize((newx, newy), Image.ANTIALIAS)
+                                                im = im.resize((newx, newy), Image.ANTIALIAS)
 
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
                                             self.logger.info(displayable)
