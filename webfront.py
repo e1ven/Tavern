@@ -437,7 +437,7 @@ class TriPaneHandler(BaseHandler):
             before = None
 
         if action == "topic":
-            divs = ['left', 'center', 'right']
+            divs = ['left', 'centerandright','center', 'right']
 
             if topic != 'sitecontent':
                 canon = "topic/" + topic
@@ -501,6 +501,27 @@ class TriPaneHandler(BaseHandler):
             self.finish(divs=divs)
         else:
             self.finish()
+
+class AllTopicsHandler(BaseHandler):
+    def get(self,start=0):
+        self.getvars()
+
+
+        alltopics = []
+        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=start+1000,skip=start,as_class=OrderedDict).sort('value', -1):
+            alltopics.append(quicktopic)
+
+        toptopics = []
+        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10,as_class=OrderedDict).sort('value', -1):
+            toptopics.append(quicktopic)
+        subjects = []
+
+        self.write(self.render_string('header.html', title="List of all Topics",
+                   user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('alltopics.html',topics=alltopics,toptopics=toptopics,user=self.user))
+        self.write(self.render_string('footer.html'))
+        #self.finish(divs=['right'])
+
 
 
 class TopicPropertiesHandler(BaseHandler):
@@ -1452,6 +1473,7 @@ def main():
         (r"/vote", RatingHandler),
         (r"/usertrust", UserTrustHandler),
         (r"/usernote", UserNoteHandler),
+        (r"/alltopics",AllTopicsHandler),
         (r"/attachment/(.*)", AttachmentHandler),
         (r"/topicinfo/(.*)", TopicPropertiesHandler),
         (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),

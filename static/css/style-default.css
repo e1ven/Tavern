@@ -311,6 +311,59 @@ form.vote {
 }
 .single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
 
+
+
+
+
+#doublewide {
+  width:100%;
+  height:100%;
+  float: left;
+  background: #ffffff;
+  overflow:scroll;
+  -webkit-overflow-scrolling: touch;
+  min-width:10px;
+  border:2px solid;
+  border-color: #a9a9a9;
+}
+
+
+#doublewide p {
+    padding-left: 20px;
+    padding-top: .5em;
+    padding-bottom: 0px;
+} 
+
+#doublewide form, .doublewide ul {
+    padding-left: 20px;
+    padding-bottom: 10px;
+} 
+
+#doublewide li {
+    padding-left: 20px;
+    padding-top: 1em;
+
+} 
+
+  
+#doublewide .padder { background: #ffffff; }
+
+#doublewide > h1 {
+  font-size: 14px; 
+  font-weight: bold; 
+  text-transform: uppercase;
+  background: #d8d8d8;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #a9a9a9;
+  color: #2d2d2d;
+  padding-left: 20px;
+
+}
+#doublewide h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
+
+
+
+
 .userportrait {
   width: 50% ;
   min-width: 350px;
@@ -363,12 +416,21 @@ COLUMN WIDTH ELEMENTS
 }
 
 #right {
-  width:100%;
   height:100%;
 	float: left;
 	width: 50%;
 	background: #ffffff;
 	overflow:scroll;
+  -webkit-overflow-scrolling: touch;
+  min-width:10px;
+}
+
+#doublewide {
+  width:100%;
+  height:100%;
+  float: left;
+  background: #ffffff;
+  overflow:scroll;
   -webkit-overflow-scrolling: touch;
   min-width:10px;
 }

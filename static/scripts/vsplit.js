@@ -27,9 +27,27 @@ var VerticalSplitter = (function() {
 		
 			if (settings) { this.ImportSettings(settings); }
 
+			// Make sure we're OK to proceed.
+			ok=0
+			if (jQuery('#' + config.containerId).length > 0) {
+  				ok+=1;
+			}
+			if (jQuery('#' + config.firstItemId).length > 0) {
+				ok+=1;
+			}			
+			if (jQuery('#' + config.secondItemId).length > 0) {
+				ok+=1;
+			}
+			if (ok < 3)
+			{
+				return false;
+			}
+
+
+
 			var splitterId = config.splitterId + VerticalSplitterCount;
 
-			var container = document.getElementById(config.containerId)
+			var container = document.getElementById(config.containerId);
 			var leftItem = document.getElementById(config.firstItemId);
 			var rightItem = document.getElementById(config.secondItemId);
 			
