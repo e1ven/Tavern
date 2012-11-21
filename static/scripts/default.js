@@ -51,8 +51,11 @@ function sizewindow()
     // Redraw the splitters, if there is content to split.
   if (jQuery("#centerandright").length)
   {
-    VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
-    VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
+    if(typeof VerticalSplitter != 'undefined')
+    {
+      VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
+      VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
+    }   
   } 
    
 } 
@@ -418,4 +421,3 @@ Mousetrap.bind('up up down down left right left right b a', function() {
 
   sizewindow();
 });
-

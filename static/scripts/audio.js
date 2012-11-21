@@ -701,3 +701,8 @@
   };
 // The global variable names are passed in here and can be changed if they conflict with anything else.
 })('audiojs', 'audiojsInstance', this);
+
+
+audiojs.events.ready(function() {
+    var as = audiojs.createAll();
+});

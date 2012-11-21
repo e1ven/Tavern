@@ -282,7 +282,7 @@ class Server(object):
         #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
 
         # Cache our JS, so we can include it later.
-        file = open("static/scripts/instance.js")
+        file = open("static/scripts/instance.min.js")
         self.logger.info("Cached JS")
         self.cache['instance.js'] = file.read()
         file.close()
