@@ -407,9 +407,15 @@ jQuery.getScript('/static/scripts/instance.js');
 });
 
 
-jQuery(window).load(function() {
-        // Do the split after all other positioning/etc
-        sizewindow(); 
+Mousetrap.bind('up up down down left right left right b a', function() {
+    element = jQuery('#top')
+    element.css('-moz-transform', 'rotate(180deg)'); 
+    element.css('-o-transform','rotate(180deg)');  
+    element.css('-webkit-transform','rotate(180deg)'); 
+    element.css('-ms-transform','rotate(180deg)'); 
+    element.css('transform','rotate(180deg);'); 
+    element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
 
+  sizewindow();
 });
 
