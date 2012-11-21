@@ -1,6 +1,4 @@
 #!/bin/bash
-autopep8 -i *.py
-
 user=`whoami`
 
 if [ $user == 'root' ]
@@ -19,11 +17,20 @@ then
     kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup ./api.py &
 fi
 
+echo "Running onStart functions."
+
 ./ensureindex.sh
 ./TopicList.py
 ./ModList.py
 ./DiskTopics.py -l
 
+echo "Minimizing"
+for i in `find static/scripts/ -name "*.js"| grep -v '.min.js'`
+do
+    basename=`basename $i ".js"`
+    cat $i | libs/jsmin > static/scripts/$basename.min.js
+done
+autopep8 -i *.py
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]
 then

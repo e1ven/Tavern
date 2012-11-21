@@ -20,7 +20,7 @@ date1 = datetime.datetime.now().isoformat()
 datenow = date1[0:date1.find(".")] + "+00:00"
 
 
-serverprefix = "https://" + server.ServerSettings['hostname'] 
+serverprefix = "https://" + server.ServerSettings['hostname']
 
 # Generate the boilerplate for the main sitemap file.
 # We'll be adding additional lines to this file, as we generate them, below.
@@ -61,7 +61,7 @@ for i in range(sitemapcount):
         start) + " ; end " + str())
 
     sitemapindex.write("<sitemap>")
-    sitemapindex.write("<loc>"+ serverprefix + "/static/sitemaps/sitemap-" +
+    sitemapindex.write("<loc>" + serverprefix + "/static/sitemaps/sitemap-" +
                        str(i + 1) + ".xml</loc>\n")
     sitemapindex.write("<lastmod>" + datenow + "</lastmod>\n")
     sitemapindex.write("</sitemap>\n")

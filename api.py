@@ -156,7 +156,8 @@ class ServerStatus(BaseHandler):
         status['pubkey'] = server.ServerKeys.pubkey
         status['hostname'] = server.ServerSettings['hostname']
         # Report ourselves, plus the default connection.
-        status['connections'] = ['http://' + server.ServerSettings['hostname'] + ':8090', 'http://GetTavern.com:8090', 'http://Tavern.is:8090']
+        status['connections'] = ['http://' + server.ServerSettings['hostname']
+                                 + ':8090', 'http://GetTavern.com:8090', 'http://Tavern.is:8090']
         self.write(json.dumps(status, separators=(',', ':')))
 
 

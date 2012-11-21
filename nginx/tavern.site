@@ -101,7 +101,7 @@
         }
 
         location /static/
-        {
+        {  
           proxy_pass http://tornados/static/;
           proxy_cache static-cache;
           proxy_cache_valid  200 1y;
