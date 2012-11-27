@@ -12,6 +12,7 @@ import time
 import datetime
 import socket
 import json
+import os
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
@@ -65,7 +66,7 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
-    @memorise(parent_keys=['fullcookies','user.UserSettings'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -1418,7 +1419,6 @@ class AvatarHandler(BaseHandler):
 
 
 def main():
-
     tornado.options.parse_command_line()
     # timeout in seconds
     timeout = 10

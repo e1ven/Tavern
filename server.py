@@ -17,6 +17,10 @@ import datetime
 import bbcodepy
 from bs4 import BeautifulSoup
 import magic
+try:
+    from hashlib import md5 as md5_func
+except ImportError:
+    from md5 import new as md5_func
 
 
 def print_timing(func):
@@ -32,7 +36,7 @@ def print_timing(func):
 class Fortuna():
     def __init__(self, fortunefile="fortunes"):
         self.fortunes = []
-        fortunes = open(fortunefile, "r")
+        fortunes = open(fortunefile, "r", encoding='utf-8')
         line = fortunes.readline()
         while line:
             self.fortunes.append(line.rstrip().lstrip())
@@ -625,9 +629,9 @@ class Server(object):
         extractions = {}
 
         def pre_extraction_callback(matchobj):
-            hash = md5_func(matchobj.group(0)).hexdigest()
-            extractions[hash] = matchobj.group(0)
-            return "{gfm-extraction-%s}" % hash
+            md5hash = md5_func(matchobj.group(0)).hexdigest()
+            extractions[md5hash] = matchobj.group(0)
+            return "{gfm-extraction-%s}" % md5hash
         pre_extraction_regex = re.compile(r'{gfm-extraction-338ad5080d68c18b4dbaf41f5e3e3e08}', re.MULTILINE | re.DOTALL)
         text = re.sub(pre_extraction_regex, pre_extraction_callback, text)
 

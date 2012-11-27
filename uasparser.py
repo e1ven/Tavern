@@ -257,7 +257,7 @@ class UASparser:
         if self.cache_data:  # no need to load
             return self.cache_data
 
-        cache_file = open(self.ini_file, 'r')
+        cache_file = open(self.ini_file, 'r', encoding='utf-8')
         self.cache_data = self._parseIniFile(cache_file)
         cache_file.close()
 

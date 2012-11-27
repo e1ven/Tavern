@@ -25,7 +25,7 @@
 # server.logger.info(channel.toxml())
 
 
-from abc import ABCMeta, abstractproperty, abstractmethod
+from abc import abstractproperty, abstractmethod, ABCMeta
 from datetime import datetime
 import xml.dom.minidom
 import re                      # used in cdata mechanism

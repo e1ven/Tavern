@@ -1,6 +1,5 @@
 import json
 import hashlib
-import sys
 import os
 from keys import Keys
 import collections
@@ -122,7 +121,6 @@ class Envelope(object):
 
     def validate(self):
         #Validate an Envelope
-
         #Check headers
         if 'envelope' not in self.dict:
             server.logger.info("Invalid Envelope. No Header")
@@ -196,9 +194,9 @@ class Envelope(object):
         self.saveMongo()
 
     class binary(object):
-        def __init__(self, hash):
+        def __init__(self, sha512):
             self.dict = OrderedDict()
-            self.dict['sha_512'] = hash
+            self.dict['sha_512'] = sha512
 
     def __init__(self):
         self.dict = OrderedDict()
@@ -234,15 +232,12 @@ class Envelope(object):
 
         #Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
-
-        #Determine the file extension to see how to parse it.
-        basename, ext = os.path.splitext(filename)
         filehandle = open(filename, 'rb')
         filecontents = filehandle.read()
         if (ext == '.7zTavernEnvelope'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
-            filecontents = filecontents.decode('utf-8')
+            filecontents = filecontents.decode('UTF-8')
         filehandle.close()
         self.loadstring(filecontents)
 

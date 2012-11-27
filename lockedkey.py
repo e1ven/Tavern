@@ -1,7 +1,6 @@
 from keys import Keys
 import scrypt
 import base64
-import functools
 
 
 class lockedKey(object):

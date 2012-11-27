@@ -101,7 +101,7 @@ class Keys(object):
         """
         # It seems with PyTomCrypt, you need to manually hash things before signing.
         # The Salt Length == 64 == the length of SHA512. If you use sha1, change this to 20, etc.
-
+        print("signing~~" + signstring)
         digest = hashlib.sha512(signstring.encode('utf-8')).digest()
         bsigned = self.key.sign(
             digest, hash='sha512', padding="pss", saltlen=64)

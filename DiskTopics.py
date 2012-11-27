@@ -45,9 +45,11 @@ def writetopic(topic, since=0, limit=0, skip=0):
     for envelope in envelopes:
         if args.verbose:
             print(envelope)
-        envelope = server.formatEnvelope(envelope)
-        envstr = json.dumps(envelope, separators=(',', ':'))
-        e.loadstring(envstr)
+            
+        id = envelope['envelope']['payload_sha512'] 
+        e.loadmongo(id)
+        e.validate()
+        
         topic = e.payload.dict['topic']
         topicdir = msgsdir + topic
 
