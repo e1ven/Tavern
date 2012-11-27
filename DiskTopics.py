@@ -70,7 +70,6 @@ def loaddir(directory):
         e.loadfile(msgsdir + directory + "/" + infile)
         server.receiveEnvelope(e.text())
 
-
 if len(sys.argv) == 1:
     parser.print_help()
     sys.exit(1)

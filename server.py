@@ -1,12 +1,9 @@
-import os
 import json
-import hashlib
 import imghdr
 import platform
 import time
 from keys import *
 import Image
-import logging
 import collections
 from collections import OrderedDict
 import pymongo
@@ -17,7 +14,6 @@ from Envelope import Envelope
 import sys
 import markdown
 import datetime
-import re
 import bbcodepy
 from bs4 import BeautifulSoup
 import magic
@@ -93,31 +89,31 @@ class Server(object):
         Only use this for not critical functions, like random header fortunes ;)
         """
 
-        # os.urandom generates X bytes of randomness
+        # os.urandom generates X numbytes of randomness
         # If it's a small number requested, look up the fewest bits needed.
         # If it's a larger number, calculate the fewest.
         # This saves bits on the server ;)
         diff = abs(stop - start) + 1
         if diff < 255:
-            bytes = 1
+            numbytes = 1
         elif diff <= 65535:
-            bytes = 2
+            numbytes = 2
         elif diff <= 16777215:
-            bytes = 3
+            numbytes = 3
         elif diff <= 4294967295:
-            bytes = 4
+            numbytes = 4
         else:
             # If it's this big, calculate it out.
             num = 4294967295
-            bytes = 3
+            numbytes = 3
             while num <= diff:
-                bytes += 1
+                numbytes += 1
                 integerstring = ''
-                for i in range(0, (bytes * 8)):
+                for i in range(0, (numbytes * 8)):
                     integerstring += '1'
                 num = int(integerstring, 2)
 
-        randnum = int.from_bytes(os.urandom(bytes), 'big')
+        randnum = int.from_bytes(os.urandom(numbytes), 'big')
         rightsize = randnum % diff
         return start + rightsize
 

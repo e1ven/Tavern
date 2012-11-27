@@ -10,22 +10,16 @@ import tornado.web
 import tornado.escape
 import time
 import datetime
-import os
 import socket
 import json
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
-from tornado.options import define, options
 from server import server
 import pygeoip
 from keys import *
 from User import User
-from gridfs import GridFS
-import hashlib
-import urllib.request
 import urllib.parse
-import urllib.error
 from bs4 import BeautifulSoup
 import rss
 import pprint
@@ -36,13 +30,10 @@ from TopicTool import TopicTool
 from TavernCache import memorise
 import TavernCache
 
-import re
 try:
     from hashlib import md5 as md5_func
 except ImportError:
     from md5 import new as md5_func
-
-import cProfile
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -74,7 +65,7 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
-   # @memorise(parent_keys=['fullcookies','user.UserSettings'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['fullcookies','user.UserSettings'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -179,7 +170,7 @@ class BaseHandler(tornado.web.RequestHandler):
         try:
             soup = BeautifulSoup(self.html)
         except:
-            print('malformed data: %r' % data)
+            print('malformed data: %r' % soup)
             raise
         soupyelement = soup.find(id=element)
         if soup.html is not None:
@@ -488,8 +479,8 @@ class TriPaneHandler(BaseHandler):
                 canonbubble = "&redirected=true"
             server.logger.info(
                 "Redirecting URL " + self.request.path[1:] + " to " + canon)
-     #       self.redirect("/" + canon + canonbubble, permanent=True)
-     #       self.finish()
+#       self.redirect("/" + canon + canonbubble, permanent=True)
+#       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, user=self.user, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
@@ -514,7 +505,6 @@ class AllTopicsHandler(BaseHandler):
         toptopics = []
         for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10, as_class=OrderedDict).sort('value', -1):
             toptopics.append(quicktopic)
-        subjects = []
 
         self.write(
             self.render_string('header.html', title="List of all Topics",
@@ -528,8 +518,6 @@ class AllTopicsHandler(BaseHandler):
 class TopicPropertiesHandler(BaseHandler):
     def get(self, topic):
         self.getvars()
-
-        client_topic = tornado.escape.xhtml_escape(topic)
 
         mods = []
         for mod in server.mongos['unsafe']['modlist'].find({'_id.topic': server.sorttopic(topic)}, as_class=OrderedDict, max_scan=10000).sort('value.trust', direction=pymongo.DESCENDING):
@@ -1107,6 +1095,7 @@ class NewmessageHandler(BaseHandler):
                     individual_file['hash'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".sha512"))
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
+                    SHA512 = hashlib.sha512()
                     while True:
                         buf = individual_file['filehandle'].read(0x100000)
                         if not buf:
@@ -1135,13 +1124,11 @@ class NewmessageHandler(BaseHandler):
                         break
                     SHA512.update(buf)
                 individual_file['filehandle'].seek(0)
-                digest = SHA512.hexdigest()
                 SHA512.update(individual_file['body'])
                 individual_file['hash'] = SHA512.hexdigest()
                 individual_file['filehandle'].seek(0)
                 filelist.append(individual_file)
 
-        client_filepath = None
         envelopebinarylist = []
 
         # Attach the files that are actually here, submitted alongside the message.
@@ -1162,16 +1149,16 @@ class NewmessageHandler(BaseHandler):
                     Image.open(attached_file['filehandle']).save(
                         attached_file['filehandle'], format=imagetype)
                 attached_file['filehandle'].seek(0)
-                oid = server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
+                server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
             server.logger.info("Creating Message")
             #Create a message binary.
-            bin = Envelope.binary(hash=attached_file['hash'])
+            mybinary = Envelope.binary(hash=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
             print('estimated size : ' + str(attached_file['size']))
-            bin.dict['filesize_hint'] = attached_file['size']
-            bin.dict['content_type'] = attached_file['content_type']
-            bin.dict['filename'] = attached_file['filename']
-            envelopebinarylist.append(bin.dict)
+            mybinary.dict['filesize_hint'] = attached_file['size']
+            mybinary.dict['content_type'] = attached_file['content_type']
+            mybinary.dict['filename'] = attached_file['filename']
+            envelopebinarylist.append(mybinary.dict)
 
             #Don't keep spare copies on the webservers
             attached_file['filehandle'].close()
@@ -1206,11 +1193,11 @@ class NewmessageHandler(BaseHandler):
                 r = re.compile('referenced_file(.*?)_name')
                 m = r.search(argument)
                 binarycount = m.group(1)
-                bin = Envelope.binary(hash=tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_hash')))
-                bin.dict['filesize_hint'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_size'))
-                bin.dict['content_type'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_contenttype'))
-                bin.dict['filename'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_name'))
-                envelopebinarylist.append(bin.dict)
+                mybinary = Envelope.binary(hash=tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_hash')))
+                mybinary.dict['filesize_hint'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_size'))
+                mybinary.dict['content_type'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_contenttype'))
+                mybinary.dict['filename'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_name'))
+                envelopebinarylist.append(mybinary.dict)
 
         client_body = tornado.escape.xhtml_escape(self.get_argument("body"))
         # Pull in our Form variables.
@@ -1325,7 +1312,7 @@ class MyPrivateMessagesHandler(BaseHandler):
 class NewPrivateMessageHandler(BaseHandler):
     def get(self, urlto=None):
         self.getvars()
-        self.write(self.render_string('header.html', title="Login to your account", user=self.user, rsshead=None, type=none))
+        self.write(self.render_string('header.html', title="Login to your account", user=self.user, rsshead=None, type=None))
         self.write(self.render_string('privatemessageform.html', urlto=urlto))
         self.write(self.render_string('footer.html'))
 
@@ -1413,11 +1400,11 @@ class BinariesHandler(tornado.web.RequestHandler):
     Really shouldn't be used in prod.
     Use the nginx handler instead
     """
-    def get(self, hash, filename=None):
+    def get(self, binaryhash, filename=None):
         server.logger.info("The gridfs_nginx plugin is a much better option than this method")
         self.set_header("Content-Type", 'application/octet-stream')
 
-        req = server.bin_GridFS.get_last_version(filename=hash)
+        req = server.bin_GridFS.get_last_version(filename=binaryhash)
         self.write(req.read())
 
 

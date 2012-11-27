@@ -1,7 +1,0 @@
-*.pyc
-*.swp
-*.swo
-.DS_Store
-*.Tavern*Settings*
-nohup.out
-__pycache__
