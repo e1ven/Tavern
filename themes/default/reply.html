@@ -35,11 +35,11 @@
 				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.jpg?set=any&amp;bgset=any&amp;size=40x40' %}
 				    	{% end %}
 
-				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40px" height="40px" alt="User Details - " src="{{src}}" />
+				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{src}}" />
 
 
 
-				    	{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br>
+				    	<b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br>
 				    	{% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
 				    	{% if user.UserSettings['display_useragent'] %}
 							{% if 'name' in envelope['envelope']['payload']['author']['useragent'] %}
@@ -192,19 +192,19 @@
 					  {% raw xsrf_form_html() %}
 					<input type="hidden" name="rating" value="1">
 					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16px" width="16px"></abbr>
+					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16"></abbr>
 					</form>
 
 					<form action="/vote" method="post" class="vote">
 					  {% raw xsrf_form_html() %}
 					<input type="hidden" name="rating" value="-1" >
 					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16px" width="16px"></abbr>
+					<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16"></abbr>
 					</form>
 				</div>  <!-- votes -->
 				{% if orient == "right" %}
 					{% if medialink is None %}
-						{% set medialink = 'http://www.pluric.com/static/images/logo.png' %}
+						{% set medialink = 'http://GetTavern.com/static/images/logo.png' %}
 					{% end %}
 				<div class="externalsharing">
 				<a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">

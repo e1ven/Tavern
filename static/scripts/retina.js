@@ -54,9 +54,7 @@
 
   function RetinaImagePath(path) {
     this.path = path;
-    this.at_2x_path = path.replace(/\.[\w\?=]+$/, function(match) { return "@2x" + match; });
-    alert(this.at_2x_path);
-    
+    this.at_2x_path = path.replace(/\.[\w\?=]+$/, function(match) { return "@2x" + match; });    
   }
 
   RetinaImagePath.confirmed_paths = [];
