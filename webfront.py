@@ -171,7 +171,7 @@ class BaseHandler(tornado.web.RequestHandler):
         try:
             soup = BeautifulSoup(self.html)
         except:
-            print('malformed data: %r' % soup)
+            print('malformed data in BeautifulSoup')
             raise
         soupyelement = soup.find(id=element)
         if soup.html is not None:

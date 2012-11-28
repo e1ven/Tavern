@@ -24,6 +24,9 @@ echo "Running onStart functions."
 ./ModList.py
 ./DiskTopics.py -l
 
+
+
+
 echo "Testing ability to Minimize" 
 
 yui-compressor -h > /dev/null 2>&1
@@ -44,8 +47,9 @@ then
     yui='cat'
 fi
 
+
 echo "Minimizing JS"
-for i in `find static/scripts/ -name "*.js"| grep -v '.min.js'`
+for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
     basename=`basename $i ".js"`
     echo -n "$basename"..
@@ -61,6 +65,9 @@ do
 done
 echo ""
 
+cat static/scripts/jquery.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/mousetrap.min.js static/scripts/retina.min.js > static/scripts/unified.js
+echo "Combining JS"
+$yui static/scripts/unified.js > static/scripts/unified.min.js
 
 autopep8 -i *.py > /dev/null 2>&1
 # If we're not in daemon mode, fire up the server

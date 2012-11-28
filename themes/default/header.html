@@ -52,16 +52,6 @@
  		    <link href="/static/css/video-js.min.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet">
 		    <link rel="stylesheet" href="/static/css/fontello.min.css?revision={{server.ServerSettings['static-revision']}}"><!--[if IE 7]>
     		<link rel="stylesheet" href="/static/css/fontello-ie7.min.css"><![endif]-->
-    			<script>
-			      function toggleCodes(on) {
-			        var obj = document.getElementById('icons');
-			        if (on) {
-			          obj.className += ' codesOn';
-			        } else {
-			          obj.className = obj.className.replace(' codesOn', '');
-			        }
-			      }
-	    		</script>
 	{% end %}
 	
 	
@@ -75,16 +65,7 @@
   <script src="/static/scripts/IE9.min.js?revision={{server.ServerSettings['static-revision']}}"></script>  
 {% end %}
 {% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
-  <script defer src="/static/scripts/jquery.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/jstorage.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/jquery.json.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/vsplit.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/default.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/garlic.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/video.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/audio.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/mousetrap.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/retina.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/unified.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
 {% end %}
 
 
