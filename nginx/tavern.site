@@ -49,7 +49,6 @@
                         add_header Content-Disposition "attachment";
                 }
                 # Add header to say we never modify this.
-                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
                 expires max;
                 gridfs test field=filename type=string;
