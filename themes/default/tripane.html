@@ -11,10 +11,6 @@
 
 {% set newbefore = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added']) %}				
 {% set beforecount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added'],countonly=True) %}				
-
-
-
-{{envelope['envelope']['local']['time_added']}}
 			<div id="left">
 				<h2>Your Topics</h2>
 					<ul>

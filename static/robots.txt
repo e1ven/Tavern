@@ -1,19 +1,48 @@
 User-agent: *
-Sitemap: http://pluric.com/static/sitemaps/sitemap_index.xml 
+Sitemap: /static/sitemaps/sitemap_index.xml 
 Crawl-delay: 1
 Disallow: /register
 Disallow: /login
 Disallow: /logout
+
+Disallow: /reply/
 Disallow: /reply
+
+Disallow: /vote/
 Disallow: /vote
+
+Disallow: /usertrust/
 Disallow: /usertrust
+
+Disallow: /followuser/
 Disallow: /followuser
+
+Disallow: /followtopic/
 Disallow: /followtopic
+
+Disallow: /showprivates/
 Disallow: /showprivates
-Disallow: /static/
+
+Disallow: /newmessage/
 Disallow: /newmessage
+
+Disallow: /uploadnewmessage/
 Disallow: /uploadnewmessage
-Disallow: /showuserposts
+
+Disallow: /uploadprivatemessage/
 Disallow: /uploadprivatemessage
+
+Disallow: /privatemessage/
 Disallow: /privatemessage
-Disallow: /user
+
+Disallow: /changepassword/
+Disallow: /changepassword
+
+Disallow: /uploadfile/
+Disallow: /uploadfile
+
+Disallow: /usernote/
+Disallow: /usernote
+
+Disallow: /changesetting/
+Disallow: /changesetting
