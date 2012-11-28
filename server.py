@@ -250,19 +250,19 @@ class Server(object):
             self.ServerSettings['mongo-connections'] = 10
 
         # Create a fast, unsafe mongo connection. Writes might get lost.
-        self.mongocons['unsafe'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongocons['unsafe'] = pymongo.MongoClient(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=self.ServerSettings['mongo-connections'])
         self.mongos['unsafe'] = self.mongocons['unsafe'][
             self.ServerSettings['mongo-db']]
 
         # Slower, more reliable mongo connection.
-        self.mongocons['safe'] = pymongo.Connection(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], safe=True, journal=True, max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongocons['safe'] = pymongo.MongoClient(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], safe=True, journal=True, max_pool_size=self.ServerSettings['mongo-connections'])
         self.mongos['safe'] = self.mongocons['safe'][
             self.ServerSettings['mongo-db']]
 
-        self.mongocons['binaries'] = pymongo.Connection(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'], max_pool_size=self.ServerSettings['mongo-connections'])
+        self.mongocons['binaries'] = pymongo.MongoClient(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'], max_pool_size=self.ServerSettings['mongo-connections'])
         self.mongos['binaries'] = self.mongocons['binaries'][
             self.ServerSettings['bin-mongo-db']]
-        self.mongocons['sessions'] = pymongo.Connection(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
+        self.mongocons['sessions'] = pymongo.MongoClient(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
         self.mongos['sessions'] = self.mongocons['sessions'][
             self.ServerSettings['sessions-mongo-db']]
         self.bin_GridFS = GridFS(self.mongos['binaries'])
