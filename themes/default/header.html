@@ -45,13 +45,13 @@
 	{% if browser['ua_family'] != 'Netscape Navigator' and browser['ua_versions'][0] > 4 %}
 	
 		{% if 'theme' in user.UserSettings %}
-			<link href="/static/css/style-{{user.UserSettings['theme']}}.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/style-{{user.UserSettings['theme']}}.min.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 			{% else %}
-			<link href="/static/css/style-default.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/style-default.min.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		{% end %}
- 		    <link href="/static/css/video-js.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet">
-		    <link rel="stylesheet" href="/static/css/fontello.css?revision={{server.ServerSettings['static-revision']}}"><!--[if IE 7]>
-    		<link rel="stylesheet" href="/static/css/fontello-ie7.css"><![endif]-->
+ 		    <link href="/static/css/video-js.min.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet">
+		    <link rel="stylesheet" href="/static/css/fontello.min.css?revision={{server.ServerSettings['static-revision']}}"><!--[if IE 7]>
+    		<link rel="stylesheet" href="/static/css/fontello-ie7.min.css"><![endif]-->
     			<script>
 			      function toggleCodes(on) {
 			        var obj = document.getElementById('icons');

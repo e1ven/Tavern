@@ -11,3 +11,4 @@ scrypt
 BeautifulSoup==4.0b
 lxml==2.3
 python-magic
+squeeze

@@ -24,12 +24,24 @@ echo "Running onStart functions."
 ./ModList.py
 ./DiskTopics.py -l
 
-echo "Minimizing"
+echo "Minimizing JS"
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js'`
 do
     basename=`basename $i ".js"`
-    cat $i | libs/jsmin > static/scripts/$basename.min.js
+    echo -n "$basename"..
+    squeeze yuicompressor $i > static/scripts/$basename.min.js --nomunge    
 done
+echo ""
+echo "Minimizing CSS"
+for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
+do
+    basename=`basename $i ".css"`
+    echo -n "$basename"..
+    squeeze yuicompressor $i > static/css/$basename.min.css
+done
+echo ""
+
+
 autopep8 -i *.py
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]

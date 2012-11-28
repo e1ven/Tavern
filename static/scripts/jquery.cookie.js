@@ -1,5 +1,5 @@
 /*jshint eqnull:true */
-/*!
+/*
  * jQuery Cookie Plugin v1.1
  * https://github.com/carhartl/jquery-cookie
  *
@@ -8,6 +8,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  * http://www.opensource.org/licenses/GPL-2.0
  */
+
 (function($, document) {
 
 	var pluses = /\+/g;
