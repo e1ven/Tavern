@@ -9,6 +9,14 @@
 	</footer>
 </div><!-- #limits -->
 
+
+{% if browser['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
+  <script src="/static/scripts/IE9.min.js?revision={{server.ServerSettings['static-revision']}}"></script>  
+{% end %}
+{% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
+  <script defer src="/static/scripts/unified.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+{% end %}
+
     <script>
       function toggleCodes(on) {
         var obj = document.getElementById('icons');
@@ -19,6 +27,8 @@
         }
       }
     </script>
+    
+    
 	                
 </body>
 

@@ -42,15 +42,14 @@
                 if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
                 {
                     set $image 1;
-                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
+                    add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 }
                 if ($image != 1)
                 {
                         add_header Content-Type "application/octet-stream";
                         add_header Content-Disposition "attachment";
-                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
+                        add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 }
-                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
                 expires max;
                 gridfs test field=filename type=string;
@@ -72,7 +71,7 @@
         ssl    on;
         
         ssl_certificate    /etc/ssl/certs/gettavern.com.crt;
-        ssl_certificate_key    /etc/ssl/certs/gettavern.com.key;
+        ssl_certificGate_key    /etc/ssl/certs/gettavern.com.key;
         ssl_session_cache  shared:SSL:100m;
         ssl_ciphers RC4:AES128-SHA:AES:CAMELLIA128-SHA:!MD5:!ADH:!DH:!ECDH:!PSK:!SSLv2;
 
