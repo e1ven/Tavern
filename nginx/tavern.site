@@ -17,7 +17,7 @@
     server 
     {
         server_name files.tavern.is;
-        listen 96.126.105.180:443;
+        listen 96.126.105.180:443  ssl spdy ;
         ssl    on;
         ssl_certificate    /etc/ssl/certs/files.tavern.is.crt;
         ssl_certificate_key    /etc/ssl/certs/files.tavern.is.key;
@@ -42,13 +42,15 @@
                 if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
                 {
                     set $image 1;
+                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 }
                 if ($image != 1)
                 {
                         add_header Content-Type "application/octet-stream";
                         add_header Content-Disposition "attachment";
+                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 }
-
+                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
                 rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
                 expires max;
                 gridfs test field=filename type=string;
@@ -65,7 +67,7 @@
     # The main server.
     server 
     {
-        listen 198.74.56.235:443;
+        listen 198.74.56.235:443  ssl spdy;
 
         ssl    on;
         
