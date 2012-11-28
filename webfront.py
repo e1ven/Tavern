@@ -116,6 +116,8 @@ class BaseHandler(tornado.web.RequestHandler):
                 super(BaseHandler, self).write(self.getdiv(div))
         else:
             super(BaseHandler, self).write(self.html)
+        if "js" in self.request.arguments:
+            self.set_header("Content-Type", "application/json")
         super(BaseHandler, self).finish(message)
 
     @memorise(parent_keys=['html'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
