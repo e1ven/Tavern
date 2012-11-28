@@ -1448,7 +1448,6 @@ def main():
         (r"/register", RegisterHandler),
         (r"/login/(.*)", LoginHandler),
         (r"/login", LoginHandler),
-        (r"/showuserposts/(.*)", UserHandler),
         (r"/user/(.*)", UserHandler),
         (r"/changepassword", ChangepasswordHandler),
         (r"/logout", LogoutHandler),

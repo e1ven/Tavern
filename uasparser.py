@@ -65,7 +65,6 @@ class UASparser:
     info_url = '/useragent/'
     os_img_url = '/useragent/img/%s'
     ua_img_url = '/useragent/img/%s'
-    
 
     @memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=server.ServerSettings['cache']['uasparser']['seconds'], maxsize=server.ServerSettings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):

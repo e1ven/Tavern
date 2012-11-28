@@ -49,8 +49,8 @@
 			{% else %}
 			<link href="/static/css/style-default.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		{% end %}
- 		    <link href="/static/css/video-js.css" rel="stylesheet">
-		    <link rel="stylesheet" href="/static/css/fontello.css"><!--[if IE 7]>
+ 		    <link href="/static/css/video-js.css?revision={{server.ServerSettings['static-revision']}}" rel="stylesheet">
+		    <link rel="stylesheet" href="/static/css/fontello.css?revision={{server.ServerSettings['static-revision']}}"><!--[if IE 7]>
     		<link rel="stylesheet" href="/static/css/fontello-ie7.css"><![endif]-->
     			<script>
 			      function toggleCodes(on) {
@@ -81,10 +81,10 @@
   <script defer src="/static/scripts/vsplit.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/default.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
   <script defer src="/static/scripts/garlic.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-  <script defer src="/static/scripts/video.min.js"></script>
-  <script defer src="/static/scripts/audio.min.js"></script>
-  <script defef src="/static/scripts/mousetrap.min.js"></script>
-
+  <script defer src="/static/scripts/video.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/audio.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defef src="/static/scripts/mousetrap.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
+  <script defer src="/static/scripts/retina.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
 {% end %}
 
 

@@ -382,7 +382,7 @@ jQuery(document).ready(function() {
 
 
 // Run the per-instance stuff.
-jQuery.getScript('/static/scripts/instance.js');
+jQuery.getScript('/static/scripts/instance.min.js');
 
 
     // Mark all the votes we've already cast.
