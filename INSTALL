@@ -1,19 +1,28 @@
 T# This project requires Python 3.
 # If you're on OS X, I suggest Homebrew, rather than MacPorts or Fink.
 
-# Ensure you have the proper system-level libraries.
+
+
+#### For Ubuntu 
 apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev
-sudo apt-get build-dep python-imaging java-common
+sudo apt-get build-dep python-imaging java-common yui-compressor
 
-
-
-ln -s /usr/bin/python3.2 /usr/bin/python
+### for OS X
 
 brew install Boost
 brew install mongodb python3 
 brew install libmagic
 brew install exiv2
 brew install jsmin
+brew install 
+
+
+
+
+
+ln -s /usr/bin/python3.2 /usr/bin/python
+
+
 
 
 #On 64 bit

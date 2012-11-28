@@ -24,12 +24,32 @@ echo "Running onStart functions."
 ./ModList.py
 ./DiskTopics.py -l
 
+echo "Testing ability to Minimize" 
+
+yui-compressor -h > /dev/null 2>&1
+if [ $? -eq 0 ]
+then
+    yui='yui-compressor'
+fi
+
+yuicompressor -h  > /dev/null 2>&1
+if [ $? -eq 0 ]
+then
+    yui='yuicompressor'
+fi
+
+if [ -z $yui ]
+then
+    # No minimization
+    yui='cat'
+fi
+
 echo "Minimizing JS"
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js'`
 do
     basename=`basename $i ".js"`
     echo -n "$basename"..
-    squeeze yuicompressor $i > static/scripts/$basename.min.js --nomunge    
+    $yui $i > static/scripts/$basename.min.js --nomunge    
 done
 echo ""
 echo "Minimizing CSS"
@@ -37,12 +57,12 @@ for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
 do
     basename=`basename $i ".css"`
     echo -n "$basename"..
-    squeeze yuicompressor $i > static/css/$basename.min.css
+    $yui $i > static/css/$basename.min.css
 done
 echo ""
 
 
-autopep8 -i *.py
+autopep8 -i *.py > /dev/null 2>&1
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]
 then
