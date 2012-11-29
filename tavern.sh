@@ -65,7 +65,7 @@ do
 done
 echo ""
 
-cat static/scripts/jquery.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/mousetrap.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
+cat static/scripts/json2.min.js static/scripts/jquery.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/mousetrap.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
 echo "Combining JS"
 $yui static/scripts/unified.js > static/scripts/unified.min.js
 

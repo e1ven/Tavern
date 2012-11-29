@@ -13,9 +13,7 @@ brew install Boost
 brew install mongodb python3 
 brew install libmagic
 brew install exiv2
-brew install jsmin
-brew install 
-
+brew install yuicompressor
 
 
 
@@ -61,9 +59,6 @@ cd ..
 make
 make install
 
-cd /opt/Tavern
-pip-3.2 install -r requirements.txt
-
 mkdir /opt/uploads
 chmod 777 /opt/uploads/
 
@@ -80,6 +75,9 @@ tar -xzvf distribute-0.6.30.tar.gz
 cd distribute-0.6.30
 python setup.py install
 /usr/local/bin/easy_install-3.2 pip
+
+cd /opt/Tavern
+pip-3.2 install -r requirements.txt
 
 ## TomCrypt ##
 

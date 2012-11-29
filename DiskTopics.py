@@ -70,7 +70,10 @@ def loaddir(directory):
 
     for infile in listing:
         e.loadfile(msgsdir + directory + "/" + infile)
-        server.receiveEnvelope(e.text())
+        if args.verbose:
+            print(e.text())
+        if e.validate():
+            server.receiveEnvelope(e.text())
 
 if len(sys.argv) == 1:
     parser.print_help()

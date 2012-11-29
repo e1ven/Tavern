@@ -237,7 +237,7 @@ class Envelope(object):
         if (ext == '.7zTavernEnvelope'):
             #7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
-            filecontents = filecontents.decode('UTF-8')
+            filecontents = filecontents.decode('utf-8')
         filehandle.close()
         self.loadstring(filecontents)
 
