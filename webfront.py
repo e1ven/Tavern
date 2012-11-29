@@ -361,14 +361,14 @@ class RSSHandler(BaseHandler):
     def get(self, action, param):
         if action == "topic":
             channel = rss.Channel('Tavern - ' + param,
-                                  'http://Tavern.com/rss/' + param,
+                                  'http://GetTavern.com/rss/' + param,
                                   'Tavern discussion about ' + param,
                                   generator='Tavern',
                                   pubdate=datetime.datetime.now())
             for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, as_class=OrderedDict).sort('envelope.local.time_added', pymongo.DESCENDING):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
-                                "http://Tavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
+                                "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
                                 envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
