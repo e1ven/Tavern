@@ -89,7 +89,7 @@ mv tmp/checked/* tmp/unchecked
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
 
-    filehash=`cat $i | $hash`
+    filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".js"`
     echo -n "$basename"..
     if [ ! -f tmp/unchecked/$filehash.exists ]
@@ -109,7 +109,7 @@ echo ""
 echo "Minimizing CSS"
 for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
 do
-    filehash=`cat $i | $hash`
+    filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".css"`
     echo -n "$basename"..
     if [ ! -f tmp/unchecked/$filehash.exists ]
@@ -127,7 +127,7 @@ echo ""
 
 cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/mousetrap.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
 echo "Combining JS.."
-filehash=`cat static/scripts/unified.js | $hash`
+filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]
 then
     $yui static/scripts/unified.js > static/scripts/unified.min.js
