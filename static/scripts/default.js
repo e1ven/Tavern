@@ -77,13 +77,19 @@ function savedivsizes()
     jQuery.jStorage.set('#center.width',jQuery('#center').width() );
     jQuery.jStorage.set('#right.width',jQuery('#right').width() );
 }
+function getParameterByName(name) {
+   var match = RegExp('[?&]' + name + '=([^&]*)')
+                   .exec(window.location.search);
+   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
 
 jQuery(document).ready(function() {
     $jQuery = jQuery.noConflict();
     sizewindow();
 
     if (jQuery("#centerandright").length)
-    {
+      {
 
         // If we've saved any values to storage, retrieve them, and keep the page the size it was.
 
@@ -115,12 +121,6 @@ jQuery(document).ready(function() {
         }
         
      };
-
-     function getParameterByName(name) {
-         var match = RegExp('[?&]' + name + '=([^&]*)')
-                         .exec(window.location.search);
-         return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-     }
  
     if (getParameterByName("jumpto"))
     {
@@ -296,10 +296,12 @@ jQuery(document).ready(function() {
 
     // Pop up a box when they click on a user avatar
     jQuery(document).on('click','a.details',function(event)
-    {            
+    { 
+          //TODO - This is firing twice. The stop propogation fixes.. But why?   
+          event.stopImmediatePropagation();
+
           userdiv = "details_" + jQuery(this).attr('user');
           avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
-          alert(event.target.id);
           jQuery("#" + userdiv).click(function()
           { // hide on clicks to the function itself.
       //      jQuery(this).hide();
