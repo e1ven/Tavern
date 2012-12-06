@@ -33,6 +33,4 @@ jQuery(document).ready(function () {
         });
 
     });
-
-
 });

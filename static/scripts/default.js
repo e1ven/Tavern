@@ -299,7 +299,7 @@ jQuery(document).ready(function() {
     {            
           userdiv = "details_" + jQuery(this).attr('user');
           avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
-
+          alert(event.target.id);
           jQuery("#" + userdiv).click(function()
           { // hide on clicks to the function itself.
       //      jQuery(this).hide();
