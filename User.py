@@ -258,8 +258,10 @@ class User(object):
                 self.UserSettings[
                     'encryptedprivkey'] = self.Keys.encryptedprivkey
                 self.UserSettings['time_privkey'] = int(time.time())
-                self.UserSettings['pubkey_sha1'] = hashlib.sha1(
-                    self.UserSettings['pubkey'].encode('utf-8')).hexdigest()
+
+        if not 'pubkey_sha1' in self.UserSettings:
+            self.UserSettings['pubkey_sha1'] = hashlib.sha1(
+                self.UserSettings['pubkey'].encode('utf-8')).hexdigest()
 
         if not 'time_created' in self.UserSettings:
             self.UserSettings['time_created'] = int(time.time())

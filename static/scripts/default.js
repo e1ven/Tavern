@@ -179,12 +179,6 @@ jQuery(document).ready(function() {
                }
     });
 
-    // Reapply the JS splitter on window resize
-    jQuery(window).on('resize',function() {
-      sizewindow();
-    });
-
-
     // Send notes via Ajax
     jQuery(document).on("submit", ".usernote", function(event) {
         noteref = jQuery(this);
