@@ -71,7 +71,7 @@ for i in range(sitemapcount):
         url = serverprefix + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512']
         date = datetime.datetime.utcfromtimestamp(
             envelope['envelope']['stamps'][0]['time_added'])
-        datestr =  datetime.datetime.now().strftime('%Y-%m-%d')
+        datestr =  date.strftime('%Y-%m-%d')
         sitemap.write("<url>\n")
         sitemap.write("<loc>" + url + "</loc>\n")
         sitemap.write("<lastmod>" + datestr + "</lastmod>\n")
