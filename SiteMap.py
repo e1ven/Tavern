@@ -32,9 +32,12 @@ sitemapindex.write("""<?xml version="1.0" encoding="UTF-8"?>
 <lastmod>""" + datenow + """</lastmod>
 </sitemap>""")
 
+
 # Now, generate the per-envelope sitemaps.
 countEnvelopes = server.mongos['unsafe']['envelopes'].find(
     {"envelope.payload.class": "message"}).count()
+
+print("Found - " + str(countEnvelopes) + " envelopes.")
 
 divisor = 40000
 start = options.start
@@ -49,7 +52,7 @@ server.logger.info("This will generate " + str(
 server.logger.info("Generating Master sitemap file")
 
 for i in range(sitemapcount):
-    sitemap_path = "static/sitemaps/sitemap-" + str(i + 1) + ".xml"
+    sitemap_path = "static/sitemaps/sitemap-" + str(i) + ".xml"
     sitemap = open(sitemap_path, 'w')
     sitemap.write("""<?xml version="1.0" encoding="UTF-8"?>\n""")
     sitemap.write("""<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n""")
@@ -58,7 +61,7 @@ for i in range(sitemapcount):
 
     sitemapindex.write("<sitemap>")
     sitemapindex.write("<loc>" + serverprefix + "/static/sitemaps/sitemap-" +
-                       str(i + 1) + ".xml</loc>\n")
+                       str(i) + ".xml</loc>\n")
     sitemapindex.write("<lastmod>" + datenow + "</lastmod>\n")
     sitemapindex.write("</sitemap>\n")
 
@@ -72,8 +75,8 @@ for i in range(sitemapcount):
         sitemap.write("<url>\n")
         sitemap.write("<loc>" + url + "</loc>\n")
         sitemap.write("<lastmod>" + datestr + "</lastmod>\n")
-        sitemap.write("<changefreq> monthly </changefreq>\n")
-        sitemap.write("<priority> .5 </priority>\n")
+        sitemap.write("<changefreq>monthly</changefreq>\n")
+        sitemap.write("<priority>.5</priority>\n")
         sitemap.write("</url>\n")
     sitemap.write("</urlset>\n")
     sitemap.close()
