@@ -9,6 +9,11 @@
           static.tavern.is 1;
     }    
 
+    # Gets the basename of the current uri
+    map $uri $basename {
+        ~/(?<captured_basename>[^/]*)$ $captured_basename;
+    }
+            
 
     # The Binaries server
     # All binaries must go through this server name, to ensure that it won't have access to cookies.
@@ -35,23 +40,38 @@
            proxy_pass http://tornados;
         }
 
+
+        # Create a pass-through proxy to self
+        # So that we will cache, not just hit GridFS everytime.
         location /binaries/ {
+            proxy_cache static-cache;
+            proxy_cache_valid  200 1y;
+            proxy_cache_valid  404 302  1m;
+            expires max;
+
+            rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
+
+            proxy_pass https://bins/binaries2/$basename;
+        }
+
+        location /binaries2/ {
                 # Set additional headers to force download if it's not an image
                 # Kinda complex to do in nginx, but it works ;)
 
-                if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
-                {
-                    set $image 1;
+
+            if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
+            {
+                set $image 1;
+                add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
+            }
+            if ($image != 1)
+            {
+                    add_header Content-Type "application/octet-stream";
+                    add_header Content-Disposition "attachment";
                     add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
-                }
-                if ($image != 1)
-                {
-                        add_header Content-Type "application/octet-stream";
-                        add_header Content-Disposition "attachment";
-                        add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
-                }
-                rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
-                expires max;
+            }
+
+
                 gridfs test field=filename type=string;
                 mongo 127.0.0.1:27017;
         }
@@ -195,4 +215,5 @@
                 }
 
   }
+
 
