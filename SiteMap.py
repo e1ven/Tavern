@@ -16,8 +16,8 @@ parser.add_option("-f", "--filestart",
                   help="The sitemap file to begin at.")
 (options, args) = parser.parse_args()
 
-date1 = datetime.datetime.now().isoformat()
-datenow = date1[0:date1.find(".")] + "+00:00"
+datenow = datetime.datetime.now().strftime('%Y-%m-%d')
+
 
 
 serverprefix = "https://" + server.ServerSettings['hostname']
@@ -48,10 +48,6 @@ server.logger.info("This will generate " + str(
     sitemapcount) + " sitemaps, beginning with element " + str(start))
 server.logger.info("Generating Master sitemap file")
 
-date1 = datetime.datetime.now().isoformat()
-datenow = date1[0:date1.find(".")] + "+00:00"
-
-
 for i in range(sitemapcount):
     sitemap_path = "static/sitemaps/sitemap-" + str(i + 1) + ".xml"
     sitemap = open(sitemap_path, 'w')
@@ -72,11 +68,10 @@ for i in range(sitemapcount):
         url = serverprefix + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512']
         date = datetime.datetime.utcfromtimestamp(
             envelope['envelope']['stamps'][0]['time_added'])
-        datestr = date.isoformat()
-        datecur = datestr[0:datestr.find(".")] + "+00:00"
+        datestr =  datetime.datetime.now().strftime('%Y-%m-%d')
         sitemap.write("<url>\n")
         sitemap.write("<loc>" + url + "</loc>\n")
-        sitemap.write("<lastmod>" + datecur + "</lastmod>\n")
+        sitemap.write("<lastmod>" + datestr + "</lastmod>\n")
         sitemap.write("<changefreq> monthly </changefreq>\n")
         sitemap.write("<priority> .5 </priority>\n")
         sitemap.write("</url>\n")

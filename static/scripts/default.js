@@ -5,6 +5,19 @@ jQuery.ajaxSetup({
 });
 
 
+
+// Part of Fontello
+function toggleCodes(on) {
+  var obj = document.getElementById('icons');
+  if (on) {
+    obj.className += ' codesOn';
+  } else {
+    obj.className = obj.className.replace(' codesOn', '');
+  }
+}
+    
+
+
 // Detect if CSS Animation support is enabled.
 // We're going to use this later to register events (quickly) on elements added after page load.
 function detectAnimation()
@@ -407,6 +420,10 @@ jQuery(document).ready(function() {
         element.css('transform','rotate(180deg);'); 
         element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
     });
+
+
+
+
 
 
 

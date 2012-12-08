@@ -1,3 +1,6 @@
+// Modified version from http://www.stevefenton.co.uk/Content/JavaScript-Vertical-Splitter/
+// Apache licensed
+
 var VerticalSplitterX = 0;
 var VerticalSplitterY = 0;
 var VerticalSplitterCount = 0;

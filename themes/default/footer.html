@@ -15,21 +15,7 @@
 {% end %}
 {% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
   <script defer src="/static/scripts/unified.min.js?revision={{server.ServerSettings['static-revision']}}"></script>
-{% end %}
-
-    <script>
-      function toggleCodes(on) {
-        var obj = document.getElementById('icons');
-        if (on) {
-          obj.className += ' codesOn';
-        } else {
-          obj.className = obj.className.replace(' codesOn', '');
-        }
-      }
-    </script>
-    
-    
-	                
+{% end %}             
 </body>
 
 </html>
