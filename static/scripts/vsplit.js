@@ -51,7 +51,7 @@ var VerticalSplitter = (function() {
 			var leftItem = document.getElementById(config.firstItemId);
 			var rightItem = document.getElementById(config.secondItemId);
 			
-			var leftItemWidth = leftItem.offsetWidth - config.splitterWidth;
+			var leftItemWidth = leftItem.offsetWidth;
 			var splitterHandleWidth = config.splitterWidth;
 			
 			var remainingWidth = (container.offsetWidth - leftItemWidth) - config.splitterWidth;			

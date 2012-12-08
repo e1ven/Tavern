@@ -114,6 +114,7 @@ Using the following Libraries:
     
     retina.js https://github.com/imulus/retinajs/ (MIT)
     
+    jquery-throttle https://github.com/mekwall/jquery-throttle (MIT)
 
 ---   python-browscap  (MIT) ---
 

@@ -5,6 +5,21 @@ jQuery.ajaxSetup({
 });
 
 
+jQuery.fn.throttledBind = function(){
+    var args = [].slice.call(arguments),
+        an = (typeof args[1] === "function") ? 1 : 2;
+    if (typeof args[0] === "object") {
+        $.each(args[0], function(event, fn){
+            args[0][event] = $.throttle.apply(null, [fn].concat([].splice.call(args, 1, 5)));
+        });
+    } else {
+        args[an] = $.throttle.apply(null, [].splice.call(args, an, 6));
+    }
+    args.slice(0, an);
+    return this.bind.apply(this, args);
+};
+
+
 // Detect if CSS Animation support is enabled.
 function detectAnimation()
 {
@@ -37,6 +52,7 @@ function detectAnimation()
 // Set out footer size.
 function sizewindow()
 {
+
   if (jQuery("#centerandright").length)
   {
     // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
@@ -53,6 +69,7 @@ function sizewindow()
   {
     if(typeof VerticalSplitter != 'undefined')
     {
+      //alert('resize');
       VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
       VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
     }   
@@ -406,6 +423,13 @@ jQuery.getScript('/static/scripts/instance.min.js');
 });
 
 
+jQuery(window).throttledBind("resize", function()
+{
+  // Only run the resize every .2 seconds, but catch up afterward.
+  sizewindow();
+}, 200,true, true);
+
+
 Mousetrap.bind('up up down down left right left right b a', function() {
     element = jQuery('#top')
     element.css('-moz-transform', 'rotate(180deg)'); 
@@ -414,6 +438,4 @@ Mousetrap.bind('up up down down left right left right b a', function() {
     element.css('-ms-transform','rotate(180deg)'); 
     element.css('transform','rotate(180deg);'); 
     element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
-
-  sizewindow();
 });
