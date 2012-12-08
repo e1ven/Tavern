@@ -5,22 +5,8 @@ jQuery.ajaxSetup({
 });
 
 
-jQuery.fn.throttledBind = function(){
-    var args = [].slice.call(arguments),
-        an = (typeof args[1] === "function") ? 1 : 2;
-    if (typeof args[0] === "object") {
-        $.each(args[0], function(event, fn){
-            args[0][event] = $.throttle.apply(null, [fn].concat([].splice.call(args, 1, 5)));
-        });
-    } else {
-        args[an] = $.throttle.apply(null, [].splice.call(args, an, 6));
-    }
-    args.slice(0, an);
-    return this.bind.apply(this, args);
-};
-
-
 // Detect if CSS Animation support is enabled.
+// We're going to use this later to register events (quickly) on elements added after page load.
 function detectAnimation()
 {
     elm = document.documentElement;
@@ -48,11 +34,9 @@ function detectAnimation()
 }
 
 
-
-// Set out footer size.
+// Function to properly size the 3 column layout
 function sizewindow()
 {
-
   if (jQuery("#centerandright").length)
   {
     // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
@@ -64,29 +48,51 @@ function sizewindow()
     jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10});
     
 
-    // Redraw the splitters, if there is content to split.
-  if (jQuery("#centerandright").length)
+  // Redraw the splitters, if there is content to split.
+  if(typeof VerticalSplitter != 'undefined')
   {
-    if(typeof VerticalSplitter != 'undefined')
+    if (jQuery("#centerandright").length)
     {
-      //alert('resize');
       VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
+    }
+    if (jQuery("#centerandright").length)
+    {
       VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
     }   
   } 
    
 } 
 
+// Throttled version of Resize
+var throttledSizeWindow = jQuery.throttle(sizewindow, 200, null, true);
+
+// Now, bind the throttled version to resize
+jQuery(window).resize(function() {
+  throttledSizeWindow();
+});
+
+
+
 // Set default positions for the various columns.
-function defaultdivsizes()
+function ensureMinDivSizes(force)
 {
+  //default force to false
+  force = typeof force !== 'undefined' ? force : false;
+
+  if (jQuery('#left').width() < 50) or (force = true)
     jQuery('#left').width(jQuery('#left').parent().parent().width() * .15 );
+
+  if (jQuery('#centerandright').width() < 100) or (force = true)
     jQuery('#centerandright').width(jQuery('#centerandright').parent().parent().width() * .85);
+
+  if (jQuery('#center').width() < 50) or (force = true)
     jQuery('#center').width(jQuery('#centerandright').width() * .25);
+
+  if (jQuery('#right').width() < 50) or (force = true)
     jQuery('#right').width(jQuery('#centerandright').width() * .75);
 }
 
-// Save the column position.
+// Save the column positions.
 function savedivsizes()
 {
     jQuery.jStorage.set('#left.width',jQuery('#left').width() );
@@ -94,51 +100,57 @@ function savedivsizes()
     jQuery.jStorage.set('#center.width',jQuery('#center').width() );
     jQuery.jStorage.set('#right.width',jQuery('#right').width() );
 }
+
+// Simple Util function. Useful!
 function getParameterByName(name) {
    var match = RegExp('[?&]' + name + '=([^&]*)')
                    .exec(window.location.search);
    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
 }
 
-
+// Our onLoads-
 jQuery(document).ready(function() {
+
+    // We're using jQuery(foo), rather than $(foo)
+    // This is more clear, and works with other systems better.
+
     $jQuery = jQuery.noConflict();
-    sizewindow();
+    
+    throttledSizeWindow();
+
+
+    // Resize to saved div sizes
+    // Doing this here, as opposed to in sizeWindow, so that it ONLY happens at page load.
+    // No reason to be doing this over and over.
 
     if (jQuery("#centerandright").length)
       {
-
         // If we've saved any values to storage, retrieve them, and keep the page the size it was.
-
         left = jQuery.jStorage.get('#left.width',0);
         centerandright = jQuery.jStorage.get('#centerandright.width',0);
         center = jQuery.jStorage.get('#center.width',0);
         right =  jQuery.jStorage.get('#right.width',0);
 
-        // Set minimum sizes
-        if (left < 50)
-          left = 50;
-        if (centerandright < 100)
-          centerandright = 100;
-        if (center < 50)
-          center = 50;
-        if (right < 50)
-          right = 50;
-
-        if (left + centerandright + center + right > 250 )
-        {
-            jQuery('#left').width(left);
-            jQuery('#centerandright').width(centerandright);
-            jQuery('#center').width(center);
-            jQuery('#right').width(right);
-        }
-        else
-        {
-          defaultdivsizes();
-        }
+        ensureMinDivSizes();
         
      };
  
+    // Issue a resize if you slide the splitter
+    jQuery(document).on("mouseup", ".splitter", function(event){
+        // On Mouseup, save the current position, so we can do new pages at the same place.
+        if ( (jQuery('#left').width() != jQuery.jStorage.get('#left.width','')) ||
+             (jQuery('#centerandright').width() != jQuery.jStorage.get('#centerandright.width','')) ||
+             (jQuery('#center').width() != jQuery.jStorage.get('#center.width','')) ||
+             (jQuery('#right').width() != jQuery.jStorage.get('#right.width',''))      )
+                {
+                    // If we're here, we've moved the sliders, not just clicked on them.
+                    savedivsizes();
+                    // Redraw the splitter, so ensure that if we move Splitter 1 and push splitter2 offscreen, we still redraw it.
+                    throttledSizeWindow();
+               }
+    });
+
+    // If we pass a Jumpto param, scroll down.
     if (getParameterByName("jumpto"))
     {
         jumpto = getParameterByName("jumpto")
@@ -166,8 +178,11 @@ jQuery(document).ready(function() {
     }
 
 
+
+    // Create a spinner in JS, so we don't see it with Lynx/etc.
     jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
 
+    // Place the spinner for all tagged links.
     jQuery(document).on('click','.internal',function(event)
         {
         event.preventDefault();
@@ -181,20 +196,6 @@ jQuery(document).ready(function() {
           urlsep = '&';
         jQuery.getScript( jQuery(this).attr('href') + urlsep + "js=yes&timestamp=" + Math.round(new Date().getTime())  );
         });
-
-    jQuery(document).on("mouseup", ".splitter", function(event){
-        // On Mouseup, save the current position, so we can do new pages at the same place.
-        if ( (jQuery('#left').width() != jQuery.jStorage.get('#left.width','')) ||
-             (jQuery('#centerandright').width() != jQuery.jStorage.get('#centerandright.width','')) ||
-             (jQuery('#center').width() != jQuery.jStorage.get('#center.width','')) ||
-             (jQuery('#right').width() != jQuery.jStorage.get('#right.width',''))      )
-                {
-                    // If we're here, we've moved the sliders, not just clicked on them.
-                    savedivsizes();
-                    // Redraw the splitter, so ensure that if we move Splitter 1 and push splitter2 offscreen, we still redraw it.
-                    sizewindow();
-               }
-    });
 
     // Send notes via Ajax
     jQuery(document).on("submit", ".usernote", function(event) {
@@ -387,9 +388,24 @@ jQuery(document).ready(function() {
     // Save it, then make it take effect now.
     jQuery(document).on('dblclick','.splitter',function(event)
     {
-        defaultdivsizes();
-        sizewindow();
+        //Force the default size;
+        ensureMinDivSizes(true);
+        throttledSizeWindow();
         savedivsizes();
+    });
+
+    // Bind key Events.
+    // This should probably be broken out into it's own file.
+    // For now, leave it here - This is just a sample key event, to verify the handler works.
+    // Add more later.
+    Mousetrap.bind('up up down down left right left right b a', function() {
+        element = jQuery('#top')
+        element.css('-moz-transform', 'rotate(180deg)'); 
+        element.css('-o-transform','rotate(180deg)');  
+        element.css('-webkit-transform','rotate(180deg)'); 
+        element.css('-ms-transform','rotate(180deg)'); 
+        element.css('transform','rotate(180deg);'); 
+        element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
     });
 
 
@@ -402,6 +418,7 @@ jQuery.getScript('/static/scripts/instance.min.js');
     // Thanks http://www.backalleycoder.com/2012/04/25/i-want-a-damnodeinserted/
     // You deserve some gold bullion.
     // Do this AFTER the instance script, so that the jStorage settings are already set/cleared.
+
     if (detectAnimation())
     {
         jQuery(document).on("animationstart",".vote",function(event)
@@ -420,22 +437,4 @@ jQuery.getScript('/static/scripts/instance.min.js');
         });
     }
 
-});
-
-
-jQuery(window).throttledBind("resize", function()
-{
-  // Only run the resize every .2 seconds, but catch up afterward.
-  sizewindow();
-}, 200,true, true);
-
-
-Mousetrap.bind('up up down down left right left right b a', function() {
-    element = jQuery('#top')
-    element.css('-moz-transform', 'rotate(180deg)'); 
-    element.css('-o-transform','rotate(180deg)');  
-    element.css('-webkit-transform','rotate(180deg)'); 
-    element.css('-ms-transform','rotate(180deg)'); 
-    element.css('transform','rotate(180deg);'); 
-    element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
 });
