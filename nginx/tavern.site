@@ -54,11 +54,22 @@
             proxy_pass https://bins/binaries2/$basename;
         }
 
-        location /binaries2/ {
-                # Set additional headers to force download if it's not an image
-                # Kinda complex to do in nginx, but it works ;)
 
 
+        # Create a location which pulls from mongo directly.
+        # This is faster to do in nginx than in Python.
+
+        location /binaries2/ 
+        {
+
+            # Allow direct mongo requests from Localhost only
+            allow 127.0.0.1;
+            allow 96.126.105.180;
+            allow 198.74.56.235;
+            deny    all;
+
+            # Set additional headers to force download if it's not an image
+            # Kinda complex to do in nginx, but it works ;)
             if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
             {
                 set $image 1;
@@ -71,9 +82,9 @@
                     add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
             }
 
+            gridfs test field=filename type=string;
+            mongo 127.0.0.1:27017;
 
-                gridfs test field=filename type=string;
-                mongo 127.0.0.1:27017;
         }
     }
 
