@@ -46,6 +46,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Wrap the default RequestHandler with extra methods
         """
+        super(BaseHandler, self).__init__(*args, **kwargs)
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
         self.set_header("Access-Control-Allow-Origin", "*")

@@ -116,6 +116,20 @@ Using the following Libraries:
     
     jquery-throttle https://github.com/mekwall/jquery-throttle (MIT)
 
+    zxcvbn - https://github.com/lowe/zxcvbn (MIT)
+
+    jstorage - http://www.jstorage.info/  (MIT)
+
+	json3 - http://bestiejs.github.com/json3/ (MIT)
+
+	jquery.ui.widget.js - Used in the Fileupload - https://github.com/jquery/jquery-ui (MIT) 
+
+	jQuery Json - https://code.google.com/p/jquery-json/ (MIT)
+
+	jQuery upload - https://github.com/blueimp/jQuery-File-Upload (MIT)
+
+	IE9.js - https://code.google.com/p/ie7-js/ - (MIT)
+
 ---   python-browscap  (MIT) ---
 
 
