@@ -89,7 +89,7 @@ class UASparser:
             'os_company': 'unknown',
             'os_company_url': 'unknown',
             'os_icon': 'unknown.png',
-            'ua_versions': ['unknown',0,0]
+            'ua_versions': ['unknown', 0, 0]
         }
 
         os_index = ['os_family', 'os_name', 'os_url', 'os_company',

@@ -42,6 +42,15 @@ define("port", default=8090, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
+    def __init__(self, *args, **kwargs):
+        """
+        Wrap the default RequestHandler with extra methods
+        """
+        # Add in a random fortune
+        self.set_header("X-Fortune", str(server.fortune.random()))
+        self.set_header("Access-Control-Allow-Origin", "*")
+        
+
 
     def error(self, errortext):
         self.write("***ERROR***")
