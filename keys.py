@@ -3,9 +3,9 @@ import re
 import string
 import hashlib
 import base64
-from tomcrypt import cipher, rsa
 import logging
 import functools
+import gnupg
 
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
@@ -20,8 +20,18 @@ class Keys(object):
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
-        self.key = None
         self.format_keys()
+
+        self.gpg = gnupg.GPG(keyring=None,options="--no-emit-version --no-comments")
+        self.gpg.encoding = 'utf-8'
+        keyimport = None
+        if self.privkey is not None:
+            keyimport = self.gpg.import_keys(self.privkey)
+        elif self.pubkey is not None:
+            keyimport = self.gpg.import_keys(self.pubkey)
+        if keyimport is not None:
+                if keyimport.count > 0:
+                    self.fingerprint = keyimport.fingerprints[0]
 
     def format_keys(self):
         """
@@ -35,54 +45,34 @@ class Keys(object):
 
         #Check for compressed versions-
         if self.privkey is not None:
-            self.privkey = self.privkey.replace("-----BEGINRSAPRIVATEKEY-----", "-----BEGIN RSA PRIVATE KEY-----")
-            self.privkey = self.privkey.replace("-----ENDRSAPRIVATE KEY-----", "-----END RSA PRIVATE KEY-----")
-
-        if self.pubkey is not None:
-            self.pubkey = self.pubkey.replace(
-                "-----BEGINPUBLICKEY-----", "-----BEGIN PUBLIC KEY-----")
-            self.pubkey = self.pubkey.replace(
-                "-----ENDPUBLICKEY-----", "-----END PUBLIC KEY-----")
+            self.privkey = self.privkey.replace("-----BEGINPGPPRIVATEKEYBLOCK-----", "-----BEGIN PGP PRIVATE KEY BLOCK-----")
+            self.privkey = self.privkey.replace("-----ENDPGPPRIVATEKEYBLOCK-----", "-----END PGP PRIVATE KEY BLOCK-----")
 
         if self.privkey is not None:
-            if "-----BEGIN RSA PRIVATE KEY-----" in self.privkey:
-                noHeaders = self.privkey[self.privkey.find("-----BEGIN RSA PRIVATE KEY-----") + 31:self.privkey.find("-----END RSA PRIVATE KEY-----")]
+            if "-----BEGIN PGP PRIVATE KEY BLOCK-----" in self.privkey:
+                noHeaders = self.privkey[self.privkey.find("-----BEGIN PGP PRIVATE KEY BLOCK-----") + 36:self.privkey.find("-----END PGP PRIVATE KEY BLOCK-----")]
             else:
                 self.logger.info("USING NO HEADER VERSION OF PRIVKEY")
                 noHeaders = self.privkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
-            self.privkey = "-----BEGIN RSA PRIVATE KEY-----\n" + \
-                withLinebreaks + "\n-----END RSA PRIVATE KEY-----"
-        #else:
-        #    self.logger.info("No PRIVKEY")
+            self.privkey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" + \
+                withLinebreaks + "\n-----END PGP PRIVATE KEY BLOCK-----"
+
 
         if self.pubkey is not None:
-            if "-----BEGIN PUBLIC KEY-----" in self.pubkey:
-                noHeaders = self.pubkey[self.pubkey.find("-----BEGIN PUBLIC KEY-----") + 26:self.pubkey.find("-----END PUBLIC KEY-----")]
+            self.pubkey = self.pubkey.replace("-----BEGINPGPPUBLICKEYBLOCK-----", "-----BEGIN PGP PUBLIC KEY BLOCK-----")
+            self.pubkey = self.pubkey.replace("-----ENDPGPPUBLICKEYBLOCK-----", "-----END PGP PUBLIC KEY BLOCK-----")
+
+            if "-----BEGIN PGP PUBLIC KEY BLOCK-----" in self.pubkey:
+                noHeaders = self.pubkey[self.pubkey.find("-----BEGIN PGP PUBLIC KEY BLOCK-----") + 36:self.pubkey.find("-----END PGP PUBLIC KEY BLOCK-----")]
             else:
                 self.logger.info("USING NO HEADER VERSION OF PUBKEY")
                 noHeaders = self.pubkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
-            self.pubkey = "-----BEGIN PUBLIC KEY-----\n" + \
-                withLinebreaks + "\n-----END PUBLIC KEY-----"
-
-        try:
-            if self.privkey is None and self.pubkey is not None:
-                self.key = rsa.Key(self.pubkey, hash='sha512', padding="pss")
-                # self.pubkey = self.key.public.as_string()
-                # self.logger.info("Going with Pubkey Only")
-            elif self.privkey is not None:
-                self.key = rsa.Key(self.privkey, hash='sha512', padding="pss")
-                # self.pubkey = self.key.public.as_string()
-                # self.privkey = self.key.as_string()
-                self.logger.info("Full Key")
-            else:
-                self.key = None
-        except:
-            self.key = None
-
+            self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
+                withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
         return False
 
     def generate(self):
@@ -90,33 +80,63 @@ class Keys(object):
         Replaces whatever keys currently might exist with new ones.
         """
         self.logger.info("MAKING A KEY.")
-        self.key = rsa.Key(2048, hash='sha512', padding="pss")
-        self.pubkey = self.key.public.as_string()
-        self.privkey = self.key.as_string()
+        key_options = self.gpg.gen_key_input(key_type="RSA", key_length=2048)
+        key = self.gpg.gen_key(key_options)
+        self.pubkey = self.gpg.export_keys(key.fingerprint)
+        self.privkey = self.gpg.export_keys(key.fingerprint,True)
+
+        self.fingerprint = key.fingerprint
         self.format_keys()
 
     def signstring(self, signstring):
         """
         Sign a string, and return back the Base64 Signature.
         """
-        # It seems with PyTomCrypt, you need to manually hash things before signing.
-        # The Salt Length == 64 == the length of SHA512. If you use sha1, change this to 20, etc.
-        digest = hashlib.sha512(signstring.encode('utf-8')).digest()
-        bsigned = self.key.sign(
-            digest, hash='sha512', padding="pss", saltlen=64)
-        return base64.b64encode(bsigned).decode('utf-8')
+        hashed_str = hashlib.sha512(signstring.encode('utf-8')).digest()
+        encoded_hashed_str = base64.b64encode(hashed_str).decode('utf-8')
+        signed_data = self.gpg.sign(encoded_hashed_str,keyid=self.fingerprint).data.decode('utf-8')
+        return signed_data
+
 
     def verify_string(self, stringtoverify, signature):
         """
-        Verify the passed in string matches the passed signature
+        Verify the passed in string matches the passed signature.
+        We're expanding the GPG signatures a bit, so that we can verify the message matches
+        Not just the signature.
         """
+        verify = self.gpg.verify(signature)
 
-        # It's pretty stupid we need to manually digest, but.. Cest la vie.
-        # Maybe a new version of pyTomCrypto will do this for us.
+        # Make sure that this is a valid signature from Someone.
+        if verify.valid != True:
+            self.logger.info("This key does not match")
+            return False
 
-        digested = hashlib.sha512(stringtoverify.encode('utf-8')).digest()
-        binarysig = base64.b64decode(signature.encode('utf-8'))
-        return self.key.verify(digested, binarysig, padding="pss", hash="sha512", saltlen=64)
+        # Verify that it's from the user we're interested in at the moment.
+        if verify.pubkey_fingerprint != self.fingerprint:
+            self.logger.info("Key matches *A* user, but not the desired user.")
+            return False 
+
+        # Find out the text that was originally signed
+        gpg_header = "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n"
+        gpg_footer = "\n-----BEGIN PGP SIGNATURE-----\n"
+        startpos = signature.find(gpg_header) + len(gpg_header)
+        endpos = signature.find(gpg_footer)
+
+        if startpos > -1 and endpos > -1:
+            signedtext = signature[startpos +1:endpos]
+        else:
+            self.logger.info("Cannot recognize key format")
+            return False
+
+        # Make sure a fresh hash matches the one from the signature
+        currenthash = hashlib.sha512(stringtoverify.encode('utf-8')).digest()
+        encoded_currenthash = base64.b64encode(currenthash).decode('utf-8')
+
+        if encoded_currenthash != signedtext:
+            print("The correct user signed a string, but it was not the expected string.")
+            return False
+        else:
+            return True
 
     def encrypt(self, encryptstring):
         return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'), hash='sha512', padding="pss")).decode('utf-8')

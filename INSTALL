@@ -79,28 +79,6 @@ python setup.py install
 cd /opt/Tavern
 pip-3.2 install -r requirements.txt
 
-## TomCrypt ##
-
-    cd /opt/Tavern/lib
-    git clone https://github.com/mikeboers/PyTomCrypt.git
-    cd PyTomCrypt
-
-    # Modify the makefiles to use Python3
-    # Not using sed -i since it doesn't work on *bsd
-    sed 's/python/python3/' Makefile > Makefile2
-    sed 's/python/python3/' preprocess > preprocess2
-    mv preprocess2 preprocess
-    mv Makefile2 Makefile
-    chmod u+x ./preprocess
-
-    # You need to make sure cython works for this step.
-    # If you are on OS X, set add /usr/local/bin as top of /etc/paths
-    sudo ln -s /usr/local/share/python3/cython /usr/local/bin/cython
-
-    make clean
-    make sources
-    python3 setup.py build
-    python3 setup.py install
 
 mkdir -p /usr/local/share/GeoIP
 cp libs/GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat

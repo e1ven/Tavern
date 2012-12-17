@@ -803,6 +803,8 @@ class UserHandler(BaseHandler):
         self.write(self.render_string('header.html', title="User page",
                    user=self.user, rsshead=None, type=None))
 
+        print(pubkey)
+        print(self.user.Keys.pubkey)
         if pubkey == self.user.Keys.pubkey:
             if not 'author_pubkey_sha1' in self.user.UserSettings:
                 self.user.UserSettings['author_pubkey_sha1'] = u.UserSettings[

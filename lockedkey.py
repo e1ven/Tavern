@@ -13,12 +13,11 @@ class lockedKey(object):
     """
 
     def __init__(self, pub=None, priv=None, password=None, encryptedprivkey=None):
-
         self.maxtime_verify = 5
         self.maxtime_create = 1
         tempkey = Keys(pub=pub, priv=priv)
+        self.pubkey = tempkey.pubkey
         tempkey.format_keys()
-
         self.pubkey = tempkey.pubkey
 
         if encryptedprivkey is not None:
@@ -27,7 +26,6 @@ class lockedKey(object):
         if encryptedprivkey is None and password is not None and priv is not None:
             self.encryptedprivkey = self.__encryptprivkey(
                 password=password, privkey=tempkey.privkey)
-
     def __encryptprivkey(self, password, privkey):
         """
         Internal-only method to encrypt the private key.
@@ -74,9 +72,10 @@ class lockedKey(object):
         tempkey = Keys()
         tempkey.generate()
         tempkey.format_keys()
-        self.pubkey = tempkey.pubkey
+        self.pubkey = tempkey.pubkey        
         self.encryptedprivkey = self.__encryptprivkey(
             password=password, privkey=tempkey.privkey)
+        
 
     def format_keys(self):
         tempkey = Keys(pub=self.pubkey)
