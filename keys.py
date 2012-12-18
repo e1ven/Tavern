@@ -22,7 +22,8 @@ class Keys(object):
         self.privkey = priv
         self.format_keys()
 
-        self.gpg = gnupg.GPG(keyring=None,options="--no-emit-version --no-comments")
+        self.gpg = gnupg.GPG(
+            keyring=None, options="--no-emit-version --no-comments")
         self.gpg.encoding = 'utf-8'
         keyimport = None
         if self.privkey is not None:
@@ -59,7 +60,6 @@ class Keys(object):
             self.privkey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PRIVATE KEY BLOCK-----"
 
-
         if self.pubkey is not None:
             self.pubkey = self.pubkey.replace("-----BEGINPGPPUBLICKEYBLOCK-----", "-----BEGIN PGP PUBLIC KEY BLOCK-----")
             self.pubkey = self.pubkey.replace("-----ENDPGPPUBLICKEYBLOCK-----", "-----END PGP PUBLIC KEY BLOCK-----")
@@ -83,7 +83,7 @@ class Keys(object):
         key_options = self.gpg.gen_key_input(key_type="RSA", key_length=2048)
         key = self.gpg.gen_key(key_options)
         self.pubkey = self.gpg.export_keys(key.fingerprint)
-        self.privkey = self.gpg.export_keys(key.fingerprint,True)
+        self.privkey = self.gpg.export_keys(key.fingerprint, True)
 
         self.fingerprint = key.fingerprint
         self.format_keys()
@@ -94,9 +94,9 @@ class Keys(object):
         """
         hashed_str = hashlib.sha512(signstring.encode('utf-8')).digest()
         encoded_hashed_str = base64.b64encode(hashed_str).decode('utf-8')
-        signed_data = self.gpg.sign(encoded_hashed_str,keyid=self.fingerprint).data.decode('utf-8')
+        signed_data = self.gpg.sign(
+            encoded_hashed_str, keyid=self.fingerprint).data.decode('utf-8')
         return signed_data
-
 
     def verify_string(self, stringtoverify, signature):
         """
@@ -114,7 +114,7 @@ class Keys(object):
         # Verify that it's from the user we're interested in at the moment.
         if verify.pubkey_fingerprint != self.fingerprint:
             self.logger.info("Key matches *A* user, but not the desired user.")
-            return False 
+            return False
 
         # Find out the text that was originally signed
         gpg_header = "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n"
@@ -123,7 +123,7 @@ class Keys(object):
         endpos = signature.find(gpg_footer)
 
         if startpos > -1 and endpos > -1:
-            signedtext = signature[startpos +1:endpos]
+            signedtext = signature[startpos + 1:endpos]
         else:
             self.logger.info("Cannot recognize key format")
             return False

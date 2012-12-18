@@ -1,144 +1,145 @@
 {
-	'envelope':
-	{
-		'stamps':
-		[
-			{
-				'class': 'author',
-				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
-				'signature': 'sdt634652364123523423423423',
-				'time_added' : 1304318238
-			}
-		]
-		[
-			{
-				'class': 'origin',
-				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
-				'signature': 'sdt634652364123523423423423',
-				'time_added' : 1304318238
-			}
-		]
-		[
-			{
-				'class': 'server',
-				'hostname': 'pluric.com',
-				'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
-				'signature': 'sdt634652364123523423423423',
-				'time_added' : 1304318238
-			}
-		]
-	},
-	'payload_sha512':
-	'3bf1683d7120a2e4482919ddefaeaa1db20ce4013c563e2f1d7f96ebde186dde80a7abe231458a7fd587d884585692a42e31f5b99932dfe90922e3fdca830a54',
-	{
-		'payload':
-		{
-			'formatting':'markdown',
-			'class':'message',
-			'topic': 'Startrek',
-			'regarding': 'fa200fc2bbb11cfb2349668826685b5ec481d3555895877b5dd60d9981f411c665b2867023c61838cb78caf020ec61517aa3880ee225784fce6c560ecafeafaa',
-			'coords': '29.199505,-90.041242',
-			'author':
-				{
-					'pubkey': '----BEGIN PUBLIC----\ndafhsdgsgzfshfshdfshsfhfad',
-					'friendlyname': 'E1ven',
-					'about': '0cb128a753dec8d8d56eedc41e43083d02ec365407ca827fac7b18745eefa282ab6df1c8b97ddaed8b57ba87225bc6a0096c03effd71f8c68aea87db9fea4a43',
-					'useragent': 
-						{
-							name: 'Pluric for Android',
-							version: '1.0'
-						} 
-				},
-				'subject': 'Need more Startrek',
-				'body': 'When are they going to create a *new* series? I think the movies have re...',
-				binaries:
-					[
-						{	
-						'sha_512' : 'c3132d34d5fcebd73b096c3e40e78b803040283d457b4d486c46ea8eade0d7ea8b4b5840273f123d2c45c52fa76d87c476d66dbcc93808d7561db1ead80c5d1b',
-						'filesize_hint' : 96375,
-						'content_type' : 'image/png',
-						'filename' : 'Screen Shot 2011-06-30 at 8.03.57 AM.png'
-						}
-					]
-	},
-	
-	{
-		'local':
-		{
-			'cited_by':
-			[
-			'12sfhsdzhjdzfjhdxgj4'
-			]
-		}
+  "envelope" : {
+    "payload" : {
+      "author" : {
+        "pubkey" : "-----BEGIN PUBLIC KEY-----\nMIIBCgKCAQEAzRc/QIzdhfutaCQuXMyzYxQm7IdzVqLV53Z1EgoetGELcguRjz5p\n9ot6A7dfKaSy+96GmBak+U0dJZvqWzaiV3uTiuI3xMN6D/wK9TegZK69IZKQObG1\npAHduIomZ4cxg22SAzDmnMGqcginA7Niy74LaiCcZY6poJ3g4OGoupuWEOcmGbV9\nx4BnMFuDrmK8t431gTFdKYhijaPmbR2vua54dCUwBMZmytJPZQxOMfb/TCYXsAUf\nEifkBagCpSdGF3qE2qeYPMty8SlHKBQ80L3FpqNYVK+8sXWiF6N2tPDwrOUVYIP+\nFUPJgGcrrWnagiWRwfoklpRinAA/qu5AbQIDAQAB\n-----END PUBLIC KEY-----",
+        "friendlyname" : "Anonymous",
+        "useragent" : {
+          "version" : 0.01,
+          "name" : "Tavern Web Frontend"
+        }
+      },
+      "body" : "Welcome to Tavern\r\n=================\r\nTavern is a way to ensure that everyone in the world can\r\ncommunicate freely, without fear of Censorship, Oppression, or corporate manipulation.\r\n\r\nIf you're seeing this note, it's running on a server that runs the Tavern software. \r\nThe primary site for Tavern is [Tavern.com](http://Tavern.com/).\r\n\r\nThis message was posted into the &amp;quot;sitecontent&amp;quot; Topic.\r\n\r\nThis Topic is used as the default for information about the server, such as\r\n\r\n- Frequently Asked Questions\r\n- Formatting Notes\r\n- Terms of Service\r\nAnd the like.\r\n\r\nYou can register a new account either by using the &amp;quot;Register&amp;quot; link, or by replying to an existing comment.\r\n\r\nWe'll be adding more content as time goes on, but I wanted to make sure that there was at least *something* in the default distribution ;)\r\n\r\nThanks, and enjoy the Site!\r\n\r\n-Colin",
+      "class" : "message",
+      "formatting" : "markdown",
+      "subject" : "Welcome to Tavern ;)",
+      "topic" : "sitecontent"
+    },
+    "local" : {
+      "sorttopic" : "sitecontent",
+      "time_added" : 1354075098.185418,
+      "short_subject" : "Welcome-to-Tavern-",
+      "formattedbody" : "<h1>Welcome to Tavern</h1>\n<p>Tavern is a way to ensure that everyone in the world can<br />\ncommunicate freely, without fear of Censorship, Oppression, or corporate manipulation.  </p>\n<p>If you're seeing this note, it's running on a server that runs the Tavern software.<br />\nThe primary site for Tavern is <a href=\"http://Tavern.com/\">Tavern.com</a>.  </p>\n<p>This message was posted into the &amp;quot;sitecontent&amp;quot; Topic.  </p>\n<p>This Topic is used as the default for information about the server, such as  </p>\n<ul>\n<li>Frequently Asked Questions  </li>\n<li>Formatting Notes  </li>\n<li>Terms of Service<br />\nAnd the like.  </li>\n</ul>\n<p>You can register a new account either by using the &amp;quot;Register&amp;quot; link, or by replying to an existing comment.  </p>\n<p>We'll be adding more content as time goes on, but I wanted to make sure that there was at least <em>something</em> in the default distribution ;)  </p>\n<p>Thanks, and enjoy the Site!  </p>\n<p>-Colin</p>",
+      "attachmentlist" : [
+        
+      ],
+      "author_pubkey_sha1" : "119279b33e998e0bf6877470ce051f87b1a5e151",
+      "embed" : [
+        
+      ],
+      "calculatedrating" : 1
+    },
+    "stamps" : [
+      {
+        "class" : "author",
+        "pubkey" : "-----BEGIN PUBLIC KEY-----\nMIIBCgKCAQEAzRc/QIzdhfutaCQuXMyzYxQm7IdzVqLV53Z1EgoetGELcguRjz5p\n9ot6A7dfKaSy+96GmBak+U0dJZvqWzaiV3uTiuI3xMN6D/wK9TegZK69IZKQObG1\npAHduIomZ4cxg22SAzDmnMGqcginA7Niy74LaiCcZY6poJ3g4OGoupuWEOcmGbV9\nx4BnMFuDrmK8t431gTFdKYhijaPmbR2vua54dCUwBMZmytJPZQxOMfb/TCYXsAUf\nEifkBagCpSdGF3qE2qeYPMty8SlHKBQ80L3FpqNYVK+8sXWiF6N2tPDwrOUVYIP+\nFUPJgGcrrWnagiWRwfoklpRinAA/qu5AbQIDAQAB\n-----END PUBLIC KEY-----",
+        "signature" : "Kq9kYhckxBdxCC+cOhybMMJsLpCAMGP/BLI14ItRqXaEeQh5CgaPgDNdhwN84TlQRX+Pz/7wVBv5NQ5GXT9Sga4KY2jvbdu5NRpPuvnfvV6dsiqQ5WlYOeCbUSw+xp0sBu07QIRkwwxVNFY45GzkSAnlMq43vE3KEi5H4XxMHBKnU8/y4o66EAix7+T+mfrzjx6bFAhqcELaYl8RfOAY6ZZ484/sq6Z7V0VYMWColKH2eisG0xdul+rPbkgv4mKbtvf4QnBe137G1JQjQRcfQAd8RpdKCx+pLSqIrMsmY5eFtsJCBw2hkfuSlPs7bvUvHEBTKx235rsj2Y50ED5QEw==",
+        "time_added" : 1354059443
+      },
+      {
+        "time_added" : 1354059443,
+        "hostname" : "Threepwood.local",
+        "pubkey" : "-----BEGIN PUBLIC KEY-----\nMIIBCgKCAQEAsIYfIqrCuAaL1aD1IFj4QnbhhDLjdJvnoTzU/1cDSFjn4JcFRf2w\ndP4ZgbNmmx7GCohr61NUUjmadNzJQB5Jvwm6eGXJtXapfwkCPBTLsgGMPhFCOtO+\ny+qMLPCMX/2BhAEWmndmzfjrhkJiCvwW0C25LC6/w9nSDjQkgIZYcFBshw9cKXyi\nRCM1Y01eIzi9DCHp3FupnJI0aoSUTkEosGKPCSkk134689g2sc7fnxpBtNSsSjqB\n93CQ9G8CMMSMWkwykwMgSYv+ZvzFFTr21hiVq6S9Mr6CdQeprCcACGoiYDc4ssDT\nLcA7t8fQgemuMibFkEP9YEoDTI8T/RbIQwIDAQAB\n-----END PUBLIC KEY-----",
+        "class" : "server",
+        "signature" : "ON9QrBQJo2bDXVEEY7Y0N5cZmCsPtC7iB8nE+EaINdbgGI4RJfLe3RB6S+jiFQG2gCwpY5VJyYdiXTz6HO5Jbow2el7a4FU7Nzjm0ndXP8+CaAKEn0lQE3EkFa7pNc33eiNC+BjW+lBuaxJ8EAjRG5cZKFsehBtX5TQcCMG+ZujBnUigp313j5Uaaf0rPKo5AtUrBuYoHd0lUies1pl2dfH8XK/IbvPrCR+l1qajC3gmC6kCQot25e+rHGAE2BE1GgW0QW8VVvLDdIzRJuktGixXXMuPlOAc0arjKofOLVDyariKyvziD65dVyBj9Ma425AqHEazTPW+ff/NaPsntg=="
+      },
+      {
+        "time_added" : 1354059443,
+        "hostname" : "Threepwood.local",
+        "pubkey" : "-----BEGIN PUBLIC KEY-----\nMIIBCgKCAQEAsIYfIqrCuAaL1aD1IFj4QnbhhDLjdJvnoTzU/1cDSFjn4JcFRf2w\ndP4ZgbNmmx7GCohr61NUUjmadNzJQB5Jvwm6eGXJtXapfwkCPBTLsgGMPhFCOtO+\ny+qMLPCMX/2BhAEWmndmzfjrhkJiCvwW0C25LC6/w9nSDjQkgIZYcFBshw9cKXyi\nRCM1Y01eIzi9DCHp3FupnJI0aoSUTkEosGKPCSkk134689g2sc7fnxpBtNSsSjqB\n93CQ9G8CMMSMWkwykwMgSYv+ZvzFFTr21hiVq6S9Mr6CdQeprCcACGoiYDc4ssDT\nLcA7t8fQgemuMibFkEP9YEoDTI8T/RbIQwIDAQAB\n-----END PUBLIC KEY-----",
+        "class" : "origin",
+        "signature" : "ON9QrBQJo2bDXVEEY7Y0N5cZmCsPtC7iB8nE+EaINdbgGI4RJfLe3RB6S+jiFQG2gCwpY5VJyYdiXTz6HO5Jbow2el7a4FU7Nzjm0ndXP8+CaAKEn0lQE3EkFa7pNc33eiNC+BjW+lBuaxJ8EAjRG5cZKFsehBtX5TQcCMG+ZujBnUigp313j5Uaaf0rPKo5AtUrBuYoHd0lUies1pl2dfH8XK/IbvPrCR+l1qajC3gmC6kCQot25e+rHGAE2BE1GgW0QW8VVvLDdIzRJuktGixXXMuPlOAc0arjKofOLVDyariKyvziD65dVyBj9Ma425AqHEazTPW+ff/NaPsntg=="
+      },
+      {
+        "time_added" : 1354075098,
+        "hostname" : "gettavern.com",
+        "pubkey" : "-----BEGIN PUBLIC KEY-----\nMIIBCgKCAQEArymGitARoguDFDxofHuH6QAhbX91iZJRGgeyfZrXtzCIH5CG+6HX\nLdNdu7dmSkzhVGT2Od32pyw6gievUW5iXnPfHZIU8+jMqYnW1pViRZX316DCv2e8\nWaQlIlY1GYXvI0L5I9IOvyRfOvaFK6L9FdTqT/bChdHcZhaU9uRYsmegFjs53YTW\nLmnQZhrst4jdqRiLFw9b/L9HadeqLIf08zmmE7spxZld34dFDjipKVXYsvhdBpyb\n+l7+za5jh979yJr9Eb4FQC1cf12l9KuohWB2CwW6h/0HwuQ/KM41zdp0NDAyslfH\nVth/aK6sR4I6FLzvniCnredLZ4yaDb03wwIDAQAB\n-----END PUBLIC KEY-----",
+        "class" : "server",
+        "signature" : "rM0Qu1/sYmKuwdddFmF6vlra/81bVVXWQZPwNfSOdp8JKKGDM0lk/TyL4pvTevK1MIlZUdBropeuaj6XGybtu7iRc5S3RgftWAwn7bAoWSxBadCjJ7T+CtRbvV0hUqb9/HEwQ5MGGUnQSXKY0LErra4kfeTTcNzxnnPxboI9F4J4u6WAOuN8FCPT0Sii8nYCLY1vpwWk9GdmfppGzkIUBrQ+QoSnvaTkUnQ+vGSxDfeALI2tlEMM5c67ohDM8wwtfzWadiJyVcT758Huiqb1f/+0CQtdFPrmYycm8nF/J0/J/WmYHFJ6CHFmuwWNhfE99p0xt7VYFTeG4jCalVNipg=="
+      }
+    ],
+    "payload_sha512" : "f78624b85da662a289699a0b56fda5407a52d869741ebfef5631904ecbddba0c12400b4264be573f0a283841bc6e30c5c4549e4e0e1b72c4c776a570929d1d04"
+  }
 }
-
 ---
 
+Each Tavern Envelope is contained in a JSON dictionary.
 
+The order of fields must be alphabetical - This is to ensure that we can separate them later, but re-assemble them in the same order.
+The envelope should be of the most compact JSON.
+  In Python this can be generated with -             json.dumps(self.ServerSettings, separators=(',', ':')))
+  In PHP, this is generated with -                  $mytext = json_encode($this->dict);
+                            $mytext = str_replace('\/','/',$mytext);  
 
-The "time_added" format is the number of seconds since the epoch, expressed in UTC.
+The root element of Tavern JSON is the Envelope.
+The envelope contains two crucial sections - Payload and Stamps.
 
-The 'PAYLOAD_SHA512' should be the SHA-512 hash of the 'PAYLOAD' portion. This is included to give each message a unique MessageID, so it can be referenced, stored, etc.
-SHA1 or 256 likely would have been sufficient, but 512 decreases collision chance. 
+  The 'payload' dictionary of an envelope contains all of the UNTOUCHABLE data in an envelope.
+  If you modify any data in this section, the envelope is considered a new envelope.
+  A SHA-512 hash of the payload section is used as the envelope's ID.. This is stored in the Root Envelope object as 'payload_sha512'
+  
+  The payload section contains a dictionary describing the author, as well as metadata about the envelope.
+    The 'author' section must contain the author's Public Key 'pubkey', as a PGP formatted key.
+      It is suggested that this key does not have version information or comments, in order to reduce size.
+    The author section must also have a 'Friendlyname' for the user. 
+    This is the name that the author prefers is displayed for their post.
+      This has to be in every envelope, since we can't rely on being able to pull a profile page. 
+      Additionally, a user might change this for each post.
+      The 'useragent' dictionary MUST contain at least two entries- 'name' and 'version'
+        Version should be a number
+        Name should be a descriptive string. This should be only the name, - "TavNet", not "Tavnet 4.2/EN-us"
+        If you want to store additional information, such as 'language', add an additional field.
+        Please note that user-agent is for convienience-only; There is no way to verify that a client is not lying about it's user-agent.
+        If this greatly concerns you, I suggest you issue a 'stamp' for the client, rather than relying on the user-agent.
+    
+    The payload may have a 'body' field. This should contain the bulk of the message's human-readable text.
+      The format for this is up to you (see below), but text or markdown are the most likely to be supported.
+    The payload must also have a 'class' field. This will tell us what TYPE of message it is.
+      Example classes include 'message', 'rating', and 'privatemessage'. 
+      The class is used to filter messages, to only see compatible types.
+    The Payload may contain a 'formatting' field. 
+      This will tell the client how to display a message. Examples include 'bbcode', 'markdown', or 'plaintext' 
+    A payload may have a 'regarding' field.
+      This field marks that this envelope is in response to a previous envelope.
+      This can either be used as a message reply, or in ratings.
+      This is the payload_sha512 of the message it is regarding.
+    A payload may have a 'subject' field.
+      This field gives the short, 1 sentence summary of what a particular message is about.
+      When replying to a message, the subject is often ignored by clients. 
+      Do NOT add a "re:" field. 
+      The subject field may not be longer than 200 characters.
+    A payload should have a 'topic' field.
+      This is used for sorting and categorization. It is the bulk category where a message lives.
+      This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.  
+      There may only ever be ONE topic. This topic must not be longer than 200 characters.
+    A payload may contain a binaries section.
+      Binaries that are to be included with the message should be uploaded to the server separately, and listed in this section.
+      'sha_512' - This is the sha512 of the binary that should be included.
+      'filesize_hint' - This is an estimated filesize of the binary. Clients should not trust this number.
+      'content_type' - This is the desired content type of the upload.
+      'filename' - This is the original filename that the file was uploaded with.
+      Keep in mind that the same sha_512 might be uploaded with multiple messages, potentially with differerent filenames or content_types.
 
+  An Envelope should also have an array of Stamps.
+    A stamp is a signature of authenticity on a message, asserting something.
+    A stamp has at least 4 values-
+      'class' - This describes what type of stamp it is.
+        Examples include 'author', 'server', or 'origin'
+      'pubkey' - This is the public key used by the whatever service stamped the envelope
+      'time_added' - This is the time (in unix timestamp) that the server stamped the message. 
+        This is set by the server, and not verified, so should not be trusted.
+      'signature' - This is a PGP signed version of the 'payload_sha512'
+        This is used to ensure that the stamp was given to this specific message, not copy/pasted in elsewhere.
+      Some types of stamps may have other values, such as 'hostname' in 'server' and 'origin' messages
 
-The stamps section allows an authority to sign the "message" portion of the message, to verify that some criteria has been satisfied. 
-Exactly what criteria this is depends on the Authority- Examples might be 'completed a captcha', or 'Authenticated with a FB username/password'
+    Each server that a message travels through may leave a 'server' stamp. 
+      The origin server will also leave an 'origin' stamp. These are not secure, however.
+      Any server a message travels through might remove these stamps, or change the 'origin'
 
-We define two stamps in particular- 
-    One is class Author, which is signed with the public key of the person who submitted the message.
-    The second is class Server, which is signed by each server that touches the message.
-    Origin is the FIRST server to touch the message.
-
-Each stamp has a "signature" which should be an RSA signature of the 'Message' portion. The signature uses a SHA512 digest and PKCS #1 v1.5 padding.
-
-
-The server's signature should also be of the "Message" portion, not the entire container.
-
-"Regarding" should be the 'POSTID_SHA512' of the message, if any, that this is in reference to.  If this is not in reference to another message, this field should be omitted.
-
-
-
-The "topic" field may be used to specify the overall topic. This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.  
-There may only ever be ONE topic. This topic must not be longer than 200 characters.
-
-The optional "TO" field allows you to specify a public key of a person to whom the message is directed. Their client may or may not look for this field.
-You may specify any number of "TO" fields, but many servers will not carry a message if it has too many. (Pluric.com limits you to 100)
-You may omit a "TO" tag- Most messages shouldn't carry one!
-
-
-The "Author" fields are included to positively tie a message with an author. This is included inside of the 'Message' block so that it is signed, along with the rest of the message.
-	The 'from' field should contain the RSA public key of the author. This is used as the author's primary identity. A client might include a "Follow User" button using this.
-	If you need to display a shortened version of this field for length concerns, SHA1 is customary.
-	The optional 'About' field may contain a POSTID-SHA512 linking to the author's most-recent about-me Post.
-	The 'friendlyname' is a friendly-short name, that is not necessarily unique across services. We don't call it a username, since that implies uniqueness.
-
-
-The useragent dictionary MUST contain at least two entries- 'name' and 'version' - Version should be a number, while name may be whatever you want.
-	Many/Most clients would be distributed to end-users (iPhone/Android/Etc). Even if the source were obscured the private signing key would need to be included, and could be extracted.
-	Since this is impossible to secure, it's best to treat this like a web browser's USER-AGENT. Interesting to know, but Entirely untrusted.
-	If you *really* want to sign a message, include a 'STAMP' signature by the server, or, if you really, really, really want to, the client.
-
-
-The "Subject" should contain the subject of the message. If you are replying to an existing message, it's fine to import from that message. 
-	There's no reason to modify the subject, but it won't hurt anything.
-	Adding a  "RE: " is stupid. 
-	Just set the "regarding" field.
-	The subject field may not be longer than 200 characters.
+  An envelope may also have a 'local' section.
+    This dictionary is server-specific, and should not be transferred along with the message to other servers.
+    This is a good place to store when a specific server first received a message, HTML markup, and the like.
 
 The "Body" section should be plaintext, formatted in markdown or bbcode. 
-	Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 
-
-Any binaries that are to be included should have a the SHA512 of their uploaded file.
-
-The 'Message' section may alternatively be replaced by 'ENCRYPTED_MESSAGE'.
-
-<ENCRYPTED_MESSAGE>
-	<TO>PUBLICKEY_ABCDEFG</TO>
-	<ENC_DATA>28eab1ff5e9f0ad6d298a2fa4b510f5454abbdb17c3a225784fce6c560e....</ENC_DATA>
-</ENCRYPTED_MESSAGE>
-
-The "To" field is optional, and allows clients to quickly discard a message if they know it is not one they can read.
-The "ENC_DATA" text should be identical to the "MESSAGE" text above, including formatting, after decryption by the proper private-key.
-In this case, the "POSTID-SHA512" field, should contain the SHA-512 of the "ENCRYPTED_MESSAGE" field.
+  Specify which you are using by with the 'formatting' tag (ex: 'formatting':'markdown' ) 
 

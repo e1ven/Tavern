@@ -50,8 +50,6 @@ class BaseHandler(tornado.web.RequestHandler):
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
         self.set_header("Access-Control-Allow-Origin", "*")
-        
-
 
     def error(self, errortext):
         self.write("***ERROR***")
@@ -102,6 +100,7 @@ class MessageHandler(BaseHandler):
             messagerating = 1
 
         envelope = server.formatEnvelope(envelope)
+        envelope['envelope']['local'] = {}
         envelope['envelope']['local']['calculatedrating'] = messagerating
         self.write(json.dumps(envelope, separators=(',', ':')))
 

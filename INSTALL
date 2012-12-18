@@ -4,16 +4,10 @@ T# This project requires Python 3.
 
 
 #### For Ubuntu 
-apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev
-sudo apt-get build-dep python-imaging java-common yui-compressor
+apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev build-dep python-imaging java-common yui-compressor gnupg
 
 ### for OS X
-
-brew install Boost
-brew install mongodb python3 
-brew install libmagic
-brew install exiv2
-brew install yuicompressor
+brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost
 
 
 
