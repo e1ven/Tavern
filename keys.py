@@ -138,11 +138,13 @@ class Keys(object):
         else:
             return True
 
-    def encrypt(self, encryptstring):
-        return base64.b64encode(self.key.encrypt(encryptstring.encode('utf-8'), hash='sha512', padding="pss")).decode('utf-8')
+    def encrypt(self, encryptstring,encrypt_to):
+        recipient = Keys(pub=encrypt_to)
+        recipient.format_keys()
+        return str(self.gpg.encrypt(data=encryptstring,recipients=[recipient.fingerprint]))
 
-    def decrypt(self, decryptstring):
-        return self.key.decrypt(base64.b64decode(decryptstring.encode('utf-8')), hash='sha512', padding="pss").decode('utf-8')
+  #  def decrypt(self, decryptstring):
+       # self.gpg.
 
     def test_signing(self):
         """
@@ -150,3 +152,12 @@ class Keys(object):
         """
         self.format_keys()
         return self.verify_string(stringtoverify="ABCD1234", signature=self.signstring("ABCD1234"))
+
+
+    def test_encryption(self):
+        self.format_keys()
+        recipient = Keys()
+        recipient.generate()
+        enc = self.encrypt(encryptstring="Foo",encrypt_to=recipient.pubkey)
+        print(enc)
+

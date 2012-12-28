@@ -1046,11 +1046,6 @@ class UserTrustHandler(BaseHandler):
         server.receiveEnvelope(e.text())
         server.logger.info("Trust Submitted.")
 
-        # Remove cached version of this trust.
-        server.mongos['cache']['usertrusts'].remove(
-            {"asking": self.user.Keys.pubkey, "askingabout": trusted_pubkey})
-
-
 class NewmessageHandler(BaseHandler):
 
     def options(self, regarding=None):

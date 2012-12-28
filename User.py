@@ -102,7 +102,7 @@ class User(object):
 
         #We trust ourselves implicitly
         if askingabout == self.Keys.pubkey:
-            # server.logger.info("I trust me.")
+            server.logger.info("I trust me.")
             return round(incomingtrust)
 
         #Don't recurse forever, please.
@@ -113,9 +113,8 @@ class User(object):
         #let's first check mongo to see I directly rated the user we're checking for.
         #TODO - Let's change this to get the most recent.
 
-        # server.logger.info("Asking About -- " + askingabout)
+         server.logger.info("Asking About -- " + askingabout)
         trustrow = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.payload.author.pubkey": str(self.Keys.pubkey)}, as_class=OrderedDict).sort("envelope.local.time_added", pymongo.DESCENDING)
-        #search = {"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.payload.author.pubkey": str(self.Keys.pubkey)}
         foundtrust = False
         if trustrow.count() > 0:
             #Get the most recent trust
@@ -128,7 +127,6 @@ class User(object):
         if foundtrust == False:
             #If we didn't directly rate the user, let's see if any of our friends have rated him.
 
-            #First, find the people WE'VE trusted
             alltrusted = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class": "usertrust", "envelope.payload.trust": {"$gt": 0}, "envelope.payload.author.pubkey": self.Keys.pubkey}, as_class=OrderedDict)
             combinedFriendTrust = 0
             friendcount = 0
@@ -176,6 +174,7 @@ class User(object):
 
     @memorise(parent_keys=['UserSettings.pubkey'], ttl=server.ServerSettings['cache']['user-ratings']['seconds'], maxsize=server.ServerSettings['cache']['user-ratings']['size'])
     def getRatings(self, postInQuestion):
+        
         #Move this. Maybe to Server??
         allvotes = server.mongos['unsafe']['envelopes'].find({"envelope.payload.class": "rating", "envelope.payload.rating": {"$exists": "true"}, "envelope.payload.regarding": postInQuestion}, as_class=OrderedDict)
         combinedrating = 0
