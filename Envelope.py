@@ -36,15 +36,6 @@ class Envelope(object):
             return newstr
 
         def validate(self):
-            if 'topic' in self.dict:
-                if len(self.dict['topic']) > 200:
-                    server.logger.info("Topic too long")
-                    return False
-            if 'subject' in self.dict:
-                if len(self.dict['subject']) > 200:
-                    server.logger.info("Topic too long")
-                    return False
-
             if 'author' not in self.dict:
                 server.logger.info("No Author Information")
                 return False
@@ -72,6 +63,14 @@ class Envelope(object):
             if 'formatting' not in self.dict:
                 server.logger.info("No Formatting")
                 return False
+            if 'topic' in self.dict:
+                if len(self.dict['topic']) > 200:
+                    server.logger.info("Topic too long")
+                    return False
+            if 'subject' in self.dict:
+                if len(self.dict['subject']) > 200:
+                    server.logger.info("Subject too long")
+                    return False
             return True
 
     class PrivateMessage(Payload):

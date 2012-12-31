@@ -99,12 +99,12 @@ class lockedKey(object):
         tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
         return  tempkey.verify_string(stringtoverify=stringtoverify, signature=signature)
 
-    def encrypt(self, encryptstring, passkey):
+    def encrypt(self, encryptstring, encrypt_to, passkey):
         """
         Encrypt a given string, after unlocking the local privkey to do so.
         """
         tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return tempkey.encrypt(encryptstring=encryptstring)
+        return tempkey.encrypt(encryptstring=encryptstring,encrypt_to=encrypt_to)
 
     def decrypt(self, decryptstring, passkey):
         """

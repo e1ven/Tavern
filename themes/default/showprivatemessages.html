@@ -2,6 +2,7 @@
 Your Private Messages:
 <ul>
 {% for message in messages %}
-       <li><a href="/privatemessage/{{urllib.quote(message['envelope']['payload_sha512'])}}">{{message['envelope']['payload']['subject']}}</a></li>
+       <li>
+        <a href="/privatemessage/{{message['envelope']['payload_sha512']}}">{{message['envelope']['payload']['subject']}}</a></li>
 {% end %}
 </ul>

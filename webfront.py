@@ -584,32 +584,6 @@ class AttachmentHandler(BaseHandler):
             'attachments.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
         self.write(self.render_string('footer.html'))
 
-
-class PrivateMessageHandler(BaseHandler):
-    def get(self, message):
-        self.getvars()
-        client_message_id = tornado.escape.xhtml_escape(message)
-
-        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_message_id}, as_class=OrderedDict)
-
-        usertrust = self.user.gatherTrust(
-            envelope['envelope']['payload']['author']['pubkey'])
-
-        envelope['envelope']['payload']['body'] = self.user.Keys.decryptToSelf(
-            envelope['envelope']['payload']['body'])
-        envelope['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(envelope['envelope']['payload']['subject'])
-
-        if 'formatting' in envelope['envelope']['payload']:
-            formattedbody = server.formatText(text=envelope['envelope']['payload']['body'], formatting=envelope['envelope']['payload']['formatting'])
-        else:
-            formattedbody = server.formatText(
-                text=envelope['envelope']['payload']['body'])
-
-        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], user=self.user, type="privatemessage", rsshead=None))
-        self.write(self.render_string('singleprivatemessage.html', formattedbody=formattedbody, usertrust=usertrust, envelope=envelope))
-        self.write(self.render_string('footer.html'))
-
-
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
@@ -1208,6 +1182,7 @@ class NewmessageHandler(BaseHandler):
                 client_topic = None
         else:
             client_topic = None
+
         if "subject" in self.request.arguments:
             client_subject = tornado.escape.xhtml_escape(
                 self.get_argument("subject"))
@@ -1215,6 +1190,13 @@ class NewmessageHandler(BaseHandler):
                 client_subject = None
         else:
             client_subject = None
+        if "to" in self.request.arguments:
+            client_to = tornado.escape.xhtml_escape(
+                self.get_argument("to"))
+            if client_to == "":
+                client_to = None
+        else:
+            client_to = None
         if "regarding" in self.request.arguments:
             client_regarding = tornado.escape.xhtml_escape(
                 self.get_argument("regarding"))
@@ -1223,24 +1205,45 @@ class NewmessageHandler(BaseHandler):
         else:
             client_regarding = None
 
+
+
         e = Envelope()
 
-        if client_regarding is not None:
-            server.logger.info("Adding Regarding - " + client_regarding)
-            e.payload.dict['regarding'] = client_regarding
-
-            regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_regarding}, as_class=OrderedDict)
-            e.payload.dict['topic'] = regardingmsg['envelope'][
-                'payload']['topic']
-            e.payload.dict['subject'] = regardingmsg[
-                'envelope']['payload']['subject']
-        else:
-            e.payload.dict['topic'] = client_topic
-            e.payload.dict['subject'] = client_subject
-
         e.payload.dict['formatting'] = "markdown"
-        e.payload.dict['class'] = "message"
-        e.payload.dict['body'] = client_body
+
+
+
+        if client_to is None:
+            e.payload.dict['class'] = "message"
+            e.payload.dict['body'] = client_body
+
+            if client_regarding is not None:
+                server.logger.info("Adding Regarding - " + client_regarding)
+                e.payload.dict['regarding'] = client_regarding  
+                regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_regarding}, as_class=OrderedDict)
+                e.payload.dict['topic'] = regardingmsg['envelope'][
+                'payload']['topic']
+                e.payload.dict['subject'] = regardingmsg[
+                'envelope']['payload']['subject']
+            else:
+                e.payload.dict['topic'] = client_topic
+                e.payload.dict['subject'] = client_subject
+
+        else:
+            e.payload.dict['class'] = "privatemessage"
+            touser = Keys(pub=client_to)
+            touser.format_keys()
+            e.payload.dict['to'] = touser.pubkey
+            e.payload.dict['body'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey,encryptstring=client_body,passkey=self.user.passkey)
+
+            if client_regarding is not None:
+                server.logger.info("Adding Regarding - " + client_regarding)
+                e.payload.dict['regarding'] = client_regarding  
+                regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_regarding}, as_class=OrderedDict)
+                oldsubject = self.user.decrypt(regardingmsg['envelope']['payload']['subject'])
+                e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey,encryptstring=oldsubject,passkey=self.user.passkey)
+            else:
+                e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey,encryptstring=client_subject,passkey=self.user.passkey)
 
         if len(envelopebinarylist) > 0:
             e.payload.dict['binaries'] = envelopebinarylist
@@ -1281,107 +1284,51 @@ class NewmessageHandler(BaseHandler):
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
         if newmsgid != False:
-            if client_regarding is not None:
-                self.redirect('/message/' + server.find_top_parent(
-                    newmsgid) + "?jumpto=" + newmsgid, permanent=False)
+            if client_to is None:
+                if client_regarding is not None:
+                    self.redirect('/message/' + server.find_top_parent(newmsgid) + "?jumpto=" + newmsgid, permanent=False)
+                else:
+                    self.redirect('/message/' + newmsgid, permanent=False)
             else:
-                self.redirect('/message/' + newmsgid, permanent=False)
+                self.redirect('/showprivates')
         else:
             self.write("Failure to insert message.")
 
 
-class MyPrivateMessagesHandler(BaseHandler):
+class ShowPrivatesHandler(BaseHandler):
     def get(self):
-        self.getvars()
+        self.getvars(ensurekeys=True)
 
         messages = []
-        self.user.load_mongo_by_username(self.user['username'])
-
         self.write(self.render_string('header.html', title="Welcome to the Tavern!", user=self.user, rsshead=None, type=None))
+
         for message in server.mongos['unsafe']['envelopes'].find({'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, as_class=OrderedDict).sort('value', -1):
-            message['envelope']['payload']['subject'] = self.user.Keys.decryptToSelf(message['envelope']['payload']['subject'])
+            message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'],passkey=self.user.passkey)
             messages.append(message)
 
         self.write(
             self.render_string('showprivatemessages.html', messages=messages))
         self.write(self.render_string('footer.html'))
 
+class PrivateMessageHandler(BaseHandler):
+    def get(self,message):
+        self.getvars(ensurekeys=True)
+
+        message = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload.to': self.user.Keys.pubkey,'envelope.payload_sha512':message})
+
+        decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'],passkey=self.user.passkey)
+        self.write(self.render_string('header.html', title="Private Message - " + decrypted_subject, user=self.user, rsshead=None, type=None))
+        self.write(
+            self.render_string('showprivatemessage.html', user=self.user,envelope=message))
+        self.write(self.render_string('footer.html'))
+
 
 class NewPrivateMessageHandler(BaseHandler):
     def get(self, urlto=None):
         self.getvars()
-        self.write(self.render_string('header.html', title="Login to your account", user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html', title="Send a private message", user=self.user, rsshead=None, type=None))
         self.write(self.render_string('privatemessageform.html', urlto=urlto))
         self.write(self.render_string('footer.html'))
-
-    def post(self, urlto=None):
-        self.getvars(ensurekeys=True)
-
-        client_to = tornado.escape.xhtml_escape(self.get_argument("to"))
-        if urlto is not None:
-            client_to = tornado.escape.xhtml_escape(urlto)
-
-        client_subject = tornado.escape.xhtml_escape(
-            self.get_argument("subject"))
-        client_body = tornado.escape.xhtml_escape(self.get_argument("body"))
-        if "regarding" in self.request.arguments:
-            client_regarding = tornado.escape.xhtml_escape(
-                self.get_argument("regarding"))
-            if client_regarding == "":
-                client_regarding = None
-        else:
-            client_regarding = None
-
-        #Instantiate the key of the user who we're sending to
-        toKey = Keys(pub=client_to)
-        toKey.format_keys()
-
-        e = Envelope()
-        e.payload.dict['class'] = "privatemessage"
-
-        e.payload.dict['to'] = toKey.pubkey
-        e.payload.dict['body'] = toKey.encryptToSelf(client_body)
-        e.payload.dict['subject'] = toKey.encryptToSelf(client_subject)
-        if client_regarding is not None:
-            server.logger.info("Adding Regarding - " + client_regarding)
-            e.payload.dict['regarding'] = client_regarding
-
-        e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
-        e.payload.dict['author'][
-            'friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = {}
-        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-        e.payload.dict['author']['useragent']['version'] = .01
-
-        if self.user.UserSettings['include_location'] == True or self.get_argument("include_location") == True:
-            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
-            ip = self.request.remote_ip
-
-            #Don't check from home.
-            if ip == "127.0.0.1":
-                ip = "8.8.8.8"
-
-            gir = gi.record_by_name(ip)
-            e.payload.dict['coords'] = str(gir['latitude']) + \
-                "," + str(gir['longitude'])
-
-        #Sign this bad boy
-        usersig = self.user.Keys.signstring(
-            e.payload.text(), self.user.passkey)
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.Keys.pubkey
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist
-
-        #Send to the server
-        server.receiveEnvelope(e.text())
-
 
 class NullHandler(BaseHandler):
         # This is grabbed by nginx, and never called in prod.
@@ -1463,9 +1410,8 @@ def main():
         (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),
         (r"/changesetting/(.*)", ChangeSingleSettingHandler),
         (r"/changesettings", ChangeManySettingsHandler),
-        (r"/showprivates", MyPrivateMessagesHandler),
-        (r"/uploadprivatemessage/(.*)", NewPrivateMessageHandler),
-        (r"/uploadprivatemessage", NewPrivateMessageHandler),
+        (r"/showprivates", ShowPrivatesHandler),
+        (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
         (r"/privatemessage/(.*)", PrivateMessageHandler),
         (r"/sitecontent/(.*)", SiteContentHandler),
         (r"/avatar/(.*)", AvatarHandler),

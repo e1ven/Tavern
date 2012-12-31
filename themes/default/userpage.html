@@ -1,12 +1,14 @@
-
-<div class="single userportrait">
 {% if len(envelopes) != 0 %}
-<h1> Details about {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_pubkey_sha1']}} </h1>
+{% set hisname = envelopes[0]['envelope']['payload']['author']['friendlyname'] + "@" + envelopes[0]['envelope']['local']['author_pubkey_sha1'] %}
 {% else %}
-<h1> Details about {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_pubkey_sha1']}} </h1>
+{% set hisname =  thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_pubkey_sha1'] %}
 {% end %}
+<div class="single userportrait">
+<h1> Details about {{hisname}} </h1>
 <p></p>
+<p><a href="/privatemessage/{{thatguy.UserSettings['pubkey']}}">Send {{hisname}} a private message</a></p><br>
 <ul>
+
 
 <img id="avatar_{{''.join(thatguy.UserSettings['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
