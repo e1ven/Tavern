@@ -1,20 +1,16 @@
-T# This project requires Python 3.
+# This project requires Python 3.2 (NOT 3.1)
 # If you're on OS X, I suggest Homebrew, rather than MacPorts or Fink.
 
 
 
-#### For Ubuntu 
-apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev build-dep python-imaging java-common yui-compressor gnupg
+#### For Debian-based systems 
+apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons
 
 ### for OS X
 brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost
 
 
-
-
 ln -s /usr/bin/python3.2 /usr/bin/python
-
-
 
 
 #On 64 bit
@@ -32,8 +28,8 @@ cd /usr/local/src
 wget http://nginx.org/download/nginx-1.3.8.tar.gz
 tar xvfz nginx-1.3.8.tar.gz
 cd nginx-1.3.8
-wget http://nginx.org/patches/spdy/patch.spdy.txt
-patch -p0 < patch.spdy.txt
+wget http://nginx.org/patches/spdy/patch.spdy-53.txt
+patch -p0 < patch.spdy-53.txt
 
 git clone https://github.com/vkholodkov/nginx-upload-module.git
 cd nginx-upload-module
@@ -41,13 +37,16 @@ git checkout 2.2
 cd ..
 
 git clone https://github.com/mdirolf/nginx-gridfs.git
+CFLAGS="$CFLAGS -Wno-missing-field-initializers"
 cd nginx-gridfs
 git submodule init
 git submodule update
-git checkout v0.8
-cd ..
+cd mongo-c-driver
+git checkout v0.3.1
+cd ../..
+
 	# on Linux
-	./configure --add-module=/usr/local/src/nginx-1.2.4/nginx-upload-module --add-module=/usr/local/src/nginx-1.2.4/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
+	./configure --add-module=/usr/local/src/nginx-1.3.8/nginx-upload-module --add-module=/usr/local/src/nginx-1.3.8/nginx-gridfs  --with-http_ssl_module  --prefix=/opt/nginx
 	# On OS X
 	./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.3.3/nginx-upload-module --add-module=/usr/local/src/nginx-1.3.3/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx
 make
@@ -67,7 +66,7 @@ cd /opt/Tavern/libs
 curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.30.tar.gz
 tar -xzvf distribute-0.6.30.tar.gz
 cd distribute-0.6.30
-python setup.py install
+python3 setup.py install
 /usr/local/bin/easy_install-3.2 pip
 
 cd /opt/Tavern

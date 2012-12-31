@@ -5,7 +5,7 @@
 # First, create two working directories
 mkdir -p tmp/checked
 mkdir -p tmp/unchecked
-
+mkdir -p tmp/gpgkeys
 
 # First, determine if we're running the program as root.
 # If we are, restart nginx if possible.

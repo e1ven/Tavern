@@ -6,7 +6,8 @@ import base64
 import logging
 import functools
 import gnupg
-
+import tempfile
+import shutil
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
 
@@ -22,8 +23,9 @@ class Keys(object):
         self.privkey = priv
         self.format_keys()
 
-        self.gpg = gnupg.GPG(
-            keyring=None, options="--no-emit-version --no-comments")
+        self.gnuhome = tempfile.mkdtemp()
+        self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
+            options="--no-emit-version --no-comments --no-default-keyring")
         self.gpg.encoding = 'utf-8'
         keyimport = None
         if self.privkey is not None:
@@ -33,6 +35,13 @@ class Keys(object):
         if keyimport is not None:
                 if keyimport.count > 0:
                     self.fingerprint = keyimport.fingerprints[0]
+
+    def __del__(self):
+        """
+        Clean up after ourselves.
+        In this case, remove the tempdir used to store gnukeys.
+        """
+        shutil.rmtree(self.gnuhome)
 
     def format_keys(self):
         """
@@ -73,7 +82,6 @@ class Keys(object):
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
-        return False
 
     def generate(self):
         """
@@ -139,12 +147,23 @@ class Keys(object):
             return True
 
     def encrypt(self, encryptstring,encrypt_to):
+        """
+        Encrypt a string, to the gpg key of the specified recipient)
+        """
+
+        # In order for this to work, we need to temporarily import B's key into A's keyring.
+        # We then do the encryptions, and immediately remove it.
         recipient = Keys(pub=encrypt_to)
         recipient.format_keys()
-        return str(self.gpg.encrypt(data=encryptstring,recipients=[recipient.fingerprint]))
+        self.gpg.import_keys(recipient.pubkey)
+        encrypted_string =  str(self.gpg.encrypt(data=encryptstring,recipients=[recipient.fingerprint],always_trust=True,armor=True))
+        self.gpg.delete_keys(recipient.fingerprint)
+        return encrypted_string
 
-  #  def decrypt(self, decryptstring):
+    def decrypt(self, decryptstring):
        # self.gpg.
+       decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
+       return decrypted_string
 
     def test_signing(self):
         """
@@ -158,6 +177,12 @@ class Keys(object):
         self.format_keys()
         recipient = Keys()
         recipient.generate()
-        enc = self.encrypt(encryptstring="Foo",encrypt_to=recipient.pubkey)
-        print(enc)
+        test_string = "foo"
+        enc = self.encrypt(encryptstring=test_string,encrypt_to=recipient.pubkey)
+        decrypted_string = recipient.decrypt(enc)
+        if test_string == decrypted_string: 
+            return True
+        else:
+            return False
+       
 

@@ -12,7 +12,16 @@ class TavernCache(object):
         def __init__(self):
             self.mc = OrderedDict()
             self.store = OrderedDict()
+            self.queues = {}
 TavernCache = TavernCache()
+
+
+def getNext(typeofthing='general'):
+    if typeofthing in TavernCache.queues:
+        TavernCache.queues[typeofthing] = TavernCache.queues[typeofthing] +1
+    else:
+        TavernCache.queues[typeofthing] = 0
+    return TavernCache.queues[typeofthing]
 
 
 def storething(*args, ttl=60, maxsize=None, value, key=None):

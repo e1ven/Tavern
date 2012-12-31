@@ -10,6 +10,8 @@ class lockedKey(object):
     This also prevents us from evesdropping on private messages.
 
     Class is basically a wrapper around Keys.py
+
+    We aren't just using gpg passphrases because there is no easy way to progratically change them.
     """
 
     def __init__(self, pub=None, priv=None, password=None, encryptedprivkey=None):

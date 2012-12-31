@@ -130,6 +130,20 @@ class Server(object):
             ran = ''.join(chr(self.randrange(48, 122)) for i in range(length))
         return ran
 
+    def getnextint(self, queuename,forcewrite=False):
+        if not 'queues' in self.ServerSettings:
+            self.ServerSettings['queues'] = {}
+
+        if not queuename in self.ServerSettings['queues']:
+            self.ServerSettings['queues'][queuename] = 0;
+
+        self.ServerSettings['queues'][queuename] += 1;
+
+        if forcewrite == True:
+            self.saveconfig
+
+        return self.ServerSettings['queues'][queuename]
+
     def __init__(self, settingsfile=None):
         self.ServerSettings = OrderedDict()
         self.mongocons = OrderedDict()
