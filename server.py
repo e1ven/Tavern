@@ -246,6 +246,11 @@ class Server(object):
         if not 'upload-dir' in self.ServerSettings:
             self.ServerSettings['upload-dir'] = '/opt/uploads'
 
+        if not 'mark-origin' in self.ServerSettings:
+            self.ServerSettings['mark-origin'] = False
+
+
+
         if not 'max-upload-preview-size' in self.ServerSettings:
             self.ServerSettings['max-upload-preview-size'] = 10485760
 
@@ -401,10 +406,13 @@ class Server(object):
         myserverinfo = {'class': 'server', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
         stamps.append(myserverinfo)
 
-        # If we are the first to see this, also set outselves as the Origin.
-        if serversTouched == 0:
-            myserverinfo = {'class': 'origin', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
-            stamps.append(myserverinfo)
+
+
+        # If we are the first to see this, and it's enabled -- set outselves as the Origin.
+        if ServerSettings['mark-origin'] == True:
+            if serversTouched == 0:
+                myserverinfo = {'class': 'origin', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+                stamps.append(myserverinfo)
 
         # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
         if 'topic' in c.dict['envelope']['payload']:
