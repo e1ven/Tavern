@@ -5,4 +5,4 @@ then
 	nohup mysql.server start 
 fi
 nohup mongod run --config /usr/local/Cellar/mongodb/2.0.6-x86_64/mongod.conf &
-pg_ctl -D /usr/local/var/postgres -l logfile start
+pg_ctl -D /usr/local/var/postgres -l /var/log/postgres start
