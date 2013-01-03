@@ -19,18 +19,22 @@
   margin-right: 0.2em;
   text-align: center;
   opacity: 0.8;
-/* Uncomment for 3D effect */
-/* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
-/* fix buttons height */
+/* fix buttons height, for twitter bootstrap */
   line-height: 1em;
+/* Animation center compensation - magrins should be symmetric */
+/* remove if not needed */
+  margin-left: 0.2em;
 /* you can be more comfortable with increased icons size */
 /* font-size: 120%; */
+/* Uncomment for 3D effect */
+/* text-shadow: 1px 1px 1px rgba(127, 127, 127, 0.3); */
 }
 
 .icon-tools:before { content: '\2692'; } /* '⚒' */
 .icon-edit:before { content: '\270d'; } /* '✍' */
 .icon-info-circle:before { content: '\e705'; } /* '' */
 .icon-up-circle2:before { content: '\e75b'; } /* '' */
+.icon-spin5:before { content: '\e838'; } /* '' */
 .icon-rss:before { content: '\f09e'; } /* '' */
 .icon-pinterest-squared:before { content: '\f0d3'; } /* '' */
 .icon-gplus-squared:before { content: '\f0d4'; } /* '' */

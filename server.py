@@ -130,14 +130,14 @@ class Server(object):
             ran = ''.join(chr(self.randrange(48, 122)) for i in range(length))
         return ran
 
-    def getnextint(self, queuename,forcewrite=False):
+    def getnextint(self, queuename, forcewrite=False):
         if not 'queues' in self.ServerSettings:
             self.ServerSettings['queues'] = {}
 
         if not queuename in self.ServerSettings['queues']:
-            self.ServerSettings['queues'][queuename] = 0;
+            self.ServerSettings['queues'][queuename] = 0
 
-        self.ServerSettings['queues'][queuename] += 1;
+        self.ServerSettings['queues'][queuename] += 1
 
         if forcewrite == True:
             self.saveconfig
@@ -248,8 +248,6 @@ class Server(object):
 
         if not 'mark-origin' in self.ServerSettings:
             self.ServerSettings['mark-origin'] = False
-
-
 
         if not 'max-upload-preview-size' in self.ServerSettings:
             self.ServerSettings['max-upload-preview-size'] = 10485760
@@ -406,10 +404,8 @@ class Server(object):
         myserverinfo = {'class': 'server', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
         stamps.append(myserverinfo)
 
-
-
         # If we are the first to see this, and it's enabled -- set outselves as the Origin.
-        if ServerSettings['mark-origin'] == True:
+        if self.ServerSettings['mark-origin'] == True:
             if serversTouched == 0:
                 myserverinfo = {'class': 'origin', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
                 stamps.append(myserverinfo)

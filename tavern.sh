@@ -37,6 +37,20 @@ echo "Running onStart functions."
 
 
 
+
+echo "Ensuring fontello directory compliance"
+gsed > /dev/null 2&>1
+if [ $? -eq 1 ]
+    then
+    #Use Gnu sed
+    sed='gsed'
+else
+    sed='sed'
+fi
+
+"$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' static/css/fontello*.css
+
+
 # The yui-compressor will compress JS and CSS
 # The command to run it is different on OSX and Linux, however, so figure out which one we have
 # If we don't have either, use 'cat' as an alternate 'compressor'

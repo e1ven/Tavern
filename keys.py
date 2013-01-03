@@ -25,7 +25,7 @@ class Keys(object):
 
         self.gnuhome = tempfile.mkdtemp()
         self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
-            options="--no-emit-version --no-comments --no-default-keyring")
+                             options="--no-emit-version --no-comments --no-default-keyring")
         self.gpg.encoding = 'utf-8'
         keyimport = None
         if self.privkey is not None:
@@ -33,8 +33,8 @@ class Keys(object):
         elif self.pubkey is not None:
             keyimport = self.gpg.import_keys(self.pubkey)
         if keyimport is not None:
-                if keyimport.count > 0:
-                    self.fingerprint = keyimport.fingerprints[0]
+            if keyimport.count > 0:
+                self.fingerprint = keyimport.fingerprints[0]
 
     def __del__(self):
         """
@@ -146,7 +146,7 @@ class Keys(object):
         else:
             return True
 
-    def encrypt(self, encryptstring,encrypt_to):
+    def encrypt(self, encryptstring, encrypt_to):
         """
         Encrypt a string, to the gpg key of the specified recipient)
         """
@@ -156,14 +156,14 @@ class Keys(object):
         recipient = Keys(pub=encrypt_to)
         recipient.format_keys()
         self.gpg.import_keys(recipient.pubkey)
-        encrypted_string =  str(self.gpg.encrypt(data=encryptstring,recipients=[recipient.fingerprint],always_trust=True,armor=True))
+        encrypted_string = str(self.gpg.encrypt(data=encryptstring, recipients=[recipient.fingerprint], always_trust=True, armor=True))
         self.gpg.delete_keys(recipient.fingerprint)
         return encrypted_string
 
     def decrypt(self, decryptstring):
-       # self.gpg.
-       decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
-       return decrypted_string
+        # self.gpg.
+        decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
+        return decrypted_string
 
     def test_signing(self):
         """
@@ -172,17 +172,15 @@ class Keys(object):
         self.format_keys()
         return self.verify_string(stringtoverify="ABCD1234", signature=self.signstring("ABCD1234"))
 
-
     def test_encryption(self):
         self.format_keys()
         recipient = Keys()
         recipient.generate()
         test_string = "foo"
-        enc = self.encrypt(encryptstring=test_string,encrypt_to=recipient.pubkey)
+        enc = self.encrypt(
+            encryptstring=test_string, encrypt_to=recipient.pubkey)
         decrypted_string = recipient.decrypt(enc)
-        if test_string == decrypted_string: 
+        if test_string == decrypted_string:
             return True
         else:
             return False
-       
-

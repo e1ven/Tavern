@@ -18,7 +18,7 @@ TavernCache = TavernCache()
 
 def getNext(typeofthing='general'):
     if typeofthing in TavernCache.queues:
-        TavernCache.queues[typeofthing] = TavernCache.queues[typeofthing] +1
+        TavernCache.queues[typeofthing] = TavernCache.queues[typeofthing] + 1
     else:
         TavernCache.queues[typeofthing] = 0
     return TavernCache.queues[typeofthing]

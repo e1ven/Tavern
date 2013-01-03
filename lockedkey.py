@@ -104,7 +104,7 @@ class lockedKey(object):
         Encrypt a given string, after unlocking the local privkey to do so.
         """
         tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return tempkey.encrypt(encryptstring=encryptstring,encrypt_to=encrypt_to)
+        return tempkey.encrypt(encryptstring=encryptstring, encrypt_to=encrypt_to)
 
     def decrypt(self, decryptstring, passkey):
         """

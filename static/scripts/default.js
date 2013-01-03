@@ -193,8 +193,16 @@ jQuery(document).ready(function() {
 
 
     // Create a spinner in JS, so we don't see it with Lynx/etc.
-    jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
 
+    if ( detectAnimation() == true)
+    {
+      jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
+      jQuery('#spinner').html('<i class="icon-spin5 animate-spin"></i>');
+    }
+    else
+    {
+      jQuery('#spinner').html('<img src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
+    }
     // Place the spinner for all tagged links.
     jQuery(document).on('click','.internal',function(event)
         {

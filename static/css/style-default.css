@@ -665,7 +665,7 @@ img.imginline { vertical-align: middle;  }
 	filter: alpha(opacity=20);
 }
 
-#spinner img{
+#spinner img,i{
     float:right;
 }
 
@@ -837,6 +837,11 @@ width:90%;
 .icon-up-circle2:hover{
   color:#000000;
 }
+.icon-spin5{
+  color:#FFFFFF;
+  font-size:30px;
+}
+
 .uploadfileform > p
 {
   padding-left: 75px !important;
