@@ -33,11 +33,11 @@ class FakeMongo():
         self.conn = psycopg2.connect("dbname=" + serversettings.ServerSettings['dbname'] + " user=e1ven",connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
-    def find(self,collection,query={},limit=None):
+    def find(self,collection,query={},limit=-1,skip=0):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
-        print(jsonquery)
-        cur.callproc('find',[collection,jsonquery])
+
+        cur.callproc('find',[collection,jsonquery],limit,skip)
         results = []
         for row in cur.fetchall():
             results.append(json.loads(json.loads(row['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
