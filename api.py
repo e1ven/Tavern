@@ -30,6 +30,7 @@ import urllib.parse
 import urllib.error
 #import TopicList
 import uuid
+from serversettings import serversettings
 
 import re
 try:
@@ -59,8 +60,8 @@ class BaseHandler(tornado.web.RequestHandler):
     def getvars(self):
         if "clientauth" in self.request.arguments:
             clientauth = self.get_argument("clientauth")
-            self.sessionid = server.mongos['sessions']['sessions'].find_one(
-                {'client-session': clientauth}, as_class=OrderedDict)
+            self.sessionid = server.db.sessions['sessions'].find_one(
+                {'client-session': clientauth})
         else:
             self.sessionid = None
 
@@ -73,7 +74,7 @@ class NotFoundHandler(BaseHandler):
 class ListActiveTopics(BaseHandler):
     def get(self):
         toptopics = []
-        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10, as_class=OrderedDict).sort('value', -1):
+        for quicktopic in server.db.unsafe['topiclist'].find(collection='topiclist',limit=10).sort('value', -1):
             toptopics.append(quicktopic['_id']['tag'])
         self.write(json.dumps(toptopics, separators=(',', ':')))
         self.finish()
@@ -88,7 +89,7 @@ class MessageHandler(BaseHandler):
         else:
             client_perspective = None
 
-        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_message_id}, as_class=OrderedDict)
+        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_message_id})
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -115,11 +116,9 @@ class TopicHandler(BaseHandler):
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
-        server.logger.info(server.ServerSettings['pubkey'])
-        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset, as_class=OrderedDict):
-            server.logger.info("foo")
+        server.logger.info(serversettings.ServerSettings['pubkey'])
+        for envelope in server.db.unsafe.find('envelopes',{'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset):
             if client_perspective is not None:
-                server.logger.info("FFFF")
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
                 usertrust = u.gatherTrust(
@@ -141,7 +140,7 @@ class PrivateMessagesHandler(BaseHandler):
         client_pubkey = tornado.escape.xhtml_escape(pubkey)
         envelopes = []
 
-        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.payload.to': client_pubkey}, as_class=OrderedDict):
+        for envelope in server.db.unsafe.find('envelopes',{'envelope.payload.to': client_pubkey}):
             formattedtext = server.formatText(envelope, formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
@@ -163,9 +162,9 @@ class ServerStatus(BaseHandler):
         status = OrderedDict()
         status['timestamp'] = int(time.time())
         status['pubkey'] = server.ServerKeys.pubkey
-        status['hostname'] = server.ServerSettings['hostname']
+        status['hostname'] = serversettings.ServerSettings['hostname']
         # Report ourselves, plus the default connection.
-        status['connections'] = ['http://' + server.ServerSettings['hostname']
+        status['connections'] = ['http://' + serversettings.ServerSettings['hostname']
                                  + ':8090', 'http://GetTavern.com:8090', 'http://Tavern.is:8090']
         self.write(json.dumps(status, separators=(',', ':')))
 
@@ -176,7 +175,7 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     server.logger.info(
-        "Starting Web Frontend for " + server.ServerSettings['hostname'])
+        "Starting Web Frontend for " + serversettings.ServerSettings['hostname'])
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),

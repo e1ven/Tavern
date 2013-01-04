@@ -13,7 +13,6 @@ class TopicList(object):
                 function(){
                         if (this.envelope.payload.class == 'message')
                         {
-
                             var timestamp = Number(new Date()/1000);
                             mtime = this.envelope.local.time_added;
 
@@ -47,6 +46,6 @@ class TopicList(object):
 
                 """)
 
-        server.mongos['unsafe']['envelopes'].map_reduce(
-            map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+        server.db.safe.map_reduce('envelopes', 
+                   map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 T = TopicList()

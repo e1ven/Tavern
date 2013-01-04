@@ -15,6 +15,7 @@ import os
 import time
 import random
 from server import server
+from serversettings import serversettings
 
 
 class EmailServer(object):
@@ -30,44 +31,44 @@ class EmailServer(object):
         self.emails = multiprocessing.Queue()
         self.optouts = []
         self.procs = []
-        if 'email' not in server.ServerSettings:
+        if 'email' not in serversettings.ServerSettings:
             self.makedefaults()
 
     def makedefaults(self):
         """
         Stick default settings in a file.
         """
-        server.ServerSettings['email'] = {}
-        server.ServerSettings['email'][
+        serversettings.ServerSettings['email'] = {}
+        serversettings.ServerSettings['email'][
             'sender'] = "noreply <noreply@example.com>"
-        server.ServerSettings['email']['smtpserver'] = 'smtp.example.com'
-        server.ServerSettings['email']['username'] = "user@example.com"
-        server.ServerSettings['email']['password'] = "password"
-        server.ServerSettings['email'][
+        serversettings.ServerSettings['email']['smtpserver'] = 'smtp.example.com'
+        serversettings.ServerSettings['email']['username'] = "user@example.com"
+        serversettings.ServerSettings['email']['password'] = "password"
+        serversettings.ServerSettings['email'][
             'workers'] = multiprocessing.cpu_count() - 1
-        server.ServerSettings['email']['saveinterval'] = 1000
-        server.ServerSettings['email']['debug'] = True
-        server.ServerSettings['email']['SSL'] = False
-        server.ServerSettings['email']['port'] = 25
-        server.ServerSettings['email']['newmailevery'] = 100
-        server.ServerSettings['email']['sleeptime'] = 5
-        server.ServerSettings['email']['authrequired'] = True
+        serversettings.ServerSettings['email']['saveinterval'] = 1000
+        serversettings.ServerSettings['email']['debug'] = True
+        serversettings.ServerSettings['email']['SSL'] = False
+        serversettings.ServerSettings['email']['port'] = 25
+        serversettings.ServerSettings['email']['newmailevery'] = 100
+        serversettings.ServerSettings['email']['sleeptime'] = 5
+        serversettings.ServerSettings['email']['authrequired'] = True
 
-        server.saveconfig()
+        serversettings.saveconfig()
 
     def loadmail(self):
         """
         Load in the emails
         """
 
-        for email in server.mongos['safe']['optout-emails'].find():
+        for email in server.db.safe.find('output-emails',{}):
             self.optouts.append(email['address'])
 
         # Move messages to an in-memory queue which can go to multiple processes
-        for email in server.mongos['unsafe']['notifications_queue'].find({'type': 'email'}):
+        for email in server.db.unsafe.find('notifications_queue',{'type': 'email'}):
             if email['address'] not in self.optouts:
                 self.emails.put(email)
-            server.mongos['unsafe']['notifications_queue'].remove(email)
+            server.db.unsafe.remove('notifications_queue',email)
 
     def start(self):
         """
@@ -77,7 +78,7 @@ class EmailServer(object):
 
         self.kill()
         self.procs = []
-        for proc in range(0, server.ServerSettings['email']['workers']):
+        for proc in range(0, serversettings.ServerSettings['email']['workers']):
             newproc = multiprocessing.Process(target=self.sendmail, args=())
             self.procs.append(newproc)
             server.logger.info(" Created Process - " + str(proc))
@@ -111,11 +112,11 @@ class EmailServer(object):
                 currentemail = self.emails.get(False)
                 msg = MIMEMultipart('alternative')
                 msg['Subject'] = currentemail['subject']
-                msg['From'] = server.ServerSettings['email']['sender']
+                msg['From'] = serversettings.ServerSettings['email']['sender']
                 msg['To'] = currentemail['address']
 
                 # Create a  a new mail every X messages
-                newmailevery = server.ServerSettings['email']['newmailevery']
+                newmailevery = serversettings.ServerSettings['email']['newmailevery']
 
                 # Record the MIME types of both parts - text/plain and text/html.
                 part1 = MIMEText(currentemail['text'], 'plain')
@@ -130,24 +131,24 @@ class EmailServer(object):
                 if count % newmailevery == 0:
                     if count > 0:
                         conn.close()
-                    server.logger.info("Establishing Connection to emailserver " + server.ServerSettings['email']['smtpserver'])
-                    if server.ServerSettings['email']['SSL'] == True:
-                        conn = smtplib.SMTP_SSL(host=server.ServerSettings['email']['smtpserver'], port=server.ServerSettings['email']['port'])
+                    server.logger.info("Establishing Connection to emailserver " + serversettings.ServerSettings['email']['smtpserver'])
+                    if serversettings.ServerSettings['email']['SSL'] == True:
+                        conn = smtplib.SMTP_SSL(host=serversettings.ServerSettings['email']['smtpserver'], port=serversettings.ServerSettings['email']['port'])
                     else:
-                        conn = smtplib.SMTP(host=server.ServerSettings['email']['smtpserver'], port=server.ServerSettings['email']['port'])
+                        conn = smtplib.SMTP(host=serversettings.ServerSettings['email']['smtpserver'], port=serversettings.ServerSettings['email']['port'])
 
-                    if server.ServerSettings['email']['authrequired'] == True:
-                        conn.login(server.ServerSettings['email']['username'],
-                                   server.ServerSettings['email']['password'])
+                    if serversettings.ServerSettings['email']['authrequired'] == True:
+                        conn.login(serversettings.ServerSettings['email']['username'],
+                                   serversettings.ServerSettings['email']['password'])
 
                 try:
-                    conn.sendmail(server.ServerSettings['email']['sender'],
+                    conn.sendmail(serversettings.ServerSettings['email']['sender'],
                                   currentemail['address'], msg.as_string())
                 finally:
                     count += 1
                     server.logger.info("This thread has sent " + str(count))
             else:
-                sleeptime = server.ServerSettings['email']['sleeptime']
+                sleeptime = serversettings.ServerSettings['email']['sleeptime']
                 server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
                 time.sleep(sleeptime)
         conn.close()

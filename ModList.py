@@ -40,7 +40,7 @@ class ModList(object):
                 }
                 """)
 
-        server.mongos['unsafe']['envelopes'].map_reduce(
+        server.db.unsafe.map_reduce('envelopes',
             map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
 
 M = ModList()

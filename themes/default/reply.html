@@ -3,11 +3,11 @@
 {% import datetime %}
 
 {% set medialink = None %}
-{% set envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512' : messageid },as_class=OrderedDict) %}
+{% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
 {% if envelope is None %}
 	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
-{% set permalink = request.protocol + "://" + server.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set permalink = request.protocol + "://" + serversettings.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
 
 {% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
 
@@ -118,12 +118,12 @@
 									<video id="my_video_1" class="video-js vjs-default-skin" controls
 		 							preload="metadata" width="640" height="264"
 		  							data-setup="{}">
-		  								<source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
+		  								<source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
 									</video>
 								{% end %}
 						    	{% if attachment['detected_mime'] in ['audio/mpeg'] %}
 							    <audio preload="metadata">
-							      <source src="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+							      <source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
 							    </audio>
 
 								{% end %}
@@ -133,17 +133,17 @@
 
 							{% if 'displayable' in attachment %}
 	                            {% if attachment['displayable'] is not False %}
-									<a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-									<img src="{{server.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+									<a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+									<img src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
 									{% if medialink == None %}
-										{% set medialink = server.ServerSettings['downloadsurl'] + attachment['displayable'] %}
+										{% set medialink = serversettings.ServerSettings['downloadsurl'] + attachment['displayable'] %}
 									{% end %}
 							    {% end %} 
 							{% end %} 
 
 
 
-				            <a href="{{server.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
+				            <a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
 				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
 	                        <br>
 				    {% end %}

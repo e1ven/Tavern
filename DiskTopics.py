@@ -8,6 +8,8 @@ import json
 import sys
 import os
 import argparse
+from serversettings import serversettings
+
 
 msgsdir = "MESSAGES/TOPICS/"
 
@@ -37,10 +39,10 @@ def writetopic(topic, since=0, limit=0, skip=0):
     """
     e = Envelope()
     if topic == 'all':
-        #envelopes = server.mongos['safe']['envelopes'].find({'envelope.local.time_added': {'$gt' : since }},limit=limit,skip=skip,as_class=OrderedDict)
-        envelopes = server.mongos['safe']['envelopes'].find()
+        #envelopes = server.mongos['safe']['envelopes'].find({'envelope.local.time_added': {'$gt' : since }},limit=limit,skip=skip)
+        envelopes = server.db.safe.find('envelopes')
     else:
-        envelopes = server.mongos['safe']['envelopes'].find({'envelope.local.time_added': {'$gt': since}, 'envelope.payload.topic': topic}, limit=limit, skip=skip, as_class=OrderedDict)
+        envelopes = server.db.safe.find('envelopes',{'envelope.local.time_added': {'$gt': since}, 'envelope.payload.topic': topic}, limit=limit, skip=skip)
 
     for envelope in envelopes:
         if args.verbose:

@@ -6,6 +6,8 @@ from Envelope import Envelope
 from server import server
 from User import User
 from optparse import OptionParser
+from serversettings import serversettings
+
 
 parser = OptionParser()
 parser.add_option("-m", "--messagestart",
@@ -19,7 +21,7 @@ parser.add_option("-f", "--filestart",
 datenow = datetime.datetime.now().strftime('%Y-%m-%d')
 
 
-serverprefix = "https://" + server.ServerSettings['hostname']
+serverprefix = "https://" + serversettings.ServerSettings['hostname']
 
 # Generate the boilerplate for the main sitemap file.
 # We'll be adding additional lines to this file, as we generate them, below.
@@ -33,7 +35,7 @@ sitemapindex.write("""<?xml version="1.0" encoding="UTF-8"?>
 
 
 # Now, generate the per-envelope sitemaps.
-countEnvelopes = server.mongos['unsafe']['envelopes'].find(
+countEnvelopes = server.db.unsafe.find('envelopes',
     {"envelope.payload.class": "message"}).count()
 
 print("Found - " + str(countEnvelopes) + " envelopes.")
@@ -64,7 +66,7 @@ for i in range(sitemapcount):
     sitemapindex.write("<lastmod>" + datenow + "</lastmod>\n")
     sitemapindex.write("</sitemap>\n")
 
-    a = server.mongos['unsafe']['envelopes'].find(
+    a = server.db.unsafe.find('envelopes',
         {"envelope.local.short_subject": {"$exists": True}})[start:end]
     for envelope in a:
         url = serverprefix + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512']

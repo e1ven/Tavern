@@ -21,6 +21,97 @@ try:
     from hashlib import md5 as md5_func
 except ImportError:
     from md5 import new as md5_func
+import psycopg2
+from psycopg2.extras import RealDictConnection
+from serversettings import serversettings
+
+
+class FakeMongo():
+    def __init__(self):
+
+        # Create a connection to Postgres.
+        self.conn = psycopg2.connect("dbname=" + serversettings.ServerSettings['dbname'] + " user=e1ven",connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn.autocommit = True
+
+    def find(self,collection,query={},limit=None):
+        cur = self.conn.cursor()
+        jsonquery = json.dumps(query)
+        print(jsonquery)
+        cur.callproc('find',[collection,jsonquery])
+        results = []
+        for row in cur.fetchall():
+            results.append(json.loads(json.loads(row['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
+        return results   
+
+    def find_one(self,collection,query={}):
+        cur = self.conn.cursor()
+
+        jsonquery = json.dumps(query)
+        cur.callproc('find',[collection,jsonquery])
+        res = cur.fetchone()
+
+        # strip out the extraneous data the server includes.
+        dictres = json.loads(json.loads(res['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+
+        return dictres
+
+    def save(self,collection,query):
+        cur = self.conn.cursor()
+        jsonquery = json.dumps(query)
+        result = cur.callproc('save',[collection,jsonquery])
+        return result
+
+    # TODO - Change insert to not insert dups. Probably in mongolike.
+    def insert(self,collection,query):
+        cur = self.conn.cursor()
+        jsonquery = json.dumps(query)
+        result = cur.callproc('save',[collection,jsonquery])
+        return result
+
+class MongoWrapper():
+    def __init__(self,safe=True):
+
+        if safe == True:
+            # Slower, more reliable mongo connection.
+            self.safeconn = pymongo.MongoClient(serversettings.ServerSettings['mongo-hostname'], serversettings.ServerSettings['mongo-port'], safe=True, journal=True, max_pool_size=serversettings.ServerSettings['mongo-connections'])
+            self.mongo = self.safeconn[serversettings.ServerSettings['dbname']]
+        else:
+            # Create a fast, unsafe mongo connection. Writes might get lost.
+            self.unsafeconn = pymongo.MongoClient(serversettings.ServerSettings['mongo-hostname'], serversettings.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.ServerSettings['mongo-connections'])
+            self.mongo = self.unsafeconn[serversettings.ServerSettings['dbname']]
+
+    def find(self,collection,query={},limit=0,skip=0):
+        return self.mongo[collection].find(query,skip=skip,limit=limit)
+
+    def find_one(self,collection,query={}):
+        return self.mongo[collection].find_one(query)
+
+    def save(self,collection,query):
+        return self.mongo[collection].save(query)
+
+    def insert(self,collection,query):
+        return self.mongo[collection].insert(query)
+
+    def map_reduce(self,collection,map,reduce,out):
+        return self.mongo[collection].map_reduce(map=map,reduce=reduce,out=out)
+
+class DBWrapper():
+    def __init__(self,dbtype):
+
+        if dbtype == "mongo":
+            self.safe = MongoWrapper(True)
+            self.unsafe = MongoWrapper(False)
+        elif dbtype == "postgres":
+            self.safe = FakeMongo()
+            self.unsafe = FakeMongo()
+
+
+        self.binarycon = pymongo.MongoClient(serversettings.ServerSettings['bin-mongo-hostname'], serversettings.ServerSettings['bin-mongo-port'], max_pool_size=serversettings.ServerSettings['mongo-connections'])
+        self.binaries = self.binarycon[
+            serversettings.ServerSettings['bin-mongo-db']]
+        self.sessioncon = pymongo.MongoClient(serversettings.ServerSettings['sessions-mongo-hostname'], serversettings.ServerSettings['sessions-mongo-port'])
+        self.session = self.sessioncon[
+            serversettings.ServerSettings['sessions-mongo-db']]
 
 
 def print_timing(func):
@@ -131,23 +222,20 @@ class Server(object):
         return ran
 
     def getnextint(self, queuename, forcewrite=False):
-        if not 'queues' in self.ServerSettings:
-            self.ServerSettings['queues'] = {}
+        if not 'queues' in serversettings.ServerSettings:
+            serversettings.ServerSettings['queues'] = {}
 
-        if not queuename in self.ServerSettings['queues']:
-            self.ServerSettings['queues'][queuename] = 0
+        if not queuename in serversettings.ServerSettings['queues']:
+            serversettings.ServerSettings['queues'][queuename] = 0
 
-        self.ServerSettings['queues'][queuename] += 1
+        serversettings.ServerSettings['queues'][queuename] += 1
 
         if forcewrite == True:
-            self.saveconfig
+            serversettings.saveconfig()
 
-        return self.ServerSettings['queues'][queuename]
+        return serversettings.ServerSettings['queues'][queuename]
 
     def __init__(self, settingsfile=None):
-        self.ServerSettings = OrderedDict()
-        self.mongocons = OrderedDict()
-        self.mongos = OrderedDict()
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
         self.mc = OrderedDict
@@ -155,135 +243,22 @@ class Server(object):
         if settingsfile is None:
             if os.path.isfile(platform.node() + ".TavernServerSettings"):
                 #Load Default file(hostnamestname)
-                self.loadconfig()
+                serversettings.loadconfig()
             else:
                 #Generate New config
                 self.logger.info("Generating new Config")
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
-                self.ServerSettings = OrderedDict()
         else:
             self.loadconfig(settingsfile)
 
-        self.logger.info("Generating any missing config values")
+        self.ServerKeys = Keys(pub=serversettings.ServerSettings['pubkey'],
+                               priv=serversettings.ServerSettings['privkey'])
 
-        if not 'pubkey' in self.ServerSettings:
-            self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
-        if not 'privkey' in self.ServerSettings:
-            self.ServerSettings['privkey'] = self.ServerKeys.privkey
-        if not 'hostname' in self.ServerSettings:
-            self.ServerSettings['hostname'] = platform.node()
-        if not 'logfile' in self.ServerSettings:
-            self.ServerSettings[
-                'logfile'] = self.ServerSettings['hostname'] + '.log'
-        if not 'mongo-hostname' in self.ServerSettings:
-            self.ServerSettings['mongo-hostname'] = 'localhost'
-        if not 'mongo-port' in self.ServerSettings:
-            self.ServerSettings['mongo-port'] = 27017
-        if not 'mongo-db' in self.ServerSettings:
-            self.ServerSettings['mongo-db'] = 'Tavern'
-        if not 'bin-mongo-hostname' in self.ServerSettings:
-            self.ServerSettings['bin-mongo-hostname'] = 'localhost'
-        if not 'bin-mongo-port' in self.ServerSettings:
-            self.ServerSettings['bin-mongo-port'] = 27017
-        if not 'bin-mongo-db' in self.ServerSettings:
-            self.ServerSettings['bin-mongo-db'] = 'Tavern-Binaries'
-        if not 'sessions-mongo-hostname' in self.ServerSettings:
-            self.ServerSettings['sessions-mongo-hostname'] = 'localhost'
-        if not 'sessions-mongo-port' in self.ServerSettings:
-            self.ServerSettings['sessions-mongo-port'] = 27017
-        if not 'sessions-mongo-db' in self.ServerSettings:
-            self.ServerSettings['sessions-mongo-db'] = 'Tavern-Sessions'
+        self.db = DBWrapper("mongo")
 
-        if not 'cache' in self.ServerSettings:
-            self.ServerSettings['cache'] = {}
-
-        if not 'user-trust' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['user-trust'] = {}
-            self.ServerSettings['cache']['user-trust']['seconds'] = 300
-            self.ServerSettings['cache']['user-trust']['size'] = 10000
-
-        if not 'user-ratings' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['user-ratings'] = {}
-            self.ServerSettings['cache']['user-ratings']['seconds'] = 300
-            self.ServerSettings['cache']['user-ratings']['size'] = 10000
-
-        if not 'avatarcache' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['avatarcache'] = {}
-            self.ServerSettings['cache']['avatarcache']['size'] = 100000
-            self.ServerSettings['cache']['avatarcache']['seconds'] = None
-
-        if not 'embedded' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['embedded'] = {}
-            self.ServerSettings['cache']['embedded']['size'] = 1000
-            self.ServerSettings['cache']['embedded']['seconds'] = 3600
-
-        if not 'user-note' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['user-note'] = {}
-            self.ServerSettings['cache']['user-note']['size'] = 10000
-            self.ServerSettings['cache']['user-note']['seconds'] = 60
-
-        if not 'subjects-in-topic' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['subjects-in-topic'] = {}
-            self.ServerSettings['cache']['subjects-in-topic']['size'] = 1000
-            self.ServerSettings['cache']['subjects-in-topic']['seconds'] = 30
-
-        if not 'toptopics' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['toptopics'] = {}
-            self.ServerSettings['cache']['toptopics']['size'] = 1
-            self.ServerSettings['cache']['toptopics']['seconds'] = 3600
-
-        if not 'frontpage' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['frontpage'] = {}
-            self.ServerSettings['cache']['frontpage']['size'] = 1000
-            self.ServerSettings['cache']['frontpage']['seconds'] = 3600
-
-        if not 'uasparser' in self.ServerSettings['cache']:
-            self.ServerSettings['cache']['uasparser'] = {}
-            self.ServerSettings['cache']['uasparser']['size'] = 1000
-            self.ServerSettings['cache']['uasparser']['seconds'] = 36000
-
-        if not 'upload-dir' in self.ServerSettings:
-            self.ServerSettings['upload-dir'] = '/opt/uploads'
-
-        if not 'mark-origin' in self.ServerSettings:
-            self.ServerSettings['mark-origin'] = False
-
-        if not 'max-upload-preview-size' in self.ServerSettings:
-            self.ServerSettings['max-upload-preview-size'] = 10485760
-
-        if not 'cookie-encryption' in self.ServerSettings:
-            self.ServerSettings['cookie-encryption'] = self.randstr(255)
-        if not 'serverkey-password' in self.ServerSettings:
-            self.ServerSettings['serverkey-password'] = self.randstr(255)
-        if not 'embedserver' in self.ServerSettings:
-            self.ServerSettings['embedserver'] = 'http://embed.is'
-        if not 'downloadsurl' in self.ServerSettings:
-            self.ServerSettings['downloadsurl'] = '/binaries/'
-        if not 'maxembeddedurls' in self.ServerSettings:
-            self.ServerSettings['maxembeddedurls'] = 10
-
-        if not 'mongo-connections' in self.ServerSettings:
-            self.ServerSettings['mongo-connections'] = 10
-
-        # Create a fast, unsafe mongo connection. Writes might get lost.
-        self.mongocons['unsafe'] = pymongo.MongoClient(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=self.ServerSettings['mongo-connections'])
-        self.mongos['unsafe'] = self.mongocons['unsafe'][
-            self.ServerSettings['mongo-db']]
-
-        # Slower, more reliable mongo connection.
-        self.mongocons['safe'] = pymongo.MongoClient(self.ServerSettings['mongo-hostname'], self.ServerSettings['mongo-port'], safe=True, journal=True, max_pool_size=self.ServerSettings['mongo-connections'])
-        self.mongos['safe'] = self.mongocons['safe'][
-            self.ServerSettings['mongo-db']]
-
-        self.mongocons['binaries'] = pymongo.MongoClient(self.ServerSettings['bin-mongo-hostname'], self.ServerSettings['bin-mongo-port'], max_pool_size=self.ServerSettings['mongo-connections'])
-        self.mongos['binaries'] = self.mongocons['binaries'][
-            self.ServerSettings['bin-mongo-db']]
-        self.mongocons['sessions'] = pymongo.MongoClient(self.ServerSettings['sessions-mongo-hostname'], self.ServerSettings['sessions-mongo-port'])
-        self.mongos['sessions'] = self.mongocons['sessions'][
-            self.ServerSettings['sessions-mongo-db']]
-        self.bin_GridFS = GridFS(self.mongos['binaries'])
-        self.saveconfig()
+        self.bin_GridFS = GridFS(self.db.binaries)
+        serversettings.saveconfig()
 
         # Get a list of all the valid templates that can be used, to compare against later on.
         self.availablethemes = []
@@ -292,11 +267,11 @@ class Server(object):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
-        self.ServerSettings['static-revision'] = int(time.time())
+        serversettings.ServerSettings['static-revision'] = int(time.time())
         self.fortune = Fortuna()
 
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-        #logging.basicConfig(filename=self.ServerSettings['logfile'],level=logging.DEBUG)
+        #logging.basicConfig(filename=serversettings.ServerSettings['logfile'],level=logging.DEBUG)
 
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
@@ -313,30 +288,10 @@ class Server(object):
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
 
-    def loadconfig(self, filename=None):
-        if filename is None:
-            filename = platform.node() + ".TavernServerSettings"
-        filehandle = open(filename, 'r')
-        filecontents = filehandle.read()
-        self.ServerSettings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-        self.ServerKeys = Keys(pub=self.ServerSettings['pubkey'],
-                               priv=self.ServerSettings['privkey'])
-
-        filehandle.close()
-        self.saveconfig()
-
-    def saveconfig(self, filename=None):
-        if filename is None:
-            filename = self.ServerSettings['hostname'] + \
-                ".TavernServerSettings"
-        filehandle = open(filename, 'w')
-        filehandle.write(
-            json.dumps(self.ServerSettings, separators=(',', ':')))
-        filehandle.close()
 
     def prettytext(self):
         newstr = json.dumps(
-            self.ServerSettings, indent=2, separators=(', ', ': '))
+            serversettings.ServerSettings, indent=2, separators=(', ', ': '))
         return newstr
 
     def sorttopic(self, topic):
@@ -377,7 +332,7 @@ class Server(object):
             return False
 
                 # First, pull the message.
-        existing = self.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': c.payload.hash()}, as_class=OrderedDict)
+        existing = self.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': c.payload.hash()})
         if existing is not None:
             self.logger.info("We already have that msg.")
             return c.dict['envelope']['payload_sha512']
@@ -401,13 +356,13 @@ class Server(object):
 
         # Sign the message to saw we saw it.
         signedpayload = self.ServerKeys.signstring(c.payload.text())
-        myserverinfo = {'class': 'server', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+        myserverinfo = {'class': 'server', 'hostname': serversettings.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
         stamps.append(myserverinfo)
 
         # If we are the first to see this, and it's enabled -- set outselves as the Origin.
-        if self.ServerSettings['mark-origin'] == True:
+        if serversettings.ServerSettings['mark-origin'] == True:
             if serversTouched == 0:
-                myserverinfo = {'class': 'origin', 'hostname': self.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+                myserverinfo = {'class': 'origin', 'hostname': serversettings.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
                 stamps.append(myserverinfo)
 
         # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
@@ -434,7 +389,7 @@ class Server(object):
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
-            for citedme in self.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['payload_sha512']}, as_class=OrderedDict):
+            for citedme in self.db.unsafe.find('envelopes',{'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['payload_sha512']}):
                 self.logger.info('found existing cite, bad order. ')
                 self.logger.info(
                     " I am :: " + c.dict['envelope']['payload_sha512'])
@@ -480,8 +435,8 @@ class Server(object):
         # Find the top level of a post that we currently have.
 
         # First, pull the message.
-        envelope = self.mongos['unsafe']['envelopes'].find_one(
-            {'envelope.payload_sha512': messageid}, as_class=OrderedDict)
+        envelope = self.db.unsafe.find_one('envelopes',
+            {'envelope.payload_sha512': messageid})
         envelope = self.formatEnvelope(envelope)
 
         # IF we don't have a parent, or if it's null, return self./
@@ -492,8 +447,8 @@ class Server(object):
 
         # If we do have a parent, Check to see if it's in our datastore.
         parentid = envelope['envelope']['payload']['regarding']
-        parent = self.mongos['unsafe']['envelopes'].find_one(
-            {'envelope.payload_sha512': parentid}, as_class=OrderedDict)
+        parent = self.db.unsafe.find_one('envelopes',
+            {'envelope.payload_sha512': parentid})
         if parent is None:
             return messageid
 
@@ -532,9 +487,9 @@ class Server(object):
                         #Python and be a valid image.
                         attachment.seek(0)
                         detected_mime = magic.from_buffer(
-                            attachment.read(self.ServerSettings['max-upload-preview-size']), mime=True).decode('utf-8')
+                            attachment.read(serversettings.ServerSettings['max-upload-preview-size']), mime=True).decode('utf-8')
                         displayable = False
-                        if attachment.length < self.ServerSettings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                        if attachment.length < serversettings.ServerSettings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
                             if 'content_type' in binary:
                                 if binary['content_type'].rsplit('/')[0].lower() == "image":
                                     attachment.seek(0)
@@ -596,7 +551,7 @@ class Server(object):
                 soup = BeautifulSoup(formattedbody)
                 for href in soup.findAll('a'):
                     result = self.external.lookup(href.get('href'))
-                    if result is not None and foundurls < self.ServerSettings['maxembeddedurls']:
+                    if result is not None and foundurls < serversettings.ServerSettings['maxembeddedurls']:
                         if not 'embed' in envelope['envelope']['local']:
                             envelope['envelope']['local']['embed'] = []
                         envelope['envelope']['local']['embed'].append(result)

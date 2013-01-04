@@ -30,6 +30,7 @@ import io
 from TopicTool import TopicTool
 from TavernCache import memorise
 import TavernCache
+from serversettings import serversettings
 
 try:
     from hashlib import md5 as md5_func
@@ -66,7 +67,7 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
-    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -74,7 +75,8 @@ class BaseHandler(tornado.web.RequestHandler):
         args = dict(
             server=server,
             browser=self.browser,
-            request=self.request
+            request=self.request,
+            serversettings=serversettings
         )
         args.update(kwargs)
         theme = 'default'
@@ -120,7 +122,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_header("Content-Type", "application/json")
         super(BaseHandler, self).finish(message)
 
-    @memorise(parent_keys=['html'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['html'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
     def getdiv(self, element):
         print("getting" + element)
         soup = BeautifulSoup(self.html)
@@ -132,7 +134,7 @@ class BaseHandler(tornado.web.RequestHandler):
         print(soupytxt)
         return soupytxt
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=server.ServerSettings['cache']['frontpage']['seconds'], maxsize=server.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
     def getjs(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
@@ -365,7 +367,7 @@ class RSSHandler(BaseHandler):
                                   'Tavern discussion about ' + param,
                                   generator='Tavern',
                                   pubdate=datetime.datetime.now())
-            for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, as_class=OrderedDict).sort('envelope.local.time_added', pymongo.DESCENDING):
+            for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100).sort('envelope.local.time_added', pymongo.DESCENDING):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
                                 "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -446,8 +448,8 @@ class TriPaneHandler(BaseHandler):
             # We need both center and right, since the currently active message changes in the center.
             divs = ['center', 'right']
 
-            displayenvelope = server.mongos['unsafe']['envelopes'].find_one(
-                {'envelope.payload_sha512': messageid}, as_class=OrderedDict)
+            displayenvelope = server.db.unsafe.find_one('envelopes',
+                {'envelope.payload_sha512': messageid})
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
@@ -502,11 +504,11 @@ class AllTopicsHandler(BaseHandler):
         self.getvars()
 
         alltopics = []
-        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=start + 1000, skip=start, as_class=OrderedDict).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist',limit=start + 1000, skip=start).sort('value', -1):
             alltopics.append(quicktopic)
 
         toptopics = []
-        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10, as_class=OrderedDict).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
             toptopics.append(quicktopic)
 
         self.write(
@@ -523,16 +525,16 @@ class TopicPropertiesHandler(BaseHandler):
         self.getvars()
 
         mods = []
-        for mod in server.mongos['unsafe']['modlist'].find({'_id.topic': server.sorttopic(topic)}, as_class=OrderedDict, max_scan=10000).sort('value.trust', direction=pymongo.DESCENDING):
+        for mod in server.db.unsafe.find('modlist',{'_id.topic': server.sorttopic(topic)}, max_scan=10000).sort('value.trust', direction=pymongo.DESCENDING):
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)
 
         toptopics = []
-        for quicktopic in server.mongos['unsafe']['topiclist'].find(limit=10, as_class=OrderedDict).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.mongos['unsafe']['envelopes'].find({'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts'], as_class=OrderedDict):
+        for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
             subjects.append(envelope)
 
         title = "Properties for " + topic
@@ -548,7 +550,7 @@ class SiteContentHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
 
-        envelope = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_message_id}, as_class=OrderedDict)
+        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_message_id})
 
         self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], user=self.user, canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
@@ -559,7 +561,7 @@ class AttachmentHandler(BaseHandler):
     def get(self, attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.mongos['unsafe']['envelopes'].find({'envelope.payload.binaries.sha_512': client_attachment_id}, as_class=OrderedDict)
+        envelopes = server.db.unsafe.find('envelopes',{'envelope.payload.binaries.sha_512': client_attachment_id})
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -615,15 +617,15 @@ class RegisterHandler(BaseHandler):
             return
 
         if client_email is not None:
-            users_with_this_email = server.mongos['safe']['users'].find(
-                {"email": client_email.lower()}, as_class=OrderedDict)
+            users_with_this_email = server.db.safe.find('users',
+                {"email": client_email.lower()})
             if users_with_this_email.count() > 0:
                 self.write(
                     "I'm sorry, this email address has already been used.")
                 return
 
-        users_with_this_username = server.mongos['safe']['users'].find(
-            {"username": client_newuser.lower()}, as_class=OrderedDict)
+        users_with_this_username = server.db.safe.find('users',
+            {"username": client_newuser.lower()})
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")
             return
@@ -665,15 +667,14 @@ class LoginHandler(BaseHandler):
             self.get_argument("pass"))
         if 'slug' in self.request.arguments:
             slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
-            sluglookup = server.mongos['unsafe'][
-                'redirects'].find_one({'slug': slug})
+            sluglookup = server.db.unsafe.find_one('redirects',{'slug': slug})
             if sluglookup is not None:
                 if sluglookup['url'] is not None:
                     successredirect = sluglookup['url']
 
         login = False
-        user = server.mongos['safe']['users'].find_one(
-            {"username": client_username.lower()}, as_class=OrderedDict)
+        user = server.db.safe.find_one('users',
+            {"username": client_username.lower()})
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
@@ -722,7 +723,7 @@ class ChangepasswordHandler(BaseHandler):
         if not self.recentauth():
             numcharacters = 100 + server.randrange(1, 100)
             slug = server.randstr(numcharacters, printable=True)
-            server.mongos['unsafe']['redirects'].insert({'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
+            server.db.safe.insert('redirects',{'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
             self.write(self.render_string('header.html', title="Change Password", user=self.user, rsshead=None, type=None))
@@ -772,7 +773,7 @@ class UserHandler(BaseHandler):
             pubkey.encode('utf-8')).hexdigest()
 
         envelopes = []
-        for envelope in server.mongos['safe']['envelopes'].find({'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, as_class=OrderedDict).sort('envelope.local.time_added', pymongo.DESCENDING):
+        for envelope in server.db.safe.find('envelopes',{'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}).sort('envelope.local.time_added', pymongo.DESCENDING):
             envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
@@ -1056,7 +1057,7 @@ class NewmessageHandler(BaseHandler):
                     self.get_argument(individual_file['basename'] + ".size"))
 
                 fs_basename = os.path.basename(individual_file['path'])
-                individual_file['fullpath'] = server.ServerSettings[
+                individual_file['fullpath'] = serversettings.ServerSettings[
                     'upload-dir'] + "/" + fs_basename
 
                 individual_file['filehandle'] = open(
@@ -1150,7 +1151,7 @@ class NewmessageHandler(BaseHandler):
                 detail['size'] = attached_file['size']
                 detail['content_type'] = attached_file['content_type']
 
-                detail['url'] = server.ServerSettings[
+                detail['url'] = serversettings.ServerSettings[
                     'downloadsurl'] + attached_file['hash']
                 details.append(detail)
             details_json = json.dumps(details, separators=(',', ':'))
@@ -1218,7 +1219,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_regarding}, as_class=OrderedDict)
+                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
                 e.payload.dict['topic'] = regardingmsg['envelope'][
                     'payload']['topic']
                 e.payload.dict['subject'] = regardingmsg[
@@ -1237,7 +1238,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload_sha512': client_regarding}, as_class=OrderedDict)
+                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
                     regardingmsg['envelope']['payload']['subject'])
                 e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
@@ -1302,7 +1303,7 @@ class ShowPrivatesHandler(BaseHandler):
         messages = []
         self.write(self.render_string('header.html', title="Welcome to the Tavern!", user=self.user, rsshead=None, type=None))
 
-        for message in server.mongos['unsafe']['envelopes'].find({'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, as_class=OrderedDict).sort('value', -1):
+        for message in server.db.unsafe.find('envelopes',{'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10).sort('value', -1):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1315,7 +1316,7 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(ensurekeys=True)
 
-        message = server.mongos['unsafe']['envelopes'].find_one({'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
+        message = server.db.unsafe.find_one('envelopes',{'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
         if message is not None:
             decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:
@@ -1372,20 +1373,20 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     server.logger.info(
-        "Starting Web Frontend for " + server.ServerSettings['hostname'])
+        "Starting Web Frontend for " + serversettings.ServerSettings['hostname'])
 
     # Generate a default user, to use when no one is logged in.
     # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
-    if not 'guestacct' in server.ServerSettings:
+    if not 'guestacct' in serversettings.ServerSettings:
         serveruser = User()
-        serveruser.generate(skipkeys=False, password=server.ServerSettings[
+        serveruser.generate(skipkeys=False, password=serversettings.ServerSettings[
                             'serverkey-password'])
-        server.ServerSettings['guestacct'] = serveruser.UserSettings
+        serversettings.ServerSettings['guestacct'] = serveruser.UserSettings
         server.saveconfig()
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
-        "cookie_secret": server.ServerSettings['cookie-encryption'],
+        "cookie_secret": serversettings.ServerSettings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path": "themes",
@@ -1431,7 +1432,7 @@ def main():
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8080)
     server.logger.info(
-        server.ServerSettings['hostname'] + ' is ready for requests.')
+        serversettings.ServerSettings['hostname'] + ' is ready for requests.')
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":
