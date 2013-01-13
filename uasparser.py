@@ -48,7 +48,7 @@ try:
     import pickle as pickle
 except:
     import pickle
-from TavernCache import memorise
+from TavernUtils import memorise
 from Envelope import *
 from keys import *
 from serversettings import serversettings

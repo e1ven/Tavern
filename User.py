@@ -9,7 +9,7 @@ from server import server
 import scrypt
 import base64
 from lockedkey import lockedKey
-from TavernCache import memorise
+from TavernUtils import memorise
 from serversettings import serversettings
 
 

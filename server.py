@@ -24,7 +24,7 @@ except ImportError:
 import psycopg2
 from psycopg2.extras import RealDictConnection
 from serversettings import serversettings
-
+import TavernUtils
 
 class FakeMongo():
     def __init__(self):
@@ -37,7 +37,7 @@ class FakeMongo():
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
 
-        cur.callproc('find',[collection,jsonquery],limit,skip)
+        cur.callproc('find',[collection,jsonquery,limit,skip])
         results = []
         for row in cur.fetchall():
             results.append(json.loads(json.loads(row['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
@@ -137,7 +137,7 @@ class Fortuna():
         """
         Return a Random Fortune from the stack
         """
-        fortuneindex = server.randrange(0, len(self.fortunes) - 1)
+        fortuneindex = TavernUtils.randrange(0, len(self.fortunes) - 1)
         return self.fortunes[fortuneindex]
 
 
@@ -177,49 +177,6 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
-    def randrange(self, start, stop):
-        """
-        The random that comes with Python is blocking.
-        Re-create the randrange function, using /dev/urandom
-        Only use this for not critical functions, like random header fortunes ;)
-        """
-
-        # os.urandom generates X numbytes of randomness
-        # If it's a small number requested, look up the fewest bits needed.
-        # If it's a larger number, calculate the fewest.
-        # This saves bits on the server ;)
-        diff = abs(stop - start) + 1
-        if diff < 255:
-            numbytes = 1
-        elif diff <= 65535:
-            numbytes = 2
-        elif diff <= 16777215:
-            numbytes = 3
-        elif diff <= 4294967295:
-            numbytes = 4
-        else:
-            # If it's this big, calculate it out.
-            num = 4294967295
-            numbytes = 3
-            while num <= diff:
-                numbytes += 1
-                integerstring = ''
-                for i in range(0, (numbytes * 8)):
-                    integerstring += '1'
-                num = int(integerstring, 2)
-
-        randnum = int.from_bytes(os.urandom(numbytes), 'big')
-        rightsize = randnum % diff
-        return start + rightsize
-
-    def randstr(self, length, printable=False):
-        # Ensure it's self.logger.infoable.
-        if printable == True:
-            # TODO - Expand this using a python builtin.
-            ran = ''.join(chr(self.randrange(65, 90)) for i in range(length))
-        else:
-            ran = ''.join(chr(self.randrange(48, 122)) for i in range(length))
-        return ran
 
     def getnextint(self, queuename, forcewrite=False):
         if not 'queues' in serversettings.ServerSettings:
@@ -240,6 +197,9 @@ class Server(object):
         self.logger = logging.getLogger('Tavern')
         self.mc = OrderedDict
 
+
+        # Break out the settings into it's own file, so we can include it without including all of server
+        # This does cause a few shenanigans while loading here, but hopefully it's minimal
         if settingsfile is None:
             if os.path.isfile(platform.node() + ".TavernServerSettings"):
                 #Load Default file(hostnamestname)
@@ -250,10 +210,20 @@ class Server(object):
                 self.ServerKeys = Keys()
                 self.ServerKeys.generate()
         else:
-            self.loadconfig(settingsfile)
+            serversettings.loadconfig(settingsfile)
 
+        if not 'pubkey' in serversettings.ServerSettings:
+            serversettings.ServerSettings['pubkey'] = self.ServerKeys.pubkey
+        if not 'privkey' in serversettings.ServerSettings:
+            serversettings.ServerSettings['privkey'] = self.ServerKeys.privkey
+
+        serversettings.updateconfig()
+        serversettings.saveconfig()
         self.ServerKeys = Keys(pub=serversettings.ServerSettings['pubkey'],
                                priv=serversettings.ServerSettings['privkey'])
+
+
+
 
         self.db = DBWrapper("mongo")
 

@@ -3,8 +3,12 @@ import platform
 import json
 import collections
 from collections import OrderedDict
+import TavernUtils
+
 
 class ServerSettings():
+
+
     def __init__(self):
         self.ServerSettings = OrderedDict();
 
@@ -32,10 +36,6 @@ class ServerSettings():
 
      #   self.logger.info("Generating any missing config values")
 
-        if not 'pubkey' in self.ServerSettings:
-            self.ServerSettings['pubkey'] = self.ServerKeys.pubkey
-        if not 'privkey' in self.ServerSettings:
-            self.ServerSettings['privkey'] = self.ServerKeys.privkey
         if not 'hostname' in self.ServerSettings:
             self.ServerSettings['hostname'] = platform.node()
         if not 'logfile' in self.ServerSettings:
@@ -118,9 +118,9 @@ class ServerSettings():
             self.ServerSettings['max-upload-preview-size'] = 10485760
 
         if not 'cookie-encryption' in self.ServerSettings:
-            self.ServerSettings['cookie-encryption'] = self.randstr(255)
+            self.ServerSettings['cookie-encryption'] = TavernUtils.randstr(255)
         if not 'serverkey-password' in self.ServerSettings:
-            self.ServerSettings['serverkey-password'] = self.randstr(255)
+            self.ServerSettings['serverkey-password'] = TavernUtils.randstr(255)
         if not 'embedserver' in self.ServerSettings:
             self.ServerSettings['embedserver'] = 'http://embed.is'
         if not 'downloadsurl' in self.ServerSettings:

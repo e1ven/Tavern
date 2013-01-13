@@ -5,7 +5,7 @@ import urllib.error
 import socket
 socket.setdefaulttimeout(30)
 from server import server
-from TavernCache import memorise
+from TavernUtils import memorise
 from serversettings import serversettings
 
 

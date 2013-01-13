@@ -28,8 +28,8 @@ import Image
 import imghdr
 import io
 from TopicTool import TopicTool
-from TavernCache import memorise
-import TavernCache
+from TavernUtils import memorise
+import TavernUtils
 from serversettings import serversettings
 
 try:
@@ -316,8 +316,8 @@ class BaseHandler(tornado.web.RequestHandler):
                 server.logger.info("Making keys with a random password.")
 
                 # Generate a random password with a random number of characters
-                numcharacters = 100 + server.randrange(1, 100)
-                password = server.randstr(numcharacters)
+                numcharacters = 100 + TavernUtils.randrange(1, 100)
+                password = TavernUtils.randstr(numcharacters)
                 self.user.generate(skipkeys=False, password=password)
 
                 # Save it out.
@@ -340,7 +340,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
         if not 'datauri' in self.user.UserSettings:
-            if server.randrange(1, 10) == 5:
+            if TavernUtils.randrange(1, 10) == 5:
                 self.user.UserSettings['datauri'] = False
         if 'datauri' in self.user.UserSettings:
             self.user.datauri = self.user.UserSettings['datauri']
@@ -374,6 +374,12 @@ class RSSHandler(BaseHandler):
                                 envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
+
+class RawMessageHandler(BaseHandler):
+    def get(self, message):
+        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': message})
+        envelope = server.formatEnvelope(envelope)
+        self.write(envelope['envelope']['local']['formattedbody'])
 
 
 class TriPaneHandler(BaseHandler):
@@ -721,8 +727,8 @@ class ChangepasswordHandler(BaseHandler):
         self.getvars()
 
         if not self.recentauth():
-            numcharacters = 100 + server.randrange(1, 100)
-            slug = server.randstr(numcharacters, printable=True)
+            numcharacters = 100 + TavernUtils.randrange(1, 100)
+            slug = TavernUtils.randstr(numcharacters, printable=True)
             server.db.safe.insert('redirects',{'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
@@ -1382,7 +1388,7 @@ def main():
         serveruser.generate(skipkeys=False, password=serversettings.ServerSettings[
                             'serverkey-password'])
         serversettings.ServerSettings['guestacct'] = serveruser.UserSettings
-        server.saveconfig()
+        serversettings.saveconfig()
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -1401,6 +1407,7 @@ def main():
         (r"/changepassword", ChangepasswordHandler),
         (r"/logout", LogoutHandler),
         (r"/rss/(.*)/(.*)", RSSHandler),
+        (r"/raw/(.*)", RawMessageHandler),
         (r"/newmessage", NewmessageHandler),
         (r"/uploadfile/(.*)", NewmessageHandler),
         (r"/reply/(.*)/(.*)", NewmessageHandler),
