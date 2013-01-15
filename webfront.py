@@ -775,8 +775,7 @@ class UserHandler(BaseHandler):
         u = User()
         u.UserSettings['pubkey'] = pubkey
         u.generate(self, skipkeys=True)
-        u.UserSettings['author_pubkey_sha1'] = hashlib.sha1(
-            pubkey.encode('utf-8')).hexdigest()
+        u.UserSettings['author_wordhash'] = server.wordlist.wordhash(pubkey)
 
         envelopes = []
         for envelope in server.db.safe.find('envelopes',{'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}).sort('envelope.local.time_added', pymongo.DESCENDING):
@@ -786,9 +785,9 @@ class UserHandler(BaseHandler):
                    user=self.user, rsshead=None, type=None))
 
         if pubkey == self.user.Keys.pubkey:
-            if not 'author_pubkey_sha1' in self.user.UserSettings:
-                self.user.UserSettings['author_pubkey_sha1'] = u.UserSettings[
-                    'author_pubkey_sha1']
+            if not 'author_wordhash' in self.user.UserSettings:
+                self.user.UserSettings['author_wordhash'] = u.UserSettings[
+                    'author_wordhash']
             self.write(self.render_string('mysettings.html', user=self.user))
 
         self.write(self.render_string(

@@ -124,23 +124,6 @@ def print_timing(func):
     return wrapper
 
 
-class Fortuna():
-    def __init__(self, fortunefile="fortunes"):
-        self.fortunes = []
-        fortunes = open(fortunefile, "r", encoding='utf-8')
-        line = fortunes.readline()
-        while line:
-            self.fortunes.append(line.rstrip().lstrip())
-            line = fortunes.readline()
-
-    def random(self):
-        """
-        Return a Random Fortune from the stack
-        """
-        fortuneindex = TavernUtils.randrange(0, len(self.fortunes) - 1)
-        return self.fortunes[fortuneindex]
-
-
 class Server(object):
 
     class FancyDateTimeDelta(object):
@@ -238,7 +221,9 @@ class Server(object):
                     self.availablethemes.append(name)
 
         serversettings.ServerSettings['static-revision'] = int(time.time())
-        self.fortune = Fortuna()
+        
+        self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
+        self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
 
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
         #logging.basicConfig(filename=serversettings.ServerSettings['logfile'],level=logging.DEBUG)
@@ -284,7 +269,7 @@ class Server(object):
         e.dict['envelope']['payload']['author']['useragent'] = "Error Agent"
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
         e.dict['envelope']['local']['time_added'] = 1297396876
-        e.dict['envelope']['local']['author_pubkey_sha1'] = "000000000000000000000000000000000000000000000000000000000000"
+        e.dict['envelope']['local']['author_wordhash'] = "ErrorMessage!"
         e.dict['envelope']['local']['sorttopic'] = "error"
 
         e.dict['envelope']['payload_sha512'] = e.payload.hash()
@@ -506,7 +491,7 @@ class Server(object):
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!
         envelope['envelope']['local']['attachmentlist'] = attachmentList
-        envelope['envelope']['local']['author_pubkey_sha1'] = hashlib.sha1(envelope['envelope']['payload']['author']['pubkey'].encode('utf-8')).hexdigest()
+        envelope['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(envelope['envelope']['payload']['author']['pubkey'])
 
         # Check for any Embeddable (Youtube, Vimeo, etc) Links.
         # Don't check a given message more than once.

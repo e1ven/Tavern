@@ -7,6 +7,62 @@ from collections import OrderedDict
 import time
 import json
 import os
+import hashlib
+
+
+
+
+class randomWords():
+    def __init__(self, fortunefile="data/fortunes"):
+        self.fortunes = []
+        fortunes = open(fortunefile, "r", encoding='utf-8')
+        line = fortunes.readline()
+        while line:
+            self.fortunes.append(line.rstrip().lstrip())
+            line = fortunes.readline()
+
+    def random(self):
+        """
+        Return a Random Fortune from the stack
+        """
+        fortuneindex = randrange(0, len(self.fortunes) - 1)
+        return self.fortunes[fortuneindex]
+
+
+    def wordhash(self,st,slots=4):
+        """
+        Generate a WordHash, such as MinibarAvoureParapetedSlashings for a string
+        """
+
+        # Build a hash of the word
+        hsh = hashlib.sha512()
+        hsh.update(st.encode('utf-8'))
+        hexdigest = hsh.hexdigest()
+
+        chunksize = int(len(hexdigest)/slots)
+
+        words = []
+
+        for segment in chunks(hexdigest,chunksize):
+            intversion = int(segment, 16)
+
+            #figure out which array integer the word is in
+            fortuneslot = intversion % len(self.fortunes)
+            word = self.fortunes[fortuneslot]
+            words.append(word)
+
+        # Turn the words into a CamelCase term
+        # Ensure we drop the remainder
+        s = ""
+        for word in words[:slots]:
+            s += word.title()
+        return s
+
+def chunks(s, n):
+    """Produce `n`-character chunks from `s`."""
+    for start in range(0, len(s), n):
+        yield s[start:start+n]
+
 
 def randrange(start, stop):
     """

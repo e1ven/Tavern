@@ -23,7 +23,7 @@
 
 
 
-                        <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_pubkey_sha1']}}<br>
+                        <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}<br>
                         {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
                         {% if user.UserSettings['display_useragent'] %}
                             {% if 'name' in envelope['envelope']['payload']['author']['useragent'] %}

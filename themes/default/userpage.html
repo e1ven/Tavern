@@ -1,7 +1,7 @@
 {% if len(envelopes) != 0 %}
-{% set hisname = envelopes[0]['envelope']['payload']['author']['friendlyname'] + "@" + envelopes[0]['envelope']['local']['author_pubkey_sha1'] %}
+{% set hisname = envelopes[0]['envelope']['payload']['author']['friendlyname'] + "@" + envelopes[0]['envelope']['local']['author_wordhash'] %}
 {% else %}
-{% set hisname =  thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_pubkey_sha1'] %}
+{% set hisname =  thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
 {% end %}
 <div class="single userportrait">
 <h1> Details about {{hisname}} </h1>
