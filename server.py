@@ -460,6 +460,24 @@ class Server(object):
                                             attachment.seek(0)
                                             im = Image.open(attachment)
 
+                                            # Check to see if we need to rotate the image
+                                            # This is caused by iPhones saving the orientation
+
+                                            if hasattr(im, '_getexif'): # only present in JPEGs
+                                                    e = im._getexif()       # returns None if no EXIF data
+                                                    if e is not None:
+                                                        exif=dict(e.items())
+                                                        if 'Orientation' in exif:
+                                                            orientation = exif['Orientation'] 
+                                                            
+                                                            if orientation == 3:
+                                                                image = im.transpose(Image.ROTATE_180)
+                                                            elif orientation == 6:
+                                                                image = im.transpose(Image.ROTATE_270)
+                                                            elif orientation == 8:
+                                                                image = im.transpose(Image.ROTATE_90)
+
+
                                             # resize if nec.
                                             if im.size[0] > 640:
                                                 imAspect = float(im.size[1]) / float(im.size[0])
