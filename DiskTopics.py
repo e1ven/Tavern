@@ -42,7 +42,7 @@ def writetopic(topic, since=0, limit=0, skip=0):
         #envelopes = server.mongos['safe']['envelopes'].find({'envelope.local.time_added': {'$gt' : since }},limit=limit,skip=skip)
         envelopes = server.db.safe.find('envelopes')
     else:
-        envelopes = server.db.safe.find('envelopes',{'envelope.local.time_added': {'$gt': since}, 'envelope.payload.topic': topic}, limit=limit, skip=skip)
+        envelopes = server.db.safe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.payload.topic': topic}, limit=limit, skip=skip)
 
     for envelope in envelopes:
         if args.verbose:

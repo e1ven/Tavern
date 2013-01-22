@@ -367,7 +367,7 @@ class RSSHandler(BaseHandler):
                                   'Tavern discussion about ' + param,
                                   generator='Tavern',
                                   pubdate=datetime.datetime.now())
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100).sort('envelope.local.time_added', pymongo.DESCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
                                 "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -375,9 +375,11 @@ class RSSHandler(BaseHandler):
                 channel.additem(item)
             self.write(channel.toprettyxml())
 
+
 class RawMessageHandler(BaseHandler):
     def get(self, message):
-        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': message})
+        envelope = server.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': message})
         envelope = server.formatEnvelope(envelope)
         self.write(envelope['envelope']['local']['formattedbody'])
 
@@ -455,7 +457,7 @@ class TriPaneHandler(BaseHandler):
             divs = ['center', 'right']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
-                {'envelope.payload_sha512': messageid})
+                                                        {'envelope.payload_sha512': messageid})
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
@@ -510,11 +512,11 @@ class AllTopicsHandler(BaseHandler):
         self.getvars()
 
         alltopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=start + 1000, skip=start).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=start + 1000, skip=start, sortkey='value', sortdirection='descending'):
             alltopics.append(quicktopic)
 
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
 
         self.write(
@@ -531,16 +533,16 @@ class TopicPropertiesHandler(BaseHandler):
         self.getvars()
 
         mods = []
-        for mod in server.db.unsafe.find('modlist',{'_id.topic': server.sorttopic(topic)}, max_scan=10000).sort('value.trust', direction=pymongo.DESCENDING):
+        for mod in server.db.unsafe.find('modlist', {'_id.topic': server.sorttopic(topic)}, max_scan=10000, sortkey='value.trust', sortdirection='descending'):
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)
 
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
+        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
             subjects.append(envelope)
 
         title = "Properties for " + topic
@@ -556,7 +558,8 @@ class SiteContentHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
 
-        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_message_id})
+        envelope = server.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': client_message_id})
 
         self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], user=self.user, canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
@@ -567,7 +570,7 @@ class AttachmentHandler(BaseHandler):
     def get(self, attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.db.unsafe.find('envelopes',{'envelope.payload.binaries.sha_512': client_attachment_id})
+        envelopes = server.db.unsafe.find('envelopes', {'envelope.payload.binaries.sha_512': client_attachment_id})
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -624,14 +627,14 @@ class RegisterHandler(BaseHandler):
 
         if client_email is not None:
             users_with_this_email = server.db.safe.find('users',
-                {"email": client_email.lower()})
+                                                        {"email": client_email.lower()})
             if users_with_this_email.count() > 0:
                 self.write(
                     "I'm sorry, this email address has already been used.")
                 return
 
         users_with_this_username = server.db.safe.find('users',
-            {"username": client_newuser.lower()})
+                                                       {"username": client_newuser.lower()})
         if users_with_this_username.count() > 0:
             self.write("I'm sorry, this username has already been taken.")
             return
@@ -673,14 +676,14 @@ class LoginHandler(BaseHandler):
             self.get_argument("pass"))
         if 'slug' in self.request.arguments:
             slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
-            sluglookup = server.db.unsafe.find_one('redirects',{'slug': slug})
+            sluglookup = server.db.unsafe.find_one('redirects', {'slug': slug})
             if sluglookup is not None:
                 if sluglookup['url'] is not None:
                     successredirect = sluglookup['url']
 
         login = False
         user = server.db.safe.find_one('users',
-            {"username": client_username.lower()})
+                                       {"username": client_username.lower()})
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
@@ -729,7 +732,7 @@ class ChangepasswordHandler(BaseHandler):
         if not self.recentauth():
             numcharacters = 100 + TavernUtils.randrange(1, 100)
             slug = TavernUtils.randstr(numcharacters, printable=True)
-            server.db.safe.insert('redirects',{'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
+            server.db.safe.insert('redirects', {'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
             self.write(self.render_string('header.html', title="Change Password", user=self.user, rsshead=None, type=None))
@@ -778,7 +781,7 @@ class UserHandler(BaseHandler):
         u.UserSettings['author_wordhash'] = server.wordlist.wordhash(pubkey)
 
         envelopes = []
-        for envelope in server.db.safe.find('envelopes',{'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}).sort('envelope.local.time_added', pymongo.DESCENDING):
+        for envelope in server.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
             envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
@@ -1224,7 +1227,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
                 e.payload.dict['topic'] = regardingmsg['envelope'][
                     'payload']['topic']
                 e.payload.dict['subject'] = regardingmsg[
@@ -1243,7 +1246,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
                     regardingmsg['envelope']['payload']['subject'])
                 e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
@@ -1308,7 +1311,7 @@ class ShowPrivatesHandler(BaseHandler):
         messages = []
         self.write(self.render_string('header.html', title="Welcome to the Tavern!", user=self.user, rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes',{'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10).sort('value', -1):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1321,7 +1324,7 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(ensurekeys=True)
 
-        message = server.db.unsafe.find_one('envelopes',{'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
+        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
         if message is not None:
             decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:

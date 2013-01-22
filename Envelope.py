@@ -16,21 +16,21 @@ class Envelope(object):
         def __init__(self, initialdict):
             self.dict = OrderedDict(initialdict)
 
-        def alphabetizeAllItems(self,oldobj):
+        def alphabetizeAllItems(self, oldobj):
             """
             To ensure our messages are reconstructable, the message, and all fields should be in alphabetical order
             """
             # Recursively loop through all the keys/items
             # If we can sort them, do so, if not, just return it.
-            if isinstance(oldobj,collections.Mapping):
+            if isinstance(oldobj, collections.Mapping):
                 oldlist = oldobj.keys()
                 newdict = OrderedDict()
-            
+
                 for key in sorted(oldlist):
                     newdict[key] = self.alphabetizeAllItems(oldobj[key])
                 return newdict
 
-            elif isinstance(oldobj,collections.Sequence) and not isinstance(oldobj,str):
+            elif isinstance(oldobj, collections.Sequence) and not isinstance(oldobj, str):
                 newlist = []
                 oldlist = sorted(oldobj)
                 for row in newlist:
@@ -43,6 +43,7 @@ class Envelope(object):
         def format(self):
             self.dict = self.alphabetizeAllItems(self.dict)
             print("Formatted- New dict is -- " + str(self.dict))
+
         def hash(self):
             self.format()
             h = hashlib.sha512()
@@ -263,7 +264,7 @@ class Envelope(object):
     def loadmongo(self, mongo_id):
         from server import server
         env = server.db.unsafe.find_one('envelopes',
-            {'_id': mongo_id})
+                                        {'_id': mongo_id})
         if env is None:
             return False
         else:
@@ -312,10 +313,11 @@ class Envelope(object):
 
         from server import server
         print("Dump - Pre save -- " + self.payload.text())
-        print("Saving message to mongo - My id is " + self.dict.get('_id','unknown'))
+        print("Saving message to mongo - My id is " +
+              self.dict.get('_id', 'unknown'))
         self.dict['_id'] = self.payload.hash()
-        print("assigned new id -" + self.payload.hash() )
+        print("assigned new id -" + self.payload.hash())
 
-        server.db.unsafe.save('envelopes',self.dict)
+        server.db.unsafe.save('envelopes', self.dict)
 
 from server import server

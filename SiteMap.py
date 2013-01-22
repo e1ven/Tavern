@@ -36,7 +36,7 @@ sitemapindex.write("""<?xml version="1.0" encoding="UTF-8"?>
 
 # Now, generate the per-envelope sitemaps.
 countEnvelopes = server.db.unsafe.find('envelopes',
-    {"envelope.payload.class": "message"}).count()
+                                       {"envelope.payload.class": "message"}).count()
 
 print("Found - " + str(countEnvelopes) + " envelopes.")
 
@@ -67,7 +67,7 @@ for i in range(sitemapcount):
     sitemapindex.write("</sitemap>\n")
 
     a = server.db.unsafe.find('envelopes',
-        {"envelope.local.short_subject": {"$exists": True}})[start:end]
+                              {"envelope.local.short_subject": {"$exists": True}})[start:end]
     for envelope in a:
         url = serverprefix + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512']
         date = datetime.datetime.utcfromtimestamp(
