@@ -40,6 +40,7 @@ class FakeMongo():
 
         cur.callproc('find', [collection, jsonquery, limit, skip])
         results = []
+
         for row in cur.fetchall():
             results.append(json.loads(json.loads(row['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
 
@@ -65,8 +66,11 @@ class FakeMongo():
         cur.callproc('find', [collection, jsonquery])
         res = cur.fetchone()
 
-        # strip out the extraneous data the server includes.
-        dictres = json.loads(json.loads(res['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+        if res is None:
+            return None
+        else:
+            # strip out the extraneous data the server includes.
+            dictres = json.loads(json.loads(res['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
 
         return dictres
 
@@ -74,6 +78,7 @@ class FakeMongo():
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
         result = cur.callproc('save', [collection, jsonquery])
+        print("runing FakeMongo Save()")
         return result
 
     # TODO - Change insert to not insert dups. Probably in mongolike.
@@ -81,6 +86,8 @@ class FakeMongo():
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
         result = cur.callproc('save', [collection, jsonquery])
+        print("runing FakeMongo insert()")
+
         return result
 
 
@@ -235,7 +242,7 @@ class Server(object):
         self.ServerKeys = Keys(pub=serversettings.ServerSettings['pubkey'],
                                priv=serversettings.ServerSettings['privkey'])
 
-        self.db = DBWrapper("mongo")
+        self.db = DBWrapper(serversettings.ServerSettings['dbtype'])
 
         self.bin_GridFS = GridFS(self.db.binaries)
         serversettings.saveconfig()
@@ -312,7 +319,7 @@ class Server(object):
             self.logger.info(c.text())
             return False
 
-                # First, pull the message.
+        # First, pull the message.
         existing = self.db.unsafe.find_one(
             'envelopes', {'envelope.payload_sha512': c.payload.hash()})
         if existing is not None:

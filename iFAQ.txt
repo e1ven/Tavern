@@ -122,3 +122,7 @@ Why store some things (like notes about users) on the server, and others (like v
 	The upvotes/downvotes on existing comments are there to remind you what you've already voted on. 
 	In theory, we could calculate it by loading it all from the server, but it would be too intensive, for too little gain.
 	Instead, we just store it in localstorage, and if you change computers, we don't worry about displaying it.
+
+
+Does Tavern export Encryption?
+	Tavern relies on Gnu GPG, and does not implement it's own encryption algorithms.

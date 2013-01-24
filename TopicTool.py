@@ -70,9 +70,9 @@ class TopicTool(object):
     @memorise(parent_keys=['sorttopic', 'maxposts'], ttl=serversettings.ServerSettings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.ServerSettings['cache']['subjects-in-topic']['size'])
     def moreafter(self, before):
         if self.topic != "all":
-            count = server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}).count()
+            count = len(server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         else:
-            count = server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}).count()
+            count = len(server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         return count
 
     @memorise(ttl=serversettings.ServerSettings['cache']['toptopics']['seconds'], maxsize=serversettings.ServerSettings['cache']['toptopics']['size'])

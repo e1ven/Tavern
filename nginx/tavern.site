@@ -44,7 +44,7 @@
         # Create a pass-through proxy to self
         # So that we will cache, not just hit GridFS everytime.
         location /binaries/ {
-            proxy_cache static-cache;
+            proxy_cache binaries-cache;
             proxy_cache_valid  200 1y;
             proxy_cache_valid  404 302  1m;
             expires max;

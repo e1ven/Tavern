@@ -130,4 +130,8 @@ class ServerSettings():
         if not 'mongo-connections' in self.ServerSettings:
             self.ServerSettings['mongo-connections'] = 10
 
+        if not 'dbtype' in self.ServerSettings:
+            self.ServerSettings['dbtype'] = 'mongo'
+
+
 serversettings = ServerSettings()

@@ -628,14 +628,14 @@ class RegisterHandler(BaseHandler):
         if client_email is not None:
             users_with_this_email = server.db.safe.find('users',
                                                         {"email": client_email.lower()})
-            if users_with_this_email.count() > 0:
+            if len(users_with_this_email) > 0:
                 self.write(
                     "I'm sorry, this email address has already been used.")
                 return
 
         users_with_this_username = server.db.safe.find('users',
                                                        {"username": client_newuser.lower()})
-        if users_with_this_username.count() > 0:
+        if len(users_with_this_username) > 0:
             self.write("I'm sorry, this username has already been taken.")
             return
 

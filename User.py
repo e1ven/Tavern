@@ -119,7 +119,7 @@ class User(object):
         server.logger.info("Asking About -- " + askingabout)
         trustrow = server.db.unsafe.find('envelopes', {"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.payload.author.pubkey": str(self.Keys.pubkey)}, sortkey="envelope.local.time_added", sortdirection='descending')
         foundtrust = False
-        if trustrow.count() > 0:
+        if len(trustrow) > 0:
             #Get the most recent trust
             tr = trustrow[0]
             server.logger.info("I rated this user directly.")
