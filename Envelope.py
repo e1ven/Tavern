@@ -84,6 +84,9 @@ class Envelope(object):
             if 'formatting' not in self.dict:
                 server.logger.info("No Formatting")
                 return False
+            if self.dict['formatting'] not in ['markdown','plaintext']:
+                server.logger.info("Formatting not in pre-approved list")
+                return False
             if 'topic' in self.dict:
                 if len(self.dict['topic']) > 200:
                     server.logger.info("Topic too long")

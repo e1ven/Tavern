@@ -2,7 +2,7 @@ Cython
 Mako
 MarkupSafe
 tornado
-Markdown
+Markdown>=2.2.1
 pygeoip
 postmarkup
 pymongo>=2.4

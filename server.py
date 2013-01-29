@@ -402,16 +402,9 @@ class Server(object):
 
     def formatText(self, text=None, formatting='markdown'):
         if formatting == 'markdown':
-            formatted = self.autolink(markdown.markdown(self.gfm(text)))
+            formatted = self.autolink(markdown.markdown(server.gfm(text),output_format="html5",safe_mode='escape',enable_attributes=False))
         elif formatting == 'bbcode':
             formatted = bbcodepy.Parser().to_html(text)
-        elif formatting == 'html':
-            VALID_TAGS = ['strong', 'em', 'p', 'ul', 'li', 'br']
-            soup = BeautifulSoup(text)
-            for tag in soup.findAll(True):
-                if tag.name not in VALID_TAGS:
-                    tag.hidden = True
-            formatted = soup.renderContents()
         elif formatting == "plaintext":
             formatted = "<pre>" + text + "</pre>"
         else:

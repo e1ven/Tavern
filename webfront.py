@@ -1056,13 +1056,10 @@ class NewmessageHandler(BaseHandler):
                 individual_file = {}
                 individual_file['basename'] = argument.rsplit('.')[0]
                 individual_file['clean_up_file_afterward'] = True
-                individual_file['filename'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".name"))
-                individual_file['content_type'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".content_type"))
-                individual_file['path'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".path"))
-                individual_file['size'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".size"))
+                individual_file['filename'] = self.get_argument(individual_file['basename'] + ".name")
+                individual_file['content_type'] = self.get_argument(individual_file['basename'] + ".content_type")
+                individual_file['path'] = self.get_argument(individual_file['basename'] + ".path")
+                individual_file['size'] = self.get_argument(individual_file['basename'] + ".size")
 
                 fs_basename = os.path.basename(individual_file['path'])
                 individual_file['fullpath'] = serversettings.ServerSettings[
@@ -1075,7 +1072,7 @@ class NewmessageHandler(BaseHandler):
                 # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
                 # If not, calc. it.
                 if hashname in self.request.arguments:
-                    individual_file['hash'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".sha512"))
+                    individual_file['hash'] = self.get_argument(individual_file['basename'] + ".sha512")
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
                     SHA512 = hashlib.sha512()
@@ -1176,41 +1173,37 @@ class NewmessageHandler(BaseHandler):
                 r = re.compile('referenced_file(.*?)_name')
                 m = r.search(argument)
                 binarycount = m.group(1)
-                mybinary = Envelope.binary(hash=tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_hash')))
-                mybinary.dict['filesize_hint'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_size'))
-                mybinary.dict['content_type'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_contenttype'))
-                mybinary.dict['filename'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_name'))
+                mybinary = Envelope.binary(hash=self.get_argument('referenced_file' + binarycount + '_hash'))
+                mybinary.dict['filesize_hint'] = self.get_argument('referenced_file' + binarycount + '_size')
+                mybinary.dict['content_type'] = self.get_argument('referenced_file' + binarycount + '_contenttype')
+                mybinary.dict['filename'] = self.get_argument('referenced_file' + binarycount + '_name')
                 envelopebinarylist.append(mybinary.dict)
 
-        client_body = tornado.escape.xhtml_escape(self.get_argument("body"))
+        client_body = self.get_argument("body")
         # Pull in our Form variables.
         # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
         # It acts differently in the two scenerios.
         if "topic" in self.request.arguments:
-            client_topic = tornado.escape.xhtml_escape(
-                self.get_argument("topic"))
+            client_topic = self.get_argument("topic")
             if client_topic == "":
                 client_topic = None
         else:
             client_topic = None
 
         if "subject" in self.request.arguments:
-            client_subject = tornado.escape.xhtml_escape(
-                self.get_argument("subject"))
+            client_subject = self.get_argument("subject")
             if client_subject == "":
                 client_subject = None
         else:
             client_subject = None
         if "to" in self.request.arguments:
-            client_to = tornado.escape.xhtml_escape(
-                self.get_argument("to"))
+            client_to = self.get_argument("to")
             if client_to == "":
                 client_to = None
         else:
             client_to = None
         if "regarding" in self.request.arguments:
-            client_regarding = tornado.escape.xhtml_escape(
-                self.get_argument("regarding"))
+            client_regarding = self.get_argument("regarding")
             if client_regarding == "":
                 client_regarding = None
         else:
