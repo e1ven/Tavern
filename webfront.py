@@ -436,6 +436,7 @@ class TriPaneHandler(BaseHandler):
 
         if "before" in self.request.arguments:
             # Used for multiple pages, because skip() is slow
+            # Don't really need xhtml escape, since we're converting to a float
             before = float(self.get_argument('before'))
         else:
             before = None
@@ -607,15 +608,11 @@ class RegisterHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html', title='Register for an account', user=self.user, type=None, rsshead=None))
 
-        client_newuser = tornado.escape.xhtml_escape(
-            self.get_argument("username"))
-        client_newpass = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
-        client_newpass2 = tornado.escape.xhtml_escape(
-            self.get_argument("pass2"))
+        client_newuser = self.get_argument("username")
+        client_newpass = self.get_argument("pass")
+        client_newpass2 = self.get_argument("pass2")
         if "email" in self.request.arguments:
-            client_email = tornado.escape.xhtml_escape(
-                self.get_argument("email"))
+            client_email = self.get_argument("email")
             if client_email == "":
                 client_email = None
         else:
@@ -670,12 +667,10 @@ class LoginHandler(BaseHandler):
         self.write(self.render_string('header.html', title='Login to your account', user=self.user, rsshead=None, type=None))
 
         successredirect = '/'
-        client_username = tornado.escape.xhtml_escape(
-            self.get_argument("username"))
-        client_password = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
+        client_username = self.get_argument("username")
+        client_password = self.get_argument("pass")
         if 'slug' in self.request.arguments:
-            slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
+            slug = self.get_argument("slug")
             sluglookup = server.db.unsafe.find_one('redirects', {'slug': slug})
             if sluglookup is not None:
                 if sluglookup['url'] is not None:
@@ -742,10 +737,8 @@ class ChangepasswordHandler(BaseHandler):
     def post(self):
         self.getvars(ensurekeys=True)
 
-        client_newpass = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
-        client_newpass2 = tornado.escape.xhtml_escape(
-            self.get_argument("pass2"))
+        client_newpass = self.get_argument("pass")
+        client_newpass2 = self.get_argument("pass2")
 
         if client_newpass != client_newpass2:
             self.write("I'm sorry, your passwords don't match.")
@@ -806,8 +799,7 @@ class ChangeManySettingsHandler(BaseHandler):
     def post(self):
         self.getvars(ensurekeys=True)
 
-        friendlyname = tornado.escape.xhtml_escape(
-            self.get_argument('friendlyname'))
+        friendlyname = self.get_argument('friendlyname')
         maxposts = int(self.get_argument('maxposts'))
         maxreplies = int(self.get_argument('maxreplies'))
         if 'include_location' in self.request.arguments:
@@ -855,10 +847,10 @@ class ChangeSingleSettingHandler(BaseHandler):
         redirect = True
         if setting == "followtopic":
             self.user.followTopic(
-                tornado.escape.xhtml_escape(self.get_argument("topic")))
+                self.get_argument("topic"))
         elif setting == "unfollowtopic":
             self.user.unFollowTopic(
-                tornado.escape.xhtml_escape(self.get_argument("topic")))
+                self.get_argument("topic"))
         elif setting == "showembeds":
             self.user.UserSettings['allowembed'] = 1
             server.logger.info("allowing embeds")
@@ -893,9 +885,8 @@ class RatingHandler(BaseHandler):
         #The answer is xsrf protection.
         #We don't want people to link to the upvote button and trick you into voting up.
 
-        client_hash = tornado.escape.xhtml_escape(self.get_argument("hash"))
-        client_rating = tornado.escape.xhtml_escape(
-            self.get_argument("rating"))
+        client_hash = self.get_argument("hash")
+        client_rating = self.get_argument("rating")
         rating_val = int(client_rating)
         if rating_val not in [-1, 0, 1]:
             self.write("Invalid Rating.")
