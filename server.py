@@ -120,7 +120,13 @@ class MongoWrapper():
         else:
             res = self.mongo[collection].find(query, skip=skip, limit=limit)
 
-        return res
+
+        results = []
+
+        for row in res:
+            results.append(row)
+
+        return results
 
     def find_one(self, collection, query={}):
         return self.mongo[collection].find_one(query)

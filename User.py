@@ -74,8 +74,7 @@ class User(object):
                    noteabout, "note": note}
 
         # Retrieve any existing note, so that the _id is the same. Then, we'll gut it, and put in our own values.
-        newnote = server.db.unsafe['unsafe']['notes'].find_one(
-            {"user": self.Keys.pubkey, "noteabout": noteabout})
+        newnote = server.db.unsafe.find_one('notes',{"user": self.Keys.pubkey, "noteabout": noteabout})
         if newnote is None:
                 newnote = {"user": self.Keys.pubkey,
                            "noteabout": noteabout, "note": note}
