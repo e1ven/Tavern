@@ -120,7 +120,6 @@ class MongoWrapper():
         else:
             res = self.mongo[collection].find(query, skip=skip, limit=limit)
 
-
         results = []
 
         for row in res:
@@ -400,15 +399,9 @@ class Server(object):
         c.saveMongo()
         return  c.dict['envelope']['payload_sha512']
 
-    def inttime(self):
-        """
-        Force 1 sec precision, so multiple requests per second cache.
-        """
-        return int(time.time())
-
     def formatText(self, text=None, formatting='markdown'):
         if formatting == 'markdown':
-            formatted = self.autolink(markdown.markdown(server.gfm(text),output_format="html5",safe_mode='escape',enable_attributes=False))
+            formatted = self.autolink(markdown.markdown(server.gfm(text), output_format="html5", safe_mode='escape', enable_attributes=False))
         elif formatting == 'bbcode':
             formatted = bbcodepy.Parser().to_html(text)
         elif formatting == "plaintext":

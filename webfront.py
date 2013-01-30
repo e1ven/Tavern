@@ -450,7 +450,8 @@ class TriPaneHandler(BaseHandler):
             else:
                 canon = ""
                 title = "Discuss what matters"
-            displayenvelope = TopicTool(topic).messages(server.inttime())[0]
+            displayenvelope = TopicTool(
+                topic).messages(TavernUtils.inttime())[0]
 
         if action == "message":
 
@@ -1047,10 +1048,14 @@ class NewmessageHandler(BaseHandler):
                 individual_file = {}
                 individual_file['basename'] = argument.rsplit('.')[0]
                 individual_file['clean_up_file_afterward'] = True
-                individual_file['filename'] = self.get_argument(individual_file['basename'] + ".name")
-                individual_file['content_type'] = self.get_argument(individual_file['basename'] + ".content_type")
-                individual_file['path'] = self.get_argument(individual_file['basename'] + ".path")
-                individual_file['size'] = self.get_argument(individual_file['basename'] + ".size")
+                individual_file['filename'] = self.get_argument(
+                    individual_file['basename'] + ".name")
+                individual_file['content_type'] = self.get_argument(
+                    individual_file['basename'] + ".content_type")
+                individual_file['path'] = self.get_argument(
+                    individual_file['basename'] + ".path")
+                individual_file['size'] = self.get_argument(
+                    individual_file['basename'] + ".size")
 
                 fs_basename = os.path.basename(individual_file['path'])
                 individual_file['fullpath'] = serversettings.ServerSettings[
@@ -1063,7 +1068,8 @@ class NewmessageHandler(BaseHandler):
                 # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
                 # If not, calc. it.
                 if hashname in self.request.arguments:
-                    individual_file['hash'] = self.get_argument(individual_file['basename'] + ".sha512")
+                    individual_file['hash'] = self.get_argument(
+                        individual_file['basename'] + ".sha512")
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
                     SHA512 = hashlib.sha512()
@@ -1123,7 +1129,7 @@ class NewmessageHandler(BaseHandler):
                 server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
             server.logger.info("Creating Message")
             #Create a message binary.
-            mybinary = Envelope.binary(hash=attached_file['hash'])
+            mybinary = Envelope.binary(sha512=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
             print('estimated size : ' + str(attached_file['size']))
             mybinary.dict['filesize_hint'] = attached_file['size']
@@ -1164,10 +1170,14 @@ class NewmessageHandler(BaseHandler):
                 r = re.compile('referenced_file(.*?)_name')
                 m = r.search(argument)
                 binarycount = m.group(1)
-                mybinary = Envelope.binary(hash=self.get_argument('referenced_file' + binarycount + '_hash'))
-                mybinary.dict['filesize_hint'] = self.get_argument('referenced_file' + binarycount + '_size')
-                mybinary.dict['content_type'] = self.get_argument('referenced_file' + binarycount + '_contenttype')
-                mybinary.dict['filename'] = self.get_argument('referenced_file' + binarycount + '_name')
+                mybinary = Envelope.binary(sha512=self.get_argument(
+                    'referenced_file' + binarycount + '_hash'))
+                mybinary.dict['filesize_hint'] = self.get_argument(
+                    'referenced_file' + binarycount + '_size')
+                mybinary.dict['content_type'] = self.get_argument(
+                    'referenced_file' + binarycount + '_contenttype')
+                mybinary.dict['filename'] = self.get_argument(
+                    'referenced_file' + binarycount + '_name')
                 envelopebinarylist.append(mybinary.dict)
 
         client_body = self.get_argument("body")
@@ -1263,11 +1273,13 @@ class NewmessageHandler(BaseHandler):
         #Sign this bad boy
         usersig = self.user.Keys.signstring(
             e.payload.text(), self.user.passkey)
+
         stamp = OrderedDict()
         stamp['class'] = 'author'
         stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
+
         stamp['time_added'] = int(utctime)
         stamplist = []
         stamplist.append(stamp)

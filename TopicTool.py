@@ -3,6 +3,7 @@ import pymongo
 import Envelope
 import time
 from TavernUtils import memorise
+import TavernUtils
 from server import server
 from collections import OrderedDict
 import sys
@@ -61,7 +62,7 @@ class TopicTool(object):
             else:
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
-            ret = server.inttime()
+            ret = TavernUtils.inttime()
         if countonly == True:
             return len(subjects) - 1
         else:

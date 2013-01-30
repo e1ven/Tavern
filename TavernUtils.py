@@ -8,6 +8,18 @@ import time
 import json
 import os
 import hashlib
+import time
+
+
+def inttime():
+    """
+    Force 1 sec precision, so multiple requests per second cache.
+    """
+    return int(time.time())
+
+
+def longtime():
+    return str(time.time()).translate(str.maketrans('', '', '.'))
 
 
 class randomWords():

@@ -8,6 +8,7 @@ import functools
 import gnupg
 import tempfile
 import shutil
+import TavernUtils
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
 
@@ -164,6 +165,31 @@ class Keys(object):
         # self.gpg.
         decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
         return decrypted_string
+
+    def encrypt_file(self, newfile):
+        """
+        Encrypt a string, to the gpg key of the specified recipient)
+        """
+
+        # In order for this to work, we need to temporarily import B's key into A's keyring.
+        # We then do the encryptions, and immediately remove it.
+        recipient = Keys(pub=encrypt_to)
+        recipient.format_keys()
+        self.gpg.import_keys(recipient.pubkey)
+
+        tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
+        ) + TavernUtils.randstr(50, printable=True)
+
+        self.gpg.encrypt_file(stream=oldfile, recipients=[recipient.fingerprint], always_trust=True, armor=True, output=tmpfilename)
+        self.gpg.delete_keys(recipient.fingerprint)
+        return tmpfilename
+
+    def decrypt_file(self, tmpfile):
+
+        tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
+        ) + TavernUtils.randstr(50, printable=True)
+        self.gpg.decrypt_file(tmpfile, output=tmpfilename)
+        return tmpfilename
 
     def test_signing(self):
         """

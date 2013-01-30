@@ -33,7 +33,7 @@ class Envelope(object):
             elif isinstance(oldobj, collections.Sequence) and not isinstance(oldobj, str):
                 newlist = []
                 oldlist = sorted(oldobj)
-                for row in newlist:
+                for row in oldlist:
                     newlist.append(self.alphabetizeAllItems(row))
                 return newlist
 
@@ -42,7 +42,6 @@ class Envelope(object):
 
         def format(self):
             self.dict = self.alphabetizeAllItems(self.dict)
-            print("Formatted- New dict is -- " + str(self.dict))
 
         def hash(self):
             self.format()
@@ -84,7 +83,7 @@ class Envelope(object):
             if 'formatting' not in self.dict:
                 server.logger.info("No Formatting")
                 return False
-            if self.dict['formatting'] not in ['markdown','plaintext']:
+            if self.dict['formatting'] not in ['markdown', 'plaintext']:
                 server.logger.info("Formatting not in pre-approved list")
                 return False
             if 'topic' in self.dict:
@@ -315,12 +314,7 @@ class Envelope(object):
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
 
         from server import server
-        print("Dump - Pre save -- " + self.payload.text())
-        print("Saving message to mongo - My id is " +
-              self.dict.get('_id', 'unknown'))
         self.dict['_id'] = self.payload.hash()
-        print("assigned new id -" + self.payload.hash())
-
         server.db.unsafe.save('envelopes', self.dict)
 
 from server import server
