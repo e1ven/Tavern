@@ -99,7 +99,7 @@ fi
 # Go through each JS file in the project, and check to see if we've minimized it already.
 # If we haven't, minimize it. Otherwise, just skip forward, for speed.
 echo "Minimizing JS"
-mv tmp/checked/* tmp/unchecked
+mv tmp/checked/* tmp/unchecked/
 result=255
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
@@ -114,6 +114,7 @@ do
         echo "Minimized."
     else
         echo "Already set."
+        result=0
     fi
     if [ $result -eq 0 ]
     # only write the touchfile if the minimize worked
@@ -138,12 +139,11 @@ do
         echo "Already set."
     fi
     touch tmp/checked/$filehash.exists
-        
 done
 echo ""
 
 
-cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
+cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
 echo "Combining JS.."
 filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]

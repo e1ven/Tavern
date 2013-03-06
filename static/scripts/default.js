@@ -47,9 +47,12 @@ function detectAnimation()
 }
 
 
+
 // Function to properly size the 3 column layout
 function sizewindow()
 {
+
+
   if (jQuery("#centerandright").length)
   {
     // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
@@ -129,7 +132,11 @@ jQuery(document).ready(function() {
 
     $jQuery = jQuery.noConflict();
     
-    throttledSizeWindow();
+    jQuery("#wrappertable").colResizable(
+    {
+      liveDrag:true
+    });
+
 
 
     // Resize to saved div sizes
@@ -147,21 +154,6 @@ jQuery(document).ready(function() {
         ensureMinDivSizes();
         
      };
- 
-    // Issue a resize if you slide the splitter
-    jQuery(document).on("mouseup", ".splitter", function(event){
-        // On Mouseup, save the current position, so we can do new pages at the same place.
-        if ( (jQuery('#left').width() != jQuery.jStorage.get('#left.width','')) ||
-             (jQuery('#centerandright').width() != jQuery.jStorage.get('#centerandright.width','')) ||
-             (jQuery('#center').width() != jQuery.jStorage.get('#center.width','')) ||
-             (jQuery('#right').width() != jQuery.jStorage.get('#right.width',''))      )
-                {
-                    // If we're here, we've moved the sliders, not just clicked on them.
-                    savedivsizes();
-                    // Redraw the splitter, so ensure that if we move Splitter 1 and push splitter2 offscreen, we still redraw it.
-                    throttledSizeWindow();
-               }
-    });
 
     // If we pass a Jumpto param, scroll down.
     if (getParameterByName("jumpto"))
@@ -257,8 +249,9 @@ jQuery(document).ready(function() {
               jQuery.jStorage.set(hash, hashdata);   
 
               /* Mark the vote as selected, unselect the other vote */
-              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
-              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+                jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().addClass("darkClass");
 
               
         /* Send the data using post and put the results in a div */

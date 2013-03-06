@@ -29,13 +29,7 @@
 			<div class="thread_{{orient}}">
 				    <a class="details" orient={{orient}} user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
 				    
-				    	{% if user.datauri == True %}
-				    		{% set src = server.external.getavatar(''.join(envelope['envelope']['payload']['author']['pubkey'].split())) %}
-				    	{% else %}
-				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.jpg?set=any&amp;bgset=any&amp;size=40x40' %}
-				    	{% end %}
-
-				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{src}}" />
+				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
 
 
@@ -193,6 +187,7 @@
 					<input type="hidden" name="rating" value="1">
 					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
 					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16"></abbr>
+					<p class="floatLeft iconLabelColorLight likeDislikeLabel">Like</p>
 					</form>
 
 					<form action="/vote" method="post" class="vote">

@@ -13,13 +13,7 @@
             <p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
                     <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
                     
-                        {% if user.datauri == True %}
-                            {% set src = server.external.getavatar(''.join(envelope['envelope']['payload']['author']['pubkey'].split())) %}
-                        {% else %}
-                            {% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.jpg?set=any&amp;bgset=any&amp;size=40x40' %}
-                        {% end %}
-
-                        <img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{src}}" />
+                        <img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
 
 

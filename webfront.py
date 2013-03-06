@@ -499,7 +499,7 @@ class TriPaneHandler(BaseHandler):
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, user=self.user, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html', user=self.user,
+        self.write(self.render_string('showmessage.html', user=self.user,
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 

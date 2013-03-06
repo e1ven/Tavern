@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 	<!-- Hey, Source Reader!
 	Welcome to Tavern. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
-	Email me - colin@GetTavern.com
-	Anyway, Enjoy the site, eh?"
+	Email me - colin@Tavern.net
+	Also, if you're going to send me a note about tables.. I know you probably don't approve, But it's intentional, at least for now..
+	Check out http://bit.ly/ZfRLxt
+
+	Anyway, Enjoy the site, and I'd love any thoughts.
 	-->
 	
 <html lang="en" > 
@@ -74,33 +77,7 @@
 
 
 </head>
-<body>
+<body link="#aaaaaa" visited="#aaaaaa">
 
-<div id="limits">
-	<header id="top">
-		<a href="/"><img src="/static/images/logo.png?revision={{serversettings.ServerSettings['static-revision']}}" alt="Tavern" id="toplogo"/></a>
-		<meta property="og:image" content="http://{{serversettings.ServerSettings['hostname']}}/static/images/logo.png"/>
-		<div id="menu">
-		    <div class="menu-text">
-          	{% if not user.isLoggedIn() %}	
-                Why not <a rel="nofollow" href="/login">Login</a>, or <a rel="nofollow" href="/register">Register</a>?
-            {% else %}
-	                <ul id="menubuttons">
-	                    <li><a rel="nofollow" href="/newmessage">Post new message</a></li>
-	                    <li><a rel="nofollow" href="/showprivates">Show private messages</a></li>
-	                </ul>
-							<div id="userblock">
-						    	<a href="/user/{{user.UserSettings['pubkey']}}">
-							    	<img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
-							    </a><br>
-								<a href="/user/{{user.UserSettings['pubkey']}}">
-							    	{{user.UserSettings['username']}}<br>{% if user.UserSettings['username'] != user.UserSettings['friendlyname'] %}Posting as {{user.UserSettings['friendlyname']}}<br> 	 {% end %}</a>
-		 						<form class = "logout" action="/logout" method="post">   {% raw xsrf_form_html() %} <input type="submit" value="logout" class="textbutton menu-login"></form>
-							</div>
-	        {% end %}
-            </div> 
-        </div>
-	</header>
 		<div id="spinner" class="black_overlay">
 		</div> <!-- #Spinner is inserted via JS, so it won't show up in lynx or with CSS disabled-->
-		<div id="content">

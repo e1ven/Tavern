@@ -50,7 +50,8 @@
             expires max;
 
             rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
-
+            proxy_ignore_headers Set-Cookie Expires Cache-Control X-Accel-Expires;
+            proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
             proxy_pass https://bins/binaries2/$basename;
         }
 
@@ -130,6 +131,8 @@
           proxy_cache_valid  200 1y;
           proxy_cache_valid  404 302  1m;
           expires max;
+          proxy_ignore_headers Set-Cookie Expires Cache-Control X-Accel-Expires;
+          proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
         }
 
         location /static/
@@ -154,6 +157,8 @@
                 proxy_cache avatar-cache;
                 proxy_cache_valid  200 1y;
                 proxy_cache_valid  404 302  1m;
+                proxy_ignore_headers Set-Cookie Expires Cache-Control X-Accel-Expires;
+                proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
                 }
 
        location /uploadnewmessage {
