@@ -50,6 +50,9 @@ else
 fi
 
 "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' static/css/fontello*.css
+"$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
+
+
 
 
 # The yui-compressor will compress JS and CSS

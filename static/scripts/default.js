@@ -132,12 +132,43 @@ jQuery(document).ready(function() {
 
     $jQuery = jQuery.noConflict();
     
+
+    // Make the tables resizable
     jQuery("#wrappertable").colResizable(
     {
-      liveDrag:true
+      liveDrag:true,
+      marginRight:"10px",
     });
 
 
+    var onSlide = function(e){
+      var columns = $(e.currentTarget).find("td");
+      var ranges = [], total = 0, i, s ="Ranges: ", w;
+      for(i = 0; i<columns.length; i++){
+        w = columns.eq(i).width()-14 - (i==0?1:0);
+        ranges.push(w);
+        total+=w;
+      }    
+      for(i=0; i<columns.length; i++){      
+        ranges[i] = 100*ranges[i]/total;            
+      }   
+      s=s.slice(0,-1);      
+      $("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
+    }
+    
+    
+    jQuery("#commentSlider").colResizable({
+      liveDrag:true, 
+      draggingClass:"commentSliderDrag", 
+      gripInnerHtml:"<div class='commentSliderGrip'></div>", 
+      onResize:onSlide,
+      minWidth:12
+    });
+
+
+    // Add the slider rounded corners
+    jQuery("#commentSlider").css({'display':'block','position':'absolute','width':'418px'});
+    jQuery(".sliderrounds").css({"display":"inline"});
 
     // Resize to saved div sizes
     // Doing this here, as opposed to in sizeWindow, so that it ONLY happens at page load.
