@@ -832,7 +832,6 @@ body {
 
 #commentSlider{
   border:none;
-  background:url('/static/images/unshownComments.png') repeat-x;
 }
 
 
@@ -842,6 +841,10 @@ body {
   overflow:visible;
 }
 
+#unshownComments{
+  background:url('/static/images/unshownComments.png') repeat-x;
+  overflow:visible;
+}
 
 #shownComments span{
   width:100%;
