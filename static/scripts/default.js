@@ -456,11 +456,6 @@ jQuery(document).ready(function() {
 
 
 
-
-
-
-
-
 // Run the per-instance stuff.
 jQuery.getScript('/static/scripts/instance.min.js');
 

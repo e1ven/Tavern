@@ -102,21 +102,21 @@ fi
 # Go through each JS file in the project, and check to see if we've minimized it already.
 # If we haven't, minimize it. Otherwise, just skip forward, for speed.
 echo "Minimizing JS"
-mv tmp/checked/* tmp/unchecked/
+mv tmp/checked/* tmp/unchecked/ > /dev/null
 result=255
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
     filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".js"`
-    echo -n "$basename"..
     if [ ! -f tmp/unchecked/$filehash.exists ]
     then
         # No pre-hashed version available
         $yui $i > static/scripts/$basename.min.js --nomunge
         result=$?
-        echo "Minimized."
+        echo -e "\t $basename"
+        # Reformatted
     else
-        echo "Already set."
+        : # No Reformatting needed 
         result=0
     fi
     if [ $result -eq 0 ]
@@ -127,24 +127,21 @@ do
 done
 
 
-echo ""
 echo "Minimizing CSS"
 for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
 do
     filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".css"`
-    echo -n "$basename"..
     if [ ! -f tmp/unchecked/$filehash.exists ]
     then
         $yui $i > static/css/$basename.min.css
-        echo "Minimized."
+        echo -e "\t $basename"
+        # Reformatted
     else
-        echo "Already set."
+        : # No Reformatting needed 
     fi
     touch tmp/checked/$filehash.exists
 done
-echo ""
-
 
 cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
 echo "Combining JS.."
@@ -152,16 +149,35 @@ filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]
 then
     $yui static/scripts/unified.js > static/scripts/unified.min.js
-    echo "Minimized."
+    echo -e "\t $basename"
+
+    # Reformatted
 else
-    echo "Already set."
+    : # No Reformatting needed 
 fi
 touch tmp/checked/$filehash.exists
 
 
-rm tmp/unchecked/*.exists
 
-autopep8 -i *.py > /dev/null 2>&1
+echo "Ensuring Proper Python formatting.."
+for i in `find . -name "*.py" -maxdepth 1`
+do
+    filehash=`cat $i | $hash | cut -d" " -f 1`
+    basename=`basename $i ".css"`
+    if [ ! -f tmp/unchecked/$filehash.exists ]
+    then
+        autopep8 $i > /dev/null 2>&1
+        echo -e "\t $basename"
+        # Reformatted
+    else
+        : # No Reformatting needed 
+    fi
+    touch tmp/checked/$filehash.exists
+done
+
+
+
+rm tmp/unchecked/*.exists
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]
 then

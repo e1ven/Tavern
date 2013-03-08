@@ -76,6 +76,7 @@ class BaseHandler(tornado.web.RequestHandler):
             server=server,
             browser=self.browser,
             request=self.request,
+            user=self.user,
             serversettings=serversettings
         )
         args.update(kwargs)
@@ -498,8 +499,8 @@ class TriPaneHandler(BaseHandler):
 #       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html', title=title, user=self.user, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('showmessage.html', user=self.user,
+        self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
+        self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 
@@ -523,9 +524,9 @@ class AllTopicsHandler(BaseHandler):
 
         self.write(
             self.render_string('header.html', title="List of all Topics",
-                               user=self.user, rsshead=None, type=None))
+                               rsshead=None, type=None))
         self.write(self.render_string('alltopics.html',
-                   topics=alltopics, toptopics=toptopics, user=self.user))
+                   topics=alltopics, toptopics=toptopics))
         self.write(self.render_string('footer.html'))
         #self.finish(divs=['right'])
 
@@ -549,8 +550,9 @@ class TopicPropertiesHandler(BaseHandler):
 
         title = "Properties for " + topic
         self.write(self.render_string('header.html', title=title,
-                   user=self.user, rsshead=topic, type="topic"))
-        self.write(self.render_string('topicprefs.html', user=self.user, topic=topic, toptopics=toptopics, subjects=subjects, mods=mods))
+                                      rsshead=topic, type="topic"))
+        self.write(self.render_string('topicprefs.html', topic=topic,
+                   toptopics=toptopics, subjects=subjects, mods=mods))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['right'])
 
@@ -563,7 +565,7 @@ class SiteContentHandler(BaseHandler):
         envelope = server.db.unsafe.find_one(
             'envelopes', {'envelope.payload_sha512': client_message_id})
 
-        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], user=self.user, canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
+        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
         self.write(self.render_string('footer.html'))
 
@@ -592,7 +594,7 @@ class AttachmentHandler(BaseHandler):
             if myattach['displayable'] is not False:
                 preview = True
 
-        self.write(self.render_string('header.html', title="Tavern Attachment " + client_attachment_id, user=self.user, rsshead=client_attachment_id, type="attachment"))
+        self.write(self.render_string('header.html', title="Tavern Attachment " + client_attachment_id, rsshead=client_attachment_id, type="attachment"))
         self.write(self.render_string(
             'attachments.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
         self.write(self.render_string('footer.html'))
@@ -601,13 +603,15 @@ class AttachmentHandler(BaseHandler):
 class RegisterHandler(BaseHandler):
     def get(self):
         self.getvars()
-        self.write(self.render_string('header.html', title="Register for an Account", user=self.user, type=None, rsshead=None))
+        self.write(self.render_string('header.html',
+                   title="Register for an Account", type=None, rsshead=None))
         self.write(self.render_string('registerform.html'))
         self.write(self.render_string('footer.html'))
 
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html', title='Register for an account', user=self.user, type=None, rsshead=None))
+        self.write(self.render_string('header.html',
+                   title='Register for an account', type=None, rsshead=None))
 
         client_newuser = self.get_argument("username")
         client_newpass = self.get_argument("pass")
@@ -659,13 +663,15 @@ class RegisterHandler(BaseHandler):
 class LoginHandler(BaseHandler):
     def get(self, slug=None):
         self.getvars()
-        self.write(self.render_string('header.html', title="Login to your account", user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html',
+                   title="Login to your account", rsshead=None, type=None))
         self.write(self.render_string('loginform.html', slug=slug))
         self.write(self.render_string('footer.html'))
 
     def post(self):
         self.getvars()
-        self.write(self.render_string('header.html', title='Login to your account', user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html',
+                   title='Login to your account', rsshead=None, type=None))
 
         successredirect = '/'
         client_username = self.get_argument("username")
@@ -731,7 +737,8 @@ class ChangepasswordHandler(BaseHandler):
             server.db.safe.insert('redirects', {'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
-            self.write(self.render_string('header.html', title="Change Password", user=self.user, rsshead=None, type=None))
+            self.write(self.render_string('header.html',
+                       title="Change Password", rsshead=None, type=None))
             self.write(self.render_string('changepassword.html'))
             self.write(self.render_string('footer.html'))
 
@@ -779,13 +786,13 @@ class UserHandler(BaseHandler):
             envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
-                   user=self.user, rsshead=None, type=None))
+                                      rsshead=None, type=None))
 
         if pubkey == self.user.Keys.pubkey:
             if not 'author_wordhash' in self.user.UserSettings:
                 self.user.UserSettings['author_wordhash'] = u.UserSettings[
                     'author_wordhash']
-            self.write(self.render_string('mysettings.html', user=self.user))
+            self.write(self.render_string('mysettings.html'))
 
         self.write(self.render_string(
             'userpage.html', me=self.user, thatguy=u, envelopes=envelopes))
@@ -1032,8 +1039,9 @@ class NewmessageHandler(BaseHandler):
 
     def get(self, topic=None, regarding=None):
         self.getvars()
-        self.write(self.render_string('header.html', title="Post a new message", user=self.user, rsshead=None, type=None))
-        self.write(self.render_string('newmessageform.html', regarding=regarding, topic=topic, args=self.request.arguments, user=self.user))
+        self.write(self.render_string('header.html',
+                   title="Post a new message", rsshead=None, type=None))
+        self.write(self.render_string('newmessageform.html', regarding=regarding, topic=topic, args=self.request.arguments))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['right', 'single'])
 
@@ -1305,7 +1313,8 @@ class ShowPrivatesHandler(BaseHandler):
         self.getvars(ensurekeys=True)
 
         messages = []
-        self.write(self.render_string('header.html', title="Welcome to the Tavern!", user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html',
+                   title="Welcome to the Tavern!", rsshead=None, type=None))
 
         for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
@@ -1325,16 +1334,17 @@ class PrivateMessageHandler(BaseHandler):
             decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:
             decrypted_subject = ""
-        self.write(self.render_string('header.html', title="Private Message - " + decrypted_subject, user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html', title="Private Message - " + decrypted_subject, rsshead=None, type=None))
         self.write(
-            self.render_string('showprivatemessage.html', user=self.user, envelope=message))
+            self.render_string('showprivatemessage.html', envelope=message))
         self.write(self.render_string('footer.html'))
 
 
 class NewPrivateMessageHandler(BaseHandler):
     def get(self, urlto=None):
         self.getvars()
-        self.write(self.render_string('header.html', title="Send a private message", user=self.user, rsshead=None, type=None))
+        self.write(self.render_string('header.html',
+                   title="Send a private message", rsshead=None, type=None))
         self.write(self.render_string('privatemessageform.html', urlto=urlto))
         self.write(self.render_string('footer.html'))
 

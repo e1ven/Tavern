@@ -1,0 +1,124 @@
+{% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
+{% if envelope is None %}
+    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
+{% end %}
+
+{% set medialink = None %}
+{% set permalink = request.protocol + "://" + serversettings.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
+
+<div id="firstMessage" class="comment">
+    <ul>
+        <li>
+
+                <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+
+                <h5>{{envelope['envelope']['payload']['subject']}}</h5>
+                <p class="firstMessageAuthorInfo">
+                    By <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}
+                </p>
+                <p class="firstMessageDate">
+                    Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+                </p>
+
+                <div id="firstMessageBody">
+                        {% raw envelope['envelope']['local']['formattedbody'] %}
+                </div>
+
+                <hr class="clear firstMessageSeparationLine">
+                <form action="/vote" method="post" class="vote">
+                  {% raw xsrf_form_html() %}
+                <input type="hidden" name="rating" value="1">
+                <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+                <abbr title= "This post was helpful.">
+                    <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                    <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
+
+                </abbr>
+
+                </form>
+
+                <form action="/vote" method="post" class="vote">
+                  {% raw xsrf_form_html() %}
+                <input type="hidden" name="rating" value="-1" >
+                <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+                <abbr title="This post was inappropriate.">
+                    <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                    <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
+
+                </abbr>
+
+                </form>
+
+
+                <div id="firstMessageLinks">
+                    <div id="externalsharing">
+                    <abbr title="Share via Facebook">    
+                        <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                            <i class="icon-facebook-squared floatLeft iconLabelColorLight"></i>
+                        </a>
+                    </abbr>
+
+                    <abbr title="Share via Twitter">    
+                        <a href="http://twitter.com/home?status=via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                            <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
+                      </a>
+                    </abbr>
+                    <abbr title="Share via Google+">
+                        <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
+                '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                            <i class="icon-gplus-squared floatLeft iconLabelColorLight"></i>
+                        </a>
+                    </abbr>
+                    <abbr title="Pin this">
+                        <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
+                            <i class="icon-pinterest-squared floatLeft iconLabelColorLight" ></i>
+                        </a>
+                    </abbr>
+                    </div>
+                    <div class="messageCommands"
+                        <abbr title="Mark this post as a favorite">
+                            <a href="#">
+                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
+                            </a>
+                        </abbr>
+                        <abbr title="Report this post">
+                            <a href="#">
+                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
+                            </a>
+                        </abbr>
+                        <abbr title="Permalink">
+                            <a href="#">
+                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
+                            </a>
+                        </abbr>
+                    </div>
+                    <div class="messageReplyLink">
+                        <a class="buffer reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">
+                            Reply
+                        </a>
+                    </div>
+                </div>
+
+
+                <span class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Comments</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">476 Comments</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">More Comments</span>
+
+                <div id="commentSliderWrapper">
+                    <br/><br/>
+                    <table id="commentSlider" width="100%" cellspacing="0" cellpadding="0" border="0">
+                        <tr>
+                            <td id="shownComments" width="50%">
+                                <span/>
+                            <td id="unshownComments">
+                                <span>&nbsp;</span>
+                            </td>
+                        </tr>
+                    </table>      
+
+                    <p id="sliderResults">Percent selected : 50%</p>                        
+                    <br/><br/>
+                </div> 
+        </li>
+    </ul>     
+</div>
+{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}

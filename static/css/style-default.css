@@ -49,8 +49,6 @@ q:before, q:after {
         content: none;
 }
 table {
-        border-collapse: collapse;
-        border-spacing: 0;
 }
 form {
   display: inline;
@@ -99,14 +97,14 @@ a:active {
   float: left;
   padding: 10px 15px;
 
-	background: #272321; 
-	color: #ffffff;
+    background: #272321; 
+    color: #ffffff;
   text-decoration: none;
   border-top: 1px solid #372F2b;
   border-bottom: 1px solid #21110b;
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 3px;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
 }
 
 
@@ -142,43 +140,43 @@ form.vote {
     margin-bottom: 50px;
     min-width:500px;  
 
-	width: 75%;
-	background: #ffffff;
-	position:relative; 
-	overflow:hidden;
-	border:2px solid;
-	border-color: #a9a9a9;
-	}
+    width: 75%;
+    background: #ffffff;
+    position:relative; 
+    overflow:hidden;
+    border:2px solid;
+    border-color: #a9a9a9;
+    }
 
 .single p {
     padding-left: 20px;
     padding-top: .5em;
     padding-bottom: 0px;
-}	
+}   
 
 .single form, .single ul {
     padding-left: 20px;
     padding-bottom: 10px;
-}	
+}   
 
 .single li {
     padding-left: 20px;
     padding-top: .5em;
 
-}	
+}   
 
-	
+    
 .single .padder { background: #ffffff; }
 
 .single > h1 {
-	font-size: 14px; 
-	font-weight: bold; 
-	text-transform: uppercase;
-	background: #d8d8d8;
-	border-top: 1px solid #ffffff;
-	border-bottom: 1px solid #a9a9a9;
-	color: #2d2d2d;
-	padding-left: 20px;
+    font-size: 14px; 
+    font-weight: bold; 
+    text-transform: uppercase;
+    background: #d8d8d8;
+    border-top: 1px solid #ffffff;
+    border-bottom: 1px solid #a9a9a9;
+    color: #2d2d2d;
+    padding-left: 20px;
 
 }
 .single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
@@ -206,17 +204,17 @@ form.vote {
 
 
 #spinner{
-	display: none;
-	position: absolute;
+    display: none;
+    position: absolute;
   background-color:black;
-	top: 0%;
-	left: 0%;
-	width: 100%;
-	height: 100%;
-	z-index:1001;
-	-moz-opacity: 0.2;
-	opacity:.20;
-	filter: alpha(opacity=20);
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    z-index:1001;
+    -moz-opacity: 0.2;
+    opacity:.20;
+    filter: alpha(opacity=20);
 }
 
 #spinner img,i{
@@ -395,7 +393,6 @@ body {
       
       h6 {
         margin-left: 10px;
-        margin-right: 300px;
         margin-bottom: 5px;
         }
         
@@ -445,10 +442,10 @@ body {
     }
     
     #firstMessage {
+      margin-top:35px;
       font-family: 'Lato', sans-serif;
       background-color: #56504d; 
       background-image: url(/static/images/texture.png);
-      table-layout: auto;
       }
       
       #bigProfileIcon {
@@ -473,6 +470,7 @@ body {
             margin-top: 10px;
             padding-bottom: 10px;
             }
+
           .firstMessageDate {
             font-size: 15px;
             color: #ece9d7;
@@ -480,8 +478,6 @@ body {
             }
             
             #firstMessageBody {
-              margin-left: 14px;
-              margin-right: 14px;
               margin-bottom: 18px;
               margin-top: 22px;
               font-family: 'Lato', sans-serif;
@@ -495,8 +491,7 @@ body {
                 width: 422px;
                 border: none;
                 background-color: #898c8e;
-                margin-left: 14px;
-                margin-right: 14px;
+                margin-left: 0px;
                 }
                 
                 .commentSeparationLine {
@@ -520,10 +515,11 @@ body {
                   background-color: #cccccc;
                   }
                   
-                #commentRecievedTime {
-                  margin-left: 10px;
-                  color: #8f8f8f;
-                  } 
+            .messageDate {
+            font-size: 15px;
+            color: #ece9d7;
+            margin-bottom: 10px;
+            }
                   
     
     #column1 {
@@ -673,6 +669,10 @@ body {
       width:100%;
       }
       
+    #column3 ul li {
+      padding-left: 20px;
+      }
+
     #cell5 {
       }
       
@@ -742,13 +742,14 @@ body {
         margin-left:9px;
       }
 
-      #firstMessageCommands
+
+      .messageCommands
       {
-        margin-left:200px;
+        margin-left:250px;
       }
-      #firstMessageReplyLink
+      .messageReplyLink
       {
-        margin-left:300px;
+        margin-left:350px;
       }
          
        .iconLabels {
@@ -760,7 +761,7 @@ body {
          }
          
          .iconLabelColorDark {
-           color: #666666;
+           color: #666666 !important;
            }
          
          .iconLabelColorLight {
@@ -769,11 +770,9 @@ body {
            
        #lowerCommentSeparation {
          width:100%;
-         margin-top: 25px;
          }
          
          .likeDislikeIcon {
-           margin-left: 14px;
            margin-bottom: 8px;
            }
            
@@ -784,13 +783,11 @@ body {
         
         #scrollBar {
           margin-top: 11px;
-          margin-left: 14px;
           margin-bottom: 17px;
           }
           
           .commentDisplayOptions {
             margin-top: 15px;
-            margin-left: 14px;
             margin-right: 20px;
             }
             
@@ -805,9 +802,19 @@ body {
 
 
 
-
-
-
+.comment {
+  width: auto;
+  padding: 20px;
+  background: #adadad;
+  border-radius: 8px;
+  -moz-border-radius: 8px;
+  -webkit-border-radius: 8px;
+  -o-border-radius: 8px;
+  box-shadow: 0px 3px 3px #b5b39a;
+  -moz-box-shadow: 0px 3px 3px #b5b39a;
+  -webkit-box-shadow: 0px 3px 3px #b5b39a;
+  margin-top:10px;
+}
 
 .darkClass
 {
@@ -827,11 +834,25 @@ body {
 
 #commentSliderWrapper{
   width:418px;
-  margin-left:18px;
+  margin-top:10px;
+  /* margin-left is to counteract the endcap */
+  margin-left:11px;
+
 }
 
-#commentSlider{
-  border:none;
+
+#unshownComments:after
+{ 
+  /* Put in the end cap using css wizardry */
+  background:url(/static/images/rightSliderCap.png);
+  content: "";
+  width: 13px;
+  height: 20px;
+  position: absolute;
+  top: -0px;
+  left: 100%;
+  margin-left:-1px
+
 }
 
 
@@ -839,6 +860,19 @@ body {
   background: url('/static/images/shownComments.png') repeat-x;
   vertical-align:text-top;
   overflow:visible;
+}
+
+
+#shownComments:before
+{ 
+  /* Put in the end cap using css wizardry */
+  background:url(/static/images/leftSliderCap.png);
+  content:"";
+  width:13px;
+  height:20px;
+  position:absolute;
+  top:-0px;
+  left:-13px;
 }
 
 #unshownComments{
@@ -854,6 +888,9 @@ body {
 }
 
 
+#commentSlider{
+  border:none;
+}
 
 #commentSlider td{
   border:none;
@@ -874,6 +911,11 @@ body {
 .sliderrounds
 {
   display: none;
+}
+
+.commentavatar
+{
+  margin-right:10px;
 }
 
 @keyframes nodeInserted {  
