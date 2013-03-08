@@ -41,7 +41,8 @@ class EmailServer(object):
         serversettings.ServerSettings['email'] = {}
         serversettings.ServerSettings['email'][
             'sender'] = "noreply <noreply@example.com>"
-        serversettings.ServerSettings['email']['smtpserver'] = 'smtp.example.com'
+        serversettings.ServerSettings['email'][
+            'smtpserver'] = 'smtp.example.com'
         serversettings.ServerSettings['email']['username'] = "user@example.com"
         serversettings.ServerSettings['email']['password'] = "password"
         serversettings.ServerSettings['email'][
@@ -61,14 +62,14 @@ class EmailServer(object):
         Load in the emails
         """
 
-        for email in server.db.safe.find('output-emails',{}):
+        for email in server.db.safe.find('output-emails', {}):
             self.optouts.append(email['address'])
 
         # Move messages to an in-memory queue which can go to multiple processes
-        for email in server.db.unsafe.find('notifications_queue',{'type': 'email'}):
+        for email in server.db.unsafe.find('notifications_queue', {'type': 'email'}):
             if email['address'] not in self.optouts:
                 self.emails.put(email)
-            server.db.unsafe.remove('notifications_queue',email)
+            server.db.unsafe.remove('notifications_queue', email)
 
     def start(self):
         """
@@ -116,7 +117,8 @@ class EmailServer(object):
                 msg['To'] = currentemail['address']
 
                 # Create a  a new mail every X messages
-                newmailevery = serversettings.ServerSettings['email']['newmailevery']
+                newmailevery = serversettings.ServerSettings[
+                    'email']['newmailevery']
 
                 # Record the MIME types of both parts - text/plain and text/html.
                 part1 = MIMEText(currentemail['text'], 'plain')
@@ -138,12 +140,14 @@ class EmailServer(object):
                         conn = smtplib.SMTP(host=serversettings.ServerSettings['email']['smtpserver'], port=serversettings.ServerSettings['email']['port'])
 
                     if serversettings.ServerSettings['email']['authrequired'] == True:
-                        conn.login(serversettings.ServerSettings['email']['username'],
-                                   serversettings.ServerSettings['email']['password'])
+                        conn.login(
+                            serversettings.ServerSettings['email']['username'],
+                            serversettings.ServerSettings['email']['password'])
 
                 try:
-                    conn.sendmail(serversettings.ServerSettings['email']['sender'],
-                                  currentemail['address'], msg.as_string())
+                    conn.sendmail(
+                        serversettings.ServerSettings['email']['sender'],
+                        currentemail['address'], msg.as_string())
                 finally:
                     count += 1
                     server.logger.info("This thread has sent " + str(count))

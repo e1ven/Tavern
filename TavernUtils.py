@@ -8,8 +8,18 @@ import time
 import json
 import os
 import hashlib
+import time
 
 
+def inttime():
+    """
+    Force 1 sec precision, so multiple requests per second cache.
+    """
+    return int(time.time())
+
+
+def longtime():
+    return str(time.time()).translate(str.maketrans('', '', '.'))
 
 
 class randomWords():
@@ -28,8 +38,7 @@ class randomWords():
         fortuneindex = randrange(0, len(self.fortunes) - 1)
         return self.fortunes[fortuneindex]
 
-
-    def wordhash(self,st,slots=4):
+    def wordhash(self, st, slots=4):
         """
         Generate a WordHash, such as MinibarAvoureParapetedSlashings for a string
         """
@@ -39,11 +48,11 @@ class randomWords():
         hsh.update(st.encode('utf-8'))
         hexdigest = hsh.hexdigest()
 
-        chunksize = int(len(hexdigest)/slots)
+        chunksize = int(len(hexdigest) / slots)
 
         words = []
 
-        for segment in chunks(hexdigest,chunksize):
+        for segment in chunks(hexdigest, chunksize):
             intversion = int(segment, 16)
 
             #figure out which array integer the word is in
@@ -58,10 +67,11 @@ class randomWords():
             s += word.title()
         return s
 
+
 def chunks(s, n):
     """Produce `n`-character chunks from `s`."""
     for start in range(0, len(s), n):
-        yield s[start:start+n]
+        yield s[start:start + n]
 
 
 def randrange(start, stop):
@@ -99,6 +109,7 @@ def randrange(start, stop):
     rightsize = randnum % diff
     return start + rightsize
 
+
 def randstr(length, printable=False):
     # Ensure it's self.logger.infoable.
     if printable == True:
@@ -107,6 +118,7 @@ def randstr(length, printable=False):
     else:
         ran = ''.join(chr(randrange(48, 122)) for i in range(length))
     return ran
+
 
 class TavernCache(object):
         def __init__(self):

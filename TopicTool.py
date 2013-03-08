@@ -3,6 +3,7 @@ import pymongo
 import Envelope
 import time
 from TavernUtils import memorise
+import TavernUtils
 from server import server
 from collections import OrderedDict
 import sys
@@ -26,10 +27,10 @@ class TopicTool(object):
         """
         subjects = []
         if self.topic != "all":
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=self.maxposts).sort('envelope.local.time_added', pymongo.DESCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=self.maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
                 subjects.append(envelope)
         else:
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=self.maxposts).sort('envelope.local.time_added', pymongo.DESCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=self.maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
                 subjects.append(envelope)
 
         if countonly == True:
@@ -46,10 +47,10 @@ class TopicTool(object):
 
         subjects = []
         if self.topic != "all":
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=self.maxposts + 1).sort('envelope.local.time_added', pymongo.ASCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=self.maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
         else:
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=self.maxposts + 1).sort('envelope.local.time_added', pymongo.ASCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=self.maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
 
         # Adding 1 to self.maxposts above, because we're going to use this to get the 10 posts AFTER the date we return from this function.
@@ -61,7 +62,7 @@ class TopicTool(object):
             else:
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
-            ret = server.inttime()
+            ret = TavernUtils.inttime()
         if countonly == True:
             return len(subjects) - 1
         else:
@@ -70,14 +71,14 @@ class TopicTool(object):
     @memorise(parent_keys=['sorttopic', 'maxposts'], ttl=serversettings.ServerSettings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.ServerSettings['cache']['subjects-in-topic']['size'])
     def moreafter(self, before):
         if self.topic != "all":
-            count = server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}).count()
+            count = len(server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         else:
-            count = server.db.unsafe.find('envelopes',{'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}).count()
+            count = len(server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         return count
 
     @memorise(ttl=serversettings.ServerSettings['cache']['toptopics']['seconds'], maxsize=serversettings.ServerSettings['cache']['toptopics']['size'])
     def toptopics(self):
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=14).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=14, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
         return toptopics

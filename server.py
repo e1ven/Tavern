@@ -26,50 +26,73 @@ from psycopg2.extras import RealDictConnection
 from serversettings import serversettings
 import TavernUtils
 
+
 class FakeMongo():
     def __init__(self):
 
         # Create a connection to Postgres.
-        self.conn = psycopg2.connect("dbname=" + serversettings.ServerSettings['dbname'] + " user=e1ven",connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn = psycopg2.connect("dbname=" + serversettings.ServerSettings['dbname'] + " user=e1ven", connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
-    def find(self,collection,query={},limit=-1,skip=0):
+    def find(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
 
-        cur.callproc('find',[collection,jsonquery,limit,skip])
+        cur.callproc('find', [collection, jsonquery, limit, skip])
         results = []
-        for row in cur.fetchall():
-            results.append(json.loads(json.loads(row['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
-        return results   
 
-    def find_one(self,collection,query={}):
+        for row in cur.fetchall():
+            results.append(json.loads(json.loads(row['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
+
+        # Sort if necessary
+        if sortdirection not in ['ascending', 'descending']:
+            raise Exception(
+                'Sort direction must be either ascending or descending')
+
+        if sortkey is not None:
+            arglist = sortkey.split(".")
+            results = sorted(results, key=lambda e:
+                             functools.reduce(lambda m, k: m[k], arglist, e))
+
+        if sortdirection == "descending":
+            results.reverse()
+
+        return results
+
+    def find_one(self, collection, query={}):
         cur = self.conn.cursor()
 
         jsonquery = json.dumps(query)
-        cur.callproc('find',[collection,jsonquery])
+        cur.callproc('find', [collection, jsonquery])
         res = cur.fetchone()
 
-        # strip out the extraneous data the server includes.
-        dictres = json.loads(json.loads(res['find'],object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict),object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+        if res is None:
+            return None
+        else:
+            # strip out the extraneous data the server includes.
+            dictres = json.loads(json.loads(res['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
 
         return dictres
 
-    def save(self,collection,query):
+    def save(self, collection, query):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
-        result = cur.callproc('save',[collection,jsonquery])
+        result = cur.callproc('save', [collection, jsonquery])
+        print("runing FakeMongo Save()")
         return result
 
     # TODO - Change insert to not insert dups. Probably in mongolike.
-    def insert(self,collection,query):
+    def insert(self, collection, query):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
-        result = cur.callproc('save',[collection,jsonquery])
+        result = cur.callproc('save', [collection, jsonquery])
+        print("runing FakeMongo insert()")
+
         return result
 
+
 class MongoWrapper():
-    def __init__(self,safe=True):
+    def __init__(self, safe=True):
 
         if safe == True:
             # Slower, more reliable mongo connection.
@@ -78,25 +101,47 @@ class MongoWrapper():
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
             self.unsafeconn = pymongo.MongoClient(serversettings.ServerSettings['mongo-hostname'], serversettings.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.ServerSettings['mongo-connections'])
-            self.mongo = self.unsafeconn[serversettings.ServerSettings['dbname']]
+            self.mongo = self.unsafeconn[
+                serversettings.ServerSettings['dbname']]
 
-    def find(self,collection,query={},limit=0,skip=0):
-        return self.mongo[collection].find(query,skip=skip,limit=limit)
+    def find(self, collection, query={}, limit=0, skip=0, sortkey=None, sortdirection="ascending"):
 
-    def find_one(self,collection,query={}):
+        if sortdirection not in ['ascending', 'descending']:
+            raise Exception(
+                'Sort direction must be either ascending or descending')
+
+        if sortkey is not None:
+            if sortdirection == "ascending":
+                direction = pymongo.ASCENDING
+            else:
+                direction = pymongo.DESCENDING
+            res = self.mongo[collection].find(
+                query, skip=skip, limit=limit).sort(sortkey, direction)
+        else:
+            res = self.mongo[collection].find(query, skip=skip, limit=limit)
+
+        results = []
+
+        for row in res:
+            results.append(row)
+
+        return results
+
+    def find_one(self, collection, query={}):
         return self.mongo[collection].find_one(query)
 
-    def save(self,collection,query):
+    def save(self, collection, query):
         return self.mongo[collection].save(query)
 
-    def insert(self,collection,query):
+    def insert(self, collection, query):
         return self.mongo[collection].insert(query)
 
-    def map_reduce(self,collection,map,reduce,out):
-        return self.mongo[collection].map_reduce(map=map,reduce=reduce,out=out)
+    def map_reduce(self, collection, map, reduce, out):
+        return self.mongo[collection].map_reduce(map=map, reduce=reduce, out=out)
+
 
 class DBWrapper():
-    def __init__(self,dbtype):
+    def __init__(self, dbtype):
 
         if dbtype == "mongo":
             self.safe = MongoWrapper(True)
@@ -104,7 +149,6 @@ class DBWrapper():
         elif dbtype == "postgres":
             self.safe = FakeMongo()
             self.unsafe = FakeMongo()
-
 
         self.binarycon = pymongo.MongoClient(serversettings.ServerSettings['bin-mongo-hostname'], serversettings.ServerSettings['bin-mongo-port'], max_pool_size=serversettings.ServerSettings['mongo-connections'])
         self.binaries = self.binarycon[
@@ -160,7 +204,6 @@ class Server(object):
                     fmt = str(value) + " " + period
             return fmt + " ago"
 
-
     def getnextint(self, queuename, forcewrite=False):
         if not 'queues' in serversettings.ServerSettings:
             serversettings.ServerSettings['queues'] = {}
@@ -179,7 +222,6 @@ class Server(object):
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
         self.mc = OrderedDict
-
 
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
@@ -205,10 +247,7 @@ class Server(object):
         self.ServerKeys = Keys(pub=serversettings.ServerSettings['pubkey'],
                                priv=serversettings.ServerSettings['privkey'])
 
-
-
-
-        self.db = DBWrapper("mongo")
+        self.db = DBWrapper(serversettings.ServerSettings['dbtype'])
 
         self.bin_GridFS = GridFS(self.db.binaries)
         serversettings.saveconfig()
@@ -221,7 +260,7 @@ class Server(object):
                     self.availablethemes.append(name)
 
         serversettings.ServerSettings['static-revision'] = int(time.time())
-        
+
         self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
         self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
 
@@ -242,7 +281,6 @@ class Server(object):
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
-
 
     def prettytext(self):
         newstr = json.dumps(
@@ -286,8 +324,9 @@ class Server(object):
             self.logger.info(c.text())
             return False
 
-                # First, pull the message.
-        existing = self.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': c.payload.hash()})
+        # First, pull the message.
+        existing = self.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': c.payload.hash()})
         if existing is not None:
             self.logger.info("We already have that msg.")
             return c.dict['envelope']['payload_sha512']
@@ -344,7 +383,7 @@ class Server(object):
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
-            for citedme in self.db.unsafe.find('envelopes',{'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['payload_sha512']}):
+            for citedme in self.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['payload_sha512']}):
                 self.logger.info('found existing cite, bad order. ')
                 self.logger.info(
                     " I am :: " + c.dict['envelope']['payload_sha512'])
@@ -360,24 +399,11 @@ class Server(object):
         c.saveMongo()
         return  c.dict['envelope']['payload_sha512']
 
-    def inttime(self):
-        """
-        Force 1 sec precision, so multiple requests per second cache.
-        """
-        return int(time.time())
-
     def formatText(self, text=None, formatting='markdown'):
         if formatting == 'markdown':
-            formatted = self.autolink(markdown.markdown(self.gfm(text)))
+            formatted = self.autolink(markdown.markdown(server.gfm(text), output_format="html5", safe_mode='escape', enable_attributes=False))
         elif formatting == 'bbcode':
             formatted = bbcodepy.Parser().to_html(text)
-        elif formatting == 'html':
-            VALID_TAGS = ['strong', 'em', 'p', 'ul', 'li', 'br']
-            soup = BeautifulSoup(text)
-            for tag in soup.findAll(True):
-                if tag.name not in VALID_TAGS:
-                    tag.hidden = True
-            formatted = soup.renderContents()
         elif formatting == "plaintext":
             formatted = "<pre>" + text + "</pre>"
         else:
@@ -391,7 +417,7 @@ class Server(object):
 
         # First, pull the message.
         envelope = self.db.unsafe.find_one('envelopes',
-            {'envelope.payload_sha512': messageid})
+                                           {'envelope.payload_sha512': messageid})
         envelope = self.formatEnvelope(envelope)
 
         # IF we don't have a parent, or if it's null, return self./
@@ -403,7 +429,7 @@ class Server(object):
         # If we do have a parent, Check to see if it's in our datastore.
         parentid = envelope['envelope']['payload']['regarding']
         parent = self.db.unsafe.find_one('envelopes',
-            {'envelope.payload_sha512': parentid})
+                                         {'envelope.payload_sha512': parentid})
         if parent is None:
             return messageid
 
@@ -459,6 +485,24 @@ class Server(object):
                                         if not self.bin_GridFS.exists(filename=displayable):
                                             attachment.seek(0)
                                             im = Image.open(attachment)
+
+                                            # Check to see if we need to rotate the image
+                                            # This is caused by iPhones saving the orientation
+
+                                            if hasattr(im, '_getexif'):  # only present in JPEGs
+                                                    e = im._getexif()       # returns None if no EXIF data
+                                                    if e is not None:
+                                                        exif = dict(e.items())
+                                                        if 'Orientation' in exif:
+                                                            orientation = exif[
+                                                                'Orientation']
+
+                                                            if orientation == 3:
+                                                                image = im.transpose(Image.ROTATE_180)
+                                                            elif orientation == 6:
+                                                                image = im.transpose(Image.ROTATE_270)
+                                                            elif orientation == 8:
+                                                                image = im.transpose(Image.ROTATE_90)
 
                                             # resize if nec.
                                             if im.size[0] > 640:

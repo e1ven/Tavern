@@ -26,6 +26,8 @@ jQuery(document).ready(function () {
                     jQuery("#" + referenced_form).append('<input type="hidden" name="referenced_file' + referenced_files + '_size" value = "' + file.size + '">')
                     jQuery("#" + referenced_form).append('<input type="hidden" name="referenced_file' + referenced_files + '_contenttype" value = "' + file.content_type + '">')
                     referenced_files +=1;
+                    jQuery('#progress_' + referenced_form ).html("Uploading complete.");
+
                 });
                 jQuery('.icon-upload').css('color','#000000');
                 jQuery('.uploadbox').css('border-color','#000000');

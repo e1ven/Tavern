@@ -46,6 +46,6 @@ class TopicList(object):
 
                 """)
 
-        server.db.safe.map_reduce('envelopes', 
-                   map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+        server.db.safe.map_reduce('envelopes',
+                                  map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 T = TopicList()

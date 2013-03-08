@@ -8,9 +8,8 @@ import TavernUtils
 
 class ServerSettings():
 
-
     def __init__(self):
-        self.ServerSettings = OrderedDict();
+        self.ServerSettings = OrderedDict()
 
     def loadconfig(self, filename=None):
         if filename is None:
@@ -30,7 +29,6 @@ class ServerSettings():
         filehandle.write(
             json.dumps(self.ServerSettings, separators=(',', ':')))
         filehandle.close()
-
 
     def updateconfig(self):
 
@@ -120,7 +118,8 @@ class ServerSettings():
         if not 'cookie-encryption' in self.ServerSettings:
             self.ServerSettings['cookie-encryption'] = TavernUtils.randstr(255)
         if not 'serverkey-password' in self.ServerSettings:
-            self.ServerSettings['serverkey-password'] = TavernUtils.randstr(255)
+            self.ServerSettings[
+                'serverkey-password'] = TavernUtils.randstr(255)
         if not 'embedserver' in self.ServerSettings:
             self.ServerSettings['embedserver'] = 'http://embed.is'
         if not 'downloadsurl' in self.ServerSettings:
@@ -130,5 +129,9 @@ class ServerSettings():
 
         if not 'mongo-connections' in self.ServerSettings:
             self.ServerSettings['mongo-connections'] = 10
+
+        if not 'dbtype' in self.ServerSettings:
+            self.ServerSettings['dbtype'] = 'mongo'
+
 
 serversettings = ServerSettings()

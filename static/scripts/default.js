@@ -419,8 +419,8 @@ jQuery(document).ready(function() {
     // This should probably be broken out into it's own file.
     // For now, leave it here - This is just a sample key event, to verify the handler works.
     // Add more later.
-    Mousetrap.bind('up up down down left right left right b a', function() {
-        element = jQuery('#top')
+    Mousetrap.bind('up up', function() {
+        element = jQuery('#top');
         element.css('-moz-transform', 'rotate(180deg)'); 
         element.css('-o-transform','rotate(180deg)');  
         element.css('-webkit-transform','rotate(180deg)'); 
@@ -428,6 +428,8 @@ jQuery(document).ready(function() {
         element.css('transform','rotate(180deg);'); 
         element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
     });
+
+
 
 
 

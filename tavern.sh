@@ -5,6 +5,7 @@
 # First, create two working directories
 mkdir -p tmp/checked
 mkdir -p tmp/unchecked
+mkdir -p tmp/gpgfiles
 
 # First, determine if we're running the program as root.
 # If we are, restart nginx if possible.
@@ -99,22 +100,26 @@ fi
 # If we haven't, minimize it. Otherwise, just skip forward, for speed.
 echo "Minimizing JS"
 mv tmp/checked/* tmp/unchecked
+result=255
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
-
     filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".js"`
     echo -n "$basename"..
     if [ ! -f tmp/unchecked/$filehash.exists ]
     then
         # No pre-hashed version available
-        $yui $i > static/scripts/$basename.min.js --nomunge 
+        $yui $i > static/scripts/$basename.min.js --nomunge
+        result=$?
         echo "Minimized."
     else
         echo "Already set."
     fi
-    touch tmp/checked/$filehash.exists
-
+    if [ $result -eq 0 ]
+    # only write the touchfile if the minimize worked
+        then
+        touch tmp/checked/$filehash.exists
+    fi
 done
 
 
@@ -138,7 +143,7 @@ done
 echo ""
 
 
-cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/mousetrap.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
+cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/vsplit.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
 echo "Combining JS.."
 filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]

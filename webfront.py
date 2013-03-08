@@ -367,7 +367,7 @@ class RSSHandler(BaseHandler):
                                   'Tavern discussion about ' + param,
                                   generator='Tavern',
                                   pubdate=datetime.datetime.now())
-            for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100).sort('envelope.local.time_added', pymongo.DESCENDING):
+            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
                                 "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
@@ -375,9 +375,11 @@ class RSSHandler(BaseHandler):
                 channel.additem(item)
             self.write(channel.toprettyxml())
 
+
 class RawMessageHandler(BaseHandler):
     def get(self, message):
-        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': message})
+        envelope = server.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': message})
         envelope = server.formatEnvelope(envelope)
         self.write(envelope['envelope']['local']['formattedbody'])
 
@@ -434,6 +436,7 @@ class TriPaneHandler(BaseHandler):
 
         if "before" in self.request.arguments:
             # Used for multiple pages, because skip() is slow
+            # Don't really need xhtml escape, since we're converting to a float
             before = float(self.get_argument('before'))
         else:
             before = None
@@ -447,7 +450,8 @@ class TriPaneHandler(BaseHandler):
             else:
                 canon = ""
                 title = "Discuss what matters"
-            displayenvelope = TopicTool(topic).messages(server.inttime())[0]
+            displayenvelope = TopicTool(
+                topic).messages(TavernUtils.inttime())[0]
 
         if action == "message":
 
@@ -455,7 +459,7 @@ class TriPaneHandler(BaseHandler):
             divs = ['center', 'right']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
-                {'envelope.payload_sha512': messageid})
+                                                        {'envelope.payload_sha512': messageid})
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
                 canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
@@ -510,11 +514,11 @@ class AllTopicsHandler(BaseHandler):
         self.getvars()
 
         alltopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=start + 1000, skip=start).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=start + 1000, skip=start, sortkey='value', sortdirection='descending'):
             alltopics.append(quicktopic)
 
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
 
         self.write(
@@ -531,16 +535,16 @@ class TopicPropertiesHandler(BaseHandler):
         self.getvars()
 
         mods = []
-        for mod in server.db.unsafe.find('modlist',{'_id.topic': server.sorttopic(topic)}, max_scan=10000).sort('value.trust', direction=pymongo.DESCENDING):
+        for mod in server.db.unsafe.find('modlist', {'_id.topic': server.sorttopic(topic)}, max_scan=10000, sortkey='value.trust', sortdirection='descending'):
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)
 
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist',limit=10).sort('value', -1):
+        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
         subjects = []
-        for envelope in server.db.unsafe.find('envelopes',{'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
+        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
             subjects.append(envelope)
 
         title = "Properties for " + topic
@@ -556,7 +560,8 @@ class SiteContentHandler(BaseHandler):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
 
-        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_message_id})
+        envelope = server.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': client_message_id})
 
         self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], user=self.user, canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
@@ -567,7 +572,7 @@ class AttachmentHandler(BaseHandler):
     def get(self, attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.db.unsafe.find('envelopes',{'envelope.payload.binaries.sha_512': client_attachment_id})
+        envelopes = server.db.unsafe.find('envelopes', {'envelope.payload.binaries.sha_512': client_attachment_id})
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -604,15 +609,11 @@ class RegisterHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html', title='Register for an account', user=self.user, type=None, rsshead=None))
 
-        client_newuser = tornado.escape.xhtml_escape(
-            self.get_argument("username"))
-        client_newpass = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
-        client_newpass2 = tornado.escape.xhtml_escape(
-            self.get_argument("pass2"))
+        client_newuser = self.get_argument("username")
+        client_newpass = self.get_argument("pass")
+        client_newpass2 = self.get_argument("pass2")
         if "email" in self.request.arguments:
-            client_email = tornado.escape.xhtml_escape(
-                self.get_argument("email"))
+            client_email = self.get_argument("email")
             if client_email == "":
                 client_email = None
         else:
@@ -624,15 +625,15 @@ class RegisterHandler(BaseHandler):
 
         if client_email is not None:
             users_with_this_email = server.db.safe.find('users',
-                {"email": client_email.lower()})
-            if users_with_this_email.count() > 0:
+                                                        {"email": client_email.lower()})
+            if len(users_with_this_email) > 0:
                 self.write(
                     "I'm sorry, this email address has already been used.")
                 return
 
         users_with_this_username = server.db.safe.find('users',
-            {"username": client_newuser.lower()})
-        if users_with_this_username.count() > 0:
+                                                       {"username": client_newuser.lower()})
+        if len(users_with_this_username) > 0:
             self.write("I'm sorry, this username has already been taken.")
             return
 
@@ -667,20 +668,18 @@ class LoginHandler(BaseHandler):
         self.write(self.render_string('header.html', title='Login to your account', user=self.user, rsshead=None, type=None))
 
         successredirect = '/'
-        client_username = tornado.escape.xhtml_escape(
-            self.get_argument("username"))
-        client_password = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
+        client_username = self.get_argument("username")
+        client_password = self.get_argument("pass")
         if 'slug' in self.request.arguments:
-            slug = tornado.escape.xhtml_escape(self.get_argument("slug"))
-            sluglookup = server.db.unsafe.find_one('redirects',{'slug': slug})
+            slug = self.get_argument("slug")
+            sluglookup = server.db.unsafe.find_one('redirects', {'slug': slug})
             if sluglookup is not None:
                 if sluglookup['url'] is not None:
                     successredirect = sluglookup['url']
 
         login = False
         user = server.db.safe.find_one('users',
-            {"username": client_username.lower()})
+                                       {"username": client_username.lower()})
         if user is not None:
             u = User()
             u.load_mongo_by_username(username=client_username.lower())
@@ -729,7 +728,7 @@ class ChangepasswordHandler(BaseHandler):
         if not self.recentauth():
             numcharacters = 100 + TavernUtils.randrange(1, 100)
             slug = TavernUtils.randstr(numcharacters, printable=True)
-            server.db.safe.insert('redirects',{'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
+            server.db.safe.insert('redirects', {'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
             self.write(self.render_string('header.html', title="Change Password", user=self.user, rsshead=None, type=None))
@@ -739,10 +738,8 @@ class ChangepasswordHandler(BaseHandler):
     def post(self):
         self.getvars(ensurekeys=True)
 
-        client_newpass = tornado.escape.xhtml_escape(
-            self.get_argument("pass"))
-        client_newpass2 = tornado.escape.xhtml_escape(
-            self.get_argument("pass2"))
+        client_newpass = self.get_argument("pass")
+        client_newpass2 = self.get_argument("pass2")
 
         if client_newpass != client_newpass2:
             self.write("I'm sorry, your passwords don't match.")
@@ -778,7 +775,7 @@ class UserHandler(BaseHandler):
         u.UserSettings['author_wordhash'] = server.wordlist.wordhash(pubkey)
 
         envelopes = []
-        for envelope in server.db.safe.find('envelopes',{'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}).sort('envelope.local.time_added', pymongo.DESCENDING):
+        for envelope in server.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
             envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
@@ -803,8 +800,7 @@ class ChangeManySettingsHandler(BaseHandler):
     def post(self):
         self.getvars(ensurekeys=True)
 
-        friendlyname = tornado.escape.xhtml_escape(
-            self.get_argument('friendlyname'))
+        friendlyname = self.get_argument('friendlyname')
         maxposts = int(self.get_argument('maxposts'))
         maxreplies = int(self.get_argument('maxreplies'))
         if 'include_location' in self.request.arguments:
@@ -852,10 +848,10 @@ class ChangeSingleSettingHandler(BaseHandler):
         redirect = True
         if setting == "followtopic":
             self.user.followTopic(
-                tornado.escape.xhtml_escape(self.get_argument("topic")))
+                self.get_argument("topic"))
         elif setting == "unfollowtopic":
             self.user.unFollowTopic(
-                tornado.escape.xhtml_escape(self.get_argument("topic")))
+                self.get_argument("topic"))
         elif setting == "showembeds":
             self.user.UserSettings['allowembed'] = 1
             server.logger.info("allowing embeds")
@@ -890,9 +886,8 @@ class RatingHandler(BaseHandler):
         #The answer is xsrf protection.
         #We don't want people to link to the upvote button and trick you into voting up.
 
-        client_hash = tornado.escape.xhtml_escape(self.get_argument("hash"))
-        client_rating = tornado.escape.xhtml_escape(
-            self.get_argument("rating"))
+        client_hash = self.get_argument("hash")
+        client_rating = self.get_argument("rating")
         rating_val = int(client_rating)
         if rating_val not in [-1, 0, 1]:
             self.write("Invalid Rating.")
@@ -1053,13 +1048,14 @@ class NewmessageHandler(BaseHandler):
                 individual_file = {}
                 individual_file['basename'] = argument.rsplit('.')[0]
                 individual_file['clean_up_file_afterward'] = True
-                individual_file['filename'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".name"))
-                individual_file['content_type'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".content_type"))
-                individual_file['path'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".path"))
-                individual_file['size'] = tornado.escape.xhtml_escape(
-                    self.get_argument(individual_file['basename'] + ".size"))
+                individual_file['filename'] = self.get_argument(
+                    individual_file['basename'] + ".name")
+                individual_file['content_type'] = self.get_argument(
+                    individual_file['basename'] + ".content_type")
+                individual_file['path'] = self.get_argument(
+                    individual_file['basename'] + ".path")
+                individual_file['size'] = self.get_argument(
+                    individual_file['basename'] + ".size")
 
                 fs_basename = os.path.basename(individual_file['path'])
                 individual_file['fullpath'] = serversettings.ServerSettings[
@@ -1072,7 +1068,8 @@ class NewmessageHandler(BaseHandler):
                 # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
                 # If not, calc. it.
                 if hashname in self.request.arguments:
-                    individual_file['hash'] = tornado.escape.xhtml_escape(self.get_argument(individual_file['basename'] + ".sha512"))
+                    individual_file['hash'] = self.get_argument(
+                        individual_file['basename'] + ".sha512")
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
                     SHA512 = hashlib.sha512()
@@ -1132,7 +1129,7 @@ class NewmessageHandler(BaseHandler):
                 server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
             server.logger.info("Creating Message")
             #Create a message binary.
-            mybinary = Envelope.binary(hash=attached_file['hash'])
+            mybinary = Envelope.binary(sha512=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
             print('estimated size : ' + str(attached_file['size']))
             mybinary.dict['filesize_hint'] = attached_file['size']
@@ -1173,41 +1170,41 @@ class NewmessageHandler(BaseHandler):
                 r = re.compile('referenced_file(.*?)_name')
                 m = r.search(argument)
                 binarycount = m.group(1)
-                mybinary = Envelope.binary(hash=tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_hash')))
-                mybinary.dict['filesize_hint'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_size'))
-                mybinary.dict['content_type'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_contenttype'))
-                mybinary.dict['filename'] = tornado.escape.xhtml_escape(self.get_argument('referenced_file' + binarycount + '_name'))
+                mybinary = Envelope.binary(sha512=self.get_argument(
+                    'referenced_file' + binarycount + '_hash'))
+                mybinary.dict['filesize_hint'] = self.get_argument(
+                    'referenced_file' + binarycount + '_size')
+                mybinary.dict['content_type'] = self.get_argument(
+                    'referenced_file' + binarycount + '_contenttype')
+                mybinary.dict['filename'] = self.get_argument(
+                    'referenced_file' + binarycount + '_name')
                 envelopebinarylist.append(mybinary.dict)
 
-        client_body = tornado.escape.xhtml_escape(self.get_argument("body"))
+        client_body = self.get_argument("body")
         # Pull in our Form variables.
         # The reason for the uncertainty is the from can be used two ways; One for replies, one for new messages.
         # It acts differently in the two scenerios.
         if "topic" in self.request.arguments:
-            client_topic = tornado.escape.xhtml_escape(
-                self.get_argument("topic"))
+            client_topic = self.get_argument("topic")
             if client_topic == "":
                 client_topic = None
         else:
             client_topic = None
 
         if "subject" in self.request.arguments:
-            client_subject = tornado.escape.xhtml_escape(
-                self.get_argument("subject"))
+            client_subject = self.get_argument("subject")
             if client_subject == "":
                 client_subject = None
         else:
             client_subject = None
         if "to" in self.request.arguments:
-            client_to = tornado.escape.xhtml_escape(
-                self.get_argument("to"))
+            client_to = self.get_argument("to")
             if client_to == "":
                 client_to = None
         else:
             client_to = None
         if "regarding" in self.request.arguments:
-            client_regarding = tornado.escape.xhtml_escape(
-                self.get_argument("regarding"))
+            client_regarding = self.get_argument("regarding")
             if client_regarding == "":
                 client_regarding = None
         else:
@@ -1224,7 +1221,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
                 e.payload.dict['topic'] = regardingmsg['envelope'][
                     'payload']['topic']
                 e.payload.dict['subject'] = regardingmsg[
@@ -1243,7 +1240,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
                     regardingmsg['envelope']['payload']['subject'])
                 e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
@@ -1276,11 +1273,13 @@ class NewmessageHandler(BaseHandler):
         #Sign this bad boy
         usersig = self.user.Keys.signstring(
             e.payload.text(), self.user.passkey)
+
         stamp = OrderedDict()
         stamp['class'] = 'author'
         stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
+
         stamp['time_added'] = int(utctime)
         stamplist = []
         stamplist.append(stamp)
@@ -1308,7 +1307,7 @@ class ShowPrivatesHandler(BaseHandler):
         messages = []
         self.write(self.render_string('header.html', title="Welcome to the Tavern!", user=self.user, rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes',{'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10).sort('value', -1):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1321,7 +1320,7 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(ensurekeys=True)
 
-        message = server.db.unsafe.find_one('envelopes',{'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
+        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
         if message is not None:
             decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:

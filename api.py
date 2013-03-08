@@ -74,7 +74,7 @@ class NotFoundHandler(BaseHandler):
 class ListActiveTopics(BaseHandler):
     def get(self):
         toptopics = []
-        for quicktopic in server.db.unsafe['topiclist'].find(collection='topiclist',limit=10).sort('value', -1):
+        for quicktopic in server.db.unsafe['topiclist'].find(collection='topiclist', limit=10, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic['_id']['tag'])
         self.write(json.dumps(toptopics, separators=(',', ':')))
         self.finish()
@@ -89,7 +89,8 @@ class MessageHandler(BaseHandler):
         else:
             client_perspective = None
 
-        envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512': client_message_id})
+        envelope = server.db.unsafe.find_one(
+            'envelopes', {'envelope.payload_sha512': client_message_id})
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -117,7 +118,7 @@ class TopicHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
         server.logger.info(serversettings.ServerSettings['pubkey'])
-        for envelope in server.db.unsafe.find('envelopes',{'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset):
+        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset):
             if client_perspective is not None:
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -140,7 +141,7 @@ class PrivateMessagesHandler(BaseHandler):
         client_pubkey = tornado.escape.xhtml_escape(pubkey)
         envelopes = []
 
-        for envelope in server.db.unsafe.find('envelopes',{'envelope.payload.to': client_pubkey}):
+        for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.to': client_pubkey}):
             formattedtext = server.formatText(envelope, formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)

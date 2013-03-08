@@ -1,11 +1,12 @@
 {% from server import server %}
 {% from TopicTool import TopicTool %}
+{% import TavernUtils %}
 
 {% if before is not None %}
 	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=before) %}
 	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
 {% else %}
-	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(server.inttime()) %}
+	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(TavernUtils.inttime()) %}
 	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
 {% end %}
 

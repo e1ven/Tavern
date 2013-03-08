@@ -41,6 +41,6 @@ class ModList(object):
                 """)
 
         server.db.unsafe.map_reduce('envelopes',
-            map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
+                                    map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="modlist")
 
 M = ModList()
