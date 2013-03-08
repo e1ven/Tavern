@@ -221,7 +221,6 @@
         }
 
         location / {
-                strip on;
                 proxy_pass http://tornados/;
                 }
 
