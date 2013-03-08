@@ -94,14 +94,21 @@ class embedis:
             return None
 
     @memorise(ttl=serversettings.ServerSettings['cache']['avatarcache']['seconds'], maxsize=serversettings.ServerSettings['cache']['avatarcache']['size'])
-    def getavatar(self, myid):
+    def getavatar(self, myid, datauri=True, width=40, height=40):
         """
         Retrieve the Avatar from Robohash.org, for use in the datauri embed.
         """
-        try:
-            f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=40x40')
-            return f.read()
-        except:
-            return None
+        if datauri == True:
+            try:
+                f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=' + str(width) + 'x' + str(height))
+                return f.read()
+            except:
+                # If it fails, return a regular link...
+                return self.getavatar(myid, datauri=False, width=width, height=height)
+        else:
+            avlink = '/avatar/' + myid + \
+                '.jpg?set=any&amp;bgset=any&amp;size=' + \
+                str(width) + 'x' + str(height)
+            return avlink
 
 emb = embedis

@@ -287,7 +287,7 @@ class User(object):
             self.followTopic("Funny")
 
         if not 'maxposts' in self.UserSettings:
-            self.UserSettings['maxposts'] = 50
+            self.UserSettings['maxposts'] = 10
 
         if not 'maxreplies' in self.UserSettings:
             self.UserSettings['maxreplies'] = 20

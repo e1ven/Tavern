@@ -73,17 +73,8 @@ Using the following Libraries:
 	Multifile.js ( Use this however/wherever you like )
 		http://the-stickman.com/web-development/javascript/upload-multiple-files-with-a-single-file-element/
 
-	Splitter.JS ( MIT )
-		/*
-		 * jQuery.splitter.js - two-pane splitter window plugin
-		 *
-		 * version 1.51 (2009/01/09) 
-		 * 
-		 * Dual licensed under the MIT and GPL licenses: 
-		 *   http://www.opensource.org/licenses/mit-license.php 
-		 *   http://www.gnu.org/licenses/gpl.html 
-		 */
-
+	ColResizable (MIT)
+		http://quocity.com/colresizable/
 
 	At least one icon is included from glyphish.com.
 

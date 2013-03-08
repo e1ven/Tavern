@@ -1,236 +1,123 @@
-{% import pymongo %}
-{% from collections import OrderedDict %}
-{% import datetime %}
-
-{% set medialink = None %}
 {% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
 {% if envelope is None %}
-	{% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
+    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
 {% end %}
+
+
 {% set permalink = request.protocol + "://" + serversettings.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+
+
+{% if 'medialink' in envelope['envelope']['local'] %}
+    {% set medialink = {{serversettings.ServerSettings['downloadsurl']}} + {{envelope['envelope']['local']['medialink']}} %}
+{% else %}
+    {% set medialink = permalink %}
+{% end %}
 
 {% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
 
-{% if orient == "left" %}
-<ul class='response' id="{{envelope['envelope']['payload_sha512']}}">
-	<li>
-		<article>
-	{% else %}
-		<article>
-		<div class="padder">
-			<div class="topic_{{orient}}">
-			<h3>{{envelope['envelope']['payload']['subject']}}</h3>
-			<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
-			</div><!-- .topic_title -->		
-	{% end %}		
+<ul>
+    <li>
+        <div class="comment">
+
+            <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+
+            <h6>
+                By <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}
+            </h6>
+            <p class="messageDate">
+                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+            </p>
+            <hr id="lowerCommentSeparation" class="commentSeparation">
+
+            <div class="floatLeft clear paraBuffer">
+                    {% raw envelope['envelope']['local']['formattedbody'] %}
+            </div>
 
 
-			<div class="thread_common">
-			<div class="thread_{{orient}}">
-				    <a class="details" orient={{orient}} user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
-				    
-				    	{% if user.datauri == True %}
-				    		{% set src = server.external.getavatar(''.join(envelope['envelope']['payload']['author']['pubkey'].split())) %}
-				    	{% else %}
-				    		{% set src = '/avatar/' + ''.join(envelope['envelope']['payload']['author']['pubkey'].split()) + '.jpg?set=any&amp;bgset=any&amp;size=40x40' %}
-				    	{% end %}
+            <hr class="clear firstMessageSeparationLine">
+            <form action="/vote" method="post" class="vote">
+              {% raw xsrf_form_html() %}
+            <input type="hidden" name="rating" value="1">
+            <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+            <abbr title= "This post was helpful.">
+                <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                <input value="Like" type="submit" class="floatLeft iconLabelColorDark likeDislikeLabel textbutton iconLabels">
 
-				    	<img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{src}}" />
+            </abbr>
 
+            </form>
 
+            <form action="/vote" method="post" class="vote">
+              {% raw xsrf_form_html() %}
+            <input type="hidden" name="rating" value="-1" >
+            <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+            <abbr title="This post was inappropriate.">
+                <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                <input value="Dislike" type="submit" class="floatLeft iconLabelColorDark likeDislikeLabel textbutton iconLabels">
 
-				    	<b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}<br>
-				    	{% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
-				    	{% if user.UserSettings['display_useragent'] %}
-							{% if 'name' in envelope['envelope']['payload']['author']['useragent'] %}
-								<br>Posted Using: {{envelope['envelope']['payload']['author']['useragent']['name']}} ({{envelope['envelope']['payload']['author']['useragent']['version']}})
-							{% end %}
-						{% end %}
-				    	{% set note = user.getNote(envelope['envelope']['payload']['author']['pubkey']) %}
-				    	{% if note is not None %}
-				    		<div class="note"><i>{{note}}</i></div>
-				    	{% end %}
-				    </a>
-					<div class="UserDetails UserDetails_{{orient}}" id="details_{{envelope['envelope']['payload_sha512']}}">
-					{% set trust = user.gatherTrust(askingabout=envelope['envelope']['payload']['author']['pubkey']) %}
-						<abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
-							 {% if trust > 50 %}
-							 This user is allowed to rate comments.
-							 {% elif trust < 50 and trust > 0 %}
-							 This user's ratings have a slight effect on a comment's score.
-							 {% elif trust <= 0 %}
-							 This user's ratings have no effect on a comment's score.
-							 {% end %}
-						</abbr><br>
-							{% if trust < 100 %}
-							<form action="/usertrust" method="post">
-								{% raw xsrf_form_html() %}
-								<input type="hidden" name="trust" value="100">
-								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
-								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Recommended this users to others.">
-							</form>
-							<br>
-							{% end %}
-							{% if trust > -100 and trust < 100 %}
-							<form action="/usertrust" method="post">
-								{% raw xsrf_form_html() %}
-								<input type="hidden" name="trust" value="-100">
-								<input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
-								<input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="textbutton" type="submit" value="Warn others about this user.">
-							</form>
-							{% end %}
-							<br>
-							<form action="/usernote" method="post" class="usernote">
-								 {% raw xsrf_form_html() %}
-								<input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
-								<input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
-							</form>
-							<br>
-							<a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
-					</div>	
+            </abbr>
 
-					{% if orient == 'left' %}
-					<p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
-					{% end %}
-			</div><!-- .thread_{{orient}} -->	
-			</div><!-- .thread_common -->
+            </form>
 
 
-			
-			<div class="clear"></div>
-		
-			<div class="thread_body">
-	            {% raw envelope['envelope']['local']['formattedbody'] %}
-			</div><!-- .thread_start -->
-			{% if 'attachmentlist' in envelope['envelope']['local'] %}
-				<div class="attachments">
-					{% if len(envelope['envelope']['local']['attachmentlist']) > 1 %}
-						Attached Files:<br>
-					{% elif  len(envelope['envelope']['local']['attachmentlist']) > 0  %}
-						Attached File: <br>
-					{% end %}
-				    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+            <div id="firstMessageLinks">
+                <div id="externalsharing">
+                <abbr title="Share via Facebook">    
+                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                        <i class="icon-facebook-squared floatLeft iconLabelColorDark"></i>
+                    </a>
+                </abbr>
 
-						    {% if 'detected_mime' in attachment %}
-						    	{% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
-									<video id="my_video_1" class="video-js vjs-default-skin" controls
-		 							preload="metadata" width="640" height="264"
-		  							data-setup="{}">
-		  								<source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
-									</video>
-								{% end %}
-						    	{% if attachment['detected_mime'] in ['audio/mpeg'] %}
-							    <audio preload="metadata">
-							      <source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-							    </audio>
+                <abbr title="Share via Twitter">    
+                    <a href="http://twitter.com/home?status=via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                        <i class="icon-twitter-squared floatLeft iconLabelColorDark"></i>
+                  </a>
+                </abbr>
+                <abbr title="Share via Google+">
+                    <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
+            '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                        <i class="icon-gplus-squared floatLeft iconLabelColorDark"></i>
+                    </a>
+                </abbr>
+                <abbr title="Pin this">
+                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
+                        <i class="icon-pinterest-squared floatLeft iconLabelColorDark" ></i>
+                    </a>
+                </abbr>
+                </div>
+                <div class="messageCommands"
+                    <abbr title="Mark this post as a favorite">
+                        <a href="#">
+                            <i class="icon-twitter-squared floatLeft iconLabelColorDark"></i>
+                        </a>
+                    </abbr>
+                    <abbr title="Report this post">
+                        <a href="#">
+                            <i class="icon-twitter-squared floatLeft iconLabelColorDark"></i>
+                        </a>
+                    </abbr>
+                    <abbr title="Permalink">
+                        <a href="#">
+                            <i class="icon-twitter-squared floatLeft iconLabelColorDark"></i>
+                        </a>
+                    </abbr>
+                </div>
+                <div class="messageReplyLink">
+                    <a class="buffer reply iconLabelColorDark" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">
+                        Reply
+                    </a>
+                </div>
+            </div>
 
-								{% end %}
+        </div>
 
-							{% end %}	
-
-
-							{% if 'displayable' in attachment %}
-	                            {% if attachment['displayable'] is not False %}
-									<a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-									<img src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
-									{% if medialink == None %}
-										{% set medialink = serversettings.ServerSettings['downloadsurl'] + attachment['displayable'] %}
-									{% end %}
-							    {% end %} 
-							{% end %} 
-
-
-
-				            <a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
-				            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
-	                        <br>
-				    {% end %}
-	    		</div>
-			{% end %}
-
-			{% if len (envelope['envelope']['local']['embed']) > 0 %}
-				{% if user.UserSettings['allowembed'] == 1 %}
-					<div class='embedded'>
-					Linked Content:<Br>
-						{% for embed in envelope['envelope']['local']['embed'] %}
-							{%raw embed %}
-						{% end %}
-					</div>
-				{% elif user.UserSettings['allowembed'] == 0  %}
-					<i class="icon-picture embeddedcontentnote"></i>
-					<div id="embededcontent_{{envelope['envelope']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
-						{% for embed in envelope['envelope']['local']['embed'] %}
-							{%raw embed %}
-						{% end %}">
-						<br>
-						This message contains a link to a picture or movie hosted by some other service.<Br>
-						Tavern can automatically display a lot of linked content, but (like any webpage) the site it's loaded from will know you viewed it.<br>
-						<br>
-						<form action="/changesetting/showembeds" method="post" class='alwaysdisplay'> 
-							{% raw xsrf_form_html() %} 
-							<input type="submit" value='Always display external content' class="textbutton"> <br>
-						</form>
-						<br>
-						<p>You can always change this setting in <a href="/user/{{''.join(user.UserSettings['pubkey'].split())}}">your user preferences</a></p>
+            {% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}
 
 
-					</div>
-				{% elif user.UserSettings['allowembed'] == -1 %}
-				{% end %}
-			{% end %}
-
-			<div class="comment_bottom">
-			&nbsp; <a rel="bookmark" class='internal' href="{{permalink}}">Permalink</a>
-			{% if 'regarding' in envelope['envelope']['payload'] %}
-				&nbsp; <a class='internal' href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload']['regarding']}}">Parent</a>
-			{% end %}
-			&nbsp; <a class="reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">Reply</a>
-				<div class="votes">
-					<form action="/vote" method="post" class="vote">
-					  {% raw xsrf_form_html() %}
-					<input type="hidden" name="rating" value="1">
-					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title= "This post was helpful."><input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16"></abbr>
-					</form>
-
-					<form action="/vote" method="post" class="vote">
-					  {% raw xsrf_form_html() %}
-					<input type="hidden" name="rating" value="-1" >
-					<input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
-					<abbr title="This post was inappropriate."><input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16"></abbr>
-					</form>
-				</div>  <!-- votes -->
-				{% if orient == "right" %}
-					{% if medialink is None %}
-						{% set medialink = 'http://GetTavern.com/static/images/logo.png' %}
-					{% end %}
-				<div class="externalsharing">
-				<a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
-				<i class="icon-facebook-squared"></i></a>
-				<a href="http://twitter.com/home?status=via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
-				<i class="icon-twitter-squared"></i></a>
-				<a href="https://plus.google.com/share?url={{permalink}}">
-				<i class="icon-gplus-squared"></i></a>
-				<a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
-				<i class="icon-pinterest-squared"></i></a>
-				</div>
-				{% end %}
-				<div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
-			</div> <!-- comment_bottom -->
-			{% if orient is not "left" %}
-				</div> <!-- .padder -->
-			{% end %}
-			</article>
-
-			{% if 'citedby' in envelope['envelope']['local'] %}
-				{% for cite in envelope['envelope']['local']['citedby'] %}
-					{% raw handler.render_string('reply.html',messageid=cite,orient="left",user=user) %}
-				{% end %}
-			{% end %}	
-			
-	{% if orient == "left" %}		
-	</li>
-</ul>			
-{% end %}
+            {% if 'citedby' in envelope['envelope']['local'] %}
+                {% for cite in envelope['envelope']['local']['citedby'] %}
+                    {% raw handler.render_string('reply.html',messageid=cite) %}
+                {% end %}
+            {% end %}
+    </li>
+</ul>

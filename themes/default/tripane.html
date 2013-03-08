@@ -1,92 +1,153 @@
-{% from server import server %}
-{% from TopicTool import TopicTool %}
-{% import TavernUtils %}
+{# Do the Standard Python Imports #}
+    {% from TopicTool import TopicTool %}
+    {% import TavernUtils %}
 
-{% if before is not None %}
-	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=before) %}
-	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
-{% else %}
-	{% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(TavernUtils.inttime()) %}
-	{% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
-{% end %}
 
-{% set newbefore = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added']) %}				
-{% set beforecount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added'],countonly=True) %}				
-			<div id="left">
-				<h2>Your Topics</h2>
-					<ul>
-                    {% for quicktopic in user.UserSettings['followedTopics'] %}
-      					<li {%if quicktopic == topic %} class="active"{% end %} >
-	                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
+{# Calculate the before/next button links #}
+    {% if before is not None %}
+        {% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=before) %}
+        {% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+    {% else %}
+        {% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(TavernUtils.inttime()) %}
+        {% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+    {% end %}
+    {% set newbefore = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added']) %}               
+    {% set beforecount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added'],countonly=True) %}  
+
+<table id="wrappertable" cellpadding="0" cellspacing="0" valign="top" role="presentation">
+    <tr>
+    	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png">
+    		{% block column1 %}
+            <a href="https://Tavern.net"><img id="logo" src="/static/images/logo.png" alt="TAVERN" /></a>
+	      	<button type="button" class="navigationHeader displayBlock">
+	      		<span class="icon-tools navIcon"></span>
+	      		<a class="navHeader" href="#">Login | Sign Up</a>
+	      	</button>
+
+	    	<button type="button" class="navigationHeader displayBlock">
+	    		<span class="icon-tools navIcon"></span>
+	    		<a class="navHeader" href="#">My topics</a></button>
+				<ul class="displayNone">
+
+					{% for quicktopic in user.UserSettings['followedTopics'] %}
+	                    <li class="navLinks {%if quicktopic == topic %}active{% end %}">
+	                        <h4>
+	                        	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
+	                        		<bdi>{{quicktopic}}</bdi>
+	                    	    </a>
+	                    	</h4>
 	                    </li>
-                    {% end %}
-
-					</ul>
-
-				
-				<h2>Top Topics</h2>
-					<ul>
-					{% for quicktopic in TopicTool().toptopics() %}
-                    <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
-                    	<a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
-                    </li>
-                    {% end %}
-					</ul>
-				 <h2>Special</h2>
-					<ul>
-						<li><a href="/topic/all">All Messages</a></li>
-						<li><a href="/alltopics">All Topics</a></li>
-
-					</ul>
-			</div><!-- #left -->
-
-			<div id="centerandright">
-			<div id="center">
-				<h2>
-					{% if topic == 'sitecontent' %}
-					Messages from {{serversettings.ServerSettings['hostname']}}
-					{% elif topic == 'all' %} 
-                    	All Messages
-                    {% else %}    
-						Messages in <bdi>{{topic}}</bdi> <a class="internal configbutton" href="/topicinfo/{{server.sorttopic(topic)}}"><i class="icon-tools"><div class='textmodeinfo'>Change Topic settings</div></i></a>
-					{% end %}
-				</h2>
-				{% if topic != 'sitecontent' and topic != 'all' %}	
-						<ul><li class="newpost">
-						<a href="/reply/{{server.sorttopic(topic)}}" class="internal newpost-text"> <i class="icon-edit"></i>New Message in <bdi>{{envelope['envelope']['payload']['topic']}}</bdi></a>
-						</li></ul>
-				{% end %}
-
-				<ul>
-					{% for subject in subjects %}
-					<li  class="message{% if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512'] %} active{% end %}" >
-						<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}"><bdi>{{subject['envelope']['payload']['subject']}}</bdi></a>
-					</li>
-                    {% end %}    
-				</ul>	
-				
-				<ul>
-					{% if beforecount > 0 %}
-						<li {% if beforecount > 0 and aftercount > 0 %} class="newpost-newer" {% else %} class="newpost" {% end %}>
-							<a href="/topic/{{topic}}?before={{newbefore}}" class="internal newpost-text "> <i class="icon-arrow-left"></i>Newer Messages</a>
-						</li>
-					{% end %}
-					{% if aftercount > 0 %}
-					<li  {% if beforecount > 0 and aftercount > 0 %} class="newpost-older" {% else %} class="newpost" {% end %}>
-						<a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal newpost-text"> <i class="icon-arrow-right"></i>Older Messages</a>
-					</li>
-					{% end %}
+	                {% end %}
 				</ul>
-	
-			</div><!-- #center -->
-			
-			<div id="right">
-				<div class="thread">
-					<h1><bdi>{{envelope['envelope']['payload']['subject']}}</bdi></h1>
-						{% if 'payload_sha512' in envelope['envelope'] %}
-								{% raw handler.render_string('reply.html',messageid=envelope['envelope']['payload_sha512'],user=user,orient="right") %}
-						{% end %}
-					</div>
-				
-			</div><!-- #right -->
-		    </div><!-- #centerandright -->
+
+	    			<button type="button" class="navigationHeader displayBlock">
+	    				<span class="icon-tools navIcon"></span>
+	    				<a class="navHeader" href="#">Trending Topics</a></button>
+	    				<ul class="displayNone">
+	    				{% for quicktopic in TopicTool().toptopics() %}
+                    		<li class="navLinks {%if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic)%}active{% end %}">
+                        		<h4>
+                        			<a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
+                        				<bdi>{{quicktopic['_id']['tag']}}</bdi>
+                        			</a>
+                        		</h4>
+                    		</li>
+                    	{% end %}
+	    				</ul>
+
+	    			<button type="button" class="navigationHeader displayBlock">
+						<span class="icon-tools navIcon"></span>
+	    				<a class="navHeader" href="#">All Messages</a></button>
+	    			<button type="button" class="navigationHeader displayBlock">
+	    				<span class="icon-tools navIcon"></span>
+	    				<a class="navHeader" href="#">All Topics</a></button>
+	    			<button id="buffer" type="button" class="navigationHeader displayBlock">
+	    				<span class="icon-tools navIcon"></span>
+	    				<a class="navHeader" href="#">Extras</a></button>
+	    	{% end %}
+            </td>
+            <td id="column2" valign="top" >
+                {% block column2 %}
+	            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+	            	<tr height="10px">
+	            		<td colspan=2>
+	            			<hr id="column2HR">
+	            		</td>
+	            	</tr>
+	            	<tr>
+	                	<td>
+			            	<h4 id="column2Topic">{{topic}}</h4>
+			            </td>
+			            <td>
+			        		<h4 id="column2MsgCount">987 Messages</h4>
+			        	</td>
+			        <tr>
+			        	<td>    
+                            <a href="/topicinfo/{{server.sorttopic(topic)}}">
+			        		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
+                                Topic Setting
+			        			<span class="icon-tools navIcon"></span>
+			        		   </button>
+                            </a>
+			        	</td>
+			        	<td>
+                          <a href="/reply/{{server.sorttopic(topic)}}" class="internal">
+                               <button id="column2ButtonRight" class="column2Buttons" type="button">
+                                New Message
+                                <span class="icon-tools navIcon"></span>
+                               </button>
+                            </a>
+	          			</td>
+	                </tr>
+	            </table>
+	          	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+	          		<tr>
+	            		<td valign="top">
+
+          					{% for subject in subjects %}
+				          	<p class="messages {%if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512']%} active{% end %}">
+				          		<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">
+				          			<span class="messagesPadding displayBlock">				          			
+				          				<bdi>{{subject['envelope']['payload']['subject']}}</bdi>
+				          			</span>
+				          		</a>
+				          	</p>
+				          	{% end %}
+
+                            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+                                <tr>
+                                    <td>   
+                                        {% if beforecount > 0 %}
+                                        <a href="/topic/{{topic}}?before={{newbefore}}">
+                                           <button id="NewerMessages" class="column2Buttons" type="button">
+                                            Newer Messages
+                                            <span class="icon-tools navIcon"></span>
+                                           </button>
+                                        </a>
+                                        {% end %}
+                                    </td>
+                                    <td>
+                                        {% if aftercount > 0 %}
+                                        <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
+                                           <button id="OlderMessages" class="column2Buttons" type="button">
+                                            Older Messages
+                                            <span class="icon-tools navIcon"></span>
+                                           </button>
+                                        </a>
+                                        {% end %}
+                                    </td>
+                                </tr>
+                            </table>
+
+
+	            		</td>
+	                </tr>
+	            </table>
+                {% end %}
+            </td>
+            <td id="column3" valign="top">
+                {% block column3 %}
+                {% end %}
+            </td>
+    </tr>
+</table>

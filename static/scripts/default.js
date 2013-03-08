@@ -47,9 +47,12 @@ function detectAnimation()
 }
 
 
+
 // Function to properly size the 3 column layout
 function sizewindow()
 {
+
+
   if (jQuery("#centerandright").length)
   {
     // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
@@ -129,8 +132,43 @@ jQuery(document).ready(function() {
 
     $jQuery = jQuery.noConflict();
     
-    throttledSizeWindow();
 
+    // Make the tables resizable
+    jQuery("#wrappertable").colResizable(
+    {
+      liveDrag:true,
+      marginRight:"10px",
+    });
+
+
+    var onSlide = function(e){
+      var columns = $(e.currentTarget).find("td");
+      var ranges = [], total = 0, i, s ="Ranges: ", w;
+      for(i = 0; i<columns.length; i++){
+        w = columns.eq(i).width()-14 - (i==0?1:0);
+        ranges.push(w);
+        total+=w;
+      }    
+      for(i=0; i<columns.length; i++){      
+        ranges[i] = 100*ranges[i]/total;            
+      }   
+      s=s.slice(0,-1);      
+      $("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
+    }
+    
+    
+    jQuery("#commentSlider").colResizable({
+      liveDrag:true, 
+      draggingClass:"commentSliderDrag", 
+      gripInnerHtml:"<div class='commentSliderGrip'></div>", 
+      onResize:onSlide,
+      minWidth:12
+    });
+
+
+    // Add the slider rounded corners
+    jQuery("#commentSlider").css({'display':'block','position':'absolute','width':'418px'});
+    jQuery(".sliderrounds").css({"display":"inline"});
 
     // Resize to saved div sizes
     // Doing this here, as opposed to in sizeWindow, so that it ONLY happens at page load.
@@ -147,21 +185,6 @@ jQuery(document).ready(function() {
         ensureMinDivSizes();
         
      };
- 
-    // Issue a resize if you slide the splitter
-    jQuery(document).on("mouseup", ".splitter", function(event){
-        // On Mouseup, save the current position, so we can do new pages at the same place.
-        if ( (jQuery('#left').width() != jQuery.jStorage.get('#left.width','')) ||
-             (jQuery('#centerandright').width() != jQuery.jStorage.get('#centerandright.width','')) ||
-             (jQuery('#center').width() != jQuery.jStorage.get('#center.width','')) ||
-             (jQuery('#right').width() != jQuery.jStorage.get('#right.width',''))      )
-                {
-                    // If we're here, we've moved the sliders, not just clicked on them.
-                    savedivsizes();
-                    // Redraw the splitter, so ensure that if we move Splitter 1 and push splitter2 offscreen, we still redraw it.
-                    throttledSizeWindow();
-               }
-    });
 
     // If we pass a Jumpto param, scroll down.
     if (getParameterByName("jumpto"))
@@ -257,8 +280,9 @@ jQuery(document).ready(function() {
               jQuery.jStorage.set(hash, hashdata);   
 
               /* Mark the vote as selected, unselect the other vote */
-              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
-              jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
+                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
+                jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().addClass("darkClass");
 
               
         /* Send the data using post and put the results in a div */
@@ -428,11 +452,6 @@ jQuery(document).ready(function() {
         element.css('transform','rotate(180deg);'); 
         element.css('filter','progid:DXImageTransform.Microsoft.Matrix(M11=-1, M12=-1.2246063538223773e-16, M21=1.2246063538223773e-16, M22=-1, sizingMethod="auto expand")');
     });
-
-
-
-
-
 
 
 

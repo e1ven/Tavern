@@ -537,6 +537,15 @@ class Server(object):
         envelope['envelope']['local']['attachmentlist'] = attachmentList
         envelope['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(envelope['envelope']['payload']['author']['pubkey'])
 
+        # Check for a medialink for FBOG, Pinterest, etc.
+        # Leave off if it doesn't exist
+        if len(attachmentList) > 0:
+            medialink = None
+            for attachment in attachmentList:
+                if attachment['displayable'] is not False:
+                    envelope['envelope']['local']['medialink'] = medialink
+                    break
+
         # Check for any Embeddable (Youtube, Vimeo, etc) Links.
         # Don't check a given message more than once.
         # Iterate through the list of possible embeddables.
