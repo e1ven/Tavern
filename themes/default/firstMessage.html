@@ -10,7 +10,6 @@
 <div id="firstMessage" class="comment">
     <ul>
         <li>
-
                 <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <h5>{{envelope['envelope']['payload']['subject']}}</h5>

@@ -1,16 +1,15 @@
 {% extends "tripane.html" %}
 
 {% block column3 %}
-
-<hr id="rightColumnTopHR">
-                    {% raw handler.render_string('firstMessage.html',messageid=envelope['envelope']['payload_sha512']) %}
-
+    <hr id="rightColumnTopHR">
+    <div id="allreplies">
+        {% raw handler.render_string('firstMessage.html',messageid=envelope['envelope']['payload_sha512']) %}
 
         {% if 'citedby' in envelope['envelope']['local'] %}
             {% for cite in envelope['envelope']['local']['citedby'] %}
                 {% raw handler.render_string('reply.html',messageid=cite) %}
-            {% end %}
+           {% end %}
         {% end %}  
-
+    </div>
 
 {% end %}
