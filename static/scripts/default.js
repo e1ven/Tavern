@@ -88,26 +88,6 @@ jQuery(window).resize(function() {
 });
 
 
-
-// Set default positions for the various columns.
-function ensureMinDivSizes(force)
-{
-  //default force to false
-  force = typeof force !== 'undefined' ? force : false;
-
-  if (jQuery('#left').width() < 50) or (force = true)
-    jQuery('#left').width(jQuery('#left').parent().parent().width() * .15 );
-
-  if (jQuery('#centerandright').width() < 100) or (force = true)
-    jQuery('#centerandright').width(jQuery('#centerandright').parent().parent().width() * .85);
-
-  if (jQuery('#center').width() < 50) or (force = true)
-    jQuery('#center').width(jQuery('#centerandright').width() * .25);
-
-  if (jQuery('#right').width() < 50) or (force = true)
-    jQuery('#right').width(jQuery('#centerandright').width() * .75);
-}
-
 // Save the column positions.
 function savedivsizes()
 {
@@ -133,11 +113,12 @@ jQuery(document).ready(function() {
     $jQuery = jQuery.noConflict();
     
 
-    // Make the tables resizable
+    // Make the main layout table resizable
     jQuery("#wrappertable").colResizable(
     {
       liveDrag:true,
       marginRight:"10px",
+      postbackSafe: true 
     });
 
 
@@ -156,35 +137,25 @@ jQuery(document).ready(function() {
       $("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
     }
     
-    
+
     jQuery("#commentSlider").colResizable({
       liveDrag:true, 
       draggingClass:"commentSliderDrag", 
       gripInnerHtml:"<div class='commentSliderGrip'></div>", 
       onResize:onSlide,
-      minWidth:12
+      minWidth:0,
     });
+
 
 
     // Add the slider rounded corners
     jQuery("#commentSlider").css({'display':'block','position':'absolute','width':'418px'});
     jQuery(".sliderrounds").css({"display":"inline"});
 
-    // Resize to saved div sizes
-    // Doing this here, as opposed to in sizeWindow, so that it ONLY happens at page load.
-    // No reason to be doing this over and over.
 
-    if (jQuery("#centerandright").length)
-      {
-        // If we've saved any values to storage, retrieve them, and keep the page the size it was.
-        left = jQuery.jStorage.get('#left.width',0);
-        centerandright = jQuery.jStorage.get('#centerandright.width',0);
-        center = jQuery.jStorage.get('#center.width',0);
-        right =  jQuery.jStorage.get('#right.width',0);
 
-        ensureMinDivSizes();
-        
-     };
+
+
 
     // If we pass a Jumpto param, scroll down.
     if (getParameterByName("jumpto"))

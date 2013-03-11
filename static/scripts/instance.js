@@ -37,5 +37,3 @@
       jQuery.jStorage.flush();
       jQuery.jStorage.set('youravatar', youravatar); 
     }
-
-    sizewindow();
