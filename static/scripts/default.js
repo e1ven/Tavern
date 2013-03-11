@@ -112,13 +112,14 @@ jQuery(document).ready(function() {
 
     $jQuery = jQuery.noConflict();
     
-    jQuery("#column1").width(180);
+
     // Make the main layout table resizable
     jQuery("#wrappertable").colResizable(
     {
       liveDrag:true,
-      marginRight:"10px",
-      postbackSafe: true 
+      postbackSafe: true,
+      marginLeft: "0px",
+      marginRight: "15px"
     });
 
 
