@@ -48,55 +48,6 @@ function detectAnimation()
 
 
 
-// Function to properly size the 3 column layout
-function sizewindow()
-{
-
-
-  if (jQuery("#centerandright").length)
-  {
-    // Set content to position:absolute. Doing this in JS so it doesn't get set for JS disabled browsers. This helps for #single elements
-    jQuery('#content').css('position','absolute');
-    //Set the content window
-    jQuery('#content').css('height', jQuery(window).height() - jQuery('header').height() - 50  );
-  }
-    // Set out footer position
-    jQuery('#footer').offset({top:jQuery('#content').offset()['top'] + jQuery('#content').height() + 10});
-    
-
-  // Redraw the splitters, if there is content to split.
-  if(typeof VerticalSplitter != 'undefined')
-  {
-    if (jQuery("#centerandright").length)
-    {
-      VerticalSplitter.SetUpElement({ containerId: "content", firstItemId: "left", secondItemId: "centerandright" });
-    }
-    if (jQuery("#centerandright").length)
-    {
-      VerticalSplitter.SetUpElement({ containerId: "centerandright", firstItemId: "center", secondItemId: "right" });
-    }   
-  } 
-   
-} 
-
-// Throttled version of Resize
-var throttledSizeWindow = jQuery.throttle(sizewindow, 200, null, true);
-
-// Now, bind the throttled version to resize
-jQuery(window).resize(function() {
-  throttledSizeWindow();
-});
-
-
-// Save the column positions.
-function savedivsizes()
-{
-    jQuery.jStorage.set('#left.width',jQuery('#left').width() );
-    jQuery.jStorage.set('#centerandright.width',jQuery('#centerandright').width() );
-    jQuery.jStorage.set('#center.width',jQuery('#center').width() );
-    jQuery.jStorage.set('#right.width',jQuery('#right').width() );
-}
-
 // Simple Util function. Useful!
 function getParameterByName(name) {
    var match = RegExp('[?&]' + name + '=([^&]*)')
@@ -118,8 +69,6 @@ jQuery(document).ready(function() {
     {
       liveDrag:true,
       postbackSafe: true,
-      marginLeft: "0px",
-      marginRight: "15px"
     });
 
 

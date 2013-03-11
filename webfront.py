@@ -67,6 +67,8 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
+
+    
     @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
