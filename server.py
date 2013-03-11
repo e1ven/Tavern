@@ -21,8 +21,8 @@ try:
     from hashlib import md5 as md5_func
 except ImportError:
     from md5 import new as md5_func
-import psycopg2
-from psycopg2.extras import RealDictConnection
+# import psycopg2
+# from psycopg2.extras import RealDictConnection
 from serversettings import serversettings
 import TavernUtils
 

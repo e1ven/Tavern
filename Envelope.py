@@ -6,7 +6,7 @@ import collections
 from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
-import pylzma
+#import pylzma
 from serversettings import serversettings
 
 

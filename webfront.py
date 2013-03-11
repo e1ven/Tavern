@@ -1316,7 +1316,7 @@ class ShowPrivatesHandler(BaseHandler):
         self.write(self.render_string('header.html',
                    title="Welcome to the Tavern!", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields={'envelope.payload_sha512', 'envelope.payload.subject'}, limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields=['envelope.payload_sha512', 'envelope.payload.subject'], limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 

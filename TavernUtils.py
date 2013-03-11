@@ -9,6 +9,7 @@ import json
 import os
 import hashlib
 import time
+from io import open
 
 
 def inttime():
@@ -134,26 +135,6 @@ def getNext(typeofthing='general'):
     else:
         TavernCache.queues[typeofthing] = 0
     return TavernCache.queues[typeofthing]
-
-
-def storething(*args, ttl=60, maxsize=None, value, key=None):
-    if key is None:
-        key = json.dumps(args, separators=(',', ':'))
-    if maxsize is not None:
-        while len(TavernCache.store) >= maxsize:
-            TavernCache.store.popitem(last=False)
-    TavernCache.store[key] = {'value': value, 'timeset': time.time()}
-    print(TavernCache.store)
-
-
-def getthing(*args, ttl=60, key=None):
-    if key is None:
-        key = json.dumps(args, separators=(',', ':'))
-    output = None
-    if key in TavernCache.store:
-        if ttl is None or (time.time() - TavernCache.store[key]['timeset']) < ttl:
-            output = TavernCache.store[key]['value']
-    return output
 
 
 def objresolve(obj, attrspec):
