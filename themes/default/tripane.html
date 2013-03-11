@@ -18,52 +18,29 @@
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
     		{% block column1 %}
+
             <a href="https://Tavern.net"><img id="logo" src="/static/images/logo.png" alt="TAVERN" /></a>
-	      	<button type="button" class="navigationHeader displayBlock">
-	      		<span class="icon-tools navIcon"></span>
-	      		<a class="navHeader" href="#">Login | Sign Up</a>
-	      	</button>
 
-	    	<button type="button" class="navigationHeader displayBlock">
-	    		<span class="icon-tools navIcon"></span>
-	    		<a class="navHeader" href="#">My topics</a></button>
-				<ul class="displayNone">
+              <ul class="accordion">       
+                <li id="one" class="mainheader"><a href="#">Sign Up | Log in</a></li>
 
-					{% for quicktopic in user.UserSettings['followedTopics'] %}
-	                    <li class="navLinks {%if quicktopic == topic %}active{% end %}">
-	                        <h4>
-	                        	<a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
-	                        		<bdi>{{quicktopic}}</bdi>
-	                    	    </a>
-	                    	</h4>
-	                    </li>
-	                {% end %}
-				</ul>
+                <li id="two" class="mainheader"><a href="#">Favorite Topics<span>495</span></a>
+                    <ul class="sub-menu">
+                        <li><a href="#">Syria<span>42</span></a></li>
+                        <li><a href="#">Boston<span>87</span></a></li>
+                        <li><a href="#">Startrek<span>134</span></a></li>
+                        <li><a href="#">Python<span>444</span></a></li>
+                       <li><a href="#">Snorf<span>444</span></a></li>
 
-	    			<button type="button" class="navigationHeader displayBlock">
-	    				<span class="icon-tools navIcon"></span>
-	    				<a class="navHeader" href="#">Trending Topics</a></button>
-	    				<ul class="displayNone">
-	    				{% for quicktopic in TopicTool().toptopics() %}
-                    		<li class="navLinks {%if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic)%}active{% end %}">
-                        		<h4>
-                        			<a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
-                        				<bdi>{{quicktopic['_id']['tag']}}</bdi>
-                        			</a>
-                        		</h4>
-                    		</li>
-                    	{% end %}
-	    				</ul>
+                    </ul>
+                </li>
 
-	    			<button type="button" class="navigationHeader displayBlock">
-						<span class="icon-tools navIcon"></span>
-	    				<a class="navHeader" href="#">All Messages</a></button>
-	    			<button type="button" class="navigationHeader displayBlock">
-	    				<span class="icon-tools navIcon"></span>
-	    				<a class="navHeader" href="#">All Topics</a></button>
-	    			<button id="buffer" type="button" class="navigationHeader displayBlock">
-	    				<span class="icon-tools navIcon"></span>
-	    				<a class="navHeader" href="#">Extras</a></button>
+                <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a></li>
+                <li id="four" class="mainheader"><a href="#">All Topics<span>58</span></a></li>
+                <li id="five" class="mainheader"><a href="#">All Messages</a></li>
+                <li id="six" class="mainheader"><a href="#">Extras</a></li>
+
+            </ul>
 	    	{% end %}
             </td>
             <td id="column2" valign="top" >
