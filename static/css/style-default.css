@@ -508,17 +508,17 @@ body {
                   }
                 
                 .commentSeparation {
-                  height: 5px;
+                  height: 1px;
                   width: 100%;
                   border: none;
                   display: block;
                   float: left;
-                  background-color: #BBBBBB;
+                  background-color: #cccccc;
                   }
                   
             .messageDate {
             font-size: 15px;
-            color: #ece9d7;
+            color: #000000;
             margin-bottom: 10px;
             }
                   
@@ -807,7 +807,7 @@ body {
 .comment {
   width: auto;
   padding: 20px;
-  background: #adadad;
+  background: #eaeaea;
   border-radius: 8px;
   -moz-border-radius: 8px;
   -webkit-border-radius: 8px;
