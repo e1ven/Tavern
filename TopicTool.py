@@ -51,7 +51,7 @@ class TopicTool(object):
                 subjects.append(envelope)
         else:
             for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=self.maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
-                subjects.append(envelope)
+                subjects.append(elsenvelope)
 
         # Adding 1 to self.maxposts above, because we're going to use this to get the 10 posts AFTER the date we return from this function.
         # This is also the reason why, if we don't have maxposts posts, we subtract 1 below. This ensures that we get ALL the posts in the range.
@@ -82,3 +82,11 @@ class TopicTool(object):
         for quicktopic in server.db.unsafe.find('topiclist', limit=14, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
         return toptopics
+
+    @memorise(ttl=serversettings.ServerSettings['cache']['topiccount']['seconds'], maxsize=serversettings.ServerSettings['cache']['topiccount']['size'])
+    def topicCount(self,since=0,toponly=False):
+        if toponly:
+            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$gt': since},'envelope.payload.regarding': {'$exists': False}, 'envelope.local.sorttopic': self.sorttopic})
+        else:
+            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': self.sorttopic})
+        return count

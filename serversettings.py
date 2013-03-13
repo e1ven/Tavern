@@ -106,6 +106,12 @@ class ServerSettings():
             self.ServerSettings['cache']['uasparser']['size'] = 1000
             self.ServerSettings['cache']['uasparser']['seconds'] = 36000
 
+        if not 'topiccount' in self.ServerSettings['cache']:
+            self.ServerSettings['cache']['topiccount'] = {}
+            self.ServerSettings['cache']['topiccount']['size'] = 1000
+            self.ServerSettings['cache']['topiccount']['seconds'] = 10
+
+
         if not 'upload-dir' in self.ServerSettings:
             self.ServerSettings['upload-dir'] = '/opt/uploads'
 

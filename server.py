@@ -21,10 +21,11 @@ try:
     from hashlib import md5 as md5_func
 except ImportError:
     from md5 import new as md5_func
-# import psycopg2
-# from psycopg2.extras import RealDictConnection
+import psycopg2
+from psycopg2.extras import RealDictConnection
 from serversettings import serversettings
 import TavernUtils
+from TavernUtils import memorise
 
 
 class FakeMongo():
@@ -90,6 +91,14 @@ class FakeMongo():
 
         return result
 
+    def count(self,collection,query={}):
+        cur = self.conn.cursor()
+        jsonquery = json.dumps(query)
+
+        cur.callproc('find', [collection, jsonquery])
+        results = []
+
+        return cur.rowcount
 
 class MongoWrapper():
     def __init__(self, safe=True):
@@ -139,6 +148,8 @@ class MongoWrapper():
     def map_reduce(self, collection, map, reduce, out):
         return self.mongo[collection].map_reduce(map=map, reduce=reduce, out=out)
 
+    def count(self,collection,query={}):
+        return self.mongo[collection].find(query).count()
 
 class DBWrapper():
     def __init__(self, dbtype):
