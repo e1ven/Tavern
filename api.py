@@ -20,7 +20,7 @@ from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
-from server import server
+from Server import server
 from keys import *
 from User import User
 from gridfs import GridFS
@@ -30,7 +30,7 @@ import urllib.parse
 import urllib.error
 #import TopicList
 import uuid
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 import re
 try:
@@ -117,7 +117,7 @@ class TopicHandler(BaseHandler):
         envelopes = []
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
-        server.logger.info(serversettings.ServerSettings['pubkey'])
+        server.logger.info(serversettings.settings['pubkey'])
         for envelope in server.db.unsafe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset):
             if client_perspective is not None:
                 u = User()
@@ -163,9 +163,9 @@ class ServerStatus(BaseHandler):
         status = OrderedDict()
         status['timestamp'] = int(time.time())
         status['pubkey'] = server.ServerKeys.pubkey
-        status['hostname'] = serversettings.ServerSettings['hostname']
+        status['hostname'] = serversettings.settings['hostname']
         # Report ourselves, plus the default connection.
-        status['connections'] = ['http://' + serversettings.ServerSettings['hostname']
+        status['connections'] = ['http://' + serversettings.settings['hostname']
                                  + ':8090', 'http://GetTavern.com:8090', 'http://Tavern.is:8090']
         self.write(json.dumps(status, separators=(',', ':')))
 
@@ -176,7 +176,7 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     server.logger.info(
-        "Starting Web Frontend for " + serversettings.ServerSettings['hostname'])
+        "Starting Web Frontend for " + serversettings.settings['hostname'])
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-from server import server
+from Server import server
 import os
 import sys
 import socket
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 f = open('nginx/pluric.site', 'w')
 
@@ -12,7 +12,7 @@ nginxfile = """
     server {
         listen 80;
 
-        server_name """ + serversettings.ServerSettings['hostname'] + ";" + """
+        server_name """ + serversettings.settings['hostname'] + ";" + """
         location / {
                 proxy_pass http://tornados/;
                 }
@@ -39,8 +39,8 @@ nginxfile = """
                 proxy_pass   http://tornados;
         }
         location /binaries/ {
-                gridfs """ + serversettings.ServerSettings['bin-mongo-db'] + """ field=filename type=string;
-                mongo """ + socket.gethostbyaddr(serversettings.ServerSettings['bin-mongo-hostname'])[2][0] + ":" + str(serversettings.ServerSettings['bin-mongo-port']) + ";" + """
+                gridfs """ + serversettings.settings['bin-mongo-db'] + """ field=filename type=string;
+                mongo """ + socket.gethostbyaddr(serversettings.settings['bin-mongo-hostname'])[2][0] + ":" + str(serversettings.settings['bin-mongo-port']) + ";" + """
         }
   }
 """

@@ -23,7 +23,7 @@ except ImportError:
     from md5 import new as md5_func
 import psycopg2
 from psycopg2.extras import RealDictConnection
-from serversettings import serversettings
+from ServerSettings import serversettings
 import TavernUtils
 from TavernUtils import memorise
 
@@ -32,7 +32,7 @@ class FakeMongo():
     def __init__(self):
 
         # Create a connection to Postgres.
-        self.conn = psycopg2.connect("dbname=" + serversettings.ServerSettings['dbname'] + " user=e1ven", connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn = psycopg2.connect("dbname=" + serversettings.settings['dbname'] + " user=e1ven", connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
     def find(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
@@ -105,13 +105,13 @@ class MongoWrapper():
 
         if safe == True:
             # Slower, more reliable mongo connection.
-            self.safeconn = pymongo.MongoClient(serversettings.ServerSettings['mongo-hostname'], serversettings.ServerSettings['mongo-port'], safe=True, journal=True, max_pool_size=serversettings.ServerSettings['mongo-connections'])
-            self.mongo = self.safeconn[serversettings.ServerSettings['dbname']]
+            self.safeconn = pymongo.MongoClient(serversettings.settings['mongo-hostname'], serversettings.settings['mongo-port'], safe=True, journal=True, max_pool_size=serversettings.settings['mongo-connections'])
+            self.mongo = self.safeconn[serversettings.settings['dbname']]
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
-            self.unsafeconn = pymongo.MongoClient(serversettings.ServerSettings['mongo-hostname'], serversettings.ServerSettings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.ServerSettings['mongo-connections'])
+            self.unsafeconn = pymongo.MongoClient(serversettings.settings['mongo-hostname'], serversettings.settings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.settings['mongo-connections'])
             self.mongo = self.unsafeconn[
-                serversettings.ServerSettings['dbname']]
+                serversettings.settings['dbname']]
 
     def find(self, collection, query={}, limit=0, skip=0, sortkey=None, sortdirection="ascending"):
 
@@ -161,12 +161,12 @@ class DBWrapper():
             self.safe = FakeMongo()
             self.unsafe = FakeMongo()
 
-        self.binarycon = pymongo.MongoClient(serversettings.ServerSettings['bin-mongo-hostname'], serversettings.ServerSettings['bin-mongo-port'], max_pool_size=serversettings.ServerSettings['mongo-connections'])
+        self.binarycon = pymongo.MongoClient(serversettings.settings['bin-mongo-hostname'], serversettings.settings['bin-mongo-port'], max_pool_size=serversettings.settings['mongo-connections'])
         self.binaries = self.binarycon[
-            serversettings.ServerSettings['bin-mongo-db']]
-        self.sessioncon = pymongo.MongoClient(serversettings.ServerSettings['sessions-mongo-hostname'], serversettings.ServerSettings['sessions-mongo-port'])
+            serversettings.settings['bin-mongo-db']]
+        self.sessioncon = pymongo.MongoClient(serversettings.settings['sessions-mongo-hostname'], serversettings.settings['sessions-mongo-port'])
         self.session = self.sessioncon[
-            serversettings.ServerSettings['sessions-mongo-db']]
+            serversettings.settings['sessions-mongo-db']]
 
 
 def print_timing(func):
@@ -216,18 +216,18 @@ class Server(object):
             return fmt + " ago"
 
     def getnextint(self, queuename, forcewrite=False):
-        if not 'queues' in serversettings.ServerSettings:
-            serversettings.ServerSettings['queues'] = {}
+        if not 'queues' in serversettings.settings:
+            serversettings.settings['queues'] = {}
 
-        if not queuename in serversettings.ServerSettings['queues']:
-            serversettings.ServerSettings['queues'][queuename] = 0
+        if not queuename in serversettings.settings['queues']:
+            serversettings.settings['queues'][queuename] = 0
 
-        serversettings.ServerSettings['queues'][queuename] += 1
+        serversettings.settings['queues'][queuename] += 1
 
         if forcewrite == True:
             serversettings.saveconfig()
 
-        return serversettings.ServerSettings['queues'][queuename]
+        return serversettings.settings['queues'][queuename]
 
     def __init__(self, settingsfile=None):
         self.cache = OrderedDict()
@@ -248,17 +248,17 @@ class Server(object):
         else:
             serversettings.loadconfig(settingsfile)
 
-        if not 'pubkey' in serversettings.ServerSettings:
-            serversettings.ServerSettings['pubkey'] = self.ServerKeys.pubkey
-        if not 'privkey' in serversettings.ServerSettings:
-            serversettings.ServerSettings['privkey'] = self.ServerKeys.privkey
+        if not 'pubkey' in serversettings.settings:
+            serversettings.settings['pubkey'] = self.ServerKeys.pubkey
+        if not 'privkey' in serversettings.settings:
+            serversettings.settings['privkey'] = self.ServerKeys.privkey
 
         serversettings.updateconfig()
         serversettings.saveconfig()
-        self.ServerKeys = Keys(pub=serversettings.ServerSettings['pubkey'],
-                               priv=serversettings.ServerSettings['privkey'])
+        self.ServerKeys = Keys(pub=serversettings.settings['pubkey'],
+                               priv=serversettings.settings['privkey'])
 
-        self.db = DBWrapper(serversettings.ServerSettings['dbtype'])
+        self.db = DBWrapper(serversettings.settings['dbtype'])
 
         self.bin_GridFS = GridFS(self.db.binaries)
         serversettings.saveconfig()
@@ -270,13 +270,13 @@ class Server(object):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
-        serversettings.ServerSettings['static-revision'] = int(time.time())
+        serversettings.settings['static-revision'] = int(time.time())
 
         self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
         self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
 
         logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-        #logging.basicConfig(filename=serversettings.ServerSettings['logfile'],level=logging.DEBUG)
+        #logging.basicConfig(filename=serversettings.settings['logfile'],level=logging.DEBUG)
 
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
@@ -295,7 +295,7 @@ class Server(object):
 
     def prettytext(self):
         newstr = json.dumps(
-            serversettings.ServerSettings, indent=2, separators=(', ', ': '))
+            serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
     def sorttopic(self, topic):
@@ -361,13 +361,13 @@ class Server(object):
 
         # Sign the message to saw we saw it.
         signedpayload = self.ServerKeys.signstring(c.payload.text())
-        myserverinfo = {'class': 'server', 'hostname': serversettings.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+        myserverinfo = {'class': 'server', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
         stamps.append(myserverinfo)
 
         # If we are the first to see this, and it's enabled -- set outselves as the Origin.
-        if serversettings.ServerSettings['mark-origin'] == True:
+        if serversettings.settings['mark-origin'] == True:
             if serversTouched == 0:
-                myserverinfo = {'class': 'origin', 'hostname': serversettings.ServerSettings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+                myserverinfo = {'class': 'origin', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
                 stamps.append(myserverinfo)
 
         # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
@@ -479,9 +479,9 @@ class Server(object):
                         #Python and be a valid image.
                         attachment.seek(0)
                         detected_mime = magic.from_buffer(
-                            attachment.read(serversettings.ServerSettings['max-upload-preview-size']), mime=True).decode('utf-8')
+                            attachment.read(serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
                         displayable = False
-                        if attachment.length < serversettings.ServerSettings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                        if attachment.length < serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
                             if 'content_type' in binary:
                                 if binary['content_type'].rsplit('/')[0].lower() == "image":
                                     attachment.seek(0)
@@ -570,7 +570,7 @@ class Server(object):
                 soup = BeautifulSoup(formattedbody)
                 for href in soup.findAll('a'):
                     result = self.external.lookup(href.get('href'))
-                    if result is not None and foundurls < serversettings.ServerSettings['maxembeddedurls']:
+                    if result is not None and foundurls < serversettings.settings['maxembeddedurls']:
                         if not 'embed' in envelope['envelope']['local']:
                             envelope['envelope']['local']['embed'] = []
                         envelope['envelope']['local']['embed'].append(result)

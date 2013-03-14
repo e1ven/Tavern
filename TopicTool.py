@@ -4,10 +4,10 @@ import Envelope
 import time
 from TavernUtils import memorise
 import TavernUtils
-from server import server
+from Server import server
 from collections import OrderedDict
 import sys
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 class TopicTool(object):
@@ -16,12 +16,16 @@ class TopicTool(object):
     Shouldn't be instantiated directly.
     """
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.ServerSettings['cache']['subjects-in-topic']['size'])
-    def messages(self,topic, maxposts,before, countonly=False):
+    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
+    def messages(self,topic, maxposts,before=None):
         """
         Get all messages in a topic, no later than `before`
         """
         sorttopic = server.sorttopic(topic)
+
+        # Don't do this in the def, so that our cache is respected.
+        if before == None:
+            before=TavernUtils.inttime()
 
         subjects = []
         if topic != "all":
@@ -30,15 +34,11 @@ class TopicTool(object):
         else:
             for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
                 subjects.append(envelope)
+        
+        return subjects
 
-        if countonly == True:
-            print(len(subjects))
-            return len(subjects)
-        else:
-            return subjects
-
-    @memorise(ttl=serversettings.ServerSettings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.ServerSettings['cache']['subjects-in-topic']['size'])
-    def getbackdate(self,topic,maxposts,after, countonly=False):
+    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
+    def getbackdate(self,topic,maxposts,after):
         """
         Get the earliest dated message, before `after`
         """
@@ -61,12 +61,10 @@ class TopicTool(object):
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
             ret = TavernUtils.inttime()
-        if countonly == True:
-            return len(subjects) - 1
-        else:
-            return ret
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.ServerSettings['cache']['subjects-in-topic']['size'])
+        return ret
+
+    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
     def moreafter(self,before,topic,maxposts):
         sorttopic = server.sorttopic(topic)
         if topic != "all":
@@ -75,20 +73,26 @@ class TopicTool(object):
             count = len(server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         return count
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['toptopics']['seconds'], maxsize=serversettings.ServerSettings['cache']['toptopics']['size'])
+    @memorise(ttl=serversettings.settings['cache']['toptopics']['seconds'], maxsize=serversettings.settings['cache']['toptopics']['size'])
     def toptopics(self):
         toptopics = []
         for quicktopic in server.db.unsafe.find('topiclist', limit=14, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic)
         return toptopics
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['topiccount']['seconds'], maxsize=serversettings.ServerSettings['cache']['topiccount']['size'])
-    def topicCount(self,topic,since=0,toponly=False):
+    @memorise(ttl=serversettings.settings['cache']['topiccount']['seconds'], maxsize=serversettings.settings['cache']['topiccount']['size'])
+    def topicCount(self,topic,after=0,before=None,toponly=True):
+        
+
+        # Don't do this in the def, so that our cache is respected.
+        if before == None:
+            before=TavernUtils.inttime()
+
         sorttopic = server.sorttopic(topic)
         if toponly:
-            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$gt': since},'envelope.payload.regarding': {'$exists': False}, 'envelope.local.sorttopic': sorttopic})
+            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$lt': before},'envelope.local.time_added': {'$gt': after },'envelope.payload.regarding': {'$exists': False}, 'envelope.local.sorttopic': sorttopic}   )
         else:
-            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': sorttopic})
+            count = server.db.unsafe.count('envelopes', {'envelope.local.time_added': {'$lt': before},'envelope.local.time_added': {'$gt': after }, 'envelope.local.sorttopic': sorttopic})
         return count
 
 # Only create one, and re-use it.

@@ -5,12 +5,12 @@ import time
 from keys import *
 from collections import OrderedDict
 import pymongo
-from server import server
+from Server import server
 import scrypt
 import base64
 from lockedkey import lockedKey
 from TavernUtils import memorise
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 class User(object):
@@ -21,7 +21,7 @@ class User(object):
         self.UserSettings['followedTopics'] = []
 
     def isLoggedIn(self):
-        if self.UserSettings['pubkey'] == serversettings.ServerSettings['guestacct']['pubkey']:
+        if self.UserSettings['pubkey'] == serversettings.settings['guestacct']['pubkey']:
             return False
         if 'encryptedprivkey' in self.UserSettings:
             if self.UserSettings['encryptedprivkey'] is not None:
@@ -47,7 +47,7 @@ class User(object):
         except scrypt.error:
             return False
 
-    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.ServerSettings['cache']['user-note']['seconds'], maxsize=serversettings.ServerSettings['cache']['user-note']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=serversettings.settings['cache']['user-note']['size'])
     def getNote(self, noteabout):
         """
         Retrieve any note by user A about user B
@@ -83,7 +83,7 @@ class User(object):
         server.db.unsafe.save('notes', newnote)
         self.getNote(noteabout=noteabout, forcerecache=True)
 
-    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.ServerSettings['cache']['user-trust']['seconds'], maxsize=serversettings.ServerSettings['cache']['user-trust']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['user-trust']['seconds'], maxsize=serversettings.settings['cache']['user-trust']['size'])
     def gatherTrust(self, askingabout, incomingtrust=250):
         # Ensure the formatting
         key = Keys(pub=askingabout)
@@ -175,7 +175,7 @@ class User(object):
         else:
             return "strongly distrust"
 
-    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.ServerSettings['cache']['user-ratings']['seconds'], maxsize=serversettings.ServerSettings['cache']['user-ratings']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['user-ratings']['seconds'], maxsize=serversettings.settings['cache']['user-ratings']['size'])
     def getRatings(self, postInQuestion):
 
         #Move this. Maybe to Server??
@@ -242,8 +242,8 @@ class User(object):
         if skipkeys == True:
             if not 'pubkey' in self.UserSettings:
                 self.UserSettings[
-                    'pubkey'] = serversettings.ServerSettings['guestacct']['pubkey']
-                self.UserSettings['pubkey_sha1'] = serversettings.ServerSettings[
+                    'pubkey'] = serversettings.settings['guestacct']['pubkey']
+                self.UserSettings['pubkey_sha1'] = serversettings.settings[
                     'guestacct']['pubkey_sha1']
                 self.Keys = Keys(pub=self.UserSettings['pubkey'])
         else:

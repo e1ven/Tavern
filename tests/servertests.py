@@ -1,4 +1,4 @@
-from server import *
+from Server import *
 from Envelope import *
 from collections import OrderedDict
 #Seed the random number generator with 1024 random bytes (8192 bits)

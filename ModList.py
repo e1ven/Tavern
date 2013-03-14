@@ -2,7 +2,7 @@
 import pymongo
 from datetime import datetime, timedelta
 import Envelope
-from server import server
+from Server import server
 import bson
 
 

@@ -99,7 +99,7 @@ jQuery(document).ready(function() {
 
 
     // Add the slider rounded corners
-    jQuery("#commentSlider").css({'display':'block','position':'absolute','width':'418px'});
+    jQuery("#commentSlider").css({'display':'block','position':'relative','width':'418px'});
     jQuery(".sliderrounds").css({"display":"inline"});
 
 
@@ -381,8 +381,8 @@ jQuery(document).ready(function() {
         // Hide the sub-menus via JAVASCRIPT, so they are there if JS is disabled.
         jQuery(".accordion li > .sub-menu").css("display","none");
         // Store variables
-        var accordion_head = $('.accordion > li > a'),
-            accordion_body = $('.accordion li > .sub-menu');
+        var accordion_head = jQuery('.accordion > li > a'),
+            accordion_body = jQuery('.accordion li > .sub-menu');
         // Open the first tab on load
         accordion_head.first().addClass('active').next().slideDown('normal');
         // Click function
@@ -390,11 +390,11 @@ jQuery(document).ready(function() {
             // Disable header links
             event.preventDefault();
             // Show and hide the tabs on click
-            if ($(this).attr('class') != 'active'){
+            if (jQuery(this).attr('class') != 'active'){
                 accordion_body.slideUp('normal');
-                $(this).next().stop(true,true).slideToggle('normal');
+                jQuery(this).next().stop(true,true).slideToggle('normal');
                 accordion_head.removeClass('active');
-                $(this).addClass('active');
+                jQuery(this).addClass('active');
             }
         });
   

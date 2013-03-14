@@ -51,7 +51,7 @@ except:
 from TavernUtils import memorise
 from Envelope import *
 from keys import *
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 class UASException(Exception):
@@ -66,7 +66,7 @@ class UASparser:
     os_img_url = '/useragent/img/%s'
     ua_img_url = '/useragent/img/%s'
 
-    @memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=serversettings.ServerSettings['cache']['uasparser']['seconds'], maxsize=serversettings.ServerSettings['cache']['uasparser']['size'])
+    @memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=serversettings.settings['cache']['uasparser']['seconds'], maxsize=serversettings.settings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):
         """
         Get the information of an useragent string

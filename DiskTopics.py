@@ -2,13 +2,13 @@
 import pymongo
 from datetime import datetime, timedelta
 from Envelope import Envelope
-from server import server
+from Server import server
 from collections import OrderedDict
 import json
 import sys
 import os
 import argparse
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 msgsdir = "MESSAGES/TOPICS/"

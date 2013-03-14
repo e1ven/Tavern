@@ -30,7 +30,7 @@ import io
 from TopicTool import topictool
 from TavernUtils import memorise
 import TavernUtils
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 try:
     from hashlib import md5 as md5_func
@@ -69,7 +69,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
     
-    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -125,7 +125,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.set_header("Content-Type", "application/json")
         super(BaseHandler, self).finish(message)
 
-    @memorise(parent_keys=['html'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
     def getdiv(self, element):
         print("getting" + element)
         soup = BeautifulSoup(self.html)
@@ -137,7 +137,7 @@ class BaseHandler(tornado.web.RequestHandler):
         print(soupytxt)
         return soupytxt
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.ServerSettings['cache']['frontpage']['seconds'], maxsize=serversettings.ServerSettings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
     def getjs(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
@@ -453,8 +453,7 @@ class TriPaneHandler(BaseHandler):
             else:
                 canon = ""
                 title = "Discuss what matters"
-            displayenvelope = TopicTool(
-                topic).messages(TavernUtils.inttime())[0]
+            displayenvelope = topictool.messages(topic=topic,maxposts=1)[0]
 
         if action == "message":
 
@@ -1068,7 +1067,7 @@ class NewmessageHandler(BaseHandler):
                     individual_file['basename'] + ".size")
 
                 fs_basename = os.path.basename(individual_file['path'])
-                individual_file['fullpath'] = serversettings.ServerSettings[
+                individual_file['fullpath'] = serversettings.settings[
                     'upload-dir'] + "/" + fs_basename
 
                 individual_file['filehandle'] = open(
@@ -1163,7 +1162,7 @@ class NewmessageHandler(BaseHandler):
                 detail['size'] = attached_file['size']
                 detail['content_type'] = attached_file['content_type']
 
-                detail['url'] = serversettings.ServerSettings[
+                detail['url'] = serversettings.settings[
                     'downloadsurl'] + attached_file['hash']
                 details.append(detail)
             details_json = json.dumps(details, separators=(',', ':'))
@@ -1389,20 +1388,20 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     server.logger.info(
-        "Starting Web Frontend for " + serversettings.ServerSettings['hostname'])
+        "Starting Web Frontend for " + serversettings.settings['hostname'])
 
     # Generate a default user, to use when no one is logged in.
     # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
-    if not 'guestacct' in serversettings.ServerSettings:
+    if not 'guestacct' in serversettings.settings:
         serveruser = User()
-        serveruser.generate(skipkeys=False, password=serversettings.ServerSettings[
+        serveruser.generate(skipkeys=False, password=serversettings.settings[
                             'serverkey-password'])
-        serversettings.ServerSettings['guestacct'] = serveruser.UserSettings
+        serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
-        "cookie_secret": serversettings.ServerSettings['cookie-encryption'],
+        "cookie_secret": serversettings.settings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path": "themes",
@@ -1449,7 +1448,7 @@ def main():
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(8080)
     server.logger.info(
-        serversettings.ServerSettings['hostname'] + ' is ready for requests.')
+        serversettings.settings['hostname'] + ' is ready for requests.')
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":

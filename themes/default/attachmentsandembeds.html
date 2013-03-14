@@ -12,19 +12,19 @@
                         <video id="my_video_1" class="video-js vjs-default-skin" controls
                         preload="metadata" width="640" height="264"
                         data-setup="{}">
-                            <source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
+                            <source src="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
                         </video>
                     {% end %}
                     {% if attachment['detected_mime'] in ['audio/mpeg'] %}
                     <audio preload="metadata">
-                      <source src="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                      <source src="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
                     </audio>
 
                     {% end %}
 
                 {% end %}   
 
-                <a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
+                <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
                 <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
                 <br>
         {% end %}

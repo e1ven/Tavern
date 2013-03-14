@@ -7,7 +7,7 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import pylzma
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 class Envelope(object):
@@ -149,7 +149,7 @@ class Envelope(object):
             return False
 
         if self.dict['envelope']['payload_sha512'] != self.payload.hash():
-            server.logger.info("Possible tampering. SHA doesn't match. Abort.")
+            server.logger.info("Failure to load Message - SHA does not match.")
             return False
 
         #Ensure we have 1 and only 1 author signature stamp
@@ -264,7 +264,7 @@ class Envelope(object):
         self.loadstring(filecontents)
 
     def loadmongo(self, mongo_id):
-        from server import server
+        from Server import server
         env = server.db.unsafe.find_one('envelopes',
                                         {'_id': mongo_id})
         if env is None:
@@ -313,8 +313,8 @@ class Envelope(object):
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
 
-        from server import server
+        from Server import server
         self.dict['_id'] = self.payload.hash()
         server.db.unsafe.save('envelopes', self.dict)
 
-from server import server
+from Server import server

@@ -4,7 +4,7 @@
 {% end %}
 
 {% set medialink = None %}
-{% set permalink = request.protocol + "://" + serversettings.ServerSettings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
+{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
 
 <div id="firstMessage" class="comment">

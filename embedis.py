@@ -4,9 +4,9 @@ import urllib.parse
 import urllib.error
 import socket
 socket.setdefaulttimeout(30)
-from server import server
+from Server import server
 from TavernUtils import memorise
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 class embedis:
@@ -21,7 +21,7 @@ class embedis:
                              self.embedis,
                              ]
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['embedded']['seconds'], maxsize=serversettings.ServerSettings['cache']['embedded']['size'])
+    @memorise(ttl=serversettings.settings['cache']['embedded']['seconds'], maxsize=serversettings.settings['cache']['embedded']['size'])
     def lookup(self, url):
         self.url = url
         self.query = urlparse(url)
@@ -75,7 +75,7 @@ class embedis:
         #     return None
         # else:
         #     server.logger.info("Possible embedis URL")
-        api_url = serversettings.ServerSettings['embedserver'] + \
+        api_url = serversettings.settings['embedserver'] + \
             '/iframe/' + self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
@@ -88,12 +88,12 @@ class embedis:
                 return response
             else:
                 server.logger.info(
-                    "No good from " + serversettings.ServerSettings['embedserver'])
+                    "No good from " + serversettings.settings['embedserver'])
                 return None
         except:
             return None
 
-    @memorise(ttl=serversettings.ServerSettings['cache']['avatarcache']['seconds'], maxsize=serversettings.ServerSettings['cache']['avatarcache']['size'])
+    @memorise(ttl=serversettings.settings['cache']['avatarcache']['seconds'], maxsize=serversettings.settings['cache']['avatarcache']['size'])
     def getavatar(self, myid, datauri=True, width=40, height=40):
         """
         Retrieve the Avatar from Robohash.org, for use in the datauri embed.

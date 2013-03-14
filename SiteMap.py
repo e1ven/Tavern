@@ -3,10 +3,10 @@ import datetime
 import pymongo
 from bson.code import Code
 from Envelope import Envelope
-from server import server
+from Server import server
 from User import User
 from optparse import OptionParser
-from serversettings import serversettings
+from ServerSettings import serversettings
 
 
 parser = OptionParser()
@@ -21,7 +21,7 @@ parser.add_option("-f", "--filestart",
 datenow = datetime.datetime.now().strftime('%Y-%m-%d')
 
 
-serverprefix = "https://" + serversettings.ServerSettings['hostname']
+serverprefix = "https://" + serversettings.settings['hostname']
 
 # Generate the boilerplate for the main sitemap file.
 # We'll be adding additional lines to this file, as we generate them, below.

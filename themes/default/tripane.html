@@ -1,132 +1,137 @@
 {# Do the Standard Python Imports #}
-    {% from TopicTool import TopicTool %}
+    {% from TopicTool import topictool %}
     {% import TavernUtils %}
 
 
 {# Calculate the before/next button links #}
     {% if before is not None %}
-        {% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=before) %}
-        {% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+        {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
+        {% set aftercount = topictool.topicCount(before=subjects[-1]['envelope']['local']['time_added'],topic=topic) %}
     {% else %}
-        {% set subjects = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(TavernUtils.inttime()) %}
-        {% set aftercount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).messages(before=subjects[-1]['envelope']['local']['time_added'],countonly=True) %}
+        {% set subjects = topictool.messages(topic=topic,maxposts=user.UserSettings['maxposts']) %}
+        {% set aftercount = topictool.topicCount(before=subjects[-1]['envelope']['local']['time_added'],topic=topic) %}
     {% end %}
-    {% set newbefore = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added']) %}               
-    {% set beforecount = TopicTool(topic=topic,maxposts=user.UserSettings['maxposts']).getbackdate(after=subjects[0]['envelope']['local']['time_added'],countonly=True) %}  
+    {% set newbefore = topictool.getbackdate(after=subjects[0]['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
+    {% set beforecount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
 
 <table id="wrappertable" cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
-    		{% block column1 %}
+            <div id="scrollablediv1" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+        		{% block column1 %}
+                <a href="https://Tavern.net"><img id="logo" src="/static/images/logo.png" alt="TAVERN" /></a>
 
-            <a href="https://Tavern.net"><img id="logo" src="/static/images/logo.png" alt="TAVERN" /></a>
+                  <ul class="accordion">       
+                    <li id="one" class="mainheader"><a href="#">Sign Up | Log in</a></li>
 
-              <ul class="accordion">       
-                <li id="one" class="mainheader"><a href="#">Sign Up | Log in</a></li>
+                    <li id="two" class="mainheader"><a href="#">Favorite Topics<span>495</span></a>
+                        <ul class="sub-menu">
+                            {% for quicktopic in topictool.toptopics() %}
+                                <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
+                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
+                                        <bdi>{{quicktopic['_id']['tag']}}</bdi>
+                                        <span>{{topictool.topicCount(topic=quicktopic['_id']['tag'],toponly=True)}}</span>
+                                    </a>
+                                </li>
+                            {% end %}
+                        </ul>
+                    </li>
 
-                <li id="two" class="mainheader"><a href="#">Favorite Topics<span>495</span></a>
-                    <ul class="sub-menu">
-                        {% for quicktopic in TopicTool().toptopics() %}
-                            <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
-                                <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
-                                    <bdi>{{quicktopic['_id']['tag']}}</bdi>
-                                    <span>{{TopicTool(quicktopic['_id']['tag']).topicCount(toponly=True)}}</span>
-                                </a>
-                            </li>
-                        {% end %}
-                    </ul>
-                </li>
+                    <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a></li>
+                    <li id="four" class="mainheader"><a href="#">All Topics<span>58</span></a></li>
+                    <li id="five" class="mainheader"><a href="#">All Messages</a></li>
+                    <li id="six" class="mainheader"><a href="#">Extras</a></li>
 
-                <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a></li>
-                <li id="four" class="mainheader"><a href="#">All Topics<span>58</span></a></li>
-                <li id="five" class="mainheader"><a href="#">All Messages</a></li>
-                <li id="six" class="mainheader"><a href="#">Extras</a></li>
-
-            </ul>
-	    	{% end %}
+                </ul>
+    	    	{% end %}
+            </div>
             </td>
             <td id="column2" valign="top" >
-                {% block column2 %}
-	            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-	            	<tr height="10px">
-	            		<td colspan=2>
-	            			<hr id="column2HR">
-	            		</td>
-	            	</tr>
-	            	<tr>
-	                	<td>
-			            	<h4><a id="column2Topic" href="/topic/{{server.sorttopic(topic)}}">{{topic}}</a></h4>
-			            </td>
-			            <td>
-			        		<h4 id="column2MsgCount">{{TopicTool(topic).topicCount(toponly=True)}} Messages</h4>
-			        	</td>
-			        <tr>
-			        	<td>    
-                            <a href="/topicinfo/{{server.sorttopic(topic)}}">
-			        		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
-                                Topic Setting
-			        			<span class="icon-tools navIcon"></span>
-			        		   </button>
-                            </a>
-			        	</td>
-			        	<td>
-                          <a href="/reply/{{server.sorttopic(topic)}}" class="internal">
-                               <button id="column2ButtonRight" class="column2Buttons" type="button">
-                                New Message
-                                <span class="icon-tools navIcon"></span>
-                               </button>
-                            </a>
-	          			</td>
-	                </tr>
-	            </table>
-	          	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-	          		<tr>
-	            		<td valign="top">
+                <div id="scrollablediv2" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+                    {% block column2 %}
+    	            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+    	            	<tr height="10px">
+    	            		<td colspan=2>
+    	            			<hr id="column2HR">
+    	            		</td>
+    	            	</tr>
+    	            	<tr>
+    	                	<td>
+    			            	<h4><a id="column2Topic" href="/topic/{{server.sorttopic(topic)}}">{{topic}}</a></h4>
+    			            </td>
+    			            <td>
+    			        		<h4 id="column2MsgCount">{{topictool.topicCount(topic=topic,toponly=True)}} Messages</h4>
+    			        	</td>
+    			        <tr>
+    			        	<td>    
+                                <a href="/topicinfo/{{server.sorttopic(topic)}}">
+    			        		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
+                                    Topic Setting
+    			        			<span class="icon-tools navIcon"></span>
+    			        		   </button>
+                                </a>
+    			        	</td>
+    			        	<td>
+                              <a href="/reply/{{server.sorttopic(topic)}}" class="internal">
+                                   <button id="column2ButtonRight" class="column2Buttons" type="button">
+                                    New Message
+                                    <span class="icon-tools navIcon"></span>
+                                   </button>
+                                </a>
+    	          			</td>
+    	                </tr>
+    	            </table>
+    	          	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+    	          		<tr>
+    	            		<td valign="top">
 
-          					{% for subject in subjects %}
-				          	<p class="messages {%if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512']%} active{% end %}">
-				          		<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">
-				          			<span class="messagesPadding displayBlock">				          			
-				          				<bdi>{{subject['envelope']['payload']['subject']}}</bdi>
-				          			</span>
-				          		</a>
-				          	</p>
-				          	{% end %}
+              					{% for subject in subjects %}
+    				          	<p class="messages {%if subject['envelope']['payload_sha512'] == envelope['envelope']['payload_sha512']%} active{% end %}">
+    				          		<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">
+    				          			<span class="messagesPadding displayBlock">				          			
+    				          				<bdi>{{subject['envelope']['payload']['subject']}}</bdi>
+    				          			</span>
+    				          		</a>
+    				          	</p>
+    				          	{% end %}
 
-                            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-                                <tr>
-                                    <td>   
-                                        {% if beforecount > 0 %}
-                                        <a href="/topic/{{topic}}?before={{newbefore}}">
-                                           <button id="NewerMessages" class="column2Buttons" type="button">
-                                            Newer Messages
-                                            <span class="icon-tools navIcon"></span>
-                                           </button>
-                                        </a>
-                                        {% end %}
-                                    </td>
-                                    <td>
-                                        {% if aftercount > 0 %}
-                                        <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
-                                           <button id="OlderMessages" class="column2Buttons" type="button">
-                                            Older Messages
-                                            <span class="icon-tools navIcon"></span>
-                                           </button>
-                                        </a>
-                                        {% end %}
-                                    </td>
-                                </tr>
-                            </table>
+                                <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+                                    <tr>
+                                        <td>   
+                                            {% if beforecount > 0 %}
+                                            <a href="/topic/{{topic}}?before={{newbefore}}">
+                                               <button id="NewerMessages" class="column2Buttons" type="button">
+                                                Newer Messages
+                                                <span class="icon-tools navIcon"></span>
+                                               </button>
+                                            </a>
+                                            {% end %}
+                                        </td>
+                                        <td>
+                                            {% if aftercount > 0 %}
+                                            <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
+                                               <button id="OlderMessages" class="column2Buttons" type="button">
+                                                Older Messages
+                                                <span class="icon-tools navIcon"></span>
+                                               </button>
+                                            </a>
+                                            {% end %}
+                                        </td>
+                                    </tr>
+                                </table>
 
 
-	            		</td>
-	                </tr>
-	            </table>
-                {% end %}
+    	            		</td>
+    	                </tr>
+    	            </table>
+                    {% end %}
+                </div>
             </td>
             <td id="column3" valign="top">
-                {% block column3 %}
-                {% end %}
+                <div id="scrollablediv3" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+                    {% block column3 %}
+                    {% end %}
+                </div>
             </td>
     </tr>
 </table>

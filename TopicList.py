@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pymongo
 import bson
 import Envelope
-from server import server
+from Server import server
 
 
 class TopicList(object):

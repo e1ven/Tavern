@@ -80,7 +80,7 @@
                     {% end %}
                     {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
 
-                            <a href="{{serversettings.ServerSettings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
+                            <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
                             <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
                             <br>
                     {% end %}
