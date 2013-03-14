@@ -26,12 +26,14 @@
 
                 <li id="two" class="mainheader"><a href="#">Favorite Topics<span>495</span></a>
                     <ul class="sub-menu">
-                        <li><a href="#">Syria<span>42</span></a></li>
-                        <li><a href="#">Boston<span>87</span></a></li>
-                        <li><a href="#">Startrek<span>134</span></a></li>
-                        <li><a href="#">Python<span>444</span></a></li>
-                       <li><a href="#">Snorf<span>444</span></a></li>
-
+                        {% for quicktopic in TopicTool().toptopics() %}
+                            <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
+                                <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
+                                    <bdi>{{quicktopic['_id']['tag']}}</bdi>
+                                    <span>{{TopicTool(quicktopic['_id']['tag']).topicCount(toponly=True)}}</span>
+                                </a>
+                            </li>
+                        {% end %}
                     </ul>
                 </li>
 

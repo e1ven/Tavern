@@ -4,7 +4,7 @@
 
 
 #### For Debian-based systems 
-apt-get install g++  libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev
+apt-get install g++ ruby-compass libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev
 
 ### for OS X
 brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons
@@ -22,6 +22,7 @@ echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" >
 
 apt-get update
 apt-get install mongodb-10gen
+
 
 
 cd /usr/local/src

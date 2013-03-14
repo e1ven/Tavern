@@ -27,7 +27,7 @@ import pprint
 import Image
 import imghdr
 import io
-from TopicTool import TopicTool
+from TopicTool import topictool
 from TavernUtils import memorise
 import TavernUtils
 from serversettings import serversettings
