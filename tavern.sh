@@ -53,6 +53,10 @@ fi
 "$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
 
 
+# Convert from SCSS to CSS.
+compass compile SASS_files/ -e production
+cp SASS_files/stylesheets/* static/css/
+
 
 
 # The yui-compressor will compress JS and CSS
@@ -77,6 +81,7 @@ then
     # No minimization
     yui='cat'
 fi
+
 
 # Test our ability to take a hash
 # OSX uses md5, linux uses md5sum.
