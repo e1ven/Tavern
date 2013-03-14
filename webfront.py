@@ -16,7 +16,7 @@ import os
 from Envelope import Envelope
 from collections import OrderedDict
 import pymongo
-from server import server
+from Server import server
 import pygeoip
 from keys import *
 from User import User
