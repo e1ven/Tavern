@@ -380,17 +380,23 @@ jQuery(document).ready(function() {
 
         // Hide the sub-menus via JAVASCRIPT, so they are there if JS is disabled.
         jQuery(".accordion li > .sub-menu").css("display","none");
+
         // Store variables
         var accordion_head = jQuery('.accordion > li > a'),
             accordion_body = jQuery('.accordion li > .sub-menu');
+
         // Open the first tab on load
-        accordion_head.first().addClass('active').next().slideDown('normal');
+        // accordion_head.first().addClass('active').next().slideDown('normal');
+
+
         // Click function
         accordion_head.on('click', function(event) {
             // Disable header links
             event.preventDefault();
             // Show and hide the tabs on click
-            if (jQuery(this).attr('class') != 'active'){
+
+            if (jQuery(this).attr('class') != 'active')
+            {
                 accordion_body.slideUp('normal');
                 jQuery(this).next().stop(true,true).slideToggle('normal');
                 accordion_head.removeClass('active');
@@ -398,7 +404,6 @@ jQuery(document).ready(function() {
             }
         });
   
-
 
 
 // Run the per-instance stuff.
