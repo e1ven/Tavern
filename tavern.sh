@@ -148,7 +148,7 @@ do
     touch tmp/checked/$filehash.exists
 done
 
-cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js > static/scripts/unified.js
+cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js  static/scripts/spin.min.js > static/scripts/unified.js
 echo "Combining JS.."
 filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]

@@ -1,168 +1,27 @@
-/*      Reset.css */
-html, body, div, span, applet, object, iframe,
-h1, h2, h3, h4, h5, h6, p, blockquote, pre,
-a, abbr, acronym, address, big, cite, code,
-del, dfn, em, img, ins, kbd, q, s, samp,
-small, strike, strong, sub, sup, tt, var,
-b, u, i, center,
-dl, dt, dd, ol, ul, li,
-fieldset, form, label, legend,
-table, caption, tbody, tfoot, thead, tr, th, td,
-article, aside, canvas, details, embed,
-figure, figcaption, footer, header, hgroup,
-menu, nav, output, ruby, section, summary,
-time, mark, audio, a,video {
-        margin: 0;
-        padding: 0;
-        border: 0;
-        font-size: 100%;
-
-font-weight: inherit;
-font-style: inherit;
-font-family: inherit;
-vertical-align: baseline;
-}
-
-/* HTML5 display-role reset for older browsers */
-article, aside, details, figcaption, figure,
-footer, header, hgroup, menu, nav, section {
-        display: block;
-}
-
-/* My Variables */
-$white:#ffffff;
-$h4Color:#333333;
-$iconLabelColorDark:#666666;
-$iconLabelColorLight:#d6d6d6;
-
-/* My Mixins */
-
-@mixin myMarginLR($left,$right) {
-  margin-left: $left;
-  margin-right: $right;
-}
-
-@mixin myMarginTRBL($top,$right,$bottom,$left) {
-  margin-top: $top;
-  margin-left: $left;
-  margin-right: $right;
-  margin-bottom: $bottom
-}
-
-@mixin myPaddingTRBL($top,$right,$bottom,$left) {
-  padding-top:$top;
-  padding-right:$right;
-  padding-bottom:$bottom;
-  padding-left:$left;
-}
-
-@mixin myBgImgGrad($gradient,$linear,$mozilla,$explorer,$opera) {
-  background-image: $gradient;
-  background-image: $linear;
-  background-image: $mozilla;
-  background-image: $explorer;
-  background-image: $opera;
-}
-
-@mixin myBorderRadius($rad) {
-  -webkit-border-radius: $rad;
-    -moz-border-radius: $rad;
-    border-radius: $rad;
-    -khtml-border-radius: $rad;
-    -o-border-radius: $rad;
-}
-
-@mixin myShadow($box) {
-  -o-box-shadow:$box;
-  -moz-box-shadow:$box;
-  -khtml-box-shadow:$box;
-  -webkit-box-shadow:$box;
-  box-shadow:$box;
-}
-
-/* set the Z-index to ensure this is on-top and clickable */
-i {
-  position:relative;
-  z-index:10;
-}
-body {
-        line-height: 1;
-}
-ol, ul {
-        list-style: none;
-}
-blockquote, q {
-        quotes: none;
-}
-blockquote:before, blockquote:after,
-q:before, q:after {
-        content: '';
-        content: none;
-}
-table {
-}
-form {
-  display: inline;
-  margin: 0;
-  padding: 0;
-}
-
-.textbutton {
-     position:relative;
-     border: 0px;
-     background-color: transparent;
-     text-decoration:none;  
-     margin: 0;
-     padding: 0;
-
-}
-.textbutton:hover, a:hover{
-  color:#BBBBBB;
-  text-decoration: none;
-  color: #4c4c9c;
-} 
-
-a{
-    &:focus {
-    outline: thin dotted #333;
-    outline: 5px auto -webkit-focus-ring-color;
-    outline-offset: -2px;
-    }
-
-    &:hover,
-    &:active {
-      outline: 0;
-    }
-}
-
-.padder { 
-  @include myPaddingTRBL(15px,15px,0px,15px);
-}
-
-.clear { clear: both; }
-
+@import "reset.scss";
+@import "compass";
 
 #menubuttons li{ 
   float: left;
   padding: 10px 15px;
-
-    background: #272321; 
-    color: $white;
+  background: #272321; 
+  color: #ffffff;
   text-decoration: none;
-  border-top: 1px solid #372F2b;
-  border-bottom: 1px solid #21110b;
-  @include myBorderRadius(3px);
+  border:{
+    top: 1px solid #372F2b;
+    bottom: 1px solid #21110b;
+  }
+  @include border-radius(3px);
 }
 
-
-
 .comment_bottom {
-    padding-top: 5px;
-    padding-bottom: 12px;
+    padding:{
+      top: 5px;
+      bottom: 12px;
+  }
 }
 
 form.vote {
-
   animation-duration: 0.001s;
   -o-animation-duration: 0.001s;
   -ms-animation-duration: 0.001s;
@@ -175,53 +34,67 @@ form.vote {
   -webkit-animation-name: nodeInserted;
 }
 
-.single {
-    top: 20px;
-    height: auto;
-    @include myMarginLR(auto,auto);
-    margin-bottom: 50px;
-    min-width:500px;
-    width: 75%;
-    background: $white;
-    position:relative; 
-    overflow:hidden;
-    border:2px solid;
-    border-color: #a9a9a9;
+/* ------------------SINGLE --------------------*/
 
-      p {
-    padding-left: 20px;
-    padding-top: .5em;
-    padding-bottom: 0px;
+.single {
+  top: 20px;
+  height: auto;
+  margin:{
+      right: auto;
+      left: auto;
+      bottom: 50px;
+    }
+  min-width:500px;  
+  width: 75%;
+  background: #ffffff;
+  position:relative; 
+  overflow:hidden;
+  border:2px solid;
+  border-color: #a9a9a9;
+
+  p {
+    padding:{
+      left: 20px;
+      top: .5em;
+      bottom: 0px;
+    }
   } 
 
-  form,  ul {
-    padding-left: 20px;
-    padding-bottom: 10px;
-  }   
-
   li {
-    padding-left: 20px;
-    padding-top: .5em;
+    padding:{
+      left: 20px;
+      top: .5em;
+    }
+  } 
 
-  }   
+  form,ul {
+    padding:{
+      left: 20px;
+      bottom: 10px;
+  }
+}   
+
+  h3 { 
+  font-weight: bold; 
+  font-size: 14px; 
+  color: #353535; 
+  padding: 0 0;
+  }
+
+  > h1 {
+  font-size: 14px; 
+  font-weight: bold; 
+  text-transform: uppercase;
+  background: #d8d8d8;
+  border-top: 1px solid #ffffff;
+  border-bottom: 1px solid #a9a9a9;
+  color: #2d2d2d;
+  padding-left: 20px;
+  }
 
 }
 
-.single .padder { background: $white; }
-
-.single > h1 {
-    font-size: 14px; 
-    font-weight: bold; 
-    text-transform: uppercase;
-    background: #d8d8d8;
-    border-top: 1px solid $white;
-    border-bottom: 1px solid #a9a9a9;
-    color: #2d2d2d;
-    padding-left: 20px;
-
-}
-.single h3 { font-weight: bold; font-size: 14px; color: #353535; padding: 0 0;}
-
+.single .padder { background: #ffffff; }
 
 .userportrait {
   width: 50% ;
@@ -230,43 +103,40 @@ form.vote {
 
 .portrait{
   display: block;
-    @include myMarginLR(auto,auto);
+  margin-left: auto;
+  margin-right: auto; 
 }
 
 #userblock{
-     position:relative;
-     float: right;
+position:relative;
+float: right;
 }
-
-
 
 #spinner{
-    display: none;
-    position: absolute;
+  display: none;
+  position: absolute;
   background-color:black;
-    top: 0%;
-    left: 0%;
-    width: 100%;
-    height: 100%;
-    z-index:1001;
-    -moz-opacity: 0.2;
-    opacity:.20;
-    filter: alpha(opacity=20);
+  top: 0%;
+  left: 0%;
+  width: 100%;
+  height: 100%;
+  z-index:1001;
+  @include opacity(0.2);
+  img,i{
+    float:right;
+  }
 }
 
-#spinner img,i{
-    float:right;
-}
-  
 .details {
   position:relative;
 }
 
+/* ---------USERDETAILS-------- */
 
 .UserDetails {
   position:absolute;
   width:400px;
-  color:$white;
+  color:#ffffff;
   cursor:normal;
   display:none;
   margin-top:12px;
@@ -280,61 +150,35 @@ form.vote {
   padding:.5em 1em;
   text-align:center;
   text-shadow:0 -1px 1px #111111;
-  -webkit-border:{
-    top-left-radius:4px ;
-    top-right-radius:4px ;
-    bottom-right-radius:4px ;
-    bottom-left-radius:4px ;
-  }
-    -khtml-border:{
-    top-left-radius:4px ;
-    top-right-radius:4px ;
-    bottom-right-radius:4px ;
-    bottom-left-radius:4px ;
-    }
-  -moz-border:{
-    radius-topleft:4px ;
-    radius-topright:4px ;
-    radius-bottomright:4px ;
-    radius-bottomleft:4px ;
-  }
-   border-top:{
-    left-radius:4px ;
-    right-radius:4px ;
-    right-radius:4px ;
-    left-radius:4px ;
-   }
-  -o-box-shadow:0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444;
-  -moz-box-shadow:0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444;
-  -khtml-box-shadow:0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444;
-  -webkit-box-shadow:0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444;
-  box-shadow:0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444;
+  @include border-top-left-radius(4px) ;
+  @include border-top-right-radius(4px) ;
+  @include border-bottom-right-radius(4px) ;
+  @include border-bottom-left-radius(4px) ;
+  @include box-shadow(0 1px 2px #000000,inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444);
   background-color:#3b3b3b;
   background-image:-moz-linear-gradient(top,#555555,#222222);
   background-image:-webkit-gradient(linear,left top,left bottom,color-stop(0,#555555),color-stop(1,#222222));
   filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
   -ms-filter:progid:DXImageTransform.Microsoft.gradient(startColorStr=#555555,EndColorStr=#222222);
   z-index:10;
-}
-.UserDetails:after{
-  content:"\25B8";
-  display:block;
-  font-size:2em;
-  height:0;
-  line-height:0;
-  position:absolute;
-  bottom:auto;
-  color:#4f4f4f;
-  left:-2px;
-  top:0;
-  text-align:center;
-  text-shadow:none;
-  -o-transform:rotate(-90deg);
-  -moz-transform:rotate(-90deg);
-  -khtml-transform:rotate(-90deg);
-  -webkit-transform:rotate(-90deg);
-  width:30%;
-  z-index:10;
+
+  &:after{
+    content:"\25B8";
+    display:block;
+    font-size:2em;
+    height:0;
+    line-height:0;
+    position:absolute;
+    bottom:auto;
+    color:#4f4f4f;
+    left:-2px;
+    top:0;
+    text-align:center;
+    @include text-shadow(none);
+    @include rotate(-90deg);
+    width:30%;
+    z-index:10;
+  }
 }
 
 .UserDetails_right
@@ -363,13 +207,13 @@ form.vote {
 } 
 
 .usernote {
-border:none;
-background-color:#ddd;
-width:90%;
-  &::-moz-placeholder, &::-webkit-input-placeholder
-    {
-      text-align:center;
-    }
+  border:none;
+  background-color:#ddd;
+  width:90%;
+  ::-moz-placeholder, .usernote::-webkit-input-placeholder
+  {
+    text-align:center;
+  }
 }
 
 .embededwarning {
@@ -381,17 +225,19 @@ width:90%;
 .textmodeinfo{
   display:none;
 }
-  
+
+ /* -----------UPLOAD--------- */
+
 .uploadfileform{
   margin-top:-20px;
+  > p{
+    padding-left: 75px !important;
+  }
 }
 
 .uploadonly{
-  margin:{
-    top:10px;
-    left:10px;
-  }
-  
+  margin-top:10px;
+  margin-left:10px;
 }
 
 .uploadbox{
@@ -401,455 +247,392 @@ width:90%;
     float:left;
     border-color:#999999;
 }
+
 .icon-up-circle2{
   font-size: 35px;
   bottom:-7px;
   right:-7px;
   position:relative;
   color:#999999;
-    &:hover{
+  &:hover
+  {
   color:#000000;
-}
+  }
 }
 
 .icon-spin5{
-  color:$white;
+  color:#FFFFFF;
   font-size:30px;
 }
 
-.uploadfileform > p
-{
-  padding-left: 75px !important;
-}
+
 .hiddenupload{
   display:none;
 }
-
 
 /* NEWSTART */
 
 @charset "UTF-8";
 /* CSS Document */
 
-body {
-  background-color: $white;
-  }
-    h4 {
-      color: $h4Color;
-      }
+body{
+  background-color: #ffffff;
+}
+
+h4 {
+ color: #333333;
+}
       
-      h6 {
-        margin:{
-          left: 10px;
-          bottom: 5px;
-          }
-       
-        }
-        
-      
-    
-    #column2HR {
-      height: 5px;
-      width: 100%;
-      margin:{
-        left: 20px;
-        top: 17px;
-        bottom: 17px;
-        }
-      background-color: #cccccc;
-      border: none;
-      float: left;
-      }
+h6 {
+  margin-left: 10px;
+  margin-bottom: 5px;
+}
+         
+/*---------- COLUMNS AND MESSAGES --------- */
 
+#column2HR {
+  height: 5px;
+  width: 100%;
+  margin-left: 20px;
+  margin-top: 17px;
+  margin-bottom: 17px;
+  background-color: #cccccc;
+  border: none;
+  float: left;   
+}
 
+#column2Topic {
+  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  margin-left: 20px;
+  font-weight: bold;
+  color:#000000;
+  text-decoration:none;
+}
 
+#column2MsgCount {
+ font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+ margin-left: 20px;
+ font-weight: normal;
+}
+           
+#rightColumnTopHR {
+  height: 5px;
+  width: 100%;
+  border: none;
+  margin-top: 17px;
+  margin-bottom: 7px;
+  display: block;
+  float: left;
+  background-color: #4a525a;
+}
 
-      #column2Topic {
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        margin-left: 20px;
-        font-weight: bold;
-        color:#000000;
-        text-decoration:none;
-        }
-      #column2MsgCount {
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        margin-left: 20px;
-        font-weight: normal;
-        }
-        
-
-
-      
-      #rightColumnTopHR {
-          height: 5px;
-          width: 100%;
-          border: none;
-          margin:{
-            top: 17px;
-            bottom: 7px;
-          }
-          display: block;
-          float: left;
-          background-color: #4a525a;
-          }
-
-  #wrappertable {
+#wrappertable {
     height:100%;
     width:100%;
-    }
+}
     
-    #firstMessage {
-      margin-left:20px;
-      margin-top:35px;
-      font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-      background-color: #56504d; 
-      background-image: url(/static/images/texture.png);
-      }
+#firstMessage {
+  margin-left:20px;
+  margin-top:35px;
+  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  background-color: #56504d; 
+  background-image: url(/static/images/texture.png);
+}
       
-      #bigProfileIcon {
-         @include myMarginLR(14px,14px);
-        margin-top: 12px;
-        }
+ #bigProfileIcon {
+  margin-left: 14px;
+  margin-right: 14px;
+  margin-top: 12px;
+}
         
-        #column3 h5 {
-          font-size: 28px;
-          height:1em;
-          overflow:hidden;
-          font-style: normal;
-          color: #ece9d7;
-          margin-right: 40px;
-          margin-top: 10px;
-          }
-          
-          .firstMessageAuthorInfo {
-            font-size: 15px;
-            color: #ece9d7;
-            margin-top: 10px;
-            padding-bottom: 10px;
-            }
+#column3 h5 {
+  font-size:28px;
+  height:1em;
+  overflow:hidden;
+  font-style:normal;
+  color:#ece9d7;
+  margin-right:40px;
+  margin-top:10px;
+}
 
-          .firstMessageDate {
-            font-size: 15px;
-            color: #ece9d7;
-            margin-bottom: 10px;
-            }
-            
-            #firstMessageBody {
-              margin-bottom: 18px;
-              margin-top: 22px;
-              font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-              color: $white;
-              font: 13px;
-              line-height: 16px;
-              }
-              
-            .firstMessageSeparationLine {
-                height: 1px;
-                width: 422px;
-                border: none;
-                background-color: #898c8e;
-                margin-left: 0px;
-                }
-                
-                .commentSeparationLine {
-                  height: 1px;
-                  width: 422px;
-                  border: none;
-                  background-color: #898c8e;
-                  @include myMarginTRBL(13px,14px,10px,14px);
-                  float: left;
-                  }
-                
-                .commentSeparation {
-                  height: 1px;
-                  width: 100%;
-                  border: none;
-                  display: block;
-                  float: left;
-                  background-color: #cccccc;
-                  }
+.firstMessageAuthorInfo {
+  font-size:15px;
+  color:#ece9d7;
+  margin-top:10px;
+  padding-bottom:10px;
+}
+
+ .firstMessageDate {
+font-size:15px;
+color:#ece9d7;
+margin-bottom:10px;
+}
+
+#firstMessageBody {
+margin-bottom:18px;
+margin-top:22px;
+font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+color:#fff;
+font:13px;
+line-height:16px;
+}
+
+.firstMessageSeparationLine {
+height:1px;
+width:422px;
+border:none;
+background-color:#898c8e;
+margin-left:0;
+}
+
+.commentSeparationLine {
+height:1px;
+width:422px;
+border:none;
+background-color:#898c8e;
+float:left;
+margin:13px 14px 10px;
+}
+
+.commentSeparation {
+height:1px;
+width:100%;
+border:none;
+display:block;
+float:left;
+background-color:#ccc;
+}
+
+.messageDate {
+font-size:15px;
+color:#000;
+margin-bottom:10px;
+}
+
+#column1 {
+min-width:80px;
+width:180px;
+vertical-align:top;
+background-color:#56504d;
+background-image:url(/static/images/texture.png);
+background-repeat:repeat;
+
+  ul li a:link {
+    text-decoration:none;
+    color:#ccc;
+    font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight:300;
+    padding:5px 20px;
+  }
+
+  ul li a:visited {
+  text-decoration:none;
+  color:#ccc;
+  font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight:300;
+  }
+
+  ul li a:hover {
+  text-decoration:none;
+  color:#0f0f0e;
+  font-weight:700;
+  background-color:#e2ddd0;
+  font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  padding:5px 20px;
+  }
+
+  ul li a:hover > span {
+  background-color:#eaeaea;
+  }
+
+  ul li a {
+  display:block;
+  padding-left:20px;
+  padding-top:5px;
+  padding-bottom:5px;
+  font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-weight:300;
+  }
+
+  ul li a:active {
+  text-decoration:none;
+  color:#0f0f0e;
+  }
+
+}
+
+#logo {
+display:block;
+margin:20px auto 10px;
+}
+
+button {
+cursor:pointer;
+}
+
+a:link,a:visited {
+text-decoration:none;
+color:#d9d5c4;
+}
                   
-            .messageDate {
-            font-size: 15px;
-            color: #000000;
-            margin-bottom: 10px;
-            }
-                  
-    
-    #column1 {
-      min-width: 80px;
-      width:180px;
-      vertical-align: top;
-      background:{
-        color: #56504d;
-        image: url(/static/images/texture.png);
-        repeat: repeat;
-        }
-      }
-      
-      #logo {
-        @include myMarginTRBL(20px,auto,10px,auto);
-        display: block;
-        }
-
-          
-      button {
-        cursor: pointer;
-        }
-
-        a{
-          &:link {
-          text-decoration: none;
-          color: #d9d5c4;
-          }
-
-          &:visited {
-          text-decoration: none;
-          color: #d9d5c4;
-          } 
-        }
-          
-
-
-          
-        #column1 ul li a:link {
-          text-decoration: none;
-          color: #cccccc;
-          font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-          font-weight: 300;
-          @include myPaddingTRBL(5px,20px,5px,20px);
-          } 
-          
-        #column1 ul li a:visited {
-          text-decoration: none;
-          color: #cccccc;
-          font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-          font-weight: 300;
-          }
-          
-         #column1 ul li a:hover {
-          text-decoration: none;
-
-          padding-right: 20px;
-          padding-top: 5px;
-          padding-bottom: 5px;
-          padding-left: 20px;
-          color: #0f0f0e;
-          font-weight: bold;
-          background-color: #e2ddd0;
-          font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-
-          }
-
-
-        #column1 ul li a:hover > span {
-          background-color: #eaeaea;
-         }
-
-          
-        #column1 ul li a {
-          display: block;
-          padding-left: 20px;
-          padding-top: 5px;
-          padding-bottom: 5px;
-          font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-          font-weight: 300;
-          }
-          
-        #column1 ul li a:active {
-          text-decoration: none;
-          color: #0f0f0e;
-          }
-          
-          
-       .column2Buttons {
-         width: 119px;
-         height: 28px;
-         margin-top: 22px;
-         margin-bottom: 18px;
-         border: 1px solid #dedede;
-         background-color: #f6f6f6;
-         @include myBorderRadius(3px);
-         @include myBgImgGrad(-webkit-gradient(linear, 0% 0%, 0% 100%, from(#f9f9f9), to(#f0f0f0)),
-                              -webkit-linear-gradient(top, #f9f9f9, #f0f0f0),
-                              -moz-linear-gradient(top, #f9f9f9, #f0f0f0),
-                              -ms-linear-gradient(top, #f9f9f9, #f0f0f0),
-                              -o-linear-gradient(top, #f9f9f9, #f0f0f0));
-         }
+.column2Buttons {
+  width: 119px;
+  height: 28px;
+  margin-top: 22px;
+  margin-bottom: 18px;
+  border: 1px solid #dedede;
+  background-color: #f6f6f6;
+  @include border-radius(3px);
+  @include background-image(linear-gradient(color-stops(#f9f9f9, #f0f0f0)));
+}
          
-      #column2ButtonLeft {
-        margin-left: 20px;
-        margin-right: 9px;
-        }
-        #column2ButtonRight {
-        margin-right: 15px;
-        }
+#column2ButtonLeft {
+  margin-left:20px;
+  margin-right:9px;
+}
 
-        #OlderMessages {
-         width: 140px;
-         margin-right: 15px;
-        }
-        #NewerMessages {
-         width: 140px;
-        margin-left: 20px;
-        margin-right: 9px; 
-        }
-        
+#column2ButtonRight {
+  margin-right:15px;
+}
 
-        
-      
-    #column2 {
-      min-width: 80px;
-      width:320px;
-      vertical-align: top;
-      }
-            
-    #column3 {
-      width:100%;
-      }
-      
-    #column3 ul li {
-      padding-left: 20px;
-      }
+#OlderMessages {
+  width:140px;
+  margin-right:15px;
+}
 
-    #cell5 {
-      }
-      
-      .floatLeft {
-        float: left;
-        }
-        
-      .floatRight {
-        float: right;
-        }
-        
-      .clear {
-        clear: both;
-        }
-        
-      .displayBlock {
-        display: block;
-        }
-        
-      .displayInlineBlock {
-        display: inline-block;
-        }
-      
-      .navIcon {
-        font-size:20px;
-        float:left;
-        }
-        
-      .column2Buffer {
-        margin-top: 20px;
-        } 
-        
-      .messages {
-        padding-bottom:0px;
-        max-height: 55px;
-        margin-right:15px;
-        border:{
-          top: 1px solid #dbdada;
-          right: 1px solid #dbdada;
-          bottom: 1px solid #d0cfcf;
-        }
-        background-color: #ebebeb;
-        @include myBgImgGrad(-webkit-gradient(linear, 0% 0%, 0% 100%, from(#f7f7f7), to(#e7e7e7)),
-                              -webkit-linear-gradient(top, #f7f7f7, #e7e7e7),
-                              -moz-linear-gradient(top, #f7f7f7, #e7e7e7),
-                              -ms-linear-gradient(top, #f7f7f7, #e7e7e7),
-                              -o-linear-gradient(top, #f7f7f7, #e7e7e7));
+#NewerMessages {
+  width:140px;
+  margin-left:20px;
+  margin-right:9px;
+}
 
-        overflow:hidden;
-        }
+#column2 {
+  min-width:80px;
+  width:320px;
+  vertical-align:top;
+}
+
+#column3 {
+  width:100%;
+  ul li {
+  padding-left:20px;
+  }
+}
+
+.floatLeft {
+  float:left;
+}
+
+.floatRight {
+  float:right;
+}
+
+.clear {
+  clear:both;
+}
+
+.displayBlock {
+  display:block;
+}
+
+.displayInlineBlock {
+  display:inline-block;
+}
+
+.navIcon {
+  font-size:20px;
+  float:left;
+}
+
+.column2Buffer {
+  margin-top:20px;
+}
         
-       .messagesPadding {
-         font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-         color: #666666;
-         @include myMarginTRBL(11px,30px,11px,22px);
-           }
-         
-      #firstMessageLinks {
-        margin-left:9px;
-      }
-
-
-      .messageCommands
-      {
-        margin-left:250px;
-      }
-      .messageReplyLink
-      {
-        margin-left:350px;
-      }
-         
-       .iconLabels {
-        font:{
-          family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-          size: 12px;
-          weight: bold;
-        }
-         margin:{
-          left:5px;
-          right:20px;
-          }
-         }
-         
-         .iconLabelColorDark {
-           color: $iconLabelColorDark !important;
-           }
-         
-         .iconLabelColorLight {
-           color: $iconLabelColorLight;
-           }
-           
-       #lowerCommentSeparation {
-         width:100%;
-
-         }
-         
-         .likeDislikeIcon {
-           margin-bottom: 8px;
-           }
-           
-         .likeDislikeLabel {
-          margin:{
-            left: 5px;
-            bottom: 11px;
-            }
-          }
+.messages {
+  padding-bottom:0px;
+  max-height: 55px;
+  margin-right:15px;
+  border-top: 1px solid #dbdada;
+  border-right: 1px solid #dbdada;
+  border-bottom: 1px solid #d0cfcf;
+  background-color: #ebebeb;
+  @include background-image(linear-gradient(color-stops( #f7f7f7, #e7e7e7)));
+}
         
-        #scrollBar {
-           margin:{
-            top: 11px;
-            bottom: 17px;
-            }
-          }
-          
-          .commentDisplayOptions {
-            margin:{
-            top: 15px;
-            right: 20px;
-             }
-            }
-            
-          .buffer {
-            margin-left: 14px;
-            }
-            
-          .paraBuffer {
-            margin-top: 19px;
-            margin-bottom: 17px;
-            }
+.messagesPadding {
+  font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  color:#666;
+  margin:11px 30px 11px 22px;
+}
 
+#firstMessageLinks {
+  margin-left:9px;
+}
 
+.messageCommands {
+  margin-left:250px;
+}
+
+.messageReplyLink {
+  margin-left:350px;
+}
+
+.iconLabels {
+  font-family:HelveticaNeue, "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  font-size:12px;
+  font-weight:bold;
+  margin-left:5px;
+  margin-right:20px;
+}
+
+.iconLabelColorDark {
+  color:#666!important;
+}
+
+.iconLabelColorLight {
+  color:#d6d6d6;
+}
+
+#lowerCommentSeparation {
+  width:100%;
+}
+
+.likeDislikeIcon {
+  margin-bottom:8px;
+}
+
+.likeDislikeLabel {
+  margin-left:5px;
+  margin-bottom:11px;
+}
+
+#scrollBar {
+  margin-top:11px;
+  margin-bottom:17px;
+}
+
+.commentDisplayOptions {
+  margin-top:15px;
+  margin-right:20px;
+}
+
+.buffer {
+  margin-left:14px;
+}
+
+.paraBuffer {
+  margin-top:19px;
+  margin-bottom:17px;
+}
+
+/* ------------------COMMENTS --------------------*/
 
 .comment {
   width: auto;
   padding: 20px;
   background: #eaeaea;
-  @include myBorderRadius(8px);
-  @include myShadow(0px 3px 3px #b5b39a);
+  @include box-shadow(8px);
+  @include box-shadow( 0px 3px 3px #b5b39a);
   margin-top:10px;
 }
 
@@ -857,41 +640,46 @@ body {
   padding-top:10px;
   background: #f9f9f9;
   padding-right:15px;
-  height:100%
 }
 
 .darkClass
 {
     background-color: white;
-    filter:alpha(opacity=50); /* IE */
-    opacity: 0.5; /* Safari, Opera */
-    -moz-opacity:0.50; /* FireFox */
+    @include opacity(0.5); 
 }
-
 
 #sliderResults{
   position:relative;
   top:20px;
-  
 }
-
 
 #commentSliderWrapper{
   width:418px;
   margin-top:10px;
   /* margin-left is to counteract the endcap */
   margin-left:11px;
-
 }
 
-
+#unshownComments:after
+{ 
+  /* Put in the end cap using css wizardry */
+  background:url(/static/images/rightSliderCap.png);
+  content: "";
+  width: 13px;
+  height: 20px;
+  position: absolute;
+  top: -0px;
+  left: 100%;
+  margin-left:-1px
+}
 
 #shownComments{
   background: url('/static/images/shownComments.png') repeat-x;
   vertical-align:text-top;
   overflow:visible;
-  &:before{
-     /* Put in the end cap using css wizardry */
+  &:before
+{ 
+  /* Put in the end cap using css wizardry */
   background:url(/static/images/leftSliderCap.png);
   content:"";
   width:13px;
@@ -902,7 +690,6 @@ body {
   }
 }
 
-
 #unshownComments{
   background:url('/static/images/unshownComments.png') repeat-x;
   overflow:visible;
@@ -912,24 +699,11 @@ body {
   display:block;
   content:"";
   }
-
-  &:after{
-     /* Put in the end cap using css wizardry */
-  background:url(/static/images/rightSliderCap.png);
-  content: "";
-  width: 13px;
-  height: 20px;
-  position: absolute;
-  top: -0px;
-  left: 100%;
-  margin-left:-1px
-  }
 }
 
 #commentSlider{
   border:none;
-    
-    td{
+  td{
     border:none;
   }
 }
@@ -941,7 +715,6 @@ body {
   width:20px;
   height:20px;
 }
-
 
 .commentSliderDrag .commentSliderGrip, .commentSliderGrip:hover{
 }
@@ -956,7 +729,7 @@ body {
   margin-right:10px;
 }
 
-@mixin myClip {
+@mixin myKeyframe{
   from {  
         clip: rect(1px, auto, auto, auto);  
     }
@@ -966,26 +739,26 @@ body {
 }
 
 @keyframes nodeInserted {  
-    @include myClip;
+ @include myKeyframe();
 }
 
 @-moz-keyframes nodeInserted {  
-      @include myClip;
+  @include myKeyframe();
 }
 
 @-webkit-keyframes nodeInserted {  
-    @include myClip;
+    @include myKeyframe(); 
 }
 
 @-ms-keyframes nodeInserted {  
-     @include myClip;
+    @include myKeyframe();
 }
 
 @-o-keyframes nodeInserted {  
-      @include myClip;
+   @include myKeyframe(); 
 } 
 
-
+// --------------- ACCORDIAN -----------------
 
 .accordion,
 .accordion ul,
@@ -1000,9 +773,8 @@ body {
  
 .accordion li {
     list-style: none;
-}
 
-.accordion li > a {
+  > a {
     display: block;
     position: relative;
     min-width: 110px;
@@ -1011,18 +783,11 @@ body {
     font: bold 12px/32px Arial, sans-serif;
     text-decoration: none;
     text-shadow: 0px 1px 0px rgba(0,0,0, .35);
- 
-    background-color: #333333; 
-    @include myBgImgGrad(-webkit-gradient(linear, 0% 0%, 0% 100%, from(#2d2d2d), to(#393939)),
-                              -webkit-linear-gradient(top, #2d2d2d, #393939),
-                              -moz-linear-gradient(top, #2d2d2d, #393939),
-                              -ms-linear-gradient(top, #2d2d2d, #393939),
-                              -o-linear-gradient(top, #2d2d2d, #393939));
-    -webkit-box-shadow: inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1);
-    -moz-box-shadow: inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1);
-    box-shadow: inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1);
+    background-color: #333333;
+    @include background-image(linear-gradient(color-stops(#2d2d2d, #393939)));    
+  }
 
-    span {
+  > a span {
     display: block;
     position: absolute;
     top: 7px;
@@ -1031,14 +796,15 @@ body {
     margin-right: 10px;
     font: normal bold 12px/18px Arial, sans-serif !important;
     background: #404247;
-    @include myBorderRadius(15px);
-    -webkit-box-shadow: inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1);
-    -moz-box-shadow: inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1);
-    box-shadow: inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1);
+    @include box-shadow(15px);
+    @include box-shadow(inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1));
+  }
+
+  &:target > .sub-menu {
+    display: block;
   }
 }
 
-.accordion li > 
 
 .accordion > li:hover > a,
 .accordion > li:target > a,
@@ -1048,14 +814,8 @@ body {
     font-weight:900 !important;
     /*background: url(../img/active.png) repeat-x;*/
     background: #a5cd4e;
-    background: -moz-linear-gradient(top,  #A3A090 0%, #A39C90 100%);
-    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a5cd4e), color-stop(100%,#6b8f1a));
-    background: -webkit-linear-gradient(top,  #A3A090 0%,#A39C90 100%);
-    background: -o-linear-gradient(top,  #A3A090 0%,#A39C90 100%);
-    background: -ms-linear-gradient(top,  #A3A090 0%,#A39C90 100%);
-    background: linear-gradient(top,  #A3A090 0%,#A39C90 100%);
+    @include background-image(linear-gradient(color-stops( #A3A090 0%, #A39C90 100%)));
 }
-
 
 .accordion > li:hover > a > span,
 .accordion > li:target > a > span ,
@@ -1063,28 +823,24 @@ body {
     background: #e2ddd0;
 }
 
-.sub-menu li a {
-    color: #000000;
-    text-shadow: 1px 1px 0px rgba(25,25,25, .2);
-    background: #404247;
-    border-bottom: 1px solid #2B1306;
+.sub-menu{
+  li a {
+  color: #000000;
+  text-shadow: 1px 1px 0px rgba(25,25,25, .2);
+  background: #404247;
+  border-bottom: 1px solid #2B1306;
+  }
 
-}
- 
-.sub-menu ul {
-    margin-bottom: 1px;
-    margin-top: 1px;
+  ul {
+  margin-bottom: 1px;
+  margin-top: 1px;
+  }
+
+  li:last-child a { 
+    border: none; 
+  }
 }
 
 .mainheader {
-    border-bottom: solid 1px #000000 !important;
+  border-bottom: solid 1px #000000 !important;
 }
-
-.sub-menu li:last-child a { border: none; }
- 
- 
-.accordion li:target > .sub-menu {
-    display: block;
-}
-
-
