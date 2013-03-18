@@ -69,7 +69,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
     
-    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -101,7 +100,7 @@ class BaseHandler(tornado.web.RequestHandler):
             ptext = ptext + a
         self.write(ptext)
 
-    def finish(self, divs=['limits'], message=None):
+    def finish(self, divs=['wrappertable'], message=None):
         if "js" in self.request.arguments:
             if "singlediv" in self.request.arguments:
                 divs = [self.get_argument('singlediv')]
@@ -110,7 +109,7 @@ class BaseHandler(tornado.web.RequestHandler):
             # If we're a newbie, send the header, too; We probably don't have it yet.
             if 'time_privkey' in self.user.UserSettings:
                 if int(time.time()) - self.user.UserSettings['time_privkey'] < 60:
-                    divs.append('menu')
+                    divs.append('column1')
 
             for div in divs:
                 super(BaseHandler, self).write(self.getjs(div))
@@ -445,7 +444,7 @@ class TriPaneHandler(BaseHandler):
             before = None
 
         if action == "topic":
-            divs = ['left', 'centerandright', 'center', 'right']
+            divs = ['column1', 'column2', 'column3']
 
             if topic != 'sitecontent':
                 canon = "topic/" + topic
@@ -458,7 +457,7 @@ class TriPaneHandler(BaseHandler):
         if action == "message":
 
             # We need both center and right, since the currently active message changes in the center.
-            divs = ['center', 'right']
+            divs = ['column2', 'column3']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
                                                         {'envelope.payload_sha512': messageid})
@@ -501,8 +500,8 @@ class TriPaneHandler(BaseHandler):
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('showmessage.html',
-                   envelope=displayenvelope, before=before, topic=topic))
+        self.write(self.render_string('tripane.html',
+                   envelope=displayenvelope, before=before, topic=topic,col3='showmessage.html'))
         self.write(self.render_string('footer.html'))
 
         if action == "message" or action == "topic":
@@ -555,7 +554,7 @@ class TopicPropertiesHandler(BaseHandler):
         self.write(self.render_string('topicprefs.html', topic=topic,
                    toptopics=toptopics, subjects=subjects, mods=mods))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['right'])
+        self.finish(divs=['column3'])
 
 
 class SiteContentHandler(BaseHandler):
@@ -843,7 +842,7 @@ class ChangeManySettingsHandler(BaseHandler):
 
         server.logger.info("set")
         if "js" in self.request.arguments:
-            self.finish(divs=['left'])
+            self.finish(divs=['column1'])
         else:
             keyurl = ''.join(self.user.Keys.pubkey.split())
             self.redirect('/user/' + keyurl)
@@ -875,7 +874,7 @@ class ChangeSingleSettingHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
         if "js" in self.request.arguments:
-            self.finish(divs=['left'])
+            self.finish(divs=['column1'])
         else:
             if redirect == True:
                 self.redirect("/")
@@ -1044,7 +1043,7 @@ class NewmessageHandler(BaseHandler):
                    title="Post a new message", rsshead=None, type=None))
         self.write(self.render_string('newmessageform.html', regarding=regarding, topic=topic, args=self.request.arguments))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['right', 'single'])
+        self.finish(divs=['column3'])
 
     def post(self, flag=None):
         self.getvars(ensurekeys=True)

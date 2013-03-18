@@ -1,11 +1,9 @@
-{% import time %}
-{% set timeid = int(time.time() * 1000000) %}
+{% extends "tripane.html" %}
 
-{% if 'js' in args %}
-	<div id="right">
-{% else %}
-	<div class="single" id='single'>
-{% end %}	
+{% block column3 %}
+    {% import time %}
+    {% set timeid = int(time.time() * 1000000) %}
+
 
 	{% if regarding is None %}
 	<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
@@ -68,5 +66,4 @@
 		<script defer src="/static/scripts/jquery.fileupload.min.js?revision={{serversettings.settings['static-revision']}}"></script>
 		<script defer src="/static/scripts/newmessage.min.js?revision={{serversettings.settings['static-revision']}}"></script>
 
-</div> <!-- newmessageform -->
-</div> <!-- .single -->
+{% end %}

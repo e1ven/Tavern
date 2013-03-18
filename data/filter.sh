@@ -1,4 +1,9 @@
 #!/bin/bash
+echo "Sorting Badword list"
+cat badwords | sort | uniq > badwords2
+mv badwords2 badwords
+
+echo "Adding words to nono list"
 for word in `cat originlist`
 do
     grep $word badwords  > /dev/null
