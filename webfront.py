@@ -131,7 +131,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         super(BaseHandler, self).finish(message)
 
-    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getdiv(self, element):
         print("getting" + element)
         soup = BeautifulSoup(self.html)
