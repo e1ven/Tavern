@@ -1389,6 +1389,14 @@ class BinariesHandler(tornado.web.RequestHandler):
         req = server.bin_GridFS.get_last_version(filename=binaryhash)
         self.write(req.read())
 
+class VerificationHandler(BaseHandler):
+    """
+    For users who aren't using nginx (like in dev), this will pull in the avatars
+    """
+    def get(self):
+        self.write("loaderio-cb454ee57f12e8bf44686d5825fd7db1")
+
+
 
 class AvatarHandler(BaseHandler):
     """
@@ -1455,6 +1463,7 @@ def main():
         (r"/avatar/(.*)", AvatarHandler),
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
+        (r"/loaderio-cb454ee57f12e8bf44686d5825fd7db1.txt",VerificationHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
          os.path.join(os.path.dirname(__file__), "static/")}),
         (r"/(.*)/(.*)/(.*)", TriPaneHandler),
