@@ -143,7 +143,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return soupytxt
 
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getjssetup(self):
         jsvar = self.request.uri.find("js=")
         if jsvar > -1:
@@ -206,7 +206,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return (ret)
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getjselement(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
