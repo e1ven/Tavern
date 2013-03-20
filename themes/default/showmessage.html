@@ -1,3 +1,7 @@
+{% extends 'tripane.html' %}
+
+{% block column3 %}
+
     <hr id="rightColumnTopHR">
     <div id="allreplies">
         {% raw handler.render_string('firstMessage.html',messageid=envelope['envelope']['payload_sha512']) %}
@@ -8,3 +12,5 @@
            {% end %}
         {% end %}  
     </div>
+
+{% end %}

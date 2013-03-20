@@ -2,29 +2,6 @@
     {% from TopicTool import topictool %}
     {% import TavernUtils %}
 
-<<<<<<< HEAD
-{# Specify Defaults #}
-    {% if not 'before' in locals() %}
-        {% set before = TavernUtils.inttime() %}
-    {% end %}
-    {% if not 'topic' in locals() %}
-        {% set topic = 'sitecontent' %}
-    {% end %}  
-    {% if not 'envelope' in locals() %}
-        {% set envelope = topictool.messages(topic, maxposts=user.UserSettings['maxposts'],before=before)[0] %}
-    {% end %}
-
-
-
-    {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
-    {% set aftercount = topictool.topicCount(before=subjects[-1]['envelope']['local']['time_added'],topic=topic) %}
-
-    {% set newbefore = topictool.getbackdate(after=subjects[0]['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
-    {% set beforecount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
-=======
-
->>>>>>> Improve fit in the new Template
-
 <table id="wrappertable" cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
@@ -234,10 +211,8 @@
             <td id="column3" valign="top">
                 <div id="scrollablediv3" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
 
-                {% if col3 is not None %}
-                    {% raw handler.render_string('reply.html',**args) %}
+                {% block column3 %}
                 {% end %}
-
 
                 </div>
             </td>

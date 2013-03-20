@@ -67,10 +67,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
     
-<<<<<<< HEAD
-=======
     @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
->>>>>>> Improve fit in the new Template
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -102,18 +99,6 @@ class BaseHandler(tornado.web.RequestHandler):
             ptext = ptext + a
         self.write(ptext)
 
-<<<<<<< HEAD
-    def finish(self, divs=['wrappertable'], message=None):
-        if "js" in self.request.arguments:
-            if "singlediv" in self.request.arguments:
-                divs = [self.get_argument('singlediv')]
-            # If JS is set at all, send the JS script version.
-
-            # If we're a newbie, send the header, too; We probably don't have it yet.
-            if 'time_privkey' in self.user.UserSettings:
-                if int(time.time()) - self.user.UserSettings['time_privkey'] < 60:
-                    divs.append('column1')
-=======
     def finish(self, divs=['html'], message=None):
         """
         Pulls in appropriate divs and serves them out via JS if possible.
@@ -122,7 +107,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # If they ask for the JS version, we'll calculate it.
         if "js" in self.request.arguments:
->>>>>>> Improve fit in the new Template
 
             # Send the header information with the new name, then each div, then the footer.
             super(BaseHandler, self).write(self.getjssetup())
@@ -484,11 +468,7 @@ class TriPaneHandler(BaseHandler):
             before = None
 
         if action == "topic":
-<<<<<<< HEAD
-            divs = ['column1', 'column2', 'column3']
-=======
             divs = ['column2','column3']
->>>>>>> Improve fit in the new Template
 
             if topic != 'sitecontent':
                 canon = "topic/" + topic
@@ -502,12 +482,7 @@ class TriPaneHandler(BaseHandler):
                 displayenvelope = topicEnvelopes[0]
 
         if action == "message":
-
-<<<<<<< HEAD
-            # We need both center and right, since the currently active message changes in the center.
-=======
             # We need both col2 and col3, since the currently active message changes in the col2.
->>>>>>> Improve fit in the new Template
             divs = ['column2', 'column3']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
@@ -543,8 +518,8 @@ class TriPaneHandler(BaseHandler):
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
-        self.write(self.render_string('tripane.html',
-                   envelope=displayenvelope, before=before, topic=topic,col3='showmessage.html'))
+        self.write(self.render_string('showmessage.html',
+                   envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 
         if action == "message" or action == "topic":
@@ -885,11 +860,7 @@ class ChangeManySettingsHandler(BaseHandler):
 
         server.logger.info("set")
         if "js" in self.request.arguments:
-<<<<<<< HEAD
-            self.finish(divs=['column1'])
-=======
             self.finish(divs=['column3'])
->>>>>>> Improve fit in the new Template
         else:
             keyurl = ''.join(self.user.Keys.pubkey.split())
             self.redirect('/user/' + keyurl)
@@ -921,11 +892,7 @@ class ChangeSingleSettingHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
         if "js" in self.request.arguments:
-<<<<<<< HEAD
-            self.finish(divs=['column1'])
-=======
             self.finish(divs=['column3'])
->>>>>>> Improve fit in the new Template
         else:
             if redirect == True:
                 self.redirect("/")

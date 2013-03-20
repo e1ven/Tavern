@@ -290,8 +290,31 @@ h6 {
          
 /*---------- COLUMNS AND MESSAGES --------- */
 
+#column2HR {
+  height: 5px;
+  width: 100%;
+  margin-left: 20px;
+  margin-top: 17px;
+  margin-bottom: 17px;
+  background-color: #cccccc;
+  border: none;
+  float: left;   
+}
 
-         
+#column2Topic {
+  font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+  margin-left: 20px;
+  font-weight: bold;
+  color:#000000;
+  text-decoration:none;
+}
+
+#column2MsgCount {
+ font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+ margin-left: 20px;
+ font-weight: normal;
+}
+           
 #rightColumnTopHR {
   height: 5px;
   width: 100%;
@@ -451,6 +474,26 @@ a:link,a:visited {
 text-decoration:none;
 color:#d9d5c4;
 }
+                  
+.column2Buttons {
+  width: 119px;
+  height: 28px;
+  margin-top: 22px;
+  margin-bottom: 18px;
+  border: 1px solid #dedede;
+  background-color: #f6f6f6;
+  @include border-radius(3px);
+  @include background-image(linear-gradient(color-stops(#f9f9f9, #f0f0f0)));
+}
+         
+#column2ButtonLeft {
+  margin-left:20px;
+  margin-right:9px;
+}
+
+#column2ButtonRight {
+  margin-right:15px;
+}
 
 #OlderMessages {
   width:140px;
@@ -467,58 +510,6 @@ color:#d9d5c4;
   min-width:80px;
   width:320px;
   vertical-align:top;
-
-    .column2Buffer {
-      margin-top:20px;
-    }
-
-    #column2HR {
-      height: 5px;
-      width: 100%;
-      margin-left: 20px;
-      margin-top: 17px;
-      margin-bottom: 17px;
-      background-color: #cccccc;
-      border: none;
-      float: left;   
-    }
-    #column2Topic {
-      font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-      margin-left: 20px;
-      font-weight: bold;
-      color:#000000;
-      text-decoration:none;
-    }
-
-
-    #column2MsgCount {
-     font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-     margin-left: 20px;
-     font-weight: normal;
-    }
-      
-                      
-    .column2Buttons {
-      width: 119px;
-      height: 28px;
-      margin-top: 22px;
-      margin-bottom: 18px;
-      border: 1px solid #dedede;
-      background-color: #f6f6f6;
-      @include border-radius(3px);
-      @include background-image(linear-gradient(color-stops(#f9f9f9, #f0f0f0)));
-    }
-             
-    #column2ButtonLeft {
-      margin-left:20px;
-      margin-right:9px;
-    }
-
-    #column2ButtonRight {
-      margin-right:15px;
-    }
-
-  
 }
 
 #column3 {
@@ -553,7 +544,9 @@ color:#d9d5c4;
   float:left;
 }
 
-
+.column2Buffer {
+  margin-top:20px;
+}
         
 .messages {
   padding-bottom:0px;
