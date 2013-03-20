@@ -79,7 +79,7 @@ class ServerSettings():
         if not 'embedded' in self.settings['cache']:
             self.settings['cache']['embedded'] = {}
             self.settings['cache']['embedded']['size'] = 1000
-            self.settings['cache']['embedded']['seconds'] = 3600
+            self.settings['cache']['embedded']['seconds'] = 3601
 
         if not 'user-note' in self.settings['cache']:
             self.settings['cache']['user-note'] = {}
@@ -89,22 +89,22 @@ class ServerSettings():
         if not 'subjects-in-topic' in self.settings['cache']:
             self.settings['cache']['subjects-in-topic'] = {}
             self.settings['cache']['subjects-in-topic']['size'] = 1000
-            self.settings['cache']['subjects-in-topic']['seconds'] = 10
+            self.settings['cache']['subjects-in-topic']['seconds'] = 1
 
         if not 'toptopics' in self.settings['cache']:
             self.settings['cache']['toptopics'] = {}
             self.settings['cache']['toptopics']['size'] = 1
-            self.settings['cache']['toptopics']['seconds'] = 3600
+            self.settings['cache']['toptopics']['seconds'] = 3602
 
-        if not 'frontpage' in self.settings['cache']:
-            self.settings['cache']['frontpage'] = {}
-            self.settings['cache']['frontpage']['size'] = 1000
-            self.settings['cache']['frontpage']['seconds'] = 3600
+        if not 'templates' in self.settings['cache']:
+            self.settings['cache']['templates'] = {}
+            self.settings['cache']['templates']['size'] = 1000
+            self.settings['cache']['templates']['seconds'] = 1
 
         if not 'uasparser' in self.settings['cache']:
             self.settings['cache']['uasparser'] = {}
             self.settings['cache']['uasparser']['size'] = 1000
-            self.settings['cache']['uasparser']['seconds'] = 36000
+            self.settings['cache']['uasparser']['seconds'] = 36001
 
         if not 'topiccount' in self.settings['cache']:
             self.settings['cache']['topiccount'] = {}

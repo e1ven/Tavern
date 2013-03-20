@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 	<!-- Hey, Source Reader!
 	Welcome to Tavern. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
 	This project is Open Source - You can help change it - Check out our Github - https://github.com/e1ven/Tavern
@@ -46,13 +46,10 @@
 	{% if browser['ua_family'] != 'Netscape Navigator' and browser['ua_versions'][0] > 4 %}
 	
 		{% if 'theme' in user.UserSettings %}
-			<link href="/static/css/style-{{user.UserSettings['theme']}}.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/unified-{{user.UserSettings['theme']}}.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 			{% else %}
-			<link href="/static/css/style-default.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/unified-default.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		{% end %}
- 		    <link href="/static/css/video-js.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet">
-		    <link rel="stylesheet" href="/static/css/fontello.min.css?revision={{serversettings.settings['static-revision']}}">
-		    <link rel="stylesheet" href="/static/css/animation.css">
 		    <!--[if IE 7]>
     			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
     		<![endif]-->

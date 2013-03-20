@@ -238,12 +238,15 @@ class memorise(object):
                         # Check to see if we have the value, we're inside the TTL, and we're not over maxsize.
                         # If not true to both, then re-calculate and store.
 
+
                         usecached = False
                         if key in TavernCache.mc:
                             output = TavernCache.mc[key]['value']
                             if self.ttl is None or (time.time() - TavernCache.mc[key]['timeset']) < self.ttl:
                                 output = TavernCache.mc[key]['value']
                                 usecached = True
+
+                        # print("wrapper -  " + str(self.ttl))
 
                         if usecached == False or forcerecache == True:
                             # Allow the caller to send in a "forcerecache" entry

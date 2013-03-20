@@ -1,15 +1,21 @@
 {% extends "tripane.html" %}
 
-{% block column3 %}
-    {% import time %}
-    {% set timeid = int(time.time() * 1000000) %}
 
+{% block column2 %}
+{% end %}
+
+{% block column3 %}
+	
+	{% import TavernUtils %}
+
+	{# TimeID is set here, so it is consistent everywhere in this msg #}
+	{% set timeid = TavernUtils.longtime() %}
 
 	{% if regarding is None %}
 	<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
 	{% end %}
 	<div class="padder">
-		<form  data-persist="garlic" enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
+		<form data-persist="garlic" enctype="multipart/form-data" action="/newmessage" method="post" class="messageform" id='{{timeid}}'>
 			  {% raw xsrf_form_html() %}
 			{% if topic is None %}
 			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
@@ -65,5 +71,7 @@
 		<script defer src="/static/scripts/jquery.iframe-transport.min.js?revision={{serversettings.settings['static-revision']}}"></script>
 		<script defer src="/static/scripts/jquery.fileupload.min.js?revision={{serversettings.settings['static-revision']}}"></script>
 		<script defer src="/static/scripts/newmessage.min.js?revision={{serversettings.settings['static-revision']}}"></script>
+
+	</div> <!-- newmessageform -->
 
 {% end %}

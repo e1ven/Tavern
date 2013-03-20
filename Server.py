@@ -299,8 +299,11 @@ class Server(object):
         return newstr
 
     def sorttopic(self, topic):
-        topic = topic.lower()
-        topic = self.urlize(topic)
+        if topic is not None:
+            topic = topic.lower()
+            topic = self.urlize(topic)
+        else:
+            topic = None
         return topic
 
     def error_envelope(self, error="Error"):

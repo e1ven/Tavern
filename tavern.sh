@@ -23,8 +23,8 @@ fi
 
 if [ "$1" == 'daemon' ]
 then
-    kill `ps aux | grep [w]ebfront | awk {'print $2'}`; nohup ./webfront.py &
-    kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup ./api.py &
+    kill `ps aux | grep [w]ebfront | awk {'print $2'}`; nohup /usr/bin/env python3 ./webfront.py &
+    kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup /usr/bin/env python3 ./webfront.py &
 fi
 
 
@@ -54,8 +54,9 @@ fi
 
 
 # Convert from SCSS to CSS.
-compass compile SASS_files/ -e production
-cp SASS_files/stylesheets/* static/css/
+echo "Converting from SASS to CSS"
+compass compile static/sass/ -e production
+cp static/sass/css/* static/css/
 
 
 
@@ -148,15 +149,23 @@ do
     touch tmp/checked/$filehash.exists
 done
 
-cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js  static/scripts/spin.min.js > static/scripts/unified.js
-echo "Combining JS.."
+echo "Combining CSS.."
+# No need to re-minimize the CSS, it's already OK.
+for i in `ls static/css/style-*.min.css`
+do  
+    echo $i
+    cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css > static/css/unified-default.min.css
+done
+
+
+echo "Combining and further minimizing JS.."
+cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js  static/scripts/spin.min.js > static/scripts/unified.js
+
+# It's smaller if we re-minimize afterwords. 
 filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
 if [ ! -f tmp/unchecked/$filehash.exists ]
 then
     $yui static/scripts/unified.js > static/scripts/unified.min.js
-    echo -e "\t $basename"
-
-    # Reformatted
 else
     : # No Reformatting needed 
 fi
@@ -188,7 +197,7 @@ if [ "$1" == 'daemon' ]
 then
     tail -f `hostname`.log nohup.out
 else
-    ./webfront.py
+    /usr/bin/env python3 ./webfront.py
 fi
 
 

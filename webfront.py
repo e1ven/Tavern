@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-#
 # Copyright 2012 Tavern
 
 
@@ -69,6 +67,10 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
     
+<<<<<<< HEAD
+=======
+    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+>>>>>>> Improve fit in the new Template
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -100,6 +102,7 @@ class BaseHandler(tornado.web.RequestHandler):
             ptext = ptext + a
         self.write(ptext)
 
+<<<<<<< HEAD
     def finish(self, divs=['wrappertable'], message=None):
         if "js" in self.request.arguments:
             if "singlediv" in self.request.arguments:
@@ -110,18 +113,38 @@ class BaseHandler(tornado.web.RequestHandler):
             if 'time_privkey' in self.user.UserSettings:
                 if int(time.time()) - self.user.UserSettings['time_privkey'] < 60:
                     divs.append('column1')
+=======
+    def finish(self, divs=['html'], message=None):
+        """
+        Pulls in appropriate divs and serves them out via JS if possible.
+        This saves bits, and keeps the columns as you left them.
+        """
 
+        # If they ask for the JS version, we'll calculate it.
+        if "js" in self.request.arguments:
+>>>>>>> Improve fit in the new Template
+
+            # Send the header information with the new name, then each div, then the footer.
+            super(BaseHandler, self).write(self.getjssetup())
             for div in divs:
-                super(BaseHandler, self).write(self.getjs(div))
+                super(BaseHandler, self).write(self.getjselement(div))
+            super(BaseHandler, self).write(self.getjsfooter())
+
+
+        # GetOnly is used to request only specific divs.
+        # And example is requesting the message reply inline.
 
         elif "getonly" in self.request.arguments:
-            #Get ONLY the div content marked
             for div in divs:
                 super(BaseHandler, self).write(self.getdiv(div))
+
+        # If we're here, send the whole page as a regular view.
         else:
             super(BaseHandler, self).write(self.html)
+
         if "js" in self.request.arguments:
             self.set_header("Content-Type", "application/json")
+
         super(BaseHandler, self).finish(message)
 
     @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
@@ -133,16 +156,11 @@ class BaseHandler(tornado.web.RequestHandler):
         if soupyelement is not None:
             for child in soupyelement.contents:
                 soupytxt += str(child)
-        print(soupytxt)
         return soupytxt
 
+
     @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
-    def getjs(self, element):
-        """
-        Get the element text, remove all linebreaks, and escape it up.
-        Then, send that as a document replacement
-        Also, rewrite the document history in the browser, so the URL looks normal.
-        """
+    def getjssetup(self):
         jsvar = self.request.uri.find("js=")
         if jsvar > -1:
             #This should always be true
@@ -171,31 +189,23 @@ class BaseHandler(tornado.web.RequestHandler):
                 else:
                     #There are no other variables. Delete until End of string
                     finish = ""
-                modifiedurl = modifiedurl[0:
-                                          modifiedurl.find("timestamp=") - 1] + finish
+                modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") - 1] + finish
 
         try:
             soup = BeautifulSoup(self.html)
         except:
             print('malformed data in BeautifulSoup')
             raise
-        soupyelement = soup.find(id=element)
         if soup.html is not None:
-            newtitle = soup.html.head.title.string.rstrip().lstrip()
+            # Need to escape, since BS4 turns this back into evil html.
+            newtitle = tornado.escape.xhtml_escape(soup.html.head.title.string.rstrip().lstrip())
         else:
-            print("Equals None?!")
+            print("No Title?!??!?!")
             print(self.html)
-            newtitle = soup.html.head.title.string.rstrip().lstrip()
+            newtitle = "Error"
 
-        soupytxt = ""
-        if soupyelement is not None:
-            for child in soupyelement.contents:
-                soupytxt += str(child)
-
-        escapedtext = soupytxt.replace("\"", "\\\"")
-        escapedtext = escapedtext.replace("\n", "")
-
-        return ('''var tavern_replace = function()
+        ret =  '''
+                var tavern_setup = function()
                 {
                     var stateObj =
                     {
@@ -207,17 +217,44 @@ class BaseHandler(tornado.web.RequestHandler):
                     {
                         window.history.pushState(stateObj, "","''' + modifiedurl + '''");
                     }
-                    document.getElementById("''' + element + '''").innerHTML="''' + escapedtext + '''";
-                    jQuery('#spinner').hide();
                 };
-                tavern_replace();
-                tavern_replace = null;
+                '''
+
+        return (ret)
+
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['frontpage']['seconds'], maxsize=serversettings.settings['cache']['frontpage']['size'])
+    def getjselement(self, element):
+        """
+        Get the element text, remove all linebreaks, and escape it up.
+        Then, send that as a document replacement
+        Also, rewrite the document history in the browser, so the URL looks normal.
+        """
+
+        try:
+            soup = BeautifulSoup(self.html)
+        except:
+            print('malformed data in BeautifulSoup')
+            raise
+        soupyelement = soup.find(id=element)
+        soupytxt = ""
+        if soupyelement is not None:
+            for child in soupyelement.contents:
+                soupytxt += str(child)
+
+        escapedtext = soupytxt.replace("\"", "\\\"")
+        escapedtext = escapedtext.replace("\n", "")
+
+        return ('document.getElementById("' + element + '").innerHTML="' + escapedtext + '";')
+
+    def getjsfooter(self):
+        # The stuff at the bottom of the JS file.
+        ret =   '''
+                jQuery('#spinner').hide();
+                tavern_setup();
+                tavern_setup =  null;
                 ''' + server.cache['instance.js']
-                +
-                '''
-                // Any other code here.
-                '''
-                )
+        return(ret)
+
 
     def chunks(self, s, n):
         """
@@ -337,7 +374,6 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
             self.browser = server.browserdetector.parse(ua)
-            print(self.browser)
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
@@ -393,12 +429,16 @@ class TriPaneHandler(BaseHandler):
     It renders the main tri-panel interface, and only pushes out the parts that are needed.
     """
     def get(self, param1=None, param2=None, param3=None):
-        self.getvars()
-
+        
         # We want to assign the parameters differently, depending on how many there are.
         # Normally, we'd just say get(action=None,param=None,bullshit=None)
         # But in this scenerio, we want the second param to be the text, if there are three, and have the ID as #3
         # But if there are only two, the second param should be the ID.
+
+        self.getvars()
+
+        # Mark this as None up here, so if it changes we know.
+        displayenvelope = None
 
         # Count up our number of parameters.
         if param3 is None:
@@ -444,7 +484,11 @@ class TriPaneHandler(BaseHandler):
             before = None
 
         if action == "topic":
+<<<<<<< HEAD
             divs = ['column1', 'column2', 'column3']
+=======
+            divs = ['column2','column3']
+>>>>>>> Improve fit in the new Template
 
             if topic != 'sitecontent':
                 canon = "topic/" + topic
@@ -452,11 +496,18 @@ class TriPaneHandler(BaseHandler):
             else:
                 canon = ""
                 title = "Discuss what matters"
-            displayenvelope = topictool.messages(topic=topic,maxposts=1)[0]
+            topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
+
+            if len(topicEnvelopes) > 0:
+                displayenvelope = topicEnvelopes[0]
 
         if action == "message":
 
+<<<<<<< HEAD
             # We need both center and right, since the currently active message changes in the center.
+=======
+            # We need both col2 and col3, since the currently active message changes in the col2.
+>>>>>>> Improve fit in the new Template
             divs = ['column2', 'column3']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
@@ -466,15 +517,7 @@ class TriPaneHandler(BaseHandler):
                 canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
 
-        if displayenvelope is None:
-            # Can't find a message ;(
-            e = server.error_envelope("Can't find your message")
-            displayenvelope = e.dict
-            messageid = e.payload.hash()
-            title = "Can't find your message"
-            topic = "sitecontent"
-            # Set the canon URL to be whatever we just got, since obviously we just got it.
-            canon = self.request.path[1:]
+
 
         # Detect people accessing via odd URLs, but don't do it twice.
         # Check for a redirected flag.
@@ -528,7 +571,7 @@ class AllTopicsHandler(BaseHandler):
         self.write(self.render_string('alltopics.html',
                    topics=alltopics, toptopics=toptopics))
         self.write(self.render_string('footer.html'))
-        #self.finish(divs=['right'])
+        #self.finish(divs=['column3'])
 
 
 class TopicPropertiesHandler(BaseHandler):
@@ -842,7 +885,11 @@ class ChangeManySettingsHandler(BaseHandler):
 
         server.logger.info("set")
         if "js" in self.request.arguments:
+<<<<<<< HEAD
             self.finish(divs=['column1'])
+=======
+            self.finish(divs=['column3'])
+>>>>>>> Improve fit in the new Template
         else:
             keyurl = ''.join(self.user.Keys.pubkey.split())
             self.redirect('/user/' + keyurl)
@@ -874,7 +921,11 @@ class ChangeSingleSettingHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
         if "js" in self.request.arguments:
+<<<<<<< HEAD
             self.finish(divs=['column1'])
+=======
+            self.finish(divs=['column3'])
+>>>>>>> Improve fit in the new Template
         else:
             if redirect == True:
                 self.redirect("/")
@@ -1041,7 +1092,7 @@ class NewmessageHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Post a new message", rsshead=None, type=None))
-        self.write(self.render_string('newmessageform.html', regarding=regarding, topic=topic, args=self.request.arguments))
+        self.write(self.render_string('newmessageform.html',regarding=regarding, topic=topic, args=self.request.arguments))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['column3'])
 

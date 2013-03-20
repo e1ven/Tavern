@@ -162,7 +162,6 @@ jQuery(document).ready(function() {
 
       var spinner = new Spinner(opts).spin();
       jQuery("#spinner").html(spinner.el);
-      jQuery("#spinner").css("position","relative");
       jQuery("#spinner").addClass("clear");
       jQuery("#spinner").css("background","grey");
       
@@ -182,8 +181,10 @@ jQuery(document).ready(function() {
     // Place the spinner for all tagged links.
     jQuery(document).on('click','.internal',function(event)
         {
+
+        // Don't fire off more than once.
         event.preventDefault();
-        event.stopPropagation();
+        event.stopImmediatePropagation();
         
         // set the main spinner block, including the dimming
         jQuery('#spinner').show()

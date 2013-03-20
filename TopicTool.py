@@ -34,7 +34,7 @@ class TopicTool(object):
         else:
             for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
                 subjects.append(envelope)
-        
+    
         return subjects
 
     @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
@@ -83,7 +83,6 @@ class TopicTool(object):
     @memorise(ttl=serversettings.settings['cache']['topiccount']['seconds'], maxsize=serversettings.settings['cache']['topiccount']['size'])
     def topicCount(self,topic,after=0,before=None,toponly=True):
         
-
         # Don't do this in the def, so that our cache is respected.
         if before == None:
             before=TavernUtils.inttime()
