@@ -2,10 +2,12 @@
 # This is a wrapper script that fires up Tavern both on Linux and OSX.
 # To do so, it performs a few tests, as well as compressing files where possible.
 
+numservers=4
 # First, create two working directories
 mkdir -p tmp/checked
 mkdir -p tmp/unchecked
 mkdir -p tmp/gpgfiles
+mkdir -p logs
 
 # First, determine if we're running the program as root.
 # If we are, restart nginx if possible.
@@ -23,8 +25,14 @@ fi
 
 if [ "$1" == 'daemon' ]
 then
-    kill `ps aux | grep [w]ebfront | awk {'print $2'}`; nohup /usr/bin/env python3 ./webfront.py &
-    kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup /usr/bin/env python3 ./webfront.py &
+    kill `ps aux | grep [w]ebfront | awk {'print $2'}`
+    for ((i=0;i<=numservers;i++))
+	do
+		port=$((8080 +i))
+		echo "Starting on port $port"
+ 		nohup /usr/bin/env python3 ./webfront.py --port=$port > logs/webfront-$port.log &
+	done
+    kill `ps aux | grep [a]pi | awk {'print $2'}`; nohup /usr/bin/env python3 ./api.py > logs/api.log &
 fi
 
 
@@ -174,7 +182,7 @@ touch tmp/checked/$filehash.exists
 
 
 echo "Ensuring Proper Python formatting.."
-for i in `find . -name "*.py" -maxdepth 1`
+for i in `find . -maxdepth 1 -name "*.py"`
 do
     filehash=`cat $i | $hash | cut -d" " -f 1`
     basename=`basename $i ".css"`
@@ -195,7 +203,7 @@ rm tmp/unchecked/*.exists
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]
 then
-    tail -f `hostname`.log nohup.out
+    tail -f logs/*
 else
     /usr/bin/env python3 ./webfront.py
 fi

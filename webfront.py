@@ -29,6 +29,7 @@ from TopicTool import topictool
 from TavernUtils import memorise
 import TavernUtils
 from ServerSettings import serversettings
+from tornado.options import define, options
 
 try:
     from hashlib import md5 as md5_func
@@ -1394,7 +1395,7 @@ class VerificationHandler(BaseHandler):
     For users who aren't using nginx (like in dev), this will pull in the avatars
     """
     def get(self):
-        self.write("loaderio-cb454ee57f12e8bf44686d5825fd7db1")
+        self.write("loaderio-a80dc3024db2124fb7410acd64bb7e19")
 
 
 
@@ -1407,6 +1408,7 @@ class AvatarHandler(BaseHandler):
         self.redirect('https://robohash.org/' + avatar + "?" + "set=" + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size'))
 
 
+define("port", default=8080, help="run on the given port", type=int)
 def main():
     tornado.options.parse_command_line()
     # timeout in seconds
@@ -1463,7 +1465,7 @@ def main():
         (r"/avatar/(.*)", AvatarHandler),
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
-        (r"/loaderio-cb454ee57f12e8bf44686d5825fd7db1.txt",VerificationHandler), 
+        (r"/loaderio-a80dc3024db2124fb7410acd64bb7e19.txt",VerificationHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
          os.path.join(os.path.dirname(__file__), "static/")}),
         (r"/(.*)/(.*)/(.*)", TriPaneHandler),
@@ -1472,9 +1474,10 @@ def main():
     ], **settings)
 
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(8080)
+    http_server.listen(options.port)
+
     server.logger.info(
-        serversettings.settings['hostname'] + ' is ready for requests.')
+        serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
     tornado.ioloop.IOLoop.instance().start()
 
 if __name__ == "__main__":

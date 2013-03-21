@@ -8,3 +8,5 @@ __pycache__
 tmp
 *.min.js
 *.min.css
+logs
+.sass-cache
