@@ -210,7 +210,7 @@ class UASparser:
             if len(result) > 0:
                 ret['ua_version'] = result[0]
             else:
-                ret['ua_version'] = 'unknown0.0.0'
+                ret['ua_version'] = '0.0.0'
             result = re.findall('[^\[\]]+', ret['ua_name'])
 
         if ret['ua_version'] is not None:
