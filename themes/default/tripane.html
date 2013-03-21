@@ -5,35 +5,18 @@
 <table id="wrappertable" cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
-            <div id="scrollablediv1" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+            <div id="scrollablediv1" class="fullscroller">
         		{% block column1 %}
 
 
 
-                <a href="/"><img id="logo" src="/static/images/logo.png" alt="TAVERN" style="margin-bottom:20px"/></a>
+                <a href="/"><img id="logo" src="/static/images/logo.png" alt="TAVERN"/></a>
                 
                 <ul class="accordion">      
 
                     {% if user.isLoggedIn() %}
                     <li id="two" class="mainheader"><a href="#">Your Account</a>
-                        <ul  class="sub-menu" style="
-                                padding-top: 20px;
-                                padding-left: 10px;
-                                padding-right: 10px;
-                                color: #000000;
-                                background-color: #404247;
-                                border-bottom: 1px solid #2B1306;
-                                font-weight: 900 !important;
-                                min-width: 110px;
-                                
-                                font: bold 14px/32px Arial, sans-serif;
-                                text-decoration: none;
-                                text-shadow: 0px 1px 0px rgba(0,0,0, .35);
-                                text-align: center;
-                                margin-bottom: 10px;
-                                margin-top: 0px;
-                                -webkit-box-shadow: inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1);
-                                ">
+                        <ul  class="sub-menu">
                             <a href="/user/{{user.UserSettings['pubkey']}}">
                                 <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100" style="-moz-border-radius:12px-webkit-border-radius: 12px; border-radius: 12px;display:block;margin-left:auto;margin-right:auto;"/>
                             </a>
@@ -48,35 +31,20 @@
                     </li>
                     {% else %}
                     <li id="two" class="mainheader"><a href="#">Register or Login</a>
-                        <ul  class="sub-menu" style="margin-top: 20px;
-                                padding-top: 20px;
-                                padding-left: 10px;
-                                padding-right: 10px;
-                                color: #000000;
-                                background-color: #404247;
-                                border-bottom: 1px solid #2B1306;
-                                font-weight: 900 !important;
-                                min-width: 110px;
-                                
-                                font: bold 16px/32px Arial, sans-serif;
-                                text-decoration: none;
-                                text-shadow: 0px 1px 0px rgba(0,0,0, .35);
-                                text-align: center;
-                                margin-bottom: 10px;
-                                margin-top: 0px;
-                                -webkit-box-shadow: inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1);
-                                ">
-                            <form action="/login" method="post">
-                              {% raw xsrf_form_html() %}
-                            <p>
-                            Username: <input type="text" name="username">
-                            </p><p>
-                            Password: <input type="password" name="pass">
-                            </p>
-                            <p>
-                            <input type="submit" value="Login">
-                            </p>
-                            </form>
+                        <ul  class="sub-menu">
+                            <div id="login">
+                                <form action="/login" method="post">
+                                  {% raw xsrf_form_html() %}
+                                <p>
+                                Username: <input type="text" name="username">
+                                </p><p>
+                                Password: <input type="password" name="pass">
+                                </p>
+                                <p>
+                                <input type="submit" value="Login">
+                                </p>
+                                </form>
+                            </div>
                         </ul>
                     {% end %}
                     <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
@@ -114,7 +82,7 @@
             </div>
             </td>
             <td id="column2" valign="top" >
-                <div id="scrollablediv2" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+                <div id="scrollablediv2" class="fullscroller">
                     {% block column2 %}
 
 
@@ -209,7 +177,7 @@
                 </div>
             </td>
             <td id="column3" valign="top">
-                <div id="scrollablediv3" style="overflow-y: auto;overflow-x:none;height:100%; width:100%">
+                <div id="scrollablediv3" class="fullscroller">
 
                 {% block column3 %}
                 {% end %}

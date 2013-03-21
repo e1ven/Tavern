@@ -162,15 +162,6 @@ jQuery(document).ready(function() {
 
       var spinner = new Spinner(opts).spin();
       jQuery("#spinner").html(spinner.el);
-      jQuery("#spinner").addClass("clear");
-      jQuery("#spinner").css("background","grey");
-      
-      jQuery(".spinnerimg").css("filter:","progid:DXImageTransform.Microsoft.Alpha(Opacity=100)");
-      jQuery(".spinnerimg").css("opacity:","1.0");
-      jQuery(".spinnerimg").css("float","right");
-      jQuery(".spinnerimg").css("margin-right","20px");
-      jQuery(".spinnerimg").css("top","50%");
-
 
     }
     else

@@ -63,6 +63,7 @@ fi
 
 # Convert from SCSS to CSS.
 echo "Converting from SASS to CSS"
+rm static/sass/css/*
 compass compile static/sass/ -e production
 cp static/sass/css/* static/css/
 

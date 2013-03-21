@@ -1,0 +1,742 @@
+@import "reset.scss";
+@import "compass";
+
+
+$purple: #4c4c9c;
+$greybrown: #56504d;
+$grey: #cccccc;
+$ltgrey: #eaeaea;
+$dkgrey: #333333;
+$bluegrey: #404247;
+
+$nearblack: #0f0f0e;
+$creme: #e6e2d7;
+
+$gradient1: #2d2d2d;
+$gradient2: #393939;
+
+$gradientHL: mix($creme,lighten(mix($gradient1,$gradient2),10%));
+
+a {
+    &:focus {
+      outline: thin dotted #333;
+      outline: 5px auto -webkit-focus-ring-color;
+      outline-offset: -2px;
+    }
+
+    &:hover,
+    &:active {
+    	outline: 0;
+    	color:#BBBBBB;
+    	text-decoration: none;
+        color: $purple;
+    }
+}
+
+form.vote {
+      animation-duration: 0.001s;
+      -o-animation-duration: 0.001s;
+      -ms-animation-duration: 0.001s;
+      -moz-animation-duration: 0.001s;
+      -webkit-animation-duration: 0.001s;
+      animation-name: nodeInserted;
+      -o-animation-name: nodeInserted;
+      -ms-animation-name: nodeInserted;        
+      -moz-animation-name: nodeInserted;
+      -webkit-animation-name: nodeInserted;
+}
+      
+#spinner{
+    display: none;
+    position: absolute;
+  	background-color:grey;
+    top: 0%;
+    left: 0%;
+    width: 100%;
+    height: 100%;
+    z-index:1001;
+    @include opacity(0.2);
+    .spinnerimg {
+        @include opacity(1);
+        float:right;
+        margin-right:20px;
+        top:50%;    
+    }
+}
+
+
+.textbutton {
+    // Make buttons look like regular links.
+    position:relative;
+    border: 0px;
+    background-color: transparent;
+    text-decoration:none;  
+    margin: 0;
+    padding: 0;
+        
+        &:hover{
+            @extend a:hover;
+        }
+}
+
+.usernote {
+	border:none;
+	background-color:#ddd;
+	width:90%;
+	&::-moz-placeholder,&::-webkit-input-placeholder{text-align:center;}
+}
+
+/* -----------UPLOAD--------- */
+  
+.uploadfileform{
+    margin-top:-20px;
+   
+    > p
+	{
+	  padding-left: 75px !important;
+	}
+}
+
+.uploadonly{
+    margin-top:10px;
+    margin-left:10px;
+}
+
+.uploadbox{
+    height: 50px;
+    width:50px;
+    border: 2px dashed;
+    float:left;
+    border-color:#999999;
+}
+.icon-up-circle2{
+    font-size: 35px;
+    bottom:-7px;
+    right:-7px;
+    position:relative;
+    color:#999999;
+
+	&:hover{
+        color:#000000;
+    }
+}
+
+.hiddenupload{
+    display:none;
+}
+
+.fullscroller 
+{
+    // Makes the div columns scrollable
+    overflow-y: auto;
+    overflow-x:hidden;
+    height:100%;
+    width:100%;
+}
+
+/* Columns Begin */
+#column1 {
+    min-width: 80px;
+    width:180px;
+    vertical-align: top;
+    background-color: $greybrown;
+    background-image: url(/static/images/texture.png);
+    background-repeat: repeat;
+    font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-weight: 300;
+
+    .accordion {
+        margin: 0;
+        padding: 0;
+        border: none;
+        outline: none;
+        list-style: none;
+   
+        .mainheader {
+            border-bottom: solid 1px #000000 !important;
+        }
+
+        > li {
+            list-style:none;
+
+            &:hover > a,&:target > a,> a.active{
+                color: #000000 !important;
+                text-shadow: 1px 1px 1px rgba(255,255,255, .2);
+                font-weight:900 !important;
+
+                // Find the midpoint of the gradients, 
+                // Lighten it, then mix it with Creme.
+
+                background: $gradientHL;
+                span{
+                    background: lighten($gradientHL,10%);
+                }
+            }
+
+            > a {
+
+                padding-top: 5px;
+                padding-right: 20px;
+                padding-bottom: 5px;
+                padding-left: 20px;
+            
+                display: block;
+                position: relative;
+                min-width: 110px;
+             
+                font: 12px/32px Arial, sans-serif;
+                text-decoration: none;
+                text-shadow: 0px 1px 0px rgba(0,0,0, .35);
+             
+                background-color: $dkgrey; 
+                color: $grey;
+
+                @include background-image(linear-gradient($gradient1, $gradient2));
+                @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
+            }
+
+            >a span {
+                display: block;
+                position: absolute;
+                top: 7px;
+                right: 0;
+                padding: 0 10px;
+                margin-right: 10px;
+             
+                font: normal bold 12px/18px Arial, sans-serif !important;
+                background: lighten(mix($gradient1, $gradient2),10%);
+
+                @include border-radius(15px);
+                @include box-shadow(inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1));
+            }
+
+            &:target > .sub-menu {
+                display: block;
+            }
+
+
+            > .sub-menu {
+
+                color: #000000;
+
+                background-color: $bluegrey;
+                font-weight: 600 !important;
+                
+                font: bold 14px/32px Arial, sans-serif;
+                text-decoration: none;
+                text-shadow: 0px 1px 0px rgba(0,0,0, .35);
+                text-align: left;
+                margin-bottom: 0px;
+
+                li {
+                    @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
+                    border-bottom: 1px solid #2B1306;
+
+                    > a {
+                        color: $grey;
+                        padding-top: 5px;
+                        padding-right: 40px;
+                        padding-bottom: 5px;
+                        padding-left: 20px;
+                    
+                        display: block;
+                        position: relative;
+                        min-width: 110px;
+                        font: 12px/32px Arial, sans-serif;
+                        text-decoration: none;
+                        text-shadow: 0px 1px 0px rgba(0,0,0, .35);
+                     
+                        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+
+                        @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
+
+                        &:hover {
+                            color: #0f0f0e;
+                            background-color: mix($creme,lighten($bluegrey,40%));
+                            > span{
+                                background: lighten(mix($creme,lighten($bluegrey,40%)),10%);
+                            }
+
+                        }
+                    }
+
+                    > a span {
+                        display: block;
+                        position: absolute;
+                        top: 7px;
+                        right: 0;
+                        padding: 0 10px;
+                        margin-right: 10px;
+                        background-color: lighten($bluegrey,10%);
+
+                        font: normal bold 12px/18px Arial, sans-serif !important;
+
+                        @include border-radius(15px);
+                        @include box-shadow(inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1));
+                    
+                    }
+
+
+                    &:last-child a {
+                        border: none; 
+                    }
+                }
+
+                #login {
+                    padding-left:15px;
+                    padding-top:15px;
+                    padding-bottom:15px;
+                }
+
+
+            } // Submenu
+
+        } // li
+
+    } // accordian
+ } // column1
+      
+ 
+#column2 {
+    min-width: 80px;
+    width:320px;
+    vertical-align: top;
+
+        #column2HR {
+            height: 5px;
+            width: 100%;
+            margin-left: 20px;
+            margin-top: 17px;
+            margin-bottom: 17px;
+            background-color: #cccccc;
+            border: none;
+            float: left;
+        }
+        #column2Topic {
+            font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            margin-left: 20px;
+            font-weight: bold;
+            color:#000000;
+            text-decoration:none;
+        }
+                
+        #column2MsgCount {
+           font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+           margin-left: 20px;
+           font-weight: normal;
+        }
+
+        .column2Buttons {
+            width: 119px;
+            height: 28px;
+            margin-top: 22px;
+            margin-bottom: 18px;
+            border: 1px solid #dedede;
+            background-color: #f6f6f6;
+            @include border-radius(3px);
+            @include background-image(linear-gradient(color-stops(#f9f9f9, #f0f0f0)));
+        }
+
+        #column2ButtonLeft {
+            margin-left: 20px;
+            margin-right: 9px;
+        }
+
+        #column2ButtonRight {
+            margin-right: 15px;
+        }
+
+        #OlderMessages {
+            width: 140px;
+            margin-right: 15px;
+        }
+
+        #NewerMessages {
+            width: 140px;
+            margin-left: 20px;
+            margin-right: 9px; 
+        }
+
+        .navIcon {
+            font-size:20px;
+            float:left;
+        }
+
+           
+        .messages {
+            padding-bottom:0px;
+            max-height: 55px;
+            margin-right:15px;
+            border-top: 1px solid #dbdada;
+            border-right: 1px solid #dbdada;
+            border-bottom: 1px solid #d0cfcf;
+            background-color: #ebebeb;
+            @include background-image(linear-gradient(color-stops( #f7f7f7, #e7e7e7)));
+            overflow:hidden;
+            &:hover{
+                background: lighten($creme,10%);
+            }
+        }
+            
+        .messagesPadding {
+            font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            color: #666666;
+            margin-left: 22px;
+            margin-right: 30px;
+            margin-top: 11px;
+            margin-bottom: 11px;
+        }
+
+}
+
+
+#wrappertable {
+    height:100%;
+    width:100%;
+}
+    
+
+
+#column3 {
+
+    width:100%;
+
+    ul li {
+        padding-left: 20px;
+    }
+
+    h5 {
+        font-size: 28px;
+        height:1em;
+        overflow:hidden;
+        font-style: normal;
+        color: #ece9d7;
+        margin-right: 40px;
+        margin-top: 10px;
+    }
+
+
+    #scrollablediv3 {
+        background: #f9f9f9;
+        padding-right:15px;
+        height:100%;
+    }
+
+    #allreplies{
+        padding-top:10px;
+        padding-bottom:20px;
+    }
+
+    #firstMessage {
+        margin-left:20px;
+        margin-top:35px;
+        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        background-color: #56504d; 
+        background-image: url(/static/images/texture.png);
+    }
+          
+    #bigProfileIcon {
+        margin-left: 14px;
+        margin-right: 14px;
+        margin-top: 12px;
+    }
+
+
+    #rightColumnTopHR {
+        height: 5px;
+        width: 100%;
+        border: none;
+        margin-top: 17px;
+        margin-bottom: 7px;
+        display: block;
+        float: left;
+        background-color: #4a525a;
+    }
+    .firstMessageAuthorInfo {
+        font-size: 15px;
+        color: #ece9d7;
+        margin-top: 10px;
+        padding-bottom: 10px;
+    }
+
+    .firstMessageDate {
+        font-size: 15px;
+        color: #ece9d7;
+        margin-bottom: 10px;
+    }
+            
+    #firstMessageBody {
+        margin-bottom: 18px;
+        margin-top: 22px;
+        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        color: #ffffff;
+        font: 13px;
+        line-height: 16px;
+      }
+              
+    .firstMessageSeparationLine {
+        height: 1px;
+        width: 422px;
+        border: none;
+        background-color: #898c8e;
+        margin-left: 0px;
+        }
+                    
+    .commentSeparationLine {
+        height: 1px;
+        width: 422px;
+        border: none;
+        background-color: #898c8e;
+        margin-left: 14px;
+        margin-right: 14px;
+        margin-top: 13px;
+        margin-bottom: 10px;
+        float: left;
+      }
+                
+    .commentSeparation {
+        height: 1px;
+        width: 100%;
+        border: none;
+        display: block;
+        float: left;
+        background-color: #cccccc;
+      }
+                  
+    .messageDate {
+        font-size: 15px;
+        color: #000000;
+        margin-bottom: 10px;
+    }
+
+         
+    #firstMessageLinks {
+        margin-left:9px;
+    }
+
+    .messageCommands
+    {
+        margin-left:250px;
+    }
+
+    .messageReplyLink
+    {
+        margin-left:350px;
+    }
+         
+    .iconLabels {
+        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        font-size: 12px;
+        font-weight: bold;
+        margin-left: 5px;
+        margin-right: 20px;
+    }
+         
+    .iconLabelColorDark {
+        color: #666666 !important;
+    }
+         
+    .iconLabelColorLight {
+        color: #d6d6d6;
+    }
+           
+    #lowerCommentSeparation {
+        width:100%;
+    }
+         
+    .likeDislikeIcon {
+        margin-bottom: 8px;
+    }
+           
+    .likeDislikeLabel {
+       margin-left: 5px;
+       margin-bottom: 11px;
+    }
+        
+    #scrollBar {
+        margin-top: 11px;
+        margin-bottom: 17px;
+    }
+          
+    .commentDisplayOptions {
+        margin-top: 15px;
+        margin-right: 20px;
+    }
+            
+    .buffer {
+        margin-left: 14px;
+    }
+            
+    .paraBuffer {
+        margin-top: 19px;
+        margin-bottom: 17px;
+    }
+
+
+    .comment {
+        width: auto;
+        padding: 20px;
+        background: #eaeaea;
+        border-radius: 8px;
+        @include box-shadow(8px);
+        @include box-shadow( 0px 3px 3px #b5b39a);
+        margin-top:10px;
+    }
+
+    .darkClass
+    {
+        background-color: white;
+        @include opacity(0.5); 
+    }
+
+    #sliderResults{
+        position:relative;
+        top:20px; 
+    }
+
+    #commentSliderWrapper{
+        width:418px;
+        margin-top:10px;
+        // margin-left is to counteract the endcap
+        margin-left:11px;
+    }
+
+    #shownComments{
+        background: url('/static/images/shownComments.png') repeat-x;
+        vertical-align:text-top;
+        overflow:visible;
+
+        &:before
+        { 
+            /* Put in the end cap using css wizardry */
+            background:url(/static/images/leftSliderCap.png);
+            content:"";
+            width:13px;
+            height:20px;
+            position:absolute;
+            top:-0px;
+            left:-13px;
+        }
+
+        span
+        {
+            width:100%;
+            position:relative;
+            display:block;
+            content:"";
+        }
+
+
+        #unshownComments{
+            background:url('/static/images/unshownComments.png') repeat-x;
+            overflow:visible;
+            
+            &:after{
+                /* Put in the end cap using css wizardry */
+                background:url(/static/images/rightSliderCap.png);
+                content: "";
+                width: 13px;
+                height: 20px;
+                position: absolute;
+                top: -0px;
+                left: 100%;
+                margin-left:-1px
+            }   
+        }
+
+        #commentSlider{
+            border:none;
+            td{
+                border:none;
+            }
+        }
+
+        .commentSliderGrip{
+            cursor:e-resize;
+            background-image: url('/static/images/roundslider.png');
+            z-index:8;
+            width:20px;
+            height:20px;
+        }
+    }
+
+
+    .commentavatar
+    {
+      margin-right:10px;
+    }
+
+}
+       
+
+/*Animation Keyframe Classes */
+
+@keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-moz-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-webkit-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-ms-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+@-o-keyframes nodeInserted {  
+    from {  
+        clip: rect(1px, auto, auto, auto);  
+    }
+    to {  
+        clip: rect(0px, auto, auto, auto);
+    }  
+}
+
+
+/*Logo Class*/
+#logo {
+        margin-top: 20px;
+        margin-bottom: 20px;
+
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+
+        }
+
+          
+      button {
+        cursor: pointer;
+        }
+
+        a:link,a:visited {
+          text-decoration: none;
+          color: #d9d5c4;
+          } 
+
+         
+
