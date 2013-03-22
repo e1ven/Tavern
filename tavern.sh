@@ -63,7 +63,17 @@ fi
 
 # Convert from SCSS to CSS.
 echo "Converting from SASS to CSS"
-rm static/sass/css/*
+
+# Remove any old and no longer used generated css files
+for i in `ls static/sass/css/`
+do
+    base=`basename $i .css`
+    if [ ! -f static/sass/scss/$base.scss ]
+        then
+        rm static/sass/css/$i
+    fi
+done
+# Convert the SCSS to CSS and put in production folder
 compass compile static/sass/ -e production
 cp static/sass/css/* static/css/
 

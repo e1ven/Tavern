@@ -237,7 +237,7 @@ class Server(object):
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
         if settingsfile is None:
-            if os.path.isfile('logs/' + platform.node() + ".TavernServerSettings"):
+            if os.path.isfile(platform.node() + ".TavernServerSettings"):
                 #Load Default file(hostnamestname)
                 serversettings.loadconfig()
             else:
@@ -259,7 +259,6 @@ class Server(object):
                                priv=serversettings.settings['privkey'])
 
         self.db = DBWrapper(serversettings.settings['dbtype'])
-
         self.bin_GridFS = GridFS(self.db.binaries)
         serversettings.saveconfig()
 

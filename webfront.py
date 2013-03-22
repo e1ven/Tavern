@@ -1420,6 +1420,8 @@ def main():
     # Generate a default user, to use when no one is logged in.
     # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
     if not 'guestacct' in serversettings.settings:
+    
+        print("NO GUEST...?")
         serveruser = User()
         serveruser.generate(skipkeys=False, password=serversettings.settings[
                             'serverkey-password'])

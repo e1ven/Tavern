@@ -92,7 +92,9 @@ if args.read:
     for topic in args.topic:
         if topic == 'all':
             for idt in os.listdir(msgsdir):
-                print("Loading Topic - " + idt)
-                loaddir(idt)
+                if os.path.isdir(idt):
+                    print("Loading Topic - " + idt)
+                    loaddir(idt)
         else:
-            loaddir(topic)
+            if os.path.isdir(topic):
+                loaddir(topic)

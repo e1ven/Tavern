@@ -1,3 +1,4 @@
+{% import TavernUtils %}
 {% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
 {% if envelope is None %}
     {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
@@ -10,7 +11,7 @@
 <div id="firstMessage" class="comment">
     <ul>
         <li>
-                <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <h5>{{envelope['envelope']['payload']['subject']}}</h5>
                 <p class="firstMessageAuthorInfo">
@@ -104,7 +105,7 @@
 
                 <div id="commentSliderWrapper">
                     <br/><br/>
-                    <table id="commentSlider" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <table class="commentSlider" id="commentSlider_{{TavernUtils.randstr(20, printable=True)}}" width="100%" cellspacing="0" cellpadding="0" border="0">
                         <tr>
                             <td id="shownComments" width="50%">
                                 <span/>
@@ -116,7 +117,9 @@
 
                     <p id="sliderResults">Percent selected : 50%</p>                        
                     <br/><br/>
-                </div> 
+                </div>
+                <div id="reply_{{envelope['envelope']['payload_sha512']}}"></div>
+ 
         </li>
     </ul>     
 </div>

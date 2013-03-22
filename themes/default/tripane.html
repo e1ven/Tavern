@@ -16,9 +16,9 @@
 
                     {% if user.isLoggedIn() %}
                     <li id="two" class="mainheader"><a href="#">Your Account</a>
-                        <ul  class="sub-menu">
+                        <ul  class="sub-element">
                             <a href="/user/{{user.UserSettings['pubkey']}}">
-                                <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100" style="-moz-border-radius:12px-webkit-border-radius: 12px; border-radius: 12px;display:block;margin-left:auto;margin-right:auto;"/>
+                                <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                             </a>
                             {% if user.UserSettings['username'] != "Anonymous" %}
                                 You are logged in as: <br>
@@ -31,7 +31,7 @@
                     </li>
                     {% else %}
                     <li id="two" class="mainheader"><a href="#">Register or Login</a>
-                        <ul  class="sub-menu">
+                        <ul  class="sub-element">
                             <div id="login">
                                 <form action="/login" method="post">
                                   {% raw xsrf_form_html() %}
@@ -48,7 +48,7 @@
                         </ul>
                     {% end %}
                     <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
-                        <ul class="sub-menu">
+                        <ul class="sub-element sub-menu">
                             {% for quicktopic in topictool.toptopics() %}
                                 <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
                                     <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
@@ -60,7 +60,7 @@
                         </ul>
                     </li>
                     <li id="two" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
-                        <ul class="sub-menu">
+                        <ul class="sub-element sub-menu">
                             {% for quicktopic in user.UserSettings['followedTopics'] %}
                                 <li {%if quicktopic == topic %} class="active"{% end %} >
                                     <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
@@ -69,7 +69,7 @@
                         </ul>
                     </li>
                     <li id="four" class="mainheader"><a href="#">Special</a>
-                        <ul class="sub-menu">
+                        <ul class="sub-element sub-menu">
                             <li><a href="/topic/all">All Messages</a></li>
                             <li><a href="/alltopics">All Topics</a></li>
                         </ul>

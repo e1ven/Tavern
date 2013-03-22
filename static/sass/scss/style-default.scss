@@ -17,6 +17,22 @@ $gradient2: #393939;
 
 $gradientHL: mix($creme,lighten(mix($gradient1,$gradient2),10%));
 
+
+@mixin trivialAnimation(){
+    // Animation used to trigger an event
+    animation-duration: 0.001s;
+    -o-animation-duration: 0.001s;
+    -ms-animation-duration: 0.001s;
+    -moz-animation-duration: 0.001s;
+    -webkit-animation-duration: 0.001s;
+    animation-name: nodeInserted;
+    -o-animation-name: nodeInserted;
+    -ms-animation-name: nodeInserted;        
+    -moz-animation-name: nodeInserted;
+    -webkit-animation-name: nodeInserted;
+}
+
+
 a {
     &:focus {
       outline: thin dotted #333;
@@ -34,16 +50,7 @@ a {
 }
 
 form.vote {
-      animation-duration: 0.001s;
-      -o-animation-duration: 0.001s;
-      -ms-animation-duration: 0.001s;
-      -moz-animation-duration: 0.001s;
-      -webkit-animation-duration: 0.001s;
-      animation-name: nodeInserted;
-      -o-animation-name: nodeInserted;
-      -ms-animation-name: nodeInserted;        
-      -moz-animation-name: nodeInserted;
-      -webkit-animation-name: nodeInserted;
+    @include trivialAnimation();
 }
       
 #spinner{
@@ -80,6 +87,7 @@ form.vote {
 }
 
 .usernote {
+    @include trivialAnimation();
 	border:none;
 	background-color:#ddd;
 	width:90%;
@@ -134,16 +142,47 @@ form.vote {
     width:100%;
 }
 
+
+.internal
+{
+    @include trivialAnimation();
+}
+.followtopic
+{
+    @include trivialAnimation();
+}
+.checkalways
+{
+    @include trivialAnimation();
+}
+.embeddedcontentnote
+{
+    @include trivialAnimation();
+}
+a.details
+{
+    @include trivialAnimation();
+}
+
+
 /* Columns Begin */
 #column1 {
     min-width: 80px;
     width:180px;
+    height:100%;
     vertical-align: top;
     background-color: $greybrown;
     background-image: url(/static/images/texture.png);
     background-repeat: repeat;
     font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
+
+    #youravatar{
+        @include border-radius(12px);
+        display:block;
+        margin-left:auto;
+        margin-right:auto;
+    }
 
     .accordion {
         margin: 0;
@@ -214,19 +253,27 @@ form.vote {
                 display: block;
             }
 
-
-            > .sub-menu {
-
+            > .sub-element {
+                
+                padding-top:10px;
+                padding-bottom:10px;
+                padding-left:10px;
+                padding-right:10px;
                 color: #000000;
 
                 background-color: $bluegrey;
                 font-weight: 600 !important;
-                
+
                 font: bold 14px/32px Arial, sans-serif;
                 text-decoration: none;
                 text-shadow: 0px 1px 0px rgba(0,0,0, .35);
                 text-align: left;
                 margin-bottom: 0px;
+                }
+
+            > .sub-menu {
+                @extend .sub-element;
+                padding: 0 0 0 0;
 
                 li {
                     @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
@@ -300,6 +347,7 @@ form.vote {
 #column2 {
     min-width: 80px;
     width:320px;
+    height:100%;
     vertical-align: top;
 
         #column2HR {
@@ -398,7 +446,7 @@ form.vote {
 
 
 #column3 {
-
+    height:100%;
     width:100%;
 
     ul li {
@@ -589,6 +637,10 @@ form.vote {
         @include opacity(0.5); 
     }
 
+    .reply {
+    @include trivialAnimation();
+    }
+
     #sliderResults{
         position:relative;
         top:20px; 
@@ -599,7 +651,30 @@ form.vote {
         margin-top:10px;
         // margin-left is to counteract the endcap
         margin-left:11px;
+
     }
+
+    .commentSlider{
+        @include trivialAnimation();
+
+        border:none;
+        position:relative;
+        width:418px;
+        td{
+            border:none;
+        }
+    }
+
+
+    .commentSliderGrip{
+        cursor:e-resize;
+        background-image: url('/static/images/roundslider.png');
+        z-index:8;
+        width:20px;
+        height:20px;
+    }
+
+
 
     #shownComments{
         background: url('/static/images/shownComments.png') repeat-x;
@@ -625,52 +700,70 @@ form.vote {
             display:block;
             content:"";
         }
+    }
 
-
-        #unshownComments{
-            background:url('/static/images/unshownComments.png') repeat-x;
-            overflow:visible;
-            
-            &:after{
-                /* Put in the end cap using css wizardry */
-                background:url(/static/images/rightSliderCap.png);
-                content: "";
-                width: 13px;
-                height: 20px;
-                position: absolute;
-                top: -0px;
-                left: 100%;
-                margin-left:-1px
-            }   
-        }
-
-        #commentSlider{
-            border:none;
-            td{
-                border:none;
-            }
-        }
-
-        .commentSliderGrip{
-            cursor:e-resize;
-            background-image: url('/static/images/roundslider.png');
-            z-index:8;
-            width:20px;
-            height:20px;
-        }
+    #unshownComments{
+        background:url('/static/images/unshownComments.png') repeat-x;
+        overflow:visible;
+        
+        &:after{
+            /* Put in the end cap using css wizardry */
+            background:url(/static/images/rightSliderCap.png);
+            content: "";
+            width: 13px;
+            height: 20px;
+            position: absolute;
+            top: -0px;
+            left: 100%;
+            margin-left:-1px
+        }   
     }
 
 
+
+
+
+    .firstcommentavatar
+    {
+        margin-right:10px;
+        @include border-radius(12px);
+    }
     .commentavatar
     {
-      margin-right:10px;
+        margin-right:10px;
+        @include border-radius(8px);
     }
 
 }
        
 
-/*Animation Keyframe Classes */
 
+
+
+/*Logo Class*/
+#logo {
+        margin-top: 20px;
+        margin-bottom: 20px;
+
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+
+        }
+
+          
+      button {
+        cursor: pointer;
+        }
+
+        a:link,a:visited {
+          text-decoration: none;
+          color: #d9d5c4;
+          } 
+
+
+
+/*Animation Keyframe Classes */
 @keyframes nodeInserted {  
     from {  
         clip: rect(1px, auto, auto, auto);  
@@ -714,29 +807,4 @@ form.vote {
     to {  
         clip: rect(0px, auto, auto, auto);
     }  
-}
-
-
-/*Logo Class*/
-#logo {
-        margin-top: 20px;
-        margin-bottom: 20px;
-
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-
-        }
-
-          
-      button {
-        cursor: pointer;
-        }
-
-        a:link,a:visited {
-          text-decoration: none;
-          color: #d9d5c4;
-          } 
-
-         
-
+} 

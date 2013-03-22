@@ -6,171 +6,86 @@ jQuery.ajaxSetup({
 
 
 
-// Part of Fontello
-function toggleCodes(on) {
-  var obj = document.getElementById('icons');
-  if (on) {
-    obj.className += ' codesOn';
-  } else {
-    obj.className = obj.className.replace(' codesOn', '');
-  }
-}
-    
-
-
-// Detect if CSS Animation support is enabled.
-// We're going to use this later to register events (quickly) on elements added after page load.
-function detectAnimation()
-{
-    elm = document.documentElement;
-    var animation = false,
-        animationstring = 'animation',
-        keyframeprefix = '',
-        domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
-        pfx  = '';
-     
-    if( elm.style.animationName ) { animation = true; }   
-     
-    if( animation === false ) {
-      for( var i = 0; i < domPrefixes.length; i++ ) {
-        if( elm.style[ domPrefixes[i] + 'AnimationName' ] !== undefined ) {
-          pfx = domPrefixes[ i ];
-          animationstring = pfx + 'Animation';
-          keyframeprefix = '-' + pfx.toLowerCase() + '-';
-          animation = true;
-          break;
-        }
-      }
-    }
-
-    return animation
-}
-
-
-
-// Simple Util function. Useful!
-function getParameterByName(name) {
-   var match = RegExp('[?&]' + name + '=([^&]*)')
-                   .exec(window.location.search);
-   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
-}
-
-// Our onLoads-
-jQuery(document).ready(function() {
-
-    // We're using jQuery(foo), rather than $(foo)
-    // This is more clear, and works with other systems better.
-
-    $jQuery = jQuery.noConflict();
-    
-
-    // Make the main layout table resizable
-    jQuery("#wrappertable").colResizable(
-    {
-      liveDrag:true,
-      postbackSafe: true,
-    });
-
-
-    var onSlide = function(e){
-      var columns = $(e.currentTarget).find("td");
-      var ranges = [], total = 0, i, s ="Ranges: ", w;
-      for(i = 0; i<columns.length; i++){
+// Slider function which executes when sliding the column slider
+function onSlide(e){
+    var columns = jQuery(e.currentTarget).find("td");
+    var ranges = [], total = 0, i, s ="Ranges: ", w;
+    for(i = 0; i<columns.length; i++){
         w = columns.eq(i).width()-14 - (i==0?1:0);
         ranges.push(w);
         total+=w;
-      }    
-      for(i=0; i<columns.length; i++){      
+    }    
+    for(i=0; i<columns.length; i++){      
         ranges[i] = 100*ranges[i]/total;            
-      }   
-      s=s.slice(0,-1);      
-      $("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
-    }
-    
+    }   
+    s=s.slice(0,-1);      
+    jQuery("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
+}
 
-    jQuery("#commentSlider").colResizable({
+
+
+// Bind the slider javascript to the comment parser
+// Since this doesn't like to rebind to the same ID
+// We're generating a random name for each one in the Python code.
+function setupColumnSlider(jqueryobj)
+{
+    jqueryobj.colResizable({
       liveDrag:true, 
       draggingClass:"commentSliderDrag", 
       gripInnerHtml:"<div class='commentSliderGrip'></div>", 
       onResize:onSlide,
-      minWidth:0,
+      minWidth:0
     });
+}
+
+// Send votes via Ajax.
+function setupVotes(jqueryobj)
+{
+    jQuery(jqueryobj).on("submit", function(event) {
+        voteref = jQuery(this);
+        event.preventDefault(); 
+        
+        /* get some values from elements on the page: */
+        jQueryform = jQuery( this );
+        rating = jQueryform.find( 'input[name="rating"]' ).val();
+        url = jQueryform.attr( 'action' );
+        hash = jQueryform.find( 'input[name="hash"]' ).val();
+        rating = jQueryform.find( 'input[name="rating"]' ).val(),
+        hashdata = jQuery.jStorage.get(hash,{});
+        hashdata['rating'] = rating;
+        jQuery.jStorage.set(hash, hashdata);   
+
+        // Mark it as voted
+        jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().addClass("darkClass");
 
 
+        /* Send the data using post and put the results in a div */
+        jQuery.post( url, { 'rating': jQueryform.find( 'input[name="rating"]' ).val(),
+                       '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
+                       'hash' : jQueryform.find( 'input[name="hash"]' ).val() });
+    });                
+}
 
-    // Add the slider rounded corners
-    jQuery("#commentSlider").css({'display':'block','position':'relative','width':'418px'});
-    jQuery(".sliderrounds").css({"display":"inline"});
-
-
-
-
-
-
-    // If we pass a Jumpto param, scroll down.
-    if (getParameterByName("jumpto"))
-    {
-        jumpto = getParameterByName("jumpto")
-        //Ensure we can't jump to random stuff.
-        var alphanumberic = /^([a-zA-Z0-9_-]+)jQuery/;
-        if(alphanumberic.test( jumpto ))
-        {    
-            // If the element exists, find it's parent's offset, then it's.
-            // Subtract to find the element height.
-            // Then, scroll to the top of the element.
-            
-            right=(document.getElementById('right')); 
-            mytop = jQuery("#" + jumpto ).offset().top; 
-            // if ( jQuery("#" + jumpto ).parent() )
-            // {
-            //     parenttop = jQuery("#" + jumpto ).parent().offset().top; 
-            // }
-            // else
-            // {
-            //     parenttop = jQuery("#" + jumpto ).offset().top; 
-            // }
-            // DivHeight = mytop - parenttop;
-            right.scrollTop = mytop; // - DivHeight;   
-        }
-    }
+// Pull in the reply box inline
+function setupReplies(jqueryobj)
+{
+    jQuery(jqueryobj).on('click',function(event) {
+        event.preventDefault();
+        var jQuerymsg = jQuery(this).attr('message');
+        var jQueryhref = jQuery(this).attr('href');
+        jQuery.get(jQueryhref + "?getonly=true",function(data) {
+          jQuery('#reply_'+jQuerymsg).html(data);
+        });   
+        
+    });  
+}
 
 
-
-    // Create a spinner in JS, so we don't see it with Lynx/etc.
-
-    if ( detectAnimation() == true)
-    {
-              // Use a Fancy Spinner
-
-      var opts = {
-        lines: 13, // The number of lines to draw
-        length: 7, // The length of each line
-        width: 4, // The line thickness
-        radius: 8, // The radius of the inner circle
-        corners: 1, // Corner roundness (0..1)
-        rotate: 0, // The rotation offset
-        color: '#000', // #rgb or #rrggbb
-        speed: 1, // Rounds per second
-        trail: 60, // Afterglow percentage
-        shadow: false, // Whether to render a shadow
-        hwaccel: true, // Whether to use hardware acceleration
-        className: 'spinnerimg', // The CSS class to assign to the spinner
-        zIndex: 1002, // The z-index (defaults to 2000000000)
-        top: '0px', // Top position relative to parent in px
-        left: '90%' // Left position relative to parent in px
-      };
-
-      var spinner = new Spinner(opts).spin();
-      jQuery("#spinner").html(spinner.el);
-
-    }
-    else
-    {
-      jQuery('#spinner').html('<img class="spinnerimg" src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
-    }
-
+// Override the click on .internal to load them via JS instead.
+function setupInternalLinks(jqueryobj)
+{
     // Place the spinner for all tagged links.
-    jQuery(document).on('click','.internal',function(event)
+    jQuery(jqueryobj).on('click',function(event)
         {
 
         // Don't fire off more than once.
@@ -190,9 +105,12 @@ jQuery(document).ready(function() {
           urlsep = '&';
         jQuery.getScript( jQuery(this).attr('href') + urlsep + "js=yes&timestamp=" + Math.round(new Date().getTime())  );
         });
+}
 
-    // Send notes via Ajax
-    jQuery(document).on("submit", ".usernote", function(event) {
+// Submit UserNotes via Ajax
+function setupNotes(jqueryobj)
+{
+    jQuery(jqueryobj).on("submit", function(event) {
         noteref = jQuery(this);
         event.preventDefault(); 
         
@@ -209,42 +127,40 @@ jQuery(document).ready(function() {
               noteref.empty().append( data );
           }
         );
-    });        
+    });   
+}
 
+// If you do click on the 'AlwaysShow external content
+// Save it, then make it take effect now.
+function setupAlwaysCheck(jqueryobj)
+{
+    jQuery(jqueryobj).on('click',function(event)
+    {
+        var displayform = jQuery( event.target ).parent();         
+        url = displayform.attr( 'action' );
+        displayform.hide();
+        jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},                  
+            function( data ) 
+                  {
+                     displayform.html( data );
+                     displayform.show();
+                  });
+        // If you clicked it, show all the media on THIS page, too.
+        // It's the little stuff, you know?
+        jQuery('.embeddedcontentnote').each( function ()
+          {
+              var embededcontent = jQuery(this).next(); 
+              embededcontent.show();
+              embededcontent.html(embededcontent.attr('stufftoshow') + "<br>");
+          });
+        jQuery('.icon-picture').hide();
+    });
+}
 
-    // Send votes via Ajax.
-    jQuery(document).on("submit",".vote", function(event) {
-        voteref = jQuery(this);
-        /* stop form from submitting normally */
-        event.preventDefault(); 
-        
-        /* get some values from elements on the page: */
-        var jQueryform = jQuery( this ),
-            rating = jQueryform.find( 'input[name="rating"]' ).val(),
-            url = jQueryform.attr( 'action' ),
-            hash = jQueryform.find( 'input[name="hash"]' ).val();
-
-              rating = jQueryform.find( 'input[name="rating"]' ).val(),
-              hashdata = jQuery.jStorage.get(hash,{});
-              hashdata['rating'] = rating;
-              jQuery.jStorage.set(hash, hashdata);   
-
-              /* Mark the vote as selected, unselect the other vote */
-                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
-                //jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().parent().find('input[name="rating"][value=' + rating * -1 + ']').parent().css("border","1px solid #dddddd");
-                jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().addClass("darkClass");
-
-              
-        /* Send the data using post and put the results in a div */
-        jQuery.post( url, { 'rating': jQueryform.find( 'input[name="rating"]' ).val(),
-                       '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
-                       'hash' : jQueryform.find( 'input[name="hash"]' ).val() });
-    });                
-
-
-
+function setupFollowTopic(jqueryobj)
+{
     // Send FollowTopic via AJAX
-    jQuery(document).on("submit",".followtopic", function(event) {
+    jQuery(jqueryobj).on("submit", function(event) {
         ref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault();
@@ -264,45 +180,33 @@ jQuery(document).ready(function() {
         );
 
     });
+}
 
-
-    // Send Followuser via AJAX
-    jQuery(document).on('submit','.followuser', function(event) {
-        ref = jQuery(this);
-        /* stop form from submitting normally */
-        event.preventDefault();
-
-        /* get some values from elements on the page: */
-        var jQueryform = jQuery( this ),
-            url = jQueryform.attr( 'action' );
-        ref.children().hide();
-        ref.append('One moment please..');
-        /* Send the data using post and put the results in a div */
-        jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
-          function( data ) {
-              ref.empty().append("All set.");
-              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );
-          }
-        );
-
+// Hide any linked content by default.
+// Don't even LOAD it. Just know where it is.
+// If they click to load, then adjust the page to retrieve
+function setupEmbeddedNote(jqueryobj)
+{
+    jQuery(jqueryobj).on('click',function (event)
+    {   
+        var embededcontent = jQuery(event.target).next(); 
+        if (embededcontent.is(":visible"))
+        {
+            embededcontent.hide();
+        }
+        else
+        {
+            embededcontent.show();
+            embededcontent.prepend(embededcontent.attr('stufftoshow') + "<br>");
+        }
     });
+}
 
 
-    // Pull in the reply box
-    jQuery(document).on('click','.reply',function(event) {
-        event.preventDefault();
-        var jQuerymsg = jQuery(this).attr('message');
-        var jQueryhref = jQuery(this).attr('href');
-        jQuery.get(jQueryhref + "?getonly=true",function(data) {
-          jQuery('#reply_'+jQuerymsg).html(data);
-        });   
-        
-    });  
-
-
-
-    // Pop up a box when they click on a user avatar
-    jQuery(document).on('click','a.details',function(event)
+// Pop up a box when they click on a user avatar
+function setupUserDetails(jqueryobj)
+{
+    jQuery(jqueryobj).on('click',function(event)
     { 
           //TODO - This is firing twice. The stop propogation fixes.. But why?   
           event.stopImmediatePropagation();
@@ -336,65 +240,179 @@ jQuery(document).ready(function() {
           }
           return false;
     });
+}
 
-    // Hide any linked content by default.
-    // Don't even LOAD it. Just know where it is.
-    // If they click to load, then adjust the page to retrieve
-    jQuery(document).on('click','.embeddedcontentnote',function (event)
-    {   
-        var embededcontent = jQuery(event.target).next(); 
-        if (embededcontent.is(":visible"))
-        {
-            embededcontent.hide();
+// Pop up a box when they click on a user avatar
+function setupFollowUser(jqueryobj)
+{
+   // Send Followuser via AJAX
+    jQuery(jqueryobj).on('submit', function(event) {
+        ref = jQuery(this);
+        /* stop form from submitting normally */
+        event.preventDefault();
+
+        /* get some values from elements on the page: */
+        var jQueryform = jQuery( this ),
+            url = jQueryform.attr( 'action' );
+        ref.children().hide();
+        ref.append('One moment please..');
+        /* Send the data using post and put the results in a div */
+        jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
+          function( data ) {
+              ref.empty().append("All set.");
+              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );
+          }
+        );
+
+    });
+}
+
+
+
+// Part of Fontello
+function toggleCodes(on) {
+    var obj = document.getElementById('icons');
+    if (on) {
+        obj.className += ' codesOn';
+    } else {
+        obj.className = obj.className.replace(' codesOn', '');
+    }
+}
+    
+
+
+// Detect if CSS Animation support is enabled.
+// We're going to use this later to register events (quickly) on elements added after page load.
+function detectAnimation()
+{
+    elm = document.documentElement;
+    var animation = false,
+        animationstring = 'animation',
+        keyframeprefix = '',
+        domPrefixes = 'Webkit Moz O ms Khtml'.split(' '),
+        pfx  = '';
+     
+    if( elm.style.animationName ) { animation = true; }   
+     
+    if( animation === false ) {
+      for( var i = 0; i < domPrefixes.length; i++ ) {
+        if( elm.style[ domPrefixes[i] + 'AnimationName' ] !== undefined ) {
+          pfx = domPrefixes[ i ];
+          animationstring = pfx + 'Animation';
+          keyframeprefix = '-' + pfx.toLowerCase() + '-';
+          animation = true;
+          break;
         }
-        else
-        {
-            embededcontent.show();
-            embededcontent.prepend(embededcontent.attr('stufftoshow') + "<br>");
+      }
+    }
+    return animation;
+}
+
+
+
+// Simple Util function. Useful!
+function getParameterByName(name) {
+   var match = RegExp('[?&]' + name + '=([^&]*)')
+                   .exec(window.location.search);
+   return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+
+
+// Our onLoads-
+jQuery(document).ready(function() {
+
+    // We're using jQuery(foo), rather than $(foo)
+    // This is more clear, and works with other systems better.
+    $jQuery = jQuery.noConflict();
+
+    // Make the main layout table resizable
+    jQuery("#wrappertable").colResizable(
+    {
+      liveDrag:true,
+      postbackSafe: true
+    });
+
+
+    // If we pass a Jumpto param, scroll down.
+    if (getParameterByName("jumpto"))
+    {
+        jumpto = getParameterByName("jumpto")
+        //Ensure we can't jump to random stuff.
+        var alphanumberic = /^([a-zA-Z0-9_-]+)jQuery/;
+        if(alphanumberic.test( jumpto ))
+        {    
+            // If the element exists, find it's parent's offset, then it's.
+            // Subtract to find the element height.
+            // Then, scroll to the top of the element.
+            
+            right=(document.getElementById('right')); 
+            mytop = jQuery("#" + jumpto ).offset().top; 
+            // if ( jQuery("#" + jumpto ).parent() )
+            // {
+            //     parenttop = jQuery("#" + jumpto ).parent().offset().top; 
+            // }
+            // else
+            // {
+            //     parenttop = jQuery("#" + jumpto ).offset().top; 
+            // }
+            // DivHeight = mytop - parenttop;
+            right.scrollTop = mytop; // - DivHeight;   
         }
-    });
+    }
 
-    // If you do click on the 'AlwaysShow external content
-    // Save it, then make it take effect now.
-    jQuery(document).on('click','.checkalways',function(event)
+
+    // Create a spinner in JS, so we don't see it with Lynx/etc.
+    if ( detectAnimation() == true)
     {
-        var displayform = jQuery( event.target ).parent();         
-        url = displayform.attr( 'action' );
-        displayform.hide();
-        jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},                  
-            function( data ) 
-                  {
-                     displayform.html( data );
-                     displayform.show();
-                  });
-        // If you clicked it, show all the media on THIS page, too.
-        // It's the little stuff, you know?
-        jQuery('.embeddedcontentnote').each( function ()
-          {
-              var embededcontent = jQuery(this).next(); 
-              embededcontent.show();
-              embededcontent.html(embededcontent.attr('stufftoshow') + "<br>");
-          });
-        jQuery('.icon-picture').hide();
-    });
-
-
-    // If you do click on the 'AlwaysShow external content
-    // Save it, then make it take effect now.
-    jQuery(document).on('dblclick','.splitter',function(event)
+      var opts = {
+        lines: 13, // The number of lines to draw
+        length: 7, // The length of each line
+        width: 4, // The line thickness
+        radius: 8, // The radius of the inner circle
+        corners: 1, // Corner roundness (0..1)
+        rotate: 0, // The rotation offset
+        color: '#000', // #rgb or #rrggbb
+        speed: 1, // Rounds per second
+        trail: 60, // Afterglow percentage
+        shadow: false, // Whether to render a shadow
+        hwaccel: true, // Whether to use hardware acceleration
+        className: 'spinnerimg', // The CSS class to assign to the spinner
+        zIndex: 1002, // The z-index (defaults to 2000000000)
+        top: '0px', // Top position relative to parent in px
+        left: '90%' // Left position relative to parent in px
+      };
+      var spinner = new Spinner(opts).spin();
+      jQuery("#spinner").html(spinner.el);
+    }
+    else
     {
-        //Force the default size;
-        ensureMinDivSizes(true);
-        throttledSizeWindow();
-        savedivsizes();
-    });
+      jQuery('#spinner').html('<img class="spinnerimg" src="/static/images/spinner.gif" height="31" width="31" alt=" ">');
+    }
+
+
+    // Setup the various hooks on repeating
+    // Note - We're going to do these again in the animation section, for the reloads.
+    setupColumnSlider(jQuery(".commentSlider"));
+    setupReplies(jQuery(".reply"));
+    setupVotes(jQuery(".vote"));
+    setupInternalLinks(jQuery(".internal"));
+    setupNotes(jQuery(".usernote"));
+    setupAlwaysCheck(jQuery(".checkalways"));
+    setupFollowTopic(jQuery(".followtopic"));
+    setupEmbeddedNote(jQuery(".embeddedcontentnote"));
+    setupUserDetails(jQuery("a.details"));
+    setupFollowUser(jQuery(".followuser"));
+
+ 
 
     // Bind key Events.
     // This should probably be broken out into it's own file.
     // For now, leave it here - This is just a sample key event, to verify the handler works.
     // Add more later.
     Mousetrap.bind('up up', function() {
-        element = jQuery('#top');
+        alert("upup");
+        element = jQuery('#logo');
         element.css('-moz-transform', 'rotate(180deg)'); 
         element.css('-o-transform','rotate(180deg)');  
         element.css('-webkit-transform','rotate(180deg)'); 
@@ -404,61 +422,82 @@ jQuery(document).ready(function() {
     });
 
 
+    // Built the Javascript accordian menu.
 
-        // Built the Javascript accordian menu.
+    // Hide the sub-elements via JAVASCRIPT, so they are there if JS is disabled.
+    jQuery(".accordion li > .sub-element").css("display","none");
 
-        // Hide the sub-menus via JAVASCRIPT, so they are there if JS is disabled.
-        jQuery(".accordion li > .sub-menu").css("display","none");
+    // Store variables
+    var accordion_head = jQuery('.accordion > li > a'),
+        accordion_body = jQuery('.accordion li > .sub-element');
 
-        // Store variables
-        var accordion_head = jQuery('.accordion > li > a'),
-            accordion_body = jQuery('.accordion li > .sub-menu');
-
-        // Open the first tab on load
-        // accordion_head.first().addClass('active').next().slideDown('normal');
-
-
-        // Click function
-        accordion_head.on('click', function(event) {
-            // Disable header links
-            event.preventDefault();
-            // Show and hide the tabs on click
-
-            if (jQuery(this).attr('class') != 'active')
-            {
-                accordion_body.slideUp('normal');
-                jQuery(this).next().stop(true,true).slideToggle('normal');
-                accordion_head.removeClass('active');
-                jQuery(this).addClass('active');
-            }
-        });
-  
+    // Open the first tab on load
+    // accordion_head.first().addClass('active').next().slideDown('normal');
 
 
-// Run the per-instance stuff.
-jQuery.getScript('/static/scripts/instance.min.js');
+    // Click function
+    accordion_head.on('click', function(event) {
+        // Disable header links
+        event.preventDefault();
+        // Show and hide the tabs on click
+
+        if (jQuery(this).attr('class') != 'active')
+        {
+            accordion_body.slideUp('normal');
+            jQuery(this).next().stop(true,true).slideToggle('normal');
+            accordion_head.removeClass('active');
+            jQuery(this).addClass('active');
+        }
+    });
 
 
-    // Mark all the votes we've already cast.
-    // Thanks http://www.backalleycoder.com/2012/04/25/i-want-a-damnodeinserted/
-    // You deserve some gold bullion.
-    // Do this AFTER the instance script, so that the jStorage settings are already set/cleared.
 
+    // Run the per-instance stuff.
+    jQuery.getScript('/static/scripts/instance.min.js');
+
+    // Run the things that need to execute on dynamically added elements.
+    // See -  http://www.backalleycoder.com/2012/04/25/i-want-a-damnodeinserted/ for why it works.
     if (detectAnimation())
     {
-        jQuery(document).on("animationstart",".vote",function(event)
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".followuser",function(event)
         {
-            /* get some values from elements on the page: */
-            var jQueryform = jQuery( this ),
-                rating = jQueryform.find( 'input[name="rating"]' ).val(),
-                url = jQueryform.attr( 'action' ),
-                hash = jQueryform.find( 'input[name="hash"]' ).val();
-
-            /* Find the ones we've hit before */
-            hashdata = jQuery.jStorage.get(hash,{});
-            rating = hashdata['rating'];
-            jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().css("border","1px solid #000000");
-
+            setupFollowUser(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart","a.details",function(event)
+        {
+            setupUserDetails(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".embeddedcontentnote",function(event)
+        {
+            setupEmbeddedNote(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".followtopic",function(event)
+        {
+            setupFollowTopic(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".checkalways",function(event)
+        {
+            setupAlwaysCheck(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".usernote",function(event)
+        {
+            setupNotes(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".internal",function(event)
+        {
+            setupInternalLinks(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".reply",function(event)
+        {
+            setupReplies(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".vote",function(event)
+        {
+            setupVotes(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".commentSlider",function(event)
+        {
+            setupColumnSlider(jQuery(this));
         });
     }
 

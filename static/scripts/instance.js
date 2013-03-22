@@ -20,6 +20,8 @@
           });
       }
 
+
+
     // Ensure there is a checkbox, which looks nicer, in the JS version, rather than the textbutton.
     jQuery('.alwaysdisplay > .textbutton').hide();
     jQuery('.alwaysdisplay').append('<input type="checkbox" name="showembeds" value="True" class="checkalways" /> Always display external content <br />')

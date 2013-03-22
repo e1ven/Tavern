@@ -287,10 +287,10 @@ class User(object):
             self.followTopic("Funny")
 
         if not 'maxposts' in self.UserSettings:
-            self.UserSettings['maxposts'] = 10
+            self.UserSettings['maxposts'] = 100
 
         if not 'maxreplies' in self.UserSettings:
-            self.UserSettings['maxreplies'] = 20
+            self.UserSettings['maxreplies'] = 100
 
         if not 'friendlyname' in self.UserSettings:
             self.UserSettings['friendlyname'] = "Anonymous"
