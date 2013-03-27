@@ -353,12 +353,19 @@ class Server(object):
         stamps = c.dict['envelope']['stamps']
 
         serversTouched = 0
-
-        # Count the parters the message has danced with.
+        highestPOW = 0
         for stamp in stamps:
+
+            # Count the parters the message has danced with.
             if stamp['class'] == "server" or stamp['class'] == "server":
                 serversTouched += 1
 
+            # Calculate highest proof of work difficult.
+            if 'proof-of-work' in stamp:
+                if stamp['proof-of-work']['difficulty'] >  highestPOW:
+                    highestPOW = stamp['proof-of-work']['difficulty']
+
+        c.dict['envelope']['local']['highestPOW'] = highestPOW
         utctime = time.time()
 
         # Sign the message to saw we saw it.

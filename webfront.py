@@ -955,6 +955,12 @@ class RatingHandler(BaseHandler):
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
+
+        proof = {}
+        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
+        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
+        stamp['proof-of-work'] = proof
+
         stamplist = []
         stamplist.append(stamp)
         e.dict['envelope']['stamps'] = stamplist
@@ -963,7 +969,6 @@ class RatingHandler(BaseHandler):
         server.receiveEnvelope(e.text())
 
         self.write("Your vote has been recorded. Thanks!")
-
 
 class UserNoteHandler(BaseHandler):
     def get(self, user):
@@ -1040,11 +1045,19 @@ class UserTrustHandler(BaseHandler):
         stamp['signature'] = usersig
         utctime = time.time()
         stamp['time_added'] = int(utctime)
+
+        proof = {}
+        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
+        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
+        stamp['proof-of-work'] = proof
+
+
         stamplist = []
         stamplist.append(stamp)
         e.dict['envelope']['stamps'] = stamplist
 
         #Send to the server
+
         server.receiveEnvelope(e.text())
         server.logger.info("Trust Submitted.")
 
@@ -1306,11 +1319,16 @@ class NewmessageHandler(BaseHandler):
         stamp['pubkey'] = self.user.Keys.pubkey
         stamp['signature'] = usersig
         utctime = time.time()
-
         stamp['time_added'] = int(utctime)
+        proof = {}
+        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
+        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
+        stamp['proof-of-work'] = proof
+
         stamplist = []
         stamplist.append(stamp)
         e.dict['envelope']['stamps'] = stamplist
+
 
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())

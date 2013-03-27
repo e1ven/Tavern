@@ -139,5 +139,7 @@ class ServerSettings():
         if not 'dbtype' in self.settings:
             self.settings['dbtype'] = 'mongo'
 
+        if not 'proof-of-work-difficulty' in self.settings:
+            self.settings['proof-of-work-difficulty'] = 19
 
 serversettings = ServerSettings()

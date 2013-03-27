@@ -8,7 +8,7 @@ json.encoder.c_make_encoder = None
 import pymongo
 import pylzma
 from ServerSettings import serversettings
-
+import TavernUtils
 
 class Envelope(object):
 
@@ -186,6 +186,17 @@ class Envelope(object):
                 server.logger.info("Signature Failed to verify for stamp :: " +
                                    stamp['class'] + " :: " + stamp['pubkey'])
                 return False
+
+
+            # If they specify a proof-of-work in the stamp, make sure it's valid.
+            if 'proof-of-work' in stamp:
+                    proof = stamp['proof-of-work']['proof']
+                    difficulty = stamp['proof-of-work']['difficulty']
+                    result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
+                    if result == False:
+                        server.logger.info("Proof of work cannot be verified.")
+                        return False
+
 
         # Check for a valid useragent
         try:

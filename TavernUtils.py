@@ -10,6 +10,58 @@ import os
 import hashlib
 import time
 from io import open
+import hashlib
+
+def proveWork(input,difficulty):
+    """
+    Produces a Proof-of-work SHA collision based on HashCash.
+    This is useful for avoiding spam.
+    """
+    # Calculate the base hash, which we can then add to later.
+    h = hashlib.sha256()
+    h.update(input.encode('utf-8'))
+    basehash = h.copy()
+
+    # We'll always add a padding number, even if it's 0.
+    # Even if a basestring matters, we ignore that.
+    zerocount=0
+    count = 0
+
+    while zerocount < difficulty:
+        newhash = basehash.copy()
+        newhash.update(  str(count).encode('utf-8')  )
+
+        # Get the raw bit string of the hash
+        binver = bin(int(newhash.hexdigest(), 16))[2:]
+        zerocount = 256 - len(binver)
+
+        finalcount = count
+        count +=1
+
+    return finalcount
+
+def checkWork(input,proof,difficulty):
+    """
+    Check a Proof-of-work calculation
+    """
+    print("Verifying Work")
+    # Verify our hash
+    fullstr = input + str(proof)
+    verify = hashlib.sha256()
+    verify.update(fullstr.encode('utf-8'))
+
+    # Get us back to a binstring of length 256, containing only the bits
+    binstr = bin(int(verify.hexdigest(), 16))[2:].zfill(256)
+
+    # Generate a string of 0s the appropriate length.
+    matchstr = ''.zfill(difficulty)
+
+    if binstr[0:difficulty] == matchstr:
+        print("Work Verifies")
+        return True
+    else:
+        print("Work fails to verify")
+        return False
 
 
 def inttime():

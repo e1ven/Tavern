@@ -7,6 +7,10 @@ numservers=4
 mkdir -p tmp/checked
 mkdir -p tmp/unchecked
 mkdir -p tmp/gpgfiles
+
+mkdir -p tmp/gzipchk
+mkdir -p tmp/unchecked-gzipchk
+
 mkdir -p logs
 
 # First, determine if we're running the program as root.
@@ -128,6 +132,8 @@ fi
 # If we haven't, minimize it. Otherwise, just skip forward, for speed.
 echo "Minimizing JS"
 mv tmp/checked/* tmp/unchecked/ > /dev/null
+mv tmp/gzipchk/* tmp/unchecked-gzipchk
+
 result=255
 for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
 do
@@ -208,9 +214,26 @@ do
     touch tmp/checked/$filehash.exists
 done
 
+echo "Gzipping"
+# Compress the files with gzip
+for file in `find static -not -name "*.gz" -type f`
+do 
+    filehash=`cat $file | $hash | cut -d" " -f 1`
+    if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
+    then
+        gzip --best < $file > $file.gz
+        echo -e "\t $file"
+        # Compressed
+    else
+        : # No compressing needed 
+    fi
+    touch tmp/gzipchk/$filehash.exists
+done
 
-
+rm tmp/unchecked-gzipchk/*.exists
 rm tmp/unchecked/*.exists
+
+echo "Starting Tavern..."
 # If we're not in daemon mode, fire up the server
 if [ "$1" == 'daemon' ]
 then
