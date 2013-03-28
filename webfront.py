@@ -152,35 +152,19 @@ class BaseHandler(tornado.web.RequestHandler):
 
     @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getjssetup(self):
-        jsvar = self.request.uri.find("js=")
-        if jsvar > -1:
-            #This should always be true
-            #But Are there other params?
-            nextvar = self.request.uri.find("&", jsvar)
-            if nextvar > 0:
-                #There are Additional Variables in this URL
-                finish = "?" + self.request.uri[nextvar +
-                                                1:len(self.request.uri)]
-            else:
-                #There are no other variables. Delete until End of string
-                finish = ""
 
-            modifiedurl = self.request.uri[0:
-                                           self.request.uri.find("js=") - 1] + finish
 
-            #Also strip out the "timestamp" param
-            jsvar = modifiedurl.find("timestamp=")
-            if jsvar > -1:
-                #This should always be true
-                #But Are there other params?
-                nextvar = modifiedurl.find("&", jsvar)
-                if nextvar > 0:
-                    #There are Additional Variables in this URL
-                    finish = "?" + modifiedurl[nextvar + 1:len(modifiedurl)]
-                else:
-                    #There are no other variables. Delete until End of string
-                    finish = ""
-                modifiedurl = modifiedurl[0:modifiedurl.find("timestamp=") - 1] + finish
+        # Strip out GET params we don't need to display to the user.
+        urlargs = urllib.parse.parse_qs(self.request.query,keep_blank_values=True)
+        print(urlargs)
+        if 'timestamp' in urlargs:
+            del urlargs['timestamp']
+        if 'divs' in urlargs:
+            del urlargs['divs']
+        if 'js' in urlargs:
+            del urlargs['js']
+        newargs = urllib.parse.urlencode(urlargs,doseq=True)
+        modifiedurl = self.request.protocol + "://" + self.request.host + self.request.path + newargs
 
         try:
             soup = BeautifulSoup(self.html)
@@ -220,7 +204,6 @@ class BaseHandler(tornado.web.RequestHandler):
         Then, send that as a document replacement
         Also, rewrite the document history in the browser, so the URL looks normal.
         """
-
         try:
             soup = BeautifulSoup(self.html)
         except:
@@ -228,7 +211,6 @@ class BaseHandler(tornado.web.RequestHandler):
             raise
         soupyelement = soup.find(id=element)
         soupytxt = str(soupyelement)
-
         escapedtext = soupytxt.replace("\"", "\\\"")
         escapedtext = escapedtext.replace("\n", "")
 
@@ -510,15 +492,6 @@ class TriPaneHandler(BaseHandler):
         else:
             redirected = None
 
-        if self.request.path[1:] != canon and redirected is None:
-            if not "?" in canon:
-                canonbubble = "?redirected=true"
-            else:
-                canonbubble = "&redirected=true"
-            server.logger.info(
-                "Redirecting URL " + self.request.path[1:] + " to " + canon)
-#       self.redirect("/" + canon + canonbubble, permanent=True)
-#       self.finish()
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))

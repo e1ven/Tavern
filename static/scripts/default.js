@@ -5,6 +5,14 @@ jQuery.ajaxSetup({
 });
 
 
+// Strip a trailing slash from a URL if there is one.
+function stripTrailingSlash(str) {
+    if(str.substr(-1) == '/') {
+        return str.substr(0, str.length - 1);
+    }
+    return str;
+}
+
 
 // Slider function which executes when sliding the column slider
 function onSlide(e){
@@ -175,7 +183,7 @@ function setupFollowTopic(jqueryobj)
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
           function( data ) {
               ref.empty().append("All set.");
-              jQuery.getScript('/?js=yes&divs=savedtopics,followtopic' + "&timestamp=" + Math.round(new Date().getTime())  );
+              jQuery.getScript(stripTrailingSlash(document.URL) + '/?js=yes&divs=savedtopics,followtopic' + "&timestamp=" + Math.round(new Date().getTime())  );
           }
         );
 
@@ -261,7 +269,7 @@ function setupFollowUser(jqueryobj)
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
           function( data ) {
               ref.empty().append("All set.");
-              jQuery.getScript('/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );
+              jQuery.getScript(stripTrailingSlash(document.URL) +'/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );
           }
         );
 
