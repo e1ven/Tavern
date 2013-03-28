@@ -513,15 +513,10 @@ a.details
         margin-bottom: 10px;
     }
             
-    #firstMessageBody {
-        margin-bottom: 18px;
-        margin-top: 22px;
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        color: #ffffff;
-        font: 13px;
-        line-height: 16px;
+    .firstMessageReply{
+        @extend firstMessageDate;
       }
-              
+
     .firstMessageSeparationLine {
         height: 1px;
         width: 422px;

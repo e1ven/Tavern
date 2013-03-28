@@ -20,7 +20,7 @@ class TopicList(object):
                             if ((mtime + 11209600) > timestamp )
 
                                 {
-                                tag = this.envelope.payload.topic;
+                                tag = this.envelope.local.sorttopic;
                                 if (tag != 'sitecontent')
                                 {
                                         emit({tag:tag},{count:1});

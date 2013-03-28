@@ -73,7 +73,7 @@ function setupReplies(jqueryobj)
         event.preventDefault();
         var jQuerymsg = jQuery(this).attr('message');
         var jQueryhref = jQuery(this).attr('href');
-        jQuery.get(jQueryhref + "?getonly=true",function(data) {
+        jQuery.get(jQueryhref + "?getonly=replywrapper",function(data) {
           jQuery('#reply_'+jQuerymsg).html(data);
         });   
         

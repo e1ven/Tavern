@@ -120,8 +120,9 @@ class BaseHandler(tornado.web.RequestHandler):
         # And example is requesting the message reply inline.
 
         elif "getonly" in self.request.arguments:
-            for div in divs:
-                super(BaseHandler, self).write(self.getdiv(div))
+            client_get=self.get_argument('getonly')
+            get=tornado.escape.xhtml_escape(client_get)
+            super(BaseHandler, self).write(self.getdiv(get))
 
         # If we're here, send the whole page as a regular view.
         else:
