@@ -165,7 +165,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'js' in urlargs:
             del urlargs['js']
         newargs = urllib.parse.urlencode(urlargs,doseq=True)
-        modifiedurl = self.request.protocol + "://" + self.request.host + self.request.path + newargs
+        modifiedurl = self.request.path + newargs
 
         try:
             soup = BeautifulSoup(self.html)
