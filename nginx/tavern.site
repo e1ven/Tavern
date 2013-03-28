@@ -107,9 +107,12 @@
         ssl_session_cache  shared:SSL:100m;
         ssl_ciphers RC4:AES128-SHA:AES:CAMELLIA128-SHA:!MD5:!ADH:!DH:!ECDH:!PSK:!SSLv2;
 
-        proxy_http_version 1.1;
-        proxy_set_header Connection "";
+        ### Set headers ####
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
 
 
         if ($allowedhosts = 0 )

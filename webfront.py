@@ -117,6 +117,7 @@ class BaseHandler(tornado.web.RequestHandler):
             # Send the header information with the new name, then each div, then the footer.
             super(BaseHandler, self).write(self.getjssetup())
             for div in divs:
+                print("For Div - " + div)
                 super(BaseHandler, self).write(self.getjselement(div))
             super(BaseHandler, self).write(self.getjsfooter())
 
