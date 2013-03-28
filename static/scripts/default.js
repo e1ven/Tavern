@@ -41,7 +41,7 @@ function setupColumnSlider(jqueryobj)
 // Send votes via Ajax.
 function setupVotes(jqueryobj)
 {
-    jQuery(jqueryobj).on("submit", function(event) {
+    jQuery(jqueryobj).one("submit", function(event) {
         voteref = jQuery(this);
         event.preventDefault(); 
         
@@ -69,7 +69,7 @@ function setupVotes(jqueryobj)
 // Pull in the reply box inline
 function setupReplies(jqueryobj)
 {
-    jQuery(jqueryobj).on('click',function(event) {
+    jQuery(jqueryobj).one('click',function(event) {
         event.preventDefault();
         var jQuerymsg = jQuery(this).attr('message');
         var jQueryhref = jQuery(this).attr('href');
@@ -85,7 +85,7 @@ function setupReplies(jqueryobj)
 function setupInternalLinks(jqueryobj)
 {
     // Place the spinner for all tagged links.
-    jQuery(jqueryobj).on('click',function(event)
+    jQuery(jqueryobj).one('click',function(event)
         {
 
         // Don't fire off more than once.
@@ -110,7 +110,7 @@ function setupInternalLinks(jqueryobj)
 // Submit UserNotes via Ajax
 function setupNotes(jqueryobj)
 {
-    jQuery(jqueryobj).on("submit", function(event) {
+    jQuery(jqueryobj).one("submit", function(event) {
         noteref = jQuery(this);
         event.preventDefault(); 
         
@@ -134,7 +134,7 @@ function setupNotes(jqueryobj)
 // Save it, then make it take effect now.
 function setupAlwaysCheck(jqueryobj)
 {
-    jQuery(jqueryobj).on('click',function(event)
+    jQuery(jqueryobj).one('click',function(event)
     {
         var displayform = jQuery( event.target ).parent();         
         url = displayform.attr( 'action' );
@@ -160,7 +160,7 @@ function setupAlwaysCheck(jqueryobj)
 function setupFollowTopic(jqueryobj)
 {
     // Send FollowTopic via AJAX
-    jQuery(jqueryobj).on("submit", function(event) {
+    jQuery(jqueryobj).one("submit", function(event) {
         ref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault();
@@ -187,7 +187,7 @@ function setupFollowTopic(jqueryobj)
 // If they click to load, then adjust the page to retrieve
 function setupEmbeddedNote(jqueryobj)
 {
-    jQuery(jqueryobj).on('click',function (event)
+    jQuery(jqueryobj).one('click',function (event)
     {   
         var embededcontent = jQuery(event.target).next(); 
         if (embededcontent.is(":visible"))
@@ -206,7 +206,7 @@ function setupEmbeddedNote(jqueryobj)
 // Pop up a box when they click on a user avatar
 function setupUserDetails(jqueryobj)
 {
-    jQuery(jqueryobj).on('click',function(event)
+    jQuery(jqueryobj).one('click',function(event)
     { 
           //TODO - This is firing twice. The stop propogation fixes.. But why?   
           event.stopImmediatePropagation();
@@ -245,8 +245,9 @@ function setupUserDetails(jqueryobj)
 // Pop up a box when they click on a user avatar
 function setupFollowUser(jqueryobj)
 {
+
    // Send Followuser via AJAX
-    jQuery(jqueryobj).on('submit', function(event) {
+    jQuery(jqueryobj).one('submit', function(event) {
         ref = jQuery(this);
         /* stop form from submitting normally */
         event.preventDefault();

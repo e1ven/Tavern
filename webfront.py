@@ -227,15 +227,12 @@ class BaseHandler(tornado.web.RequestHandler):
             print('malformed data in BeautifulSoup')
             raise
         soupyelement = soup.find(id=element)
-        soupytxt = ""
-        if soupyelement is not None:
-            for child in soupyelement.contents:
-                soupytxt += str(child)
+        soupytxt = str(soupyelement)
 
         escapedtext = soupytxt.replace("\"", "\\\"")
         escapedtext = escapedtext.replace("\n", "")
 
-        return ('document.getElementById("' + element + '").innerHTML="' + escapedtext + '";')
+        return ('jQuery("#' + element + '").replaceWith("' + escapedtext  + '");')
 
     def getjsfooter(self):
         # The stuff at the bottom of the JS file.
@@ -475,7 +472,7 @@ class TriPaneHandler(BaseHandler):
             before = None
 
         if action == "topic":
-            divs = ['column2','column3']
+            divs = ['scrollablediv2','scrollablediv3']
 
             if topic != 'sitecontent':
                 canon = "topic/" + topic
@@ -490,7 +487,7 @@ class TriPaneHandler(BaseHandler):
 
         if action == "message":
             # We need both col2 and col3, since the currently active message changes in the col2.
-            divs = ['column2', 'column3']
+            divs = ['scrollablediv2', 'scrollablediv3']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
                                                         {'envelope.payload_sha512': messageid})
@@ -579,7 +576,7 @@ class TopicPropertiesHandler(BaseHandler):
         self.write(self.render_string('topicprefs.html', topic=topic,
                    toptopics=toptopics, subjects=subjects, mods=mods))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['column3'])
+        self.finish(divs=['scrollablediv3'])
 
 
 class SiteContentHandler(BaseHandler):
@@ -867,7 +864,7 @@ class ChangeManySettingsHandler(BaseHandler):
 
         server.logger.info("set")
         if "js" in self.request.arguments:
-            self.finish(divs=['column3'])
+            self.finish(divs=['scrollablediv3'])
         else:
             keyurl = ''.join(self.user.Keys.pubkey.split())
             self.redirect('/user/' + keyurl)
@@ -899,7 +896,7 @@ class ChangeSingleSettingHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
         if "js" in self.request.arguments:
-            self.finish(divs=['column3'])
+            self.finish(divs=['scrollablediv3'])
         else:
             if redirect == True:
                 self.redirect("/")
@@ -1081,7 +1078,7 @@ class NewmessageHandler(BaseHandler):
                    title="Post a new message", rsshead=None, type=None))
         self.write(self.render_string('newmessageform.html',regarding=regarding, topic=topic, args=self.request.arguments))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['column3'])
+        self.finish(divs=['scrollablediv3'])
 
     def post(self, flag=None):
         self.getvars(ensurekeys=True)

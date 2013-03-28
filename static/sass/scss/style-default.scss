@@ -483,7 +483,16 @@ a.details
         background-color: #56504d; 
         background-image: url(/static/images/texture.png);
     }
-          
+        
+    #firstMessageBody {
+        margin-bottom: 18px;
+        margin-top: 22px;
+        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+        color: #ffffff;
+        font: 13px;
+        line-height: 16px;
+    }
+           
     #bigProfileIcon {
         margin-left: 14px;
         margin-right: 14px;
