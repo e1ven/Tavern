@@ -109,6 +109,11 @@ class BaseHandler(tornado.web.RequestHandler):
         # If they ask for the JS version, we'll calculate it.
         if "js" in self.request.arguments:
 
+            if "divs" in self.request.arguments:
+                # if they just want one, just give them that one.
+                client_div=self.get_argument('divs')
+                divs= tornado.escape.xhtml_escape(client_div).split(',')
+                print(divs)
             # Send the header information with the new name, then each div, then the footer.
             super(BaseHandler, self).write(self.getjssetup())
             for div in divs:
@@ -556,7 +561,7 @@ class TopicPropertiesHandler(BaseHandler):
         self.getvars()
 
         mods = []
-        for mod in server.db.unsafe.find('modlist', {'_id.topic': server.sorttopic(topic)}, max_scan=10000, sortkey='value.trust', sortdirection='descending'):
+        for mod in server.db.unsafe.find('modlist', {'_id.topic': server.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
             mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)

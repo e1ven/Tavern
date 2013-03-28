@@ -150,6 +150,7 @@ form.vote {
 .followtopic
 {
     @include trivialAnimation();
+    padding-left:15px;
 }
 .checkalways
 {
@@ -513,10 +514,6 @@ a.details
         margin-bottom: 10px;
     }
             
-    .firstMessageReply{
-        @extend firstMessageDate;
-      }
-
     .firstMessageSeparationLine {
         height: 1px;
         width: 422px;

@@ -47,7 +47,7 @@
                             </div>
                         </ul>
                     {% end %}
-                    <li id="three" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
+                    <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
                         <ul class="sub-element sub-menu">
                             {% for quicktopic in topictool.toptopics() %}
                                 <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
@@ -59,7 +59,7 @@
                             {% end %}
                         </ul>
                     </li>
-                    <li id="two" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
+                    <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
                         <ul class="sub-element sub-menu">
                             {% for quicktopic in user.UserSettings['followedTopics'] %}
                                 <li {%if quicktopic == topic %} class="active"{% end %} >
@@ -105,11 +105,23 @@
             	            	</tr>
             	            	<tr>
             	                	<td>
-            			            	<h4><a id="column2Topic" href="/topic/{{server.sorttopic(topic)}}">{{topic}}</a></h4>
+            			            	<h4><a id="column2Topic" href="/topic/{{server.sorttopic(topic)}}">{{topic}}</a>
+                                        </h4>
             			            </td>
             			            <td>
             			        		<h4 id="column2MsgCount">{{topictool.topicCount(topic=topic,toponly=True)}} Messages</h4>
             			        	</td>
+                                </tr>
+                                <tr>
+                                    <td colspan=2>
+                                        {% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
+                                        {% if server.sorttopic(topic) in sortedtopic %}
+                                            <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
+                                            {% else %}
+                                            <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
+                                        {% end %}
+                                    </td>
+                                </tr>
             			        <tr>
             			        	<td>    
                                         <a href="/topicinfo/{{server.sorttopic(topic)}}">
@@ -129,6 +141,8 @@
             	          			</td>
             	                </tr>
             	            </table>
+
+
             	          	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
             	          		<tr>
             	            		<td valign="top">

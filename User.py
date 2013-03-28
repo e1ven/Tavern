@@ -11,7 +11,7 @@ import base64
 from lockedkey import lockedKey
 from TavernUtils import memorise
 from ServerSettings import serversettings
-
+import time
 
 class User(object):
 
@@ -370,3 +370,4 @@ class User(object):
         self.UserSettings['pubkey'] = self.Keys.pubkey
         self.UserSettings['_id'] = self.Keys.pubkey
         server.db.safe.save('users', self.UserSettings)
+        time.sleep(5)

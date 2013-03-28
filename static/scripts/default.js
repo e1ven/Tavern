@@ -175,7 +175,7 @@ function setupFollowTopic(jqueryobj)
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
           function( data ) {
               ref.empty().append("All set.");
-              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );
+              jQuery.getScript('/?js=yes&divs=savedtopics,followtopic' + "&timestamp=" + Math.round(new Date().getTime())  );
           }
         );
 
@@ -260,7 +260,7 @@ function setupFollowUser(jqueryobj)
         jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
           function( data ) {
               ref.empty().append("All set.");
-              jQuery.getScript('/?js=yes&singlediv=left' + "&timestamp=" + Math.round(new Date().getTime())  );
+              jQuery.getScript('/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );
           }
         );
 
@@ -472,7 +472,7 @@ jQuery(document).ready(function() {
             setupEmbeddedNote(jQuery(this));
         });
         jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".followtopic",function(event)
-        {
+        {   
             setupFollowTopic(jQuery(this));
         });
         jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".checkalways",function(event)
