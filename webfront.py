@@ -100,7 +100,7 @@ class BaseHandler(tornado.web.RequestHandler):
             ptext = ptext + a
         self.write(ptext)
 
-    def finish(self, divs=['html'], message=None):
+    def finish(self, divs=['wrappertable'], message=None):
         """
         Pulls in appropriate divs and serves them out via JS if possible.
         This saves bits, and keeps the columns as you left them.
@@ -366,6 +366,14 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.datauri = False
 
         return self.user.UserSettings['username']
+
+    def write_error(self, status_code, **kwargs):
+        """
+        Errors? We don't need no stinkin errors. Just ignore for now, redirect.
+        """
+        self.write(self.render_string('header.html', title="Error", canon="/error", type="topic", rsshead=None))
+        self.write(self.render_string('error.html',topic='sitecontent'))
+        self.write(self.render_string('footer.html'))
 
 
 class RSSHandler(BaseHandler):
