@@ -400,6 +400,7 @@ class Server(object):
                         " I am :: " + c.dict['envelope']['payload_sha512'])
                     self.logger.info(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['payload_sha512'])
                     repliedTo.addcite(c.dict['envelope']['payload_sha512'])
+                    c.addAncestor(c.dict['envelope']['payload']['regarding'])
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
@@ -411,6 +412,7 @@ class Server(object):
                                  citedme['envelope']['payload_sha512'])
                 citedme = self.formatEnvelope(citedme)
                 c.addcite(citedme['envelope']['payload_sha512'])
+                citedme.addAncestor(c.dict['envelope']['payload_sha512'])
 
         #Create the HTML version, and store it in local
         c.dict = self.formatEnvelope(c.dict)

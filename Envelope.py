@@ -219,7 +219,51 @@ class Envelope(object):
 
         return True
 
+
+    @TavernUtils.memorise(ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    def countChildren(self):
+        print("Looking for childen for :" + self.payload.hash())
+        results =  server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
+        print(results)
+        return results
+    def addAncestor(self,ancestorid):
+        """
+        A new Ancestor has been found (parent, parent's parent, etc) for this message.
+        Set it locally, and tell all my children, if I have any
+        """
+        ancestor = Envelope()
+        if ancestor.loadmongo(mongo_id=ancestorid):
+            
+
+            if not 'ancestors' in self.dict['envelope']['local']:
+                self.dict['envelope']['local']['ancestors'] = []
+
+            if not 'ancestors' in ancestor.dict['envelope']['local']:
+                ancestorlist = []
+            else:
+                ancestorlist = ancestor.dict['envelope']['local']['ancestors']
+
+            if ancestorid not in ancestorlist:
+                ancestorlist.append(ancestorid)
+
+            for listedancestor in ancestorlist:
+                if listedancestor not in self.dict['envelope']['local']['ancestors']:
+                    self.dict['envelope']['local']['ancestors'].append(listedancestor)
+
+            # Now, tell our children, if we have any
+            if 'citedby' in self.dict['envelope']['local']:
+                for childid in self.dict['envelope']['local']['citedby']:
+                    child = Envelope()
+                    if child.loadmongo(mongo_id=childid):
+                        child.addAncestor(ancestorid)
+                        child.saveMongo()
+
+            self.saveMongo()
+
     def addcite(self, citedby):
+        """
+        Another message has referenced this one. Mark it in the local area.
+        """
         if not 'citedby' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['citedby'] = []
         if citedby not in self.dict['envelope']['local']['citedby']:

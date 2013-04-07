@@ -10,7 +10,8 @@ class ServerSettings():
 
     def __init__(self):
         self.settings = OrderedDict()
-
+        self.loadconfig()
+        
     def loadconfig(self, filename=None):
         if filename is None:
             filename = platform.node() + ".TavernServerSettings"

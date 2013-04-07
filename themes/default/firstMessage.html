@@ -1,35 +1,36 @@
 {% import TavernUtils %}
-{% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
-{% if envelope is None %}
-    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
+{% import Envelope %}
+{% set envelope = Envelope.Envelope() %}
+{% if not envelope.loadmongo(messageid) %}
+    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.") %}
 {% end %}
 
 {% set medialink = None %}
-{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + '/' + envelope['envelope']['payload_sha512']  %}
-{% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
+{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['payload_sha512']  %}
+{% set messagerating = user.getRatings(envelope.dict['envelope']['payload_sha512']) %}
 
 <div id="firstMessage" class="comment">
     <ul>
         <li>
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
-                <h5>{{envelope['envelope']['payload']['subject']}}</h5>
+                <h5>{{envelope.dict['envelope']['payload']['subject']}}</h5>
                 <p class="firstMessageAuthorInfo">
-                    By <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}
+                    By <b>{{envelope.dict['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
                 </p>
                 <p class="firstMessageDate">
-                    Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+                    Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
                 </p>
 
                 <div id="firstMessageBody">
-                        {% raw envelope['envelope']['local']['formattedbody'] %}
+                        {% raw envelope.dict['envelope']['local']['formattedbody'] %}
                 </div>
 
                 <hr class="clear firstMessageSeparationLine">
                 <form action="/vote" method="post" class="vote">
                   {% raw xsrf_form_html() %}
                 <input type="hidden" name="rating" value="1">
-                <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+                <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
                 <abbr title= "This post was helpful.">
                     <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                     <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -41,7 +42,7 @@
                 <form action="/vote" method="post" class="vote">
                   {% raw xsrf_form_html() %}
                 <input type="hidden" name="rating" value="-1" >
-                <input type="hidden" name="hash" value="{{envelope['envelope']['payload_sha512']}}">
+                <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
                 <abbr title="This post was inappropriate.">
                     <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                     <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -54,13 +55,13 @@
                 <div id="firstMessageLinks">
                     <div id="externalsharing">
                     <abbr title="Share via Facebook">    
-                        <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                        <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
                             <i class="icon-facebook-squared floatLeft iconLabelColorLight"></i>
                         </a>
                     </abbr>
 
                     <abbr title="Share via Twitter">    
-                        <a href="http://twitter.com/home?status=via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                        <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
                             <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
                       </a>
                     </abbr>
@@ -71,7 +72,7 @@
                         </a>
                     </abbr>
                     <abbr title="Pin this">
-                        <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope['envelope']['local']['short_subject']}}">
+                        <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
                             <i class="icon-pinterest-squared floatLeft iconLabelColorLight" ></i>
                         </a>
                     </abbr>
@@ -94,14 +95,14 @@
                         </abbr>
                     </div>
                     <div class="messageReplyLink">
-                        <a class="buffer reply" message="{{envelope['envelope']['payload_sha512']}}" href="/reply/{{envelope['envelope']['payload']['topic']}}/{{envelope['envelope']['payload_sha512']}}">
+                        <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}">
                             Reply
                         </a>
                     </div>
                 </div>
 
 
-                <span class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Comments</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">476 Comments</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">More Comments</span>
+                <span class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Replies</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">{{envelope.countChildren()}} Replies</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">More Replies</span>
 
                 <div id="commentSliderWrapper">
                     <br/><br/>
@@ -118,9 +119,9 @@
                     <p id="sliderResults">Percent selected : 50%</p>                        
                     <br/><br/>
                 </div>
-                <div id="reply_{{envelope['envelope']['payload_sha512']}}" class='iconLabelColorLight'></div>
+                <div id="reply_{{envelope.dict['envelope']['payload_sha512']}}" class='iconLabelColorLight'></div>
  
         </li>
     </ul>     
 </div>
-{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}
+{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope.dict) %}
