@@ -289,15 +289,23 @@ class Envelope(object):
         self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
         self.registerpayload()
 
-    def text(self):
+    def text(self,striplocal=False):
         self.payload.format()
+        if striplocal==True:
+            if 'local' in self.dict['envelope']:
+                del self.dict['envelope']['local']
+
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict, separators=(',', ':'))
         return newstr
 
-    def prettytext(self):
+    def prettytext(self,striplocal=False):
         self.payload.format()
+        if striplocal==True:
+            if 'local' in self.dict['envelope']:
+                del self.dict['envelope']['local']
+                
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict, indent=2, separators=(', ', ': '))

@@ -2,7 +2,7 @@
 
 if [ -z $1 ]
 then
-    str='Hello World!'
+    str='foo'
 else
     str=$1
 fi
