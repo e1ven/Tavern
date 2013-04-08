@@ -47,7 +47,67 @@ function onSlide(e){
         ranges[i] = 100*ranges[i]/total;            
     }   
     s=s.slice(0,-1);      
-    jQuery("#sliderResults").html(" Percent selected : "+ Math.round(ranges[0]*10)/10 +"%");
+
+    // Get the percentage (0-1.0) of the way to the right the slider is.
+    sliderpct = Math.round(ranges[0]*10)/1000;
+
+    // Now, invert it, so we know the % of max we are. 
+    sliderpct = Math.abs( 1 - sliderpct );
+
+    // Get the rating of the highest rated comment
+    highestrating = parseInt(jQuery("#highestrating").html());
+
+    // Figure out what rating the slider percentage corresponds to 
+    selectedrating = Math.round(highestrating * sliderpct);
+
+    numhidden = 0;
+    // Hide everything under, show everything >=
+    for (var i=-1;i < selectedrating; i++)
+    {
+        classname = ".rating_" + i;
+        jQuery(classname).hide();
+        numhidden += jQuery(classname).length;
+
+    }
+    numshown = 0;
+    for (var i=selectedrating;i <= highestrating; i++)
+    {
+        classname = ".rating_" + i;
+        jQuery(classname).show();
+        numshown += jQuery(classname).length;
+    }
+
+    // Update messaging to tell the user what we're doing.
+
+    // First, calculate if we should be using "reply" or "replies", etc.
+    // It sounds silly, but it looks ugly otherwise.
+    if (numshown == 1)
+    {
+        replystr = "reply";
+    }
+    else
+    {
+        replystr = "replies";
+    }
+    if (numhidden == 1)
+    {
+        otherstr = "other";
+        ratingstr = "a rating";
+    }
+    else
+    {
+        otherstr = "others";
+        ratingstr = "ratings";
+    }
+      
+    // Now, update the div to show our number shown/hidden.
+    jQuery("#numberofreplies").html("Showing " +  numshown + " " + replystr + ".");
+    if (numhidden > 0)
+    {
+    jQuery("#numberofreplies").append(" Hiding " + numhidden + " " + otherstr + " with " + ratingstr + " under " + selectedrating + ".");
+    }
+
+
 }
 
 
@@ -57,6 +117,26 @@ function onSlide(e){
 // We're generating a random name for each one in the Python code.
 function setupColumnSlider(jqueryobj)
 {
+    var toprating = 0;
+    jQuery(".comment").each(function(){
+        myrating = jQuery(this).attr('rating')
+        if (myrating > toprating)
+        {
+            toprating = myrating;
+        }
+    });
+    var bottomrating = 0;
+    jQuery(".comment").each(function(){
+        myrating = jQuery(this).attr('rating')
+        if (bottomrating < toprating)
+        {
+            bottomrating = myrating;
+        }
+    });
+    jQuery("#highestrating").html(toprating);
+    jQuery("#lowestrating").html(bottomrating);
+
+
     jqueryobj.colResizable({
       liveDrag:true, 
       draggingClass:"commentSliderDrag", 
@@ -64,6 +144,11 @@ function setupColumnSlider(jqueryobj)
       onResize:onSlide,
       minWidth:0
     });
+
+    if (bottomrating == toprating)
+    {   // No reason to display the rating slider. It's useless.
+        jQuery("#commentSliderWrapper").hide();
+    }
 }
 
 // Send votes via Ajax.
@@ -234,11 +319,11 @@ function setupEmbeddedNote(jqueryobj)
 // Pop up a box when they click on a user avatar
 function setupUserDetails(jqueryobj)
 {
-    jQuery(jqueryobj).one('click',function(event)
+    jQuery(jqueryobj).on('click',function(event)
     { 
           //TODO - This is firing twice. The stop propogation fixes.. But why?   
           event.stopImmediatePropagation();
-
+          event.preventDefault();
           userdiv = "details_" + jQuery(this).attr('user');
           avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
           jQuery("#" + userdiv).click(function()
@@ -254,7 +339,7 @@ function setupUserDetails(jqueryobj)
           {
               jQuery("#" + userdiv).show();
               // Stupid WebKit workaround. - Webkit isn't pulling position on the Avatar correctly, so pull from the grandparent, then adjust
-              pos = avatar.parent().parent().position();
+              pos = avatar.position();
               pos.left += avatar.width();
 
               if (jQuery(this).attr('orient') == "left")

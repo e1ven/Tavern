@@ -62,7 +62,11 @@ class User(object):
         if note is not None:
             return note['note']
         else:
-            return None
+            if noteabout == self.Keys.pubkey: 
+                # I'm asking about myself, and I haven't set a note yet.
+                return "This is you!"
+            else:
+                return None
 
     def setNote(self, noteabout, note=""):
         # Format the Key.

@@ -12,21 +12,72 @@
 {% else %}
     {% set medialink = permalink %}
 {% end %}
-
+{% set note = user.getNote(envelope['envelope']['payload']['author']['pubkey']) %}
 {% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
+{% set trust = user.gatherTrust(askingabout=envelope['envelope']['payload']['author']['pubkey']) %}
 
 <ul>
     <li>
-        <div class="comment">
+        <div class="comment rating_{{messagerating}} " rating={{messagerating}}>
 
-            <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+            <a class="details commentDetails"user="{{envelope['envelope']['payload_sha512']}}" href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
+                <img class="floatLeft clear commentavatar" id="avatar_{{envelope['envelope']['payload_sha512']}}" width="40" height="40" alt="User Details" src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
-            <h6>
-                By <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}
-            </h6>
-            <p class="messageDate">
+                <h6>
+                    By <b>{{envelope['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}
+                
+                    {% if note is not None %}
+                        <div class="note"> ( {{note}} ) </div>
+                    {% end %}
+                </h6>
+            </a>
+
+
+            <div class="UserDetails" id="details_{{envelope['envelope']['payload_sha512']}}">
+                <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
+                 {% if trust > 50 %}
+                 This user is allowed to rate comments.
+                 {% elif trust < 50 and trust > 0 %}
+                 This user's ratings have a slight effect on a comment's score.
+                 {% elif trust <= 0 %}
+                 This user's ratings have no effect on a comment's score.
+                 {% end %}
+                </abbr><br>
+                {% if trust < 100 %}
+                <form action="/usertrust" method="post">
+                    {% raw xsrf_form_html() %}
+                    <input type="hidden" name="trust" value="100">
+                    <input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+                    <input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+                    <input class="textbutton" type="submit" value="Recommended this users to others.">
+                </form>
+                <br>
+                {% end %}
+                {% if trust > -100 and trust < 100 %}
+                <form action="/usertrust" method="post">
+                    {% raw xsrf_form_html() %}
+                    <input type="hidden" name="trust" value="-100">
+                    <input type="hidden" name="topic" value="{{envelope['envelope']['payload']['topic']}}">
+                    <input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+                    <input class="textbutton" type="submit" value="Warn others about this user.">
+                </form>
+                {% end %}
+                <br>
+                <form action="/usernote" method="post" class="usernote">
+                     {% raw xsrf_form_html() %}
+                    <input type="hidden" name="pubkey" value="{{envelope['envelope']['payload']['author']['pubkey']}}">
+                    <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
+                </form>
+                <br>
+                <a href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
+            </div>  
+            <div class="messageDate">
                 Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
-            </p>
+            </div>
+            <div class="messageRating">
+                {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
+            </div>
+
             <hr id="lowerCommentSeparation" class="commentSeparation">
 
             <div class="floatLeft clear paraBuffer">

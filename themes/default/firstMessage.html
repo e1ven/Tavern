@@ -1,4 +1,3 @@
-{% import TavernUtils %}
 {% import Envelope %}
 {% set envelope = Envelope.Envelope() %}
 {% if not envelope.loadmongo(messageid) %}
@@ -8,119 +7,176 @@
 {% set medialink = None %}
 {% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['payload_sha512']) %}
+{% set note = user.getNote(envelope.dict['envelope']['payload']['author']['pubkey']) %}
+{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
+
 
 <div id="firstMessage" class="comment">
     <ul>
         <li>
+
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
+
                 <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <h5>{{envelope.dict['envelope']['payload']['subject']}}</h5>
-                <p class="firstMessageAuthorInfo">
+                <h6 class="firstMessageAuthorInfo">
                     By <b>{{envelope.dict['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
-                </p>
-                <p class="firstMessageDate">
-                    Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
-                </p>
+                    {% if note is not None %}
+                        <div class="note"> ( {{note}} ) </div>
+                    {% end %}
+                </h6>
+            </a>
+            <div class="UserDetails" id="details_{{envelope.dict['envelope']['payload_sha512']}}">
+                <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
+                     {% if trust > 50 %}
+                     This user is allowed to rate comments.
+                     {% elif trust < 50 and trust > 0 %}
+                     This user's ratings have a slight effect on a comment's score.
+                     {% elif trust <= 0 %}
+                     This user's ratings have no effect on a comment's score.
+                     {% end %}
+                </abbr><br>
+                    {% if trust < 100 %}
+                    <form action="/usertrust" method="post">
+                        {% raw xsrf_form_html() %}
+                        <input type="hidden" name="trust" value="100">
+                        <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                        <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                        <input class="textbutton" type="submit" value="Recommended this users to others.">
+                    </form>
+                    <br>
+                    {% end %}
+                    {% if trust > -100 and trust < 100 %}
+                    <form action="/usertrust" method="post">
+                        {% raw xsrf_form_html() %}
+                        <input type="hidden" name="trust" value="-100">
+                        <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                        <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                        <input class="textbutton" type="submit" value="Warn others about this user.">
+                    </form>
+                    {% end %}
+                    <br>
+                    <form action="/usernote" method="post" class="usernote">
+                         {% raw xsrf_form_html() %}
+                        <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                        <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
+                    </form>
+                    <br>
+                    <a href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
+            </div>  
+            <p class="firstMessageDate">
+                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
+            </p>
+            <p class="firstMessageRating">
+            {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
+            </p>
+            <div id="firstMessageBody" class="floatLeft">
+                    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+            </div>
 
-                <div id="firstMessageBody">
-                        {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+            <hr class="clear firstMessageSeparationLine">
+            <form action="/vote" method="post" class="vote">
+              {% raw xsrf_form_html() %}
+            <input type="hidden" name="rating" value="1">
+            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
+            <abbr title= "This post was helpful.">
+                <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
+
+            </abbr>
+
+            </form>
+
+            <form action="/vote" method="post" class="vote">
+              {% raw xsrf_form_html() %}
+            <input type="hidden" name="rating" value="-1" >
+            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
+            <abbr title="This post was inappropriate.">
+                <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
+
+            </abbr>
+
+            </form>
+
+
+            <div id="firstMessageLinks">
+                <div id="externalsharing">
+                <abbr title="Share via Facebook">    
+                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
+                        <i class="icon-facebook-squared floatLeft iconLabelColorLight"></i>
+                    </a>
+                </abbr>
+
+                <abbr title="Share via Twitter">    
+                    <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                        <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
+                  </a>
+                </abbr>
+                <abbr title="Share via Google+">
+                    <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
+            '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                        <i class="icon-gplus-squared floatLeft iconLabelColorLight"></i>
+                    </a>
+                </abbr>
+                <abbr title="Pin this">
+                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
+                        <i class="icon-pinterest-squared floatLeft iconLabelColorLight" ></i>
+                    </a>
+                </abbr>
                 </div>
-
-                <hr class="clear firstMessageSeparationLine">
-                <form action="/vote" method="post" class="vote">
-                  {% raw xsrf_form_html() %}
-                <input type="hidden" name="rating" value="1">
-                <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
-                <abbr title= "This post was helpful.">
-                    <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
-                    <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
-
-                </abbr>
-
-                </form>
-
-                <form action="/vote" method="post" class="vote">
-                  {% raw xsrf_form_html() %}
-                <input type="hidden" name="rating" value="-1" >
-                <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
-                <abbr title="This post was inappropriate.">
-                    <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
-                    <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
-
-                </abbr>
-
-                </form>
-
-
-                <div id="firstMessageLinks">
-                    <div id="externalsharing">
-                    <abbr title="Share via Facebook">    
-                        <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
-                            <i class="icon-facebook-squared floatLeft iconLabelColorLight"></i>
-                        </a>
-                    </abbr>
-
-                    <abbr title="Share via Twitter">    
-                        <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                <div class="messageCommands"
+                    <abbr title="Mark this post as a favorite">
+                        <a href="#">
                             <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
-                      </a>
-                    </abbr>
-                    <abbr title="Share via Google+">
-                        <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
-                '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
-                            <i class="icon-gplus-squared floatLeft iconLabelColorLight"></i>
                         </a>
                     </abbr>
-                    <abbr title="Pin this">
-                        <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
-                            <i class="icon-pinterest-squared floatLeft iconLabelColorLight" ></i>
+                    <abbr title="Report this post">
+                        <a href="#">
+                            <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
                         </a>
                     </abbr>
-                    </div>
-                    <div class="messageCommands"
-                        <abbr title="Mark this post as a favorite">
-                            <a href="#">
-                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
-                            </a>
-                        </abbr>
-                        <abbr title="Report this post">
-                            <a href="#">
-                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
-                            </a>
-                        </abbr>
-                        <abbr title="Permalink">
-                            <a href="#">
-                                <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
-                            </a>
-                        </abbr>
-                    </div>
-                    <div class="messageReplyLink">
-                        <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}">
-                            Reply
+                    <abbr title="Permalink">
+                        <a href="#">
+                            <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
                         </a>
-                    </div>
+                    </abbr>
                 </div>
-
-
-                <span class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Replies</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">{{envelope.countChildren()}} Replies</span><span class="floatLeft iconLabelColorLight commentDisplayOptions">More Replies</span>
-
-                <div id="commentSliderWrapper">
-                    <br/><br/>
-                    <table class="commentSlider" id="commentSlider_{{TavernUtils.randstr(20, printable=True)}}" width="100%" cellspacing="0" cellpadding="0" border="0">
-                        <tr>
-                            <td id="shownComments" width="50%">
-                                <span/>
-                            <td id="unshownComments">
-                                <span>&nbsp;</span>
-                            </td>
-                        </tr>
-                    </table>      
-
-                    <p id="sliderResults">Percent selected : 50%</p>                        
-                    <br/><br/>
+                <div class="messageReplyLink">
+                    <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}">
+                        Reply
+                    </a>
                 </div>
-                <div id="reply_{{envelope.dict['envelope']['payload_sha512']}}" class='iconLabelColorLight'></div>
- 
+            </div>
+            <div id="commentSliderWrapper">
+                <div id="fewerReplies" class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Replies</div>
+                <div id="moreReplies" class="floatRight iconLabelColorLight commentDisplayOptions">More Replies</div>
+                <br/><br/>
+                <table class="commentSlider" id="commentSlider_{{envelope.dict['envelope']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td id="shownComments" width="50%">
+                            <span/>
+                        <td id="unshownComments">
+                            <span>&nbsp;</span>
+                        </td>
+                    </tr>
+                </table>     
+                <div id="ratingsinfo">
+                    Highest Ranked comment is: <div id="highestrating"></div>. Lowest is <div id="lowestrating">.</div>
+                </div>
+            </div>
+            <div id="numberofreplies" class="iconLabelColorLight commentDisplayOptions">
+                <p>{{envelope.countChildren()}}
+                    {% if envelope.countChildren() > 1 %}
+                    Replies
+                    {% else %}
+                    Reply
+                    {% end %}
+                </p>
+            </div>
+            <Br><br>
+            <div id="reply_{{envelope.dict['envelope']['payload_sha512']}}" class='iconLabelColorLight'></div>
         </li>
     </ul>     
 </div>

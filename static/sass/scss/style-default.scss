@@ -86,13 +86,6 @@ form.vote {
         }
 }
 
-.usernote {
-    @include trivialAnimation();
-	border:none;
-	background-color:#ddd;
-	width:90%;
-	&::-moz-placeholder,&::-webkit-input-placeholder{text-align:center;}
-}
 
 /* -----------UPLOAD--------- */
   
@@ -164,7 +157,14 @@ a.details
 {
     @include trivialAnimation();
 }
-
+a.firstDetails
+{
+    color: #ece9d7;
+}
+a.commentDetails
+{
+    color: #000000 !important;
+}
 
 /* Columns Begin */
 #column1 {
@@ -521,6 +521,7 @@ a.details
         font-size: 15px;
         color: #ece9d7;
         margin-bottom: 10px;
+        float:left;
     }
             
     .firstMessageSeparationLine {
@@ -556,9 +557,12 @@ a.details
         font-size: 15px;
         color: #000000;
         margin-bottom: 10px;
+        float:left
     }
-
-         
+    .messageRating{
+        float:right;
+    }
+             
     #firstMessageLinks {
         margin-left:9px;
     }
@@ -642,9 +646,8 @@ a.details
     @include trivialAnimation();
     }
 
-    #sliderResults{
-        position:relative;
-        top:20px; 
+    #ratingsinfo, #lowestrating, #highestrating{
+        display:none;
     }
 
     #commentSliderWrapper{
@@ -663,6 +666,61 @@ a.details
         width:418px;
         td{
             border:none;
+        }
+    }
+
+    .usernote {
+        @include trivialAnimation();
+        border:none;
+        background-color:#ddd;
+        width:90%;
+        &::-moz-placeholder,&::-webkit-input-placeholder{text-align:center;}
+    }
+
+    .note {
+        left:20px;
+        display:inline;
+    }
+
+
+    .UserDetails {
+        position:absolute;
+        width:400px;
+        color:#ffffff;
+        cursor:normal;
+        display:none;
+        margin-top:12px;
+        font-weight: bold;
+        text-decoration:none;
+        font-size: 12px;
+        line-height: 18px;
+        font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
+        padding:.5em 1em;
+        text-align:center;
+        text-shadow:0 -1px 1px #111111;
+
+        @include border-radius(4px);
+        @include box-shadow(0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444);
+        background-color:#3b3b3b;
+        @include background-image(linear-gradient(#555555, #222222));
+        z-index:10;
+
+        &:after{
+          content:"\25B8";
+          display:block;
+          font-size:2em;
+          height:0;
+          line-height:0;
+          position:absolute;
+          bottom:auto;
+          color:#4f4f4f;
+          left:-2px;
+          top:0;
+          text-align:center;
+          text-shadow:none;
+          @include rotate(-90deg);
+          width:30%;
+          z-index:10;
         }
     }
 
