@@ -167,11 +167,13 @@
                 </div>
             </div>
             <div id="numberofreplies" class="iconLabelColorLight commentDisplayOptions">
-                <p>{{envelope.countChildren()}}
-                    {% if envelope.countChildren() > 1 %}
-                    Replies
+                <p>
+                    {% if envelope.countChildren() == 1 %}
+                        1 Reply
+                    {% elif envelope.countChildren() == 0 %}
+                        <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}"> Be the first to reply to this comment </a>
                     {% else %}
-                    Reply
+                       {{envelope.countChildren()}} Replies
                     {% end %}
                 </p>
             </div>
