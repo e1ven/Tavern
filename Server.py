@@ -236,25 +236,17 @@ class Server(object):
 
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
-        if settingsfile is None:
-            if os.path.isfile(platform.node() + ".TavernServerSettings"):
-                #Load Default file(hostnamestname)
-                serversettings.loadconfig()
-            else:
-                #Generate New config
-                self.logger.info("Generating new Config")
-                self.ServerKeys = Keys()
-                self.ServerKeys.generate()
-        else:
-            serversettings.loadconfig(settingsfile)
 
-        if not 'pubkey' in serversettings.settings:
+        if not 'pubkey' in serversettings.settings or not 'privkey' in serversettings.settings:
+            #Generate New config
+            self.logger.info("Generating new Config")
+            self.ServerKeys = Keys()
+            self.ServerKeys.generate()
             serversettings.settings['pubkey'] = self.ServerKeys.pubkey
-        if not 'privkey' in serversettings.settings:
             serversettings.settings['privkey'] = self.ServerKeys.privkey
-
-        serversettings.updateconfig()
-        serversettings.saveconfig()
+            serversettings.updateconfig()
+            serversettings.saveconfig()
+            
         self.ServerKeys = Keys(pub=serversettings.settings['pubkey'],
                                priv=serversettings.settings['privkey'])
 

@@ -13,12 +13,21 @@ class ServerSettings():
         self.loadconfig()
         
     def loadconfig(self, filename=None):
+
         if filename is None:
-            filename = platform.node() + ".TavernServerSettings"
-        filehandle = open(filename, 'r')
-        filecontents = filehandle.read()
-        self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-        filehandle.close()
+
+            if filename is None:
+                filename = platform.node() + ".TavernServerSettings"
+
+            try:
+                filehandle = open(filename, 'r')
+                filecontents = filehandle.read()
+                self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+                filehandle.close()
+            except:
+                print("Error opening config file. Making New one.")
+                pass
+
         self.updateconfig()
         self.saveconfig()
 
@@ -129,6 +138,7 @@ class ServerSettings():
                 'serverkey-password'] = TavernUtils.randstr(255)
         if not 'embedserver' in self.settings:
             self.settings['embedserver'] = 'http://embed.is'
+
         if not 'downloadsurl' in self.settings:
             self.settings['downloadsurl'] = '/binaries/'
         if not 'maxembeddedurls' in self.settings:

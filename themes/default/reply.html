@@ -1,3 +1,4 @@
+{% from ServerSettings import serversettings %}
 {% set envelope = server.db.unsafe.find_one('envelopes',{'envelope.payload_sha512' : messageid }) %}
 {% if envelope is None %}
     {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.").dict %}
@@ -8,7 +9,7 @@
 
 
 {% if 'medialink' in envelope['envelope']['local'] %}
-    {% set medialink = {{serversettings.settings['downloadsurl']}} + {{envelope['envelope']['local']['medialink']}} %}
+    {% set medialink = str(serversettings.settings['downloadsurl']) + str(envelope['envelope']['local']['medialink']) %}
 {% else %}
     {% set medialink = permalink %}
 {% end %}

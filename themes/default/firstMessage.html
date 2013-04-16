@@ -19,7 +19,7 @@
 
                 <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
-                <h5>{{envelope.dict['envelope']['payload']['subject']}}</h5>
+                <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
                 <h6 class="firstMessageAuthorInfo">
                     By <b>{{envelope.dict['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
                     {% if note is not None %}
