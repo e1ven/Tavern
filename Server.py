@@ -315,7 +315,7 @@ class Server(object):
         e.dict['envelope']['local']['author_wordhash'] = "ErrorMessage!"
         e.dict['envelope']['local']['sorttopic'] = "error"
 
-        e.dict['envelope']['payload_sha512'] = e.payload.hash()
+        e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
         e.dict = self.formatEnvelope(e.dict)
         return e
 
@@ -329,17 +329,22 @@ class Server(object):
             self.logger.info(c.text())
             return False
 
-        # First, pull the message.
+        # First, calculate the hash once, and store to save cycles.
+        hashcache = c.payload.hash()
+
         existing = self.db.unsafe.find_one(
-            'envelopes', {'envelope.payload_sha512': c.payload.hash()})
+            'envelopes', {'envelope.local.payload_sha512': hashcache })
         if existing is not None:
             self.logger.info("We already have that msg.")
-            return c.dict['envelope']['payload_sha512']
+            return c.dict['envelope']['local']['payload_sha512']
 
         #If we don't have a local section, add one.
         #This isn't inside of validation since it's legal not to have one.
         #if 'local' not in c.dict['envelope']:
         c.dict['envelope']['local'] = OrderedDict()
+
+        # Don't caclulate the SHA_512 each time. Store it in local, so we can reference it going forward.
+        c.dict['envelope']['local']['payload_sha512'] = hashcache
 
         #Pull out serverstamps.
         stamps = c.dict['envelope']['stamps']
@@ -380,6 +385,7 @@ class Server(object):
         # Do NOT round UTC time, in LOCAL. This allows us to page properly, rather than using skip() which is expensive.
         c.dict['envelope']['local']['time_added'] = utctime
 
+
         if c.dict['envelope']['payload']['class'] == "message":
             # If the message referenes anyone, mark the original, for ease of finding it later.
             # Do this in the {local} block, so we don't waste bits passing this on.
@@ -389,29 +395,31 @@ class Server(object):
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
                     self.logger.info(
-                        " I am :: " + c.dict['envelope']['payload_sha512'])
-                    self.logger.info(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['payload_sha512'])
-                    repliedTo.addcite(c.dict['envelope']['payload_sha512'])
+                        " I am :: " + c.dict['envelope']['local']['payload_sha512'])
+                    self.logger.info(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['local']['payload_sha512'])
+                    repliedTo.addcite(c.dict['envelope']['local']['payload_sha512'])
                     c.addAncestor(c.dict['envelope']['payload']['regarding'])
+
+            print("id is :" + c.dict['envelope']['local']['payload_sha512'])
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
-            for citedme in self.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['payload_sha512']}):
+            for citedme in self.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
                 self.logger.info('found existing cite, bad order. ')
                 self.logger.info(
-                    " I am :: " + c.dict['envelope']['payload_sha512'])
+                    " I am :: " + c.dict['envelope']['local']['payload_sha512'])
                 self.logger.info(" Found pre-existing cite at :: " +
-                                 citedme['envelope']['payload_sha512'])
+                                 citedme['envelope']['local']['payload_sha512'])
                 citedme = self.formatEnvelope(citedme)
-                c.addcite(citedme['envelope']['payload_sha512'])
-                citedme.addAncestor(c.dict['envelope']['payload_sha512'])
+                c.addcite(citedme['envelope']['local']['payload_sha512'])
+                citedme.addAncestor(c.dict['envelope']['local']['payload_sha512'])
 
         #Create the HTML version, and store it in local
         c.dict = self.formatEnvelope(c.dict)
 
         #Store our Envelope
         c.saveMongo()
-        return  c.dict['envelope']['payload_sha512']
+        return  c.dict['envelope']['local']['payload_sha512']
 
     def formatText(self, text=None, formatting='markdown'):
         if formatting == 'markdown':
@@ -431,7 +439,7 @@ class Server(object):
 
         # First, pull the message.
         envelope = self.db.unsafe.find_one('envelopes',
-                                           {'envelope.payload_sha512': messageid})
+                                           {'envelope.local.payload_sha512': messageid})
         envelope = self.formatEnvelope(envelope)
 
         # IF we don't have a parent, or if it's null, return self./
@@ -443,7 +451,7 @@ class Server(object):
         # If we do have a parent, Check to see if it's in our datastore.
         parentid = envelope['envelope']['payload']['regarding']
         parent = self.db.unsafe.find_one('envelopes',
-                                         {'envelope.payload_sha512': parentid})
+                                         {'envelope.local.payload_sha512': parentid})
         if parent is None:
             return messageid
 

@@ -387,7 +387,7 @@ class RSSHandler(BaseHandler):
             for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
-                                "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['payload_sha512'],
+                                "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['local']['payload_sha512'],
                                 envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
@@ -396,7 +396,7 @@ class RSSHandler(BaseHandler):
 class RawMessageHandler(BaseHandler):
     def get(self, message):
         envelope = server.db.unsafe.find_one(
-            'envelopes', {'envelope.payload_sha512': message})
+            'envelopes', {'envelope.local.payload_sha512': message})
         envelope = server.formatEnvelope(envelope)
         self.write(envelope['envelope']['local']['formattedbody'])
 
@@ -481,10 +481,10 @@ class TriPaneHandler(BaseHandler):
             divs = ['scrollablediv2', 'scrollablediv3']
 
             displayenvelope = server.db.unsafe.find_one('envelopes',
-                                                        {'envelope.payload_sha512': messageid})
+                                                        {'envelope.local.payload_sha512': messageid})
             if displayenvelope is not None:
                 topic = displayenvelope['envelope']['payload']['topic']
-                canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['payload_sha512']
+                canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['local']['payload_sha512']
                 title = displayenvelope['envelope']['payload']['subject']
 
 
@@ -500,7 +500,6 @@ class TriPaneHandler(BaseHandler):
                 redirected = False
         else:
             redirected = None
-
 
         #Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
@@ -567,9 +566,9 @@ class SiteContentHandler(BaseHandler):
         client_message_id = tornado.escape.xhtml_escape(message)
 
         envelope = server.db.unsafe.find_one(
-            'envelopes', {'envelope.payload_sha512': client_message_id})
+            'envelopes', {'envelope.local.payload_sha512': client_message_id})
 
-        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], canon="sitecontent/" + envelope['envelope']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
+        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], canon="sitecontent/" + envelope['envelope']['local']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
         self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
         self.write(self.render_string('footer.html'))
 
@@ -1246,7 +1245,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
                 e.payload.dict['topic'] = regardingmsg['envelope'][
                     'payload']['topic']
                 e.payload.dict['subject'] = regardingmsg[
@@ -1265,7 +1264,7 @@ class NewmessageHandler(BaseHandler):
             if client_regarding is not None:
                 server.logger.info("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
                     regardingmsg['envelope']['payload']['subject'])
                 e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
@@ -1338,7 +1337,7 @@ class ShowPrivatesHandler(BaseHandler):
         self.write(self.render_string('header.html',
                    title="Welcome to the Tavern!", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields=['envelope.payload_sha512', 'envelope.payload.subject'], limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields=['envelope.local.payload_sha512', 'envelope.payload.subject'], limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1351,7 +1350,7 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(ensurekeys=True)
 
-        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys.pubkey, 'envelope.payload_sha512': message})
+        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys.pubkey, 'envelope.local.payload_sha512': message})
         if message is not None:
             decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:

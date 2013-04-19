@@ -7,13 +7,13 @@
 <div class="single userportrait">
 <h1>{{user.Keys.decrypt(envelope['envelope']['payload']['subject'],passkey=user.passkey)}}<br></h1>
 
-{% set messagerating = user.getRatings(envelope['envelope']['payload_sha512']) %}
+{% set messagerating = user.getRatings(envelope['envelope']['local']['payload_sha512']) %}
 
 
             <p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
-                    <a class="details" user="{{envelope['envelope']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
+                    <a class="details" user="{{envelope['envelope']['local']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
                     
-                        <img id="avatar_{{envelope['envelope']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+                        <img id="avatar_{{envelope['envelope']['local']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
 
 
@@ -29,7 +29,7 @@
                             <div class="note"><i>{{note}}</i></div>
                         {% end %}
                     </a>
-                    <div class="UserDetails UserDetails_right" id="details_{{envelope['envelope']['payload_sha512']}}">
+                    <div class="UserDetails UserDetails_right" id="details_{{envelope['envelope']['local']['payload_sha512']}}">
                     {% set trust = user.gatherTrust(askingabout=envelope['envelope']['payload']['author']['pubkey']) %}
                         <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
                              {% if trust > 50 %}

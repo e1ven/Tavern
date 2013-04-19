@@ -13,7 +13,7 @@
 {% if len(envelopes) != 0 %}
     {% for envelope in envelopes %}
         {% if envelope['envelope']['payload']['class'] == 'message' %}
-            <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+            <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['local']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
         {% end %}
     {% end %}
 {% else %}

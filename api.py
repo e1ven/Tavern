@@ -90,7 +90,7 @@ class MessageHandler(BaseHandler):
             client_perspective = None
 
         envelope = server.db.unsafe.find_one(
-            'envelopes', {'envelope.payload_sha512': client_message_id})
+            'envelopes', {'envelope.local.payload_sha512': client_message_id})
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -125,7 +125,7 @@ class TopicHandler(BaseHandler):
                 usertrust = u.gatherTrust(
                     envelope['envelope']['payload']['author']['pubkey'])
                 messagerating = u.getRatings(
-                    envelope['envelope']['payload_sha512'])
+                    envelope['envelope']['local']['payload_sha512'])
                 envelope['envelope']['local'][
                     'calculatedrating'] = messagerating
 

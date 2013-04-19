@@ -148,10 +148,6 @@ class Envelope(object):
             server.logger.info("Invalid Envelope. No Header")
             return False
 
-        if self.dict['envelope']['payload_sha512'] != self.payload.hash():
-            server.logger.info("Failure to load Message - SHA does not match.")
-            return False
-
         #Ensure we have 1 and only 1 author signature stamp
         stamps = self.dict['envelope']['stamps']
         foundauthor = 0
@@ -340,7 +336,7 @@ class Envelope(object):
                 del self.dict['envelope']['local']
 
         self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['payload_sha512'] = self.payload.hash()
+        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict, separators=(',', ':'))
         return newstr
 
@@ -351,14 +347,14 @@ class Envelope(object):
                 del self.dict['envelope']['local']
                 
         self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['payload_sha512'] = self.payload.hash()
+        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
         newstr = json.dumps(self.dict, indent=2, separators=(', ', ': '))
         return newstr
 
     def savefile(self, directory='.'):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['payload_sha512'] = self.payload.hash()
+        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
 
         #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(), dictionary=10, fastBytes=255)
@@ -374,7 +370,7 @@ class Envelope(object):
     def saveMongo(self):
         self.payload.format()
         self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['payload_sha512'] = self.payload.hash()
+        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
 
         from Server import server
         self.dict['_id'] = self.payload.hash()

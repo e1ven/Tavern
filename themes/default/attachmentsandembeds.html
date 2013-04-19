@@ -41,7 +41,7 @@
         </div>
     {% elif user.UserSettings['allowembed'] == 0  %}
         <i class="icon-picture embeddedcontentnote"></i>
-        <div id="embededcontent_{{envelope['envelope']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
+        <div id="embededcontent_{{envelope['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
             {% for embed in envelope['envelope']['local']['embed'] %}
                 {%raw embed %}
             {% end %}">

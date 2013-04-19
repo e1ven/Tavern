@@ -5,8 +5,8 @@
 {% end %}
 
 {% set medialink = None %}
-{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['payload_sha512']  %}
-{% set messagerating = user.getRatings(envelope.dict['envelope']['payload_sha512']) %}
+{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
+{% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 {% set note = user.getNote(envelope.dict['envelope']['payload']['author']['pubkey']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
 
@@ -15,9 +15,9 @@
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{envelope.dict['envelope']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
 
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
                 <h6 class="firstMessageAuthorInfo">
@@ -27,7 +27,7 @@
                     {% end %}
                 </h6>
             </a>
-            <div class="UserDetails" id="details_{{envelope.dict['envelope']['payload_sha512']}}">
+            <div class="UserDetails" id="details_{{envelope.dict['envelope']['local']['payload_sha512']}}">
                 <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
                      {% if trust > 50 %}
                      This user is allowed to rate comments.
@@ -79,7 +79,7 @@
             <form action="/vote" method="post" class="vote">
               {% raw xsrf_form_html() %}
             <input type="hidden" name="rating" value="1">
-            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
+            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
             <abbr title= "This post was helpful.">
                 <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                 <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -91,7 +91,7 @@
             <form action="/vote" method="post" class="vote">
               {% raw xsrf_form_html() %}
             <input type="hidden" name="rating" value="-1" >
-            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['payload_sha512']}}">
+            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
             <abbr title="This post was inappropriate.">
                 <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                 <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -144,7 +144,7 @@
                     </abbr>
                 </div>
                 <div class="messageReplyLink">
-                    <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}">
+                    <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
                 </div>
@@ -153,7 +153,7 @@
                 <div id="fewerReplies" class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Replies</div>
                 <div id="moreReplies" class="floatRight iconLabelColorLight commentDisplayOptions">More Replies</div>
                 <br/><br/>
-                <table class="commentSlider" id="commentSlider_{{envelope.dict['envelope']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <table class="commentSlider" id="commentSlider_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td id="shownComments" width="50%">
                             <span/>
@@ -171,14 +171,14 @@
                     {% if envelope.countChildren() == 1 %}
                         1 Reply
                     {% elif envelope.countChildren() == 0 %}
-                        <a class="buffer reply" message="{{envelope.dict['envelope']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['payload_sha512']}}"> Be the first to reply to this comment </a>
+                        <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
                     {% else %}
                        {{envelope.countChildren()}} Replies
                     {% end %}
                 </p>
             </div>
             <Br><br>
-            <div id="reply_{{envelope.dict['envelope']['payload_sha512']}}" class='iconLabelColorLight'></div>
+            <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
         </li>
     </ul>     
 </div>

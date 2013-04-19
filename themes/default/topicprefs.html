@@ -31,7 +31,7 @@
 				</h2>
 					<ul>
 					{% for subject in subjects %}
-					<li><a class='internal' href="/message/{{subject['envelope']['local']['sorttopic']}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a></li>
+					<li><a class='internal' href="/message/{{subject['envelope']['local']['sorttopic']}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a></li>
                     {% end %}
                     
 					</ul>				

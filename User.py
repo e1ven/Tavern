@@ -193,7 +193,7 @@ class User(object):
 
         # Stamp based ratings give a baseline, like SpamAssassin.
         e = server.db.unsafe.find_one('envelopes',
-                                      {"envelope.payload_sha512": postInQuestion})
+                                      {"envelope.local.payload_sha512": postInQuestion})
 
         if e is not None:
             if 'stamps' in e['envelope']:
