@@ -365,10 +365,13 @@ class Server(object):
         c.dict['envelope']['local']['highestPOW'] = highestPOW
         utctime = time.time()
 
+
+
         # Sign the message to saw we saw it.
-        signedpayload = self.ServerKeys.signstring(c.payload.text())
-        myserverinfo = {'class': 'server', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
-        stamps.append(myserverinfo)
+        if serversettings.settings['mark-seen'] == True:
+            signedpayload = self.ServerKeys.signstring(c.payload.text())
+            myserverinfo = {'class': 'server', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
+            stamps.append(myserverinfo)
 
         # If we are the first to see this, and it's enabled -- set outselves as the Origin.
         if serversettings.settings['mark-origin'] == True:
