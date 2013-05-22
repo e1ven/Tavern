@@ -129,7 +129,7 @@ class ServerSettings():
             self.settings['mark-origin'] = False
 
         if not 'mark-seen' in self.settings:
-            self.settings['mark-origin'] = False
+            self.settings['mark-seen'] = False
 
         if not 'max-upload-preview-size' in self.settings:
             self.settings['max-upload-preview-size'] = 10485760
