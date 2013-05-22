@@ -581,7 +581,7 @@ class Server(object):
                 envelope['envelope']['local']['embed'] = []
             if envelope['envelope']['local']['embed'] == []:
                 # Don't check more than once.
-                soup = BeautifulSoup(formattedbody)
+                soup = BeautifulSoup(formattedbody,"html.parser")
                 for href in soup.findAll('a'):
                     result = self.external.lookup(href.get('href'))
                     if result is not None and foundurls < serversettings.settings['maxembeddedurls']:

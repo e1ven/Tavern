@@ -1,125 +1,144 @@
-# This project requires currently Python 3.2 (     not 3.1, not 3.3 ;(     )
-# If you're on OS X, I suggest Homebrew, rather than MacPorts or Fink.
+# Quick and Dirty install instructions.
+# TODO - Improve this ;)
+# Right now, this is tested on Python 3.2, not 3.3 - There are some potential issues we're working on.
+# If you're on OSX, I suggest you install homebrew, which is used to pull further deps.
 
 
 
-#### For Debian-based systems 
-apt-get install g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev
+
+### For Debian-based systems 
+    apt-get update
+    apt-get install g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 
+    apt-get install libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor 
+    apt-get install gnupg make git-core scons libpq-dev curl
+    # On 64 bit linux
+        apt-get install lib32z1
+    apt-get install mongodb-10gen
+
 
 ### for OS X
-brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons
+    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba
 
+
+# Install RVM, so we can load in a more recent ruby without messing up the system ruby
+curl -L https://get.rvm.io | bash -s stable --ruby
+source ~/.rvm/scripts/rvm
+
+
+# Install the Gems that convert the sass files into CSS
 gem install sass compass
 
-ln -s /usr/bin/python3.2 /usr/bin/python
 
+### If you want to run through nginx, we should use a custom compiled version for upload/etc.
+### You can skip this step, and just connect directly for development.
 
-#On 64 bit
-apt-get install lib32z1
+    cd /usr/local/src
+    wget http://nginx.org/download/nginx-1.4.0.tar.gz   
+    tar xvfz nginx-1.4.1.tar.gz
+    cd nginx-1.4.1
 
-
-sudo apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
-echo "deb http://downloads-distro.mongodb.org/repo/debian-sysvinit dist 10gen" >> /etc/apt/sources.list
-
-apt-get update
-apt-get install mongodb-10gen
-
-
-
-cd /usr/local/src
-wget http://nginx.org/download/nginx-1.3.8.tar.gz
-tar xvfz nginx-1.3.8.tar.gz
-cd nginx-1.3.8
-wget http://nginx.org/patches/spdy/patch.spdy-53.txt
-patch -p0 < patch.spdy-53.txt
-
-git clone https://github.com/vkholodkov/nginx-upload-module.git
-cd nginx-upload-module
-git checkout 2.2
-cd ..
-
-git clone https://github.com/mdirolf/nginx-gridfs.git
-CFLAGS="$CFLAGS -Wno-missing-field-initializers"
-cd nginx-gridfs
-git submodule init
-git submodule update
-cd mongo-c-driver
-git checkout v0.7.1
-cd ../..
+    wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
+    tar -zxvf nginx_upload_module-2.2.0.tar.gz
+    git clone https://github.com/mdirolf/nginx-gridfs.git
+    CFLAGS="$CFLAGS -Wno-missing-field-initializers"
+    cd nginx-gridfs
+    git submodule init
+    git submodule update
+    cd mongo-c-driver
+    git checkout v0.7.1
+    cd ../..
 
 	# on Linux
-	./configure --add-module=/usr/local/src/nginx-1.3.8/nginx-upload-module --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.1.0/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+	    ./configure --add-module=/usr/local/src/nginx-1.4.0/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.0/nginx-gridfs --add-module=/usr/local/src/nginx-1.4.0/ngx_pagespeed-release-1.5.27.1-beta --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
 	# On OS X
-	./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.3.3/nginx-upload-module --add-module=/usr/local/src/nginx-1.3.3/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
-make
-make install
+	    ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.0/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.0/ngx_pagespeed-release-1.5.27.1-beta --add-module=/usr/local/src/nginx-1.4.0/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+    make
+    make install
 
-mkdir /opt/uploads
-chmod 777 /opt/uploads/
+    mkdir /opt/uploads
+    chmod 777 /opt/uploads/
+    mkdir -p /var/www/cache/tmp
+    
+    
 
+# Install the current Tavern source
 cd /opt
-git clone git@github.com:e1ven/Tavern.git
+sudo git clone git@github.com:e1ven/Tavern.git
+sudo chown -R "$USER" Tavern
 
+# If you are using nginx
 cd /opt/Tavern/nginx
 cp nginx.conf /opt/nginx/conf/
 
 
-cd /opt/Tavern/libs
-curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.30.tar.gz
-tar -xzvf distribute-0.6.30.tar.gz
-cd distribute-0.6.30
-python3 setup.py install
-/usr/local/bin/easy_install-3.2 pip
-
+# If you are on Python < 3.3, you will need to install Distribute, to get the rest of the python requirements.
+# >= 3.3 appears to ship with it.
+    cd /opt/Tavern/libs
+    curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.30.tar.gz
+    tar -xzvf distribute-0.6.30.tar.gz
+    cd distribute-0.6.30
+    python3 setup.py install
+    /usr/local/bin/easy_install-3.2 pip
+    
+    
+    
+# Install the python deps.    
 cd /opt/Tavern
-pip-3.2 install -r requirements.txt
+pip3 install -r requirements.txt
 
-
+# Copy in the geo-lookup IP database. 
+# We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
 mkdir -p /usr/local/share/GeoIP
-cp libs/GeoIPCity.dat /usr/local/share/GeoIP/GeoIPCity.dat
+curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  /usr/local/share/GeoIP/GeoIPCity.dat.gz
+gunzip /usr/local/share/GeoIP/GeoIPCity.dat.gz
 
 
+# Install the Python3 port of PIL.
+# Eventually, this will be unnecessary, but for now it still is ;(
 cd /opt/Tavern/libs
 git clone https://github.com/grahame/pil-py3k
 cd pil-py3k
-# Enable jpg support by linking, on 64 bit linux.
+
+### If you are on 64_bit linux, you'll want to add the 64 bit lib dir as shown-
     vi setup.py
-    on page 196, add
+    on line 196, add
     add_directory(library_dirs, "/usr/lib/x86_64-linux-gnu")
 
 python3 setup.py install
 
 
+# Install PyLZMA, after fixing it to be py3 compatible.
 cd /opt/Tavern/libs
 git clone https://github.com/fancycode/pylzma.git
 cd pylzma
+2to3 -f all -w *.py
 python3 setup.py install
 
-
-echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
-echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
-
-
-mkdir -p /var/www/cache/tmp
-
-ln -s /opt/Tavern/libs/Tavern /etc/init.d/
+# If you're in prod, you may want to generate these things automatically. 
+# If not, they happen at startup anyway, so you can ignore ;)
+    echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
+    echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
 
 
-cd /opt/Tavern/
-python ./generateNginx.py 
+cd /opt/Tavern
+./start-dev-servers.sh
+./tavern.sh
 
-/etc/init.d/mongodb start
-/opt/nginx/sbin/nginx
+### Ensure there is *A* message
+# Open a browser to http://127.0.0.1:8080/register (if not using nginx. 80, if you are)
+# Register an account, it will bring you to a blank page.
+# Go to http://127.0.0.1:8080/newmessage
+# Post something to the topic sitecontent 
+# It can be anything at all ;)
 
-/etc/init.d/Tavern start
 
 
-SETTINGS
-Most settings should work automatically out of the box, but you may want to modify Domains to run things on your own.
-For instance, the serversetting 'embedserver' sends users to embed.is for embedded iframes.
-Feel free to run your own embed server, and change this setting to use it.
+# SETTINGS
+# Most settings should work automatically out of the box, but you may want to modify Domains to run things on your own.
+# For instance, the serversetting 'embedserver' sends users to embed.is for embedded iframes.
+# Feel free to run your own embed server, and change this setting to use it.
 
-Also, for production, you should change probably run a separate binaries server from / to a new domain.
-This will prevent cookie reading attacks.
+# Also, for production, you should change probably run a separate binaries server from / to a new domain.
+# This will prevent cookie reading attacks.
 
 

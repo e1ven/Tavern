@@ -4,5 +4,6 @@ if [ $? -eq 1 ]
 then 
 	nohup mysql.server start 
 fi
-nohup mongod run --config /usr/local/Cellar/mongodb/2.0.6-x86_64/mongod.conf &
+mongoversion=`ls -trh /usr/local/Cellar/mongodb/ |  head -n 2 | tail -n 1`
+nohup mongod &
 pg_ctl -D /usr/local/var/postgres -l /usr/local/var/log/postgres start

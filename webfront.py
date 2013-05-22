@@ -142,7 +142,7 @@ class BaseHandler(tornado.web.RequestHandler):
     @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getdiv(self, element):
         print("getting" + element)
-        soup = BeautifulSoup(self.html)
+        soup = BeautifulSoup(self.html,"html.parser")
         soupyelement = soup.find(id=element)
         soupytxt = ""
         if soupyelement is not None:
