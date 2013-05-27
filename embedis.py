@@ -60,7 +60,7 @@ class embedis:
             except ValueError:
                 return None
             if testid == possibleid:
-                return "<iframe src='http://player.vimeo.com/video/" + possibleid + "' width='" + self.x + "' height='" + self.y + "' frameborder='0' ></iframe>"
+                return "<iframe src='https://player.vimeo.com/video/" + possibleid + "' width='" + self.x + "' height='" + self.y + "' frameborder='0' ></iframe>"
             return None
         else:
             return None

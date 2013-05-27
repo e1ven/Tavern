@@ -5,8 +5,8 @@
 $purple: #4c4c9c;
 $greybrown: #56504d;
 $grey: #cccccc;
-$ltgrey: #eaeaea;
-$dkgrey: #333333;
+$lightgrey: #eaeaea;
+$darkgrey: #333333;
 $bluegrey: #404247;
 
 $nearblack: #0f0f0e;
@@ -228,7 +228,7 @@ a.commentDetails
                 text-decoration: none;
                 text-shadow: 0px 1px 0px rgba(0,0,0, .35);
              
-                background-color: $dkgrey; 
+                background-color: $darkgrey; 
                 color: $grey;
 
                 @include background-image(linear-gradient($gradient1, $gradient2));
@@ -280,7 +280,8 @@ a.commentDetails
                     @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
                     border-bottom: 1px solid #2B1306;
 
-                    > a {
+                    > a,.textbutton {
+                        width:100%;
                         color: $grey;
                         padding-top: 5px;
                         padding-right: 40px;
@@ -453,16 +454,6 @@ a.commentDetails
         padding-left: 20px;
     }
 
-    h1 {
-        font-size: 28px;
-        height:1em;
-        overflow:hidden;
-        font-style: normal;
-        color: #ece9d7;
-        margin-right: 40px;
-        margin-top: 10px;
-    }
-
 
     #scrollablediv3 {
         background: #f9f9f9;
@@ -482,22 +473,54 @@ a.commentDetails
         font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         background-color: #56504d; 
         background-image: url(/static/images/texture.png);
+
+        h1 {
+            font-size: 28px;
+            height:1em;
+            overflow:hidden;
+            font-style: normal;
+            color: #ece9d7;
+            margin-right: 40px;
+            margin-top: 10px;
+        }
+        
+        #firstMessageBody {
+            margin-bottom: 18px;
+            margin-top: 22px;
+            font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+            color: #ffffff;
+            font: 13px;
+            line-height: 16px;
+        }
+           
+        #bigProfileIcon {
+            margin-left: 14px;
+            margin-right: 14px;
+            margin-top: 12px;
+        }
+        .firstMessageAuthorInfo {
+            font-size: 15px;
+            color: #ece9d7;
+            margin-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .firstMessageDate {
+            font-size: 15px;
+            color: #ece9d7;
+            margin-bottom: 10px;
+            float:left;
+        }
+        
+        a {
+            color: $lightgrey;
+        }
+        a:hover {
+            color: $darkgrey;
+        }
+        
     }
         
-    #firstMessageBody {
-        margin-bottom: 18px;
-        margin-top: 22px;
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
-        color: #ffffff;
-        font: 13px;
-        line-height: 16px;
-    }
-           
-    #bigProfileIcon {
-        margin-left: 14px;
-        margin-right: 14px;
-        margin-top: 12px;
-    }
 
 
     #rightColumnTopHR {
@@ -510,20 +533,13 @@ a.commentDetails
         float: left;
         background-color: #4a525a;
     }
-    .firstMessageAuthorInfo {
-        font-size: 15px;
-        color: #ece9d7;
-        margin-top: 10px;
-        padding-bottom: 10px;
-    }
 
-    .firstMessageDate {
-        font-size: 15px;
-        color: #ece9d7;
-        margin-bottom: 10px;
-        float:left;
-    }
-            
+           
+    .note {
+           left:20px;
+           display:inline;
+       }
+ 
     .firstMessageSeparationLine {
         height: 1px;
         width: 422px;
@@ -634,6 +650,13 @@ a.commentDetails
         @include box-shadow(8px);
         @include box-shadow( 0px 3px 3px #b5b39a);
         margin-top:10px;
+        a {
+            color: $darkgrey;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: $nearblack;
+        }
     }
 
     .darkClass
@@ -791,6 +814,14 @@ a.commentDetails
             margin-left:-1px
         }   
     }
+
+
+    .MessageBody {
+        width:100%;
+        //Formatting for the markdown messages in the BODY section of a message.
+        // This part of the page is unrelated in style to everything else.
+        @import "markdown.scss"
+        }
 
 
 

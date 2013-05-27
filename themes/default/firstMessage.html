@@ -29,12 +29,13 @@
             </a>
             {% include 'UserDetails.html' %}
             <p class="firstMessageDate">
-                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
+                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}</time></abbr>.
             </p>
             <p class="firstMessageRating">
             {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
             </p>
-            <div id="firstMessageBody" class="floatLeft">
+            <br>
+            <div id="firstMessageBody" class="MessageBody">
                     {% raw envelope.dict['envelope']['local']['formattedbody'] %}
             </div>
 

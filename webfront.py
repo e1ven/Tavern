@@ -62,6 +62,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # Don't try to guess content-type.
         # This helps avoid JS sent in an image.
         self.set_header("X-Content-Type-Options", "nosniff")
+        self.set_header("X-Content-Security-Policy","default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src *; media-src *; frame-src " + serversettings.settings['embedserver'] +  " https://www.youtube.com https://player.vimeo.com ;font-src 'self' connect-src 'self'")
         self.fullcookies = {}
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
@@ -168,7 +169,7 @@ class BaseHandler(tornado.web.RequestHandler):
         modifiedurl = self.request.path + newargs
 
         try:
-            soup = BeautifulSoup(self.html)
+            soup = BeautifulSoup(self.html,"html.parser")
         except:
             print('malformed data in BeautifulSoup')
             raise
@@ -206,7 +207,7 @@ class BaseHandler(tornado.web.RequestHandler):
         Also, rewrite the document history in the browser, so the URL looks normal.
         """
         try:
-            soup = BeautifulSoup(self.html)
+            soup = BeautifulSoup(self.html,"html.parser")
         except:
             print('malformed data in BeautifulSoup')
             raise
@@ -1032,6 +1033,7 @@ class UserTrustHandler(BaseHandler):
         stamp['time_added'] = int(utctime)
 
         proof = {}
+        proof['class'] = 'sha256'
         proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
         proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
         stamp['proof-of-work'] = proof
@@ -1306,6 +1308,7 @@ class NewmessageHandler(BaseHandler):
         utctime = time.time()
         stamp['time_added'] = int(utctime)
         proof = {}
+        proof['class'] = 'sha256'
         proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
         proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
         stamp['proof-of-work'] = proof
