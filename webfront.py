@@ -941,6 +941,7 @@ class RatingHandler(BaseHandler):
         stamp['time_added'] = int(utctime)
 
         proof = {}
+        proof['class'] = 'sha256'
         proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
         proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
         stamp['proof-of-work'] = proof

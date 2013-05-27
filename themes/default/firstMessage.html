@@ -27,44 +27,7 @@
                     {% end %}
                 </h6>
             </a>
-            <div class="UserDetails" id="details_{{envelope.dict['envelope']['local']['payload_sha512']}}">
-                <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
-                     {% if trust > 50 %}
-                     This user is allowed to rate comments.
-                     {% elif trust < 50 and trust > 0 %}
-                     This user's ratings have a slight effect on a comment's score.
-                     {% elif trust <= 0 %}
-                     This user's ratings have no effect on a comment's score.
-                     {% end %}
-                </abbr><br>
-                    {% if trust < 100 %}
-                    <form action="/usertrust" method="post">
-                        {% raw xsrf_form_html() %}
-                        <input type="hidden" name="trust" value="100">
-                        <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                        <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
-                        <input class="textbutton" type="submit" value="Recommended this users to others.">
-                    </form>
-                    <br>
-                    {% end %}
-                    {% if trust > -100 and trust < 100 %}
-                    <form action="/usertrust" method="post">
-                        {% raw xsrf_form_html() %}
-                        <input type="hidden" name="trust" value="-100">
-                        <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                        <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
-                        <input class="textbutton" type="submit" value="Warn others about this user.">
-                    </form>
-                    {% end %}
-                    <br>
-                    <form action="/usernote" method="post" class="usernote">
-                         {% raw xsrf_form_html() %}
-                        <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
-                        <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
-                    </form>
-                    <br>
-                    <a href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
-            </div>  
+            {% include 'UserDetails.html' %}
             <p class="firstMessageDate">
                 Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
             </p>
@@ -182,4 +145,4 @@
         </li>
     </ul>     
 </div>
-{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope.dict) %}
+{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}

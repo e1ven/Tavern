@@ -357,11 +357,13 @@ class Server(object):
             if stamp['class'] == "server" or stamp['class'] == "server":
                 serversTouched += 1
 
-            # Calculate highest proof of work difficult.
+            # Calculate highest proof of work difficuly.
+            # Only use proof-of-work class sha256 for now.
             if 'proof-of-work' in stamp:
-                if stamp['proof-of-work']['difficulty'] >  highestPOW:
-                    highestPOW = stamp['proof-of-work']['difficulty']
-
+                if stamp['proof-of-work']['class'] == 'sha256':
+                    if stamp['proof-of-work']['difficulty'] >  highestPOW:
+                        highestPOW = stamp['proof-of-work']['difficulty']
+                        
         c.dict['envelope']['local']['highestPOW'] = highestPOW
         utctime = time.time()
 

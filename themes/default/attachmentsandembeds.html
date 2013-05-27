@@ -1,11 +1,11 @@
-{% if 'attachmentlist' in envelope['envelope']['local'] %}
+{% if 'attachmentlist' in envelope.dict['envelope']['local'] %}
     <div class="attachments">
-        {% if len(envelope['envelope']['local']['attachmentlist']) > 1 %}
+        {% if len(envelope.dict['envelope']['local']['attachmentlist']) > 1 %}
             Attached Files:<br>
-        {% elif  len(envelope['envelope']['local']['attachmentlist']) > 0  %}
+        {% elif  len(envelope.dict['envelope']['local']['attachmentlist']) > 0  %}
             Attached File: <br>
         {% end %}
-        {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+        {% for attachment in envelope.dict['envelope']['local']['attachmentlist'] %}
 
                 {% if 'detected_mime' in attachment %}
                     {% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
@@ -31,18 +31,18 @@
     </div>
 {% end %}
 
-{% if len (envelope['envelope']['local']['embed']) > 0 %}
+{% if len (envelope.dict['envelope']['local']['embed']) > 0 %}
     {% if user.UserSettings['allowembed'] == 1 %}
         <div class='embedded'>
         Linked Content:<Br>
-            {% for embed in envelope['envelope']['local']['embed'] %}
+            {% for embed in envelope.dict['envelope']['local']['embed'] %}
                 {%raw embed %}
             {% end %}
         </div>
     {% elif user.UserSettings['allowembed'] == 0  %}
         <i class="icon-picture embeddedcontentnote"></i>
-        <div id="embededcontent_{{envelope['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
-            {% for embed in envelope['envelope']['local']['embed'] %}
+        <div id="embededcontent_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
+            {% for embed in envelope.dict['envelope']['local']['embed'] %}
                 {%raw embed %}
             {% end %}">
             <br>

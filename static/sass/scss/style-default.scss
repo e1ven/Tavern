@@ -449,7 +449,6 @@ a.commentDetails
 #column3 {
     height:100%;
     width:100%;
-
     ul li {
         padding-left: 20px;
     }
@@ -474,6 +473,7 @@ a.commentDetails
     #allreplies{
         padding-top:10px;
         padding-bottom:20px;
+        padding-right:10px;
     }
 
     #firstMessage {
@@ -669,42 +669,56 @@ a.commentDetails
         }
     }
 
-    .usernote {
-        @include trivialAnimation();
-        border:none;
-        background-color:#ddd;
-        width:90%;
-        &::-moz-placeholder,&::-webkit-input-placeholder{text-align:center;}
-    }
 
-    .note {
-        left:20px;
-        display:inline;
-    }
-
-
-    .UserDetails {
-        position:absolute;
-        width:400px;
-        color:#ffffff;
-        cursor:normal;
+    .UserDetails {        
+        position: absolute;
+        background: rgba(0,0,0,0.9);
+        padding: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        z-index: 10;
+        width: 400px;
         display:none;
+        color:#fff;
         margin-top:12px;
-        font-weight: bold;
-        text-decoration:none;
-        font-size: 12px;
-        line-height: 18px;
-        font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
         padding:.5em 1em;
-        text-align:center;
-        text-shadow:0 -1px 1px #111111;
-
+                
         @include border-radius(4px);
         @include box-shadow(0 1px 2px #000000, inset 0 0 0 1px #222222, inset 0 2px #666666, inset 0 -2px 2px #444444);
         background-color:#3b3b3b;
         @include background-image(linear-gradient(#555555, #222222));
-        z-index:10;
-
+        
+        .textVersionOfRating{
+            display:block;
+            margin-bottom:5px;
+        }
+        
+        .DetailsOption{
+            display:block;
+            margin-top:3px;
+        }
+        
+       a,.icon-label {
+           color: #fff;
+           display: inline;
+           padding: 2px 0;
+           overflow: hidden;
+           &:hover
+           {
+               text-decoration: underline;
+           } 
+       }   
+       
+       .usernote {
+           @include trivialAnimation();
+           border:none;
+           width:90%;
+           &::-moz-placeholder,&::-webkit-input-placeholder{text-align:center;}
+           background-color: transparent;
+           border-style: solid;
+           border-width: 0px 0px 1px 0px;
+           border-color: $nearblack;
+       }
+     
         &:after{
           content:"\25B8";
           display:block;

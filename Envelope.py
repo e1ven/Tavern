@@ -188,11 +188,14 @@ class Envelope(object):
             if 'proof-of-work' in stamp:
                     proof = stamp['proof-of-work']['proof']
                     difficulty = stamp['proof-of-work']['difficulty']
-                    result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
-                    if result == False:
-                        server.logger.info("Proof of work cannot be verified.")
-                        return False
-
+                    if stamp['proof-of-work']['class'] == 'sha256':
+                        result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
+                        if result == False:
+                            server.logger.info("Proof of work cannot be verified.")
+                            return False
+                    else:
+                        server.logger.info("Proof of work in unrecognized format. Ignoring.")
+                        
 
         # Check for a valid useragent
         try:
