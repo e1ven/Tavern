@@ -61,20 +61,12 @@ class FakeMongo():
 
         return results
 
-    def find_one(self, collection, query={}):
-        cur = self.conn.cursor()
-
-        jsonquery = json.dumps(query)
-        cur.callproc('find', [collection, jsonquery])
-        res = cur.fetchone()
-
-        if res is None:
+    def find_one(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
+        result = self.find(collection=collection,query=query,limit=1,skip=skip,sortkey=sortkey,sortdirection=sortdirection)
+        if len(result) == 0:
             return None
         else:
-            # strip out the extraneous data the server includes.
-            dictres = json.loads(json.loads(res['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-
-        return dictres
+            return result
 
     def save(self, collection, query):
         cur = self.conn.cursor()
@@ -126,7 +118,7 @@ class MongoWrapper():
             else:
                 direction = pymongo.DESCENDING
             res = self.mongo[collection].find(
-                query, skip=skip, limit=limit).sort(sortkey, direction)
+                query, skip=skip, limit=limit,sort=[(sortkey,direction)])
         else:
             res = self.mongo[collection].find(query, skip=skip, limit=limit)
 
@@ -137,8 +129,23 @@ class MongoWrapper():
 
         return results
 
-    def find_one(self, collection, query={}):
-        return self.mongo[collection].find_one(query)
+    def find_one(self, collection, query={}, skip=0, sortkey=None, sortdirection="ascending"):
+
+        if sortdirection not in ['ascending', 'descending']:
+            raise Exception(
+                'Sort direction must be either ascending or descending')
+
+        if sortkey is not None:
+            if sortdirection == "ascending":
+                direction = pymongo.ASCENDING
+            else:
+                direction = pymongo.DESCENDING
+            res = self.mongo[collection].find_one(
+                query, skip=skip,sort=[(sortkey,direction)])
+
+        else:
+            res = self.mongo[collection].find_one(query, skip=skip)
+        return res
 
     def save(self, collection, query):
         return self.mongo[collection].save(query)
@@ -410,7 +417,7 @@ class Server(object):
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
-            for citedme in self.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
+            for citedme in self.db.unsafe.find('envelopes', {'envelope.payload.class':'message','envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
                 self.logger.info('found existing cite, bad order. ')
                 self.logger.info(
                     " I am :: " + c.dict['envelope']['local']['payload_sha512'])
@@ -420,6 +427,16 @@ class Server(object):
                 c.addcite(citedme['envelope']['local']['payload_sha512'])
                 citedme.addAncestor(c.dict['envelope']['local']['payload_sha512'])
 
+            # Also check to see if there are already ratings for this post, ahead of the message itself.
+            for citedme in self.db.unsafe.find('envelopes', {'envelope.payload.class':'messagerating','envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
+                citedme.dict['envelope']['local']['regardingAuthor'] = c.dict['envelope']['payload']['author']
+                citedme.saveMongo()
+
+        elif c.dict['envelope']['payload']['class'] == "messagerating":
+            # If this is a rating, cache the AUTHOR of the rated message.
+                regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
+                if regardingPost is not None:
+                    c.dict['envelope']['local']['regardingAuthor'] = regardingPost['envelope']['payload']['author']
         #Create the HTML version, and store it in local
         c.dict = self.formatEnvelope(c.dict)
 

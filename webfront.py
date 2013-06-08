@@ -905,7 +905,7 @@ class RatingHandler(BaseHandler):
             return -1
 
         e = Envelope()
-        e.payload.dict['class'] = "rating"
+        e.payload.dict['class'] = "messagerating"
         e.payload.dict['rating'] = rating_val
         e.payload.dict['regarding'] = client_hash
 
