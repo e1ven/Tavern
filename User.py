@@ -11,7 +11,7 @@ import base64
 from lockedkey import lockedKey
 from TavernUtils import memorise
 from ServerSettings import serversettings
-
+import math
 class User(object):
 
     def __init__(self):
@@ -88,77 +88,133 @@ class User(object):
 
     @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['user-trust']['seconds'], maxsize=serversettings.settings['cache']['user-trust']['size'])
     def gatherTrust(self, askingabout, incomingtrust=250):
-        # Ensure the formatting
+        """
+        Return how much I trust a given ID, rather than a given post.
+        This is determined by several factors, but the base algorithm is:
+            [Keys and Spam Ranking]
+            [Have I rated this person]
+            [Have any friends rated this person]
+            [Have any FOF or FOFOF rated this person]
+            [Each generation of friends gets their trust multiplied by .4, since you trust them less and less]
+        """
+
+        # Ensure we have proper formatting for the key we're examining, so we find it in the DB.
         key = Keys(pub=askingabout)
         askingabout = key.pubkey
 
-        #server.logger.info("My Key------" +  self.Keys.pubkey)
-        #Rating of myself = 250
-        #Direct Rating = 100
-        #Friend's Rating = 40
-        #FoF Rating = 16
-        #FoFoF Rating = 6
-        #FoFoFoF (etc) Rating = Not Counted.
-
-        #Our opinion of everyone starts off Neutral
+        # Our opinion of everyone starts off Neutral
         trust = 0
-        #The Max trust we can return goes down by 40% each time.
-        #I trust my self implicly, and I trust each FoF link 40% less.
+
+        # Set the maximum amount of trust we can return.
+        # This is set to 40% of incoming - Incoming starts at 250, to ensure that this goes to 100 for myself.
         maxtrust = .4 * incomingtrust
 
-        #We trust ourselves implicitly
+        # We trust ourselves implicitly
         if askingabout == self.Keys.pubkey:
             server.logger.info("I trust me.")
             return round(incomingtrust)
 
-        #Don't recurse forever, please.
-        #Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0 etc
+        # Don't recurse forever, please.
+        # Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0 etc
         if incomingtrust <= 2:
             return 0
 
-        #let's first check mongo to see I directly rated the user we're checking for.
-        #TODO - Let's change this to get the most recent.
+        # Query mongo to retrieve the most recent rating for a specific user.
+        myvote = server.db.unsafe.find_one(collection='envelopes', query={"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.payload.author.pubkey": str(self.Keys.pubkey)}, sortkey="envelope.local.time_added", sortdirection='descending')
 
-        server.logger.info("Asking About -- " + askingabout)
-        trustrow = server.db.unsafe.find('envelopes', {"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.payload.author.pubkey": str(self.Keys.pubkey)}, sortkey="envelope.local.time_added", sortdirection='descending')
-        foundtrust = False
-        if len(trustrow) > 0:
-            #Get the most recent trust
-            tr = trustrow[0]
+        if myvote:
+            # If I directly rated this user, Mazel tov, that was easy.
+
             server.logger.info("I rated this user directly.")
-            trust = int(tr['envelope']['payload']['trust'])
-            foundtrust = True
-        else:
-            server.logger.info("I have not directly rated this user.")
-        if foundtrust == False:
-            #If we didn't directly rate the user, let's see if any of our friends have rated him.
+            trust = int(myvote['envelope']['payload']['trust'])
 
+        else:
+            # If we didn't directly rate the user, let's see if any of our friends have rated him.
+
+            # First, let's get a list of the friends we trust
             alltrusted = server.db.unsafe.find('envelopes', {"envelope.payload.class": "usertrust", "envelope.payload.trust": {"$gt": 0}, "envelope.payload.author.pubkey": self.Keys.pubkey})
             combinedFriendTrust = 0
             friendcount = 0
 
-            #Now, iterate through each of those people. This will be slow, which is why we cache.
+            # Now, iterate through each of those people, and see if they rated him. Check THEIR friends.
+            # This will be slow for the first search, but the function uses a decorator for caching.
             for trusted in alltrusted:
                 friendcount += 1
-                server.logger.info("BTW- I trust" + trusted['envelope'][
-                                   'payload']['trusted_pubkey'] + " \n\n\n\n")
+
+                # Load in our friend from the DB.
                 u = User()
                 u.load_mongo_by_pubkey(
                     trusted['envelope']['payload']['trusted_pubkey'])
-                combinedFriendTrust += u.gatherTrust(
+                # How much do we trust our Friend...
+                # We're only going to be here if we directly rated them, which set it out at 100
+                # But if they're from a bad neighborhood, or if they constantly recommend people we downvote, we might decide we don't like them anymore.
+                # That's why we want to weigh their recomendation by how much we trust them.
+                amountITrustThisFriend = u.gatherTrust(askingabout=trusted['envelope']['payload']['trusted_pubkey'],incomingtrust=maxtrust)
+                amountMyFriendTrustsAskingAbout = u.gatherTrust(
                     askingabout=askingabout, incomingtrust=maxtrust)
-                server.logger.info("My friend trusts this user at : " + str(u.gatherTrust(askingabout=askingabout, incomingtrust=maxtrust)))
+
+                # I can never trust my friends unusual amounts.
+                if amountITrustThisFriend > 100:
+                    amountITrustThisFriend = 100
+                if amountITrustThisFriend < 1:
+                    amountITrustThisFriend = 1
+
+                combinedFriendTrust += round((amountITrustThisFriend/100) * amountMyFriendTrustsAskingAbout)
+
             if friendcount > 0:
                 trust = combinedFriendTrust / friendcount
             server.logger.info("total friend average" + str(trust))
 
-        #Add up the trusts from our friends, and cap at MaxTrust
+        # Ensure that this element of the trust doesn't go out of range, and unduly effect others.
         if trust > maxtrust:
             trust = maxtrust
         if trust < (-1 * maxtrust):
             trust = (-1 * maxtrust)
 
-        return round(trust)
+
+        # OK, so now we have a rating for this user, either directly or indirectly.
+        # Let's add other characteristics.
+
+
+
+        # For instance, If we've upvoted this guy, that should weigh in, somewhat.
+        # We'll weigh the vote by log2, to discourage vote-farming.
+        ratingtally = 0
+        allratings = server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.local.regardingAuthor": askingabout})
+        for rating in allratings:
+            ratingtally += rating['envelope']['payload']['rating']
+        
+        # Reduce it using log2, carefully saving the direction.
+        if ratingtally < 0:
+            weighted = math.log2(ratingtally * -1) * -1
+        elif ratingtally > 0:
+            weighted = math.log2(ratingtally)
+        else:
+            weighted = 0
+
+        trust += weighted
+
+        # Ensure that this element of the trust doesn't go out of range, and unduly effect others.
+        if trust > maxtrust:
+            trust = maxtrust
+        if trust < (-1 * maxtrust):
+            trust = (-1 * maxtrust)
+
+
+        # We should also reduce their trust everytime we disagree with a recommendation.
+        # We still like them, but we don't trust their judgement.
+        ## TODO - How can we do this without spending ALL the CPU?
+
+
+        # Add up the trusts from our friends, and cap at MaxTrust
+        if trust > maxtrust:
+            trust = maxtrust
+        if trust < (-1 * maxtrust):
+            trust = (-1 * maxtrust)
+
+        trust = round(trust)
+        print("trust is :" + str(trust))
+        return trust
 
     def translateTrustToWords(self, trust):
         if trust == 250:
@@ -178,18 +234,23 @@ class User(object):
         else:
             return "strongly distrust"
 
-    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['user-ratings']['seconds'], maxsize=serversettings.settings['cache']['user-ratings']['size'])
+    @memorise(parent_keys=['UserSettings.pubkey'], ttl=serversettings.settings['cache']['message-ratings']['seconds'], maxsize=serversettings.settings['cache']['message-ratings']['size'])
     def getRatings(self, postInQuestion):
-
+        """
+        Get the ratings of a specific message
+        """
         #Move this. Maybe to Server??
-        allvotes = server.db.unsafe.find('envelopes', {"envelope.payload.class": "rating", "envelope.payload.rating": {"$exists": "true"}, "envelope.payload.regarding": postInQuestion})
+        allvotes = server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.payload.regarding": postInQuestion})
         combinedrating = 0
         for vote in allvotes:
             author = vote['envelope']['payload']['author']['pubkey']
             rating = vote['envelope']['payload']['rating']
             authorTrust = self.gatherTrust(askingabout=author)
+
+            # Now that we know how much we trust the author, pay attention to their rating in proportion to how much we trust them.
             if authorTrust > 0:
-                combinedrating += rating
+                authorPCT = authorTrust/100
+                combinedrating += rating *  authorPCT
 
         # Stamp based ratings give a baseline, like SpamAssassin.
         e = server.db.unsafe.find_one('envelopes',

@@ -91,8 +91,12 @@
 
    server
    {
-   listen 80;
-   rewrite ^(.*) https://$host$1 permanent;
+   	listen 80;
+   	if ($host = tavern.com)
+   	{
+   		rewrite  ^/(.*)$  http://www.tavern.com/$1;
+   	}
+   	rewrite ^(.*) https://$host$1 permanent;
    }
 
     # The main server.
@@ -107,14 +111,12 @@
         ssl_session_cache  shared:SSL:100m;
         ssl_ciphers RC4:AES128-SHA:AES:CAMELLIA128-SHA:!MD5:!ADH:!DH:!ECDH:!PSK:!SSLv2;
 
-        ### Set headers ####
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Host $host;
-        proxy_set_header Host $host;
-        proxy_set_header X-Forwarded-Proto $scheme;
 
-
+        if ($host = tavern.com)
+	{
+	rewrite  ^/(.*)$  http://www.tavern.com/$1;
+        break;
+	}
         if ($allowedhosts = 0 )
         {
             rewrite  ^/(.*)$  http://gettavern.com/$1  permanent;
@@ -155,7 +157,7 @@
         }
 
         location /avatar/ {
-                proxy_pass http://robohash.org/;
+                proxy_pass https://robohash.org/;
                 expires max;
                 add_header Last-Modified "Fri, 11 Feb 2011 16:00:00 GMT";
                 proxy_cache avatar-cache;
@@ -166,6 +168,7 @@
                 }
 
        location /uploadnewmessage {
+
                 proxy_pass http://tornados/uploadnewmessage;
                 client_max_body_size 2000M;
                 client_body_buffer_size 128k;
@@ -230,6 +233,12 @@
         }
 
         location / {
+        ### Set headers ####
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Host $host;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
          proxy_cache binaries-cache;
             	proxy_cache_valid  200 1s;
             	proxy_cache_valid  404 302  10s;

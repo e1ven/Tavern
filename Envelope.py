@@ -290,7 +290,7 @@ class Envelope(object):
                 if self.dict['envelope']['payload']['class'] == "message":
                     self.payload = Envelope.Message(
                         self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['class'] == "rating":
+                elif self.dict['envelope']['payload']['class'] == "messagerating":
                     self.payload = Envelope.Rating(
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "usertrust":
@@ -299,10 +299,13 @@ class Envelope(object):
                 elif self.dict['envelope']['payload']['class'] == "privatemessage":
                     self.payload = Envelope.PrivateMessage(
                         self.dict['envelope']['payload'])
-
+                else:
+                    return False
+            return True
+                    
     def loadstring(self, importstring):
         self.dict = json.loads(importstring, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-        self.registerpayload()
+        return self.registerpayload()
 
     def loadfile(self, filename):
 
@@ -319,18 +322,16 @@ class Envelope(object):
 
     def loadmongo(self, mongo_id):
         from Server import server
-        env = server.db.unsafe.find_one('envelopes',
-                                        {'_id': mongo_id})
+        env = server.db.unsafe.find_one('envelopes',{'_id': mongo_id})
         if env is None:
             return False
         else:
             self.dict = env
-            self.registerpayload()
-            return True
+            return self.registerpayload()
 
     def reloadfile(self):
         self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
-        self.registerpayload()
+        return self.registerpayload()
 
     def text(self,striplocal=False):
         self.payload.format()

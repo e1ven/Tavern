@@ -76,10 +76,10 @@ class ServerSettings():
             self.settings['cache']['user-trust']['seconds'] = 300
             self.settings['cache']['user-trust']['size'] = 10000
 
-        if not 'user-ratings' in self.settings['cache']:
-            self.settings['cache']['user-ratings'] = {}
-            self.settings['cache']['user-ratings']['seconds'] = 300
-            self.settings['cache']['user-ratings']['size'] = 10000
+        if not 'message-ratings' in self.settings['cache']:
+            self.settings['cache']['message-ratings'] = {}
+            self.settings['cache']['message-ratings']['seconds'] = 300
+            self.settings['cache']['message-ratings']['size'] = 10000
 
         if not 'avatarcache' in self.settings['cache']:
             self.settings['cache']['avatarcache'] = {}

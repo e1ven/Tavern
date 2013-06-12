@@ -1,7 +1,7 @@
 {% import Envelope %}
 {% set envelope = Envelope.Envelope() %}
 {% if not envelope.loadmongo(messageid) %}
-    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.") %}
+    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded... " + messageid) %}
 {% end %}
 
 {% set medialink = None %}
