@@ -19,7 +19,7 @@ gem install sass compass
 
 # Compile Nginx
 cd /usr/local/src
-wget http://nginx.org/download/nginx-1.4.0.tar.gz   
+wget http://nginx.org/download/nginx-1.4.1.tar.gz   
 tar xvfz nginx-1.4.1.tar.gz
 cd nginx-1.4.1
 
@@ -33,7 +33,7 @@ git submodule update
 cd mongo-c-driver
 git checkout v0.7.1
 cd ../..
-./configure --add-module=/usr/local/src/nginx-1.4.0/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.0/nginx-gridfs --add-module=/usr/local/src/nginx-1.4.0/ngx_pagespeed-release-1.5.27.1-beta --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+./configure --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --add-module=/usr/local/src/nginx-1.4.1/ngx_pagespeed-release-1.5.27.1-beta --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
 make
 make install
 
@@ -46,9 +46,14 @@ mkdir -p /var/www/cache/tmp
 cd /opt
 sudo git clone https://tavern-readonly:MzVFhh6YtE7Kkx@github.com/e1ven/Tavern.git
 
-# If you are using nginx
 cd /opt/Tavern/nginx
 cp nginx.conf /opt/nginx/conf/
+
+cd /opt/Tavern/nginx
+cp nginx /opt/nginx/sbin/initscript
+ln -s /opt/nginx/sbin/initscript /etc/init.d/nginx
+ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
+
 
 # Install the python deps.    
 cd /opt/Tavern
@@ -89,5 +94,6 @@ echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
 
 
 cd /opt/Tavern
+
 ./start-dev-servers.sh
-./tavern.sh
+./tavern.sh daemon 

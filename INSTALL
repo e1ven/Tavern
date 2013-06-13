@@ -58,7 +58,13 @@ gem install sass compass
     chmod 777 /opt/uploads/
     mkdir -p /var/www/cache/tmp
     
+    cd /opt/Tavern/nginx
+    cp nginx /opt/nginx/sbin/initscript
+    ln -s /opt/nginx/sbin/initscript /etc/init.d/nginx
+
     
+ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
+
 
 # Install the current Tavern source
 cd /opt
