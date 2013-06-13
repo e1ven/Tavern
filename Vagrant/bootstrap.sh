@@ -10,7 +10,7 @@ curl http://python-distribute.org/distribute_setup.py | python3.3
 curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.3
 
 
-# Temporarily add /usr/local/bin to the path so root can run pip3.3,etc
+# Temporarily add /usr/local/bin to the path so root can run pip-3.3,etc
 PATH=$PATH:/usr/local/bin
 
 # Install RVM
@@ -85,7 +85,7 @@ ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
 
 # Install the python deps.    
 cd /opt/Tavern
-pip3.3 install -r requirements.txt
+pip-3.3 install -r requirements.txt
 
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.

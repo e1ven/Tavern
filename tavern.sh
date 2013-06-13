@@ -22,6 +22,8 @@ function stop {
 }
 
 function start {
+    CURDIR=`pwd`
+    cd /opt/Tavern
     numservers=4
     # First, create two working directories
     mkdir -p tmp/checked
@@ -243,6 +245,7 @@ function start {
     else
         tail -n 10 logs/*
     fi
+    cd $CURDIR
 }
 
 
