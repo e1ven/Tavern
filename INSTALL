@@ -7,7 +7,7 @@
 
 ### For Debian-based systems 
     apt-get update
-    apt-get install g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 
+    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 
     apt-get install libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor 
     apt-get install gnupg make git-core scons libpq-dev curl
     # On 64 bit linux
@@ -32,7 +32,7 @@ gem install sass compass
 ### You can skip this step, and just connect directly for development.
 
     cd /usr/local/src
-    wget http://nginx.org/download/nginx-1.4.0.tar.gz   
+    wget http://nginx.org/download/nginx-1.4.1.tar.gz   
     tar xvfz nginx-1.4.1.tar.gz
     cd nginx-1.4.1
 
@@ -48,9 +48,9 @@ gem install sass compass
     cd ../..
 
 	# on Linux
-	    ./configure --add-module=/usr/local/src/nginx-1.4.0/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.0/nginx-gridfs --add-module=/usr/local/src/nginx-1.4.0/ngx_pagespeed-release-1.5.27.1-beta --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+	    ./configure --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
 	# On OS X
-	    ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.0/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.0/ngx_pagespeed-release-1.5.27.1-beta --add-module=/usr/local/src/nginx-1.4.0/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+	    ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
     make
     make install
 

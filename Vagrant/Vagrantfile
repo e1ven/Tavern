@@ -2,8 +2,8 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "lucid64"
-  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.box = "tavern-minimal"
+  config.vm.box_url = "https://www.dropbox.com/s/xnayxfshxobvrsu/tavern-minimal.box"
   config.vm.hostname = "Tavern.local"
   config.vm.provision :shell, :path => "bootstrap.sh"
 end

@@ -1,0 +1,26 @@
+We've setup a Vagrant Image to make Developent faster.
+It's build using veewee, since the ubuntu Raring builds weren't always working right.
+Fire it up with
+	vagrant up
+
+This will install Tavern with the settings in bootstrap.sh
+
+If you want to build your own version of the Vagrant box, it's pretty straightforward.
+First, install veewee:
+	git clone https://github.com/jedi4ever/veewee.git
+	cd veewee
+	rvm install rvm use ruby-1.9.2-p320
+	rvm use ruby-1.9.2-p320
+	gem install bundler
+	bundle install
+
+Now, let's create an image for Tavern
+	veewee vbox define 'tavern-minimal' 'ubuntu-13.04-server-amd64'
+	bundle exec veewee vbox build 'tavern-minimal'
+	bundle exec veewee vbox export 'tavern-minimal'
+	cp tavern-minimal.box ..
+	cd ..
+	change the line in the Vagrantfile from
+		  config.vm.box_url = "https://www.dropbox.com/s/xnayxfshxobvrsu/tavern-minimal.box"
+	to
+		  config.vm.box_url = "tavern-minimal.box"

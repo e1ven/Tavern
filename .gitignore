@@ -2,6 +2,9 @@
 *.swp
 *.swo
 .DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
 *.Tavern*Settings*
 nohup.out
 __pycache__
@@ -10,3 +13,4 @@ tmp
 *.min.css
 logs
 .sass-cache
+*.box
