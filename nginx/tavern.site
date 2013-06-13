@@ -22,7 +22,7 @@
     server 
     {
         server_name files.tavern.is;
-        listen 96.126.105.180:443  ssl spdy ;
+        listen 96.126.105.180:443  ssl  ;
         ssl    on;
         ssl_certificate    /etc/ssl/certs/files.tavern.is.crt;
         ssl_certificate_key    /etc/ssl/certs/files.tavern.is.key;
@@ -102,7 +102,7 @@
     # The main server.
     server 
     {
-        listen 198.74.56.235:443  ssl spdy;
+        listen 198.74.56.235:443  ssl ;
 
         ssl    on;
         

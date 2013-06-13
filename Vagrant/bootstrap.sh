@@ -3,11 +3,14 @@ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | 
 
 
 apt-get update
-apt-get -y install mongodb-10gen luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
+apt-get -y install mongodb-10gen rng-tools luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
 
 # Install Distribute + Pip
 curl http://python-distribute.org/distribute_setup.py | python3.3
 curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.3
+
+# Artifically increase entropy for Dev Env.
+echo 'HRNGDEVICE=/dev/urandom' >  /etc/default/rng-tools
 
 
 # Temporarily add /usr/local/bin to the path so root can run pip-3.3,etc
@@ -52,7 +55,7 @@ cd ../..
 
 
 
-./configure --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module \
+./configure --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --with-http_gzip_static_module \
 --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs  --add-module=/usr/local/src/nginx-1.4.1/ngx_devel_kit-0.2.18 --add-module=/usr/local/src/nginx-1.4.1/lua-nginx-module \
 --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
 
