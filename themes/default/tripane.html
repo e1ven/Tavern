@@ -17,22 +17,24 @@
                     {% if user.isLoggedIn() %}
                     <li id="two" class="mainheader"><a href="#">Your Account</a>
                         <ul  class="sub-element sub-menu">
-                                <a href="/user/{{user.UserSettings['pubkey']}}">
-                                    <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
-                                </a>
-                                {% if user.UserSettings['username'] != "Anonymous" %}
-                                    You are logged in as: <br>
-                                    <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['username']}}</a><br>
-                                {% else %}You are logged in with a temporary account.<br><br>
-                                {% end %}
-                                You are posting under the alias:<br>
-                                <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
-                                <li>
-                                <form action="/logout" method="post">
-                                    {% raw xsrf_form_html() %}
-                                    <input style="padding 0 0 0 0;"  type="submit" class="textbutton" value="logout">
-                                </form>
-                            </li>
+                                    <p>
+                                    <a href="/user/{{user.UserSettings['pubkey']}}">
+                                        <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
+                                    </a>
+                                    {% if user.UserSettings['username'] != "Anonymous" %}
+                                        You are logged in as: <br>
+                                        <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['username']}}</a><br>
+                                    {% else %}You are logged in with a temporary account.<br><br>
+                                    {% end %}
+                                    You are posting under the alias:<br>
+                                    <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
+                                    <li>
+                                        <form action="/logout" method="post">
+                                            {% raw xsrf_form_html() %}
+                                            <input style="padding 0 0 0 0;"  type="submit" class="textbutton" value="logout">
+                                        </form>
+                                    </li>
+                            </p>
                         </ul>
                     </li>
                     {% else %}

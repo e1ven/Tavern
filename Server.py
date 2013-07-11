@@ -28,6 +28,8 @@ import TavernUtils
 from TavernUtils import memorise
 import tornado.escape
 import html
+from TavernUtils import memorise
+
 
 class FakeMongo():
     def __init__(self):
@@ -241,7 +243,7 @@ class Server(object):
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
         self.mc = OrderedDict
-
+        self.unusedusercache = []
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
 
@@ -297,6 +299,31 @@ class Server(object):
             serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
+    # create a random-string user.
+    def CreateUnusedUser(self):
+        u = User()
+        server.logger.info("Making keys with a random password.")
+        # Generate a random password with a random number of characters
+        numcharacters = 100 + TavernUtils.randrange(1, 100)
+        password = TavernUtils.randstr(numcharacters)
+        u.generate(skipkeys=False, password=password)
+        unuseduser = {'user':u,'password':password}
+        return unuseduser
+
+    # Pregenerate a few users, so we can hand them out quickly.
+    def PopulateUnusedUserCache(self,num=10):
+        while len(self.unusedusercache) < num:
+            unuseduser = self.CreateUnusedUser()
+            self.unusedusercache.append(unuseduser)
+
+    # Get the next one.
+    def GetUnusedUser(self):
+        if len(self.unusedusercache) > 0:
+            return self.unusedusercache.pop()
+        else:
+            return self.CreateUnusedUser()
+
+    @memorise(ttl=serversettings.settings['cache']['sorttopic']['seconds'], maxsize=serversettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -305,6 +332,7 @@ class Server(object):
             topic = None
         return topic
 
+    @memorise(ttl=serversettings.settings['cache']['error_envelope']['seconds'], maxsize=serversettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, error="Error"):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
@@ -327,6 +355,9 @@ class Server(object):
         e.dict = self.formatEnvelope(e.dict)
         return e
 
+
+    # Cache to failfast on receiving dups
+    @memorise(ttl=serversettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=serversettings.settings['cache']['receiveEnvelope']['size'])
     def receiveEnvelope(self, envelope):
         c = Envelope()
         c.loadstring(importstring=envelope)
@@ -444,6 +475,7 @@ class Server(object):
         c.saveMongo()
         return  c.dict['envelope']['local']['payload_sha512']
 
+    @memorise(ttl=serversettings.settings['cache']['formatText']['seconds'], maxsize=serversettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
         
         # Run the text through Tornado's escape to ensure you're not a badguy.
@@ -460,6 +492,18 @@ class Server(object):
             formatted = self.autolink(formatted)
             
         return formatted
+
+
+    @memorise(ttl=serversettings.settings['cache']['getUsersPosts']['seconds'], maxsize=serversettings.settings['cache']['getUsersPosts']['size'])
+    def getUsersPosts(self,pubkey):
+        envelopes = []
+        for envelope in self.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
+            messagetext = json.dumps(envelope, separators=(',', ':'))
+            e = Envelope()
+            e.loadstring(messagetext)
+            envelopes.append(e)
+        return envelopes
+
 
     def find_top_parent(self, messageid):
         # Find the top level of a post that we currently have.
@@ -526,7 +570,7 @@ class Server(object):
                           html)
         return html
         
-
+    @memorise(ttl=serversettings.settings['cache']['formatEnvelope']['seconds'], maxsize=serversettings.settings['cache']['formatEnvelope']['size'])
     def formatEnvelope(self, envelope):
         """
         Ensure an envelope has proper formatting.

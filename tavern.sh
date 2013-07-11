@@ -4,7 +4,7 @@
 
 
 function usage {
-    echo "Usage: $0 {start|stop|restart}"
+    echo "Usage: $0 {start|stop|restart} [debug]"
 }
 
 function stop {
@@ -35,7 +35,7 @@ function start {
 
     mkdir -p logs
 
-    if [ "$2" != 'debug' ]
+    if [ "$1" != 'debug' ]
     then
         for ((i=0;i<=numservers;i++))
     	do
@@ -264,7 +264,7 @@ fi
 
 case "$1" in
         start)
-            start
+            start $2
             ;;
         stop)
             stop

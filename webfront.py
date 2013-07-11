@@ -67,6 +67,10 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
+        # Get the Browser version.
+        if 'User-Agent' in self.request.headers:
+            ua = self.request.headers['User-Agent']
+            self.browser = server.browserdetector.parse(ua)
 
     
     @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
@@ -324,12 +328,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 if self.user.UserSettings['encryptedprivkey'] is not None:
                     validkey = True
             if not validkey:
-                server.logger.info("Making keys with a random password.")
-
-                # Generate a random password with a random number of characters
-                numcharacters = 100 + TavernUtils.randrange(1, 100)
-                password = TavernUtils.randstr(numcharacters)
-                self.user.generate(skipkeys=False, password=password)
+                newuser = server.GetUnusedUser()
+                self.user = newuser['user']
+                password = newuser['password']
 
                 # Save it out.
                 self.setvars()
@@ -342,10 +343,6 @@ class BaseHandler(tornado.web.RequestHandler):
             if self.user.passkey is None:
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
-        # Get the Browser version.
-        if 'User-Agent' in self.request.headers:
-            ua = self.request.headers['User-Agent']
-            self.browser = server.browserdetector.parse(ua)
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
@@ -783,26 +780,12 @@ class UserHandler(BaseHandler):
         u = User()
         u.UserSettings['pubkey'] = pubkey
         u.generate(self, skipkeys=True)
-        u.UserSettings['author_wordhash'] = server.wordlist.wordhash(pubkey)
-
-        envelopes = []
-        for envelope in server.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
-            envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
 
-        if pubkey == self.user.Keys.pubkey:
-            if not 'author_wordhash' in self.user.UserSettings:
-                self.user.UserSettings['author_wordhash'] = u.UserSettings[
-                    'author_wordhash']
-            self.write(self.render_string('mysettings.html'))
-
         self.write(self.render_string(
-            'userpage.html', me=self.user, thatguy=u, envelopes=envelopes))
-
-        self.write(self.render_string(
-            'showuserposts.html', envelopes=envelopes, thatguy=u))
+            'userpage.html', me=self.user, thatguy=u,topic=None))
 
         self.write(self.render_string('footer.html'))
 
@@ -1341,7 +1324,7 @@ class ShowPrivatesHandler(BaseHandler):
         self.write(self.render_string('header.html',
                    title="Welcome to the Tavern!", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields=['envelope.local.payload_sha512', 'envelope.payload.subject'], limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1434,6 +1417,7 @@ def main():
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
+    server.PopulateUnusedUserCache(num=2)
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": serversettings.settings['cookie-encryption'],

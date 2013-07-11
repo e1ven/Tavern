@@ -12,6 +12,7 @@ import time
 from io import open
 import hashlib
 
+
 def proveWork(input,difficulty):
     """
     Produces a Proof-of-work SHA collision based on HashCash.

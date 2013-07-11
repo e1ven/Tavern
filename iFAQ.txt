@@ -3,11 +3,10 @@ Infrequently Asked Questions-
 
 
 What type of Keys does Tavern generate?
-	Tavern generates keys using RSA with PSS padding.
-	This was chosen because it is widely available across multiple platforms, through multiple implementations.
-	For example, GPG is an excellent framework for encryting data, but nearly everything uses the same GPG libraries.
-	RSS is available through a large number of client libraries in multiple languages.
-	ECC is a wonderful approach to public key cryptography, but is not yet widely available across platforms.
+	Tavern generates keys using GPG keys with RSA Encryption.
+	Earlier versions of Tavern uses RSA directly, but given that we hope to see many client developers, we don't want to  have to 
+	trust that no one ever screws up.
+	Using GPG pushes more of the options (Padding, etc) upstream, reducing the number of errors developers can make.
 
 
 Why use 2048-bit keys, rather than 4096-bit keys?
@@ -16,11 +15,11 @@ Why use 2048-bit keys, rather than 4096-bit keys?
 	2048-bit keys really are sufficiently hard to factor that it would take super-national effort to try to decrypt a message.
 
 Why are you identifying with a SHA512 rather than a HMAC? Isn't that insecure?
-	Messages are *not* being authenticated using the SHA512.
+	Messages are *not* being authenticated using the SHA512, nor 
 	Messaages are being signed using RSA keypairs, which is the primary means of authenticating a message.
 	That is, knowing who sent it.
 	Authenticating a message using the SHA(Message+Secret) would be insecure, and that's not what we're doing.
-	Instead, the SHA512 value is separate from the identification - It's there to give the message a unique ID.
+	Instead, the SHA512 hash is separate from the identification - It's there to give the message a unique ID.
 	This allow us to store the message in the server, have a single identifier to mark descendants, etc.
 	Essentially, we are using the SHA512 purely as a message reference, not as authentication.
 	If you swap out both the key, the signature, and the messagem It's essentially a new message from a new sender.
