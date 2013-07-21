@@ -1,6 +1,13 @@
+# This file will run through the basics to get Tavern up and running on your Vagrant box.
+# It is meant JUST for Dev- It makes several tradeoffs that you should never do in prod.
+# (Such as reduced randomness, running remote bash scripts as root, etc)
+
+# That said, it should help get your devbox up and running quickly and easily.
+
 # Don't run this script if we've already installed Tavern.
-if [ -e /opt/Tavern ]
+if [ -e /opt/tavern/data/COMPLETED-INSTALL ]
 	then
+	echo "Tavern already installed, not reinstalling."
 	exit 0
 fi
 apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
@@ -8,7 +15,7 @@ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | 
 
 
 apt-get update
-apt-get -y install mongodb-10gen haveged luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
+apt-get -y install ruby rubygems mongodb-10gen haveged luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
 
 # Install Distribute + Pip
 curl http://python-distribute.org/distribute_setup.py | python3.3
@@ -29,22 +36,18 @@ update-rc.d haveged defaults
 # Temporarily add /usr/local/bin to the path so root can run pip-3.3,etc
 PATH=$PATH:/usr/local/bin
 
-# Install RVM
-curl -L https://get.rvm.io | bash -s stable --ruby
-source /usr/local/rvm/scripts/rvm
-
-rvm install 1.9.3
-rvm use 1.9.3 --default
-
 # Install the Gems that convert the sass files into CSS
 gem install sass compass
 
 # Compile Nginx
-cd /usr/local/src
-wget http://nginx.org/download/nginx-1.4.1.tar.gz   
-tar xvfz nginx-1.4.1.tar.gz
+NGINX_VER=1.4.2
 
-cd nginx-1.4.1
+
+cd /usr/local/src
+wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
+tar xvfz nginx-$NGINX_VER.tar.gz
+
+cd nginx-$NGINX_VER
 
 wget https://github.com/simpl/ngx_devel_kit/archive/v0.2.18.tar.gz
 tar -zxvf v0.2.18.tar.gz
@@ -69,7 +72,7 @@ cd ../..
 
 
 ./configure --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --with-http_gzip_static_module \
---add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs  --add-module=/usr/local/src/nginx-1.4.1/ngx_devel_kit-0.2.18 --add-module=/usr/local/src/nginx-1.4.1/lua-nginx-module \
+--add-module=/usr/local/src/nginx-$NGINX_VER/nginx-gridfs  --add-module=/usr/local/src/nginx-$NGINX_VER/ngx_devel_kit-0.2.18 --add-module=/usr/local/src/nginx-$NGINX_VER/lua-nginx-module \
 --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
 
 
@@ -84,13 +87,12 @@ cd /opt/nginx
 git clone https://github.com/pgaertig/nginx-big-upload.git
     
     
-# Install the current Tavern source
 cd /opt
-sudo git clone https://tavern-readonly:MzVFhh6YtE7Kkx@github.com/e1ven/Tavern.git
 cd Tavern
 mkdir -p libs
 
 cd /opt/Tavern/nginx
+rm /opt/nginx/conf/nginx.conf
 ln -s /opt/Tavern/nginx/nginx.conf /opt/nginx/conf/
 
 
@@ -151,3 +153,9 @@ update-rc.d tavern defaults
 # Update again, so the logs/etc that were just created by root are now Vagrant owned.
 chown vagrant:vagrant /opt/Tavern -R
 chown vagrant:vagrant /opt/nginx -R
+
+
+echo `date` >  /opt/Tavern/data/COMPLETED-INSTALL
+
+
+
