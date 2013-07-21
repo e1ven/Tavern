@@ -157,11 +157,13 @@
 
                       					{% for subject in subjects %}
             				          	<p class="messages {%if subject['envelope']['local']['payload_sha512'] == envelope['envelope']['local']['payload_sha512']%} active{% end %}">
-            				          		<a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">
-            				          			<span class="messagesPadding displayBlock">				          			
-            				          				<bdi>{{subject['envelope']['payload']['subject']}}</bdi>
-            				          			</span>
-            				          		</a>
+            				          		<abbr title="{{subject['envelope']['payload']['subject']}}"</abbr>
+                                                <a class='internal' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">
+                				          			<span class="messagesPadding displayBlock">				          			
+                				          				<bdi>{{subject['envelope']['payload']['subject']}}</bdi>
+                				          			</span>
+                				          		</a>
+                                            </abbr>
             				          	</p>
             				          	{% end %}
 
