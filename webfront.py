@@ -30,6 +30,7 @@ from TavernUtils import memorise
 import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
+from UserGenerator import UserGenerator
 
 try:
     from hashlib import md5 as md5_func
@@ -1416,10 +1417,6 @@ def main():
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
-
-   # server.logger.info("About to generate some keys.. This may take a while. This is going to be removed/fixed before release.")
-   # server.PopulateUnusedUserCache(num=2)
-   # server.logger.info("Keys generated..")
     
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),

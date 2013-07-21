@@ -154,9 +154,14 @@ class ServerSettings():
 
 
 
-
-
-
+        if not 'UserGenerator' in self.settings:
+            self.settings['UserGenerator'] = {}
+        if not 'num_pregens' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['num_pregens'] = 5
+        if not 'workers' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['workers'] = 1
+        if not 'sleep' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['sleep'] = 5
 
 
         if not 'upload-dir' in self.settings:

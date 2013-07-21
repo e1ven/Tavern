@@ -29,7 +29,7 @@ from TavernUtils import memorise
 import tornado.escape
 import html
 from TavernUtils import memorise
-
+import multiprocessing
 
 class FakeMongo():
     def __init__(self):
@@ -243,7 +243,7 @@ class Server(object):
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
         self.mc = OrderedDict
-        self.unusedusercache = []
+        self.unusedusercache = multiprocessing.Queue(serversettings.settings['UserGenerator']['num_pregens'])
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
 
@@ -293,35 +293,20 @@ class Server(object):
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
+        self.usergenerator = UserGenerator.UserGenerator()
+        self.usergenerator.start()
 
     def prettytext(self):
         newstr = json.dumps(
             serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    # create a random-string user.
-    def CreateUnusedUser(self):
-        u = User()
-        server.logger.info("Making keys with a random password.")
-        # Generate a random password with a random number of characters
-        numcharacters = 100 + TavernUtils.randrange(1, 100)
-        password = TavernUtils.randstr(numcharacters)
-        u.generate(skipkeys=False, password=password)
-        unuseduser = {'user':u,'password':password}
-        return unuseduser
-
-    # Pregenerate a few users, so we can hand them out quickly.
-    def PopulateUnusedUserCache(self,num=10):
-        while len(self.unusedusercache) < num:
-            unuseduser = self.CreateUnusedUser()
-            self.unusedusercache.append(unuseduser)
-
     # Get the next one.
     def GetUnusedUser(self):
-        if len(self.unusedusercache) > 0:
-            return self.unusedusercache.pop()
-        else:
+        if self.unusedusercache.empty():
             return self.CreateUnusedUser()
+        else:
+            return self.unusedusercache.get()
 
     @memorise(ttl=serversettings.settings['cache']['sorttopic']['seconds'], maxsize=serversettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
@@ -697,4 +682,5 @@ class Server(object):
 server = Server()
 from User import User
 import embedis
+import UserGenerator
 server.init2()
