@@ -4,7 +4,9 @@
 
 
 function usage {
-    echo "Usage: $0 {start|stop|restart} [debug]"
+    echo "Usage: $0 {start|stop|restart} [debug/initonly]"
+    echo "initonly will startup, create config files, then exit"
+    echo "debug will run a single process without backgrounding"
 }
 
 function stop {
@@ -24,7 +26,7 @@ function stop {
 function start {
     CURDIR=`pwd`
     cd /opt/Tavern
-    numservers=4
+    numservers=2
     # First, create two working directories
     mkdir -p tmp/checked
     mkdir -p tmp/unchecked
@@ -231,9 +233,13 @@ function start {
     if [ "$1" == 'debug' ]
     then
         /usr/bin/env python3 ./webfront.py
+    elif [ "$1" == 'initonly' ]
+    then
+        /usr/bin/env python3 ./webfront.py --initonly=True
     else    
-        for ((i=0;i<=numservers;i++))
-        do
+        # -1 in the line below, since we start the count at 0, so we can be starting on 8080
+        for ((i=0;i<=$((numservers -1));i++))
+        do            
             port=$((8080 +i))
             echo "Starting on port $port"
             nohup /usr/bin/env python3 ./webfront.py --port=$port > logs/webfront-$port.log &
@@ -241,7 +247,6 @@ function start {
         tail -n 10 logs/*
     fi
     cd $CURDIR
-
 }
 
 

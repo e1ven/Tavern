@@ -1,3 +1,8 @@
+# Don't run this script if we've already installed Tavern.
+if [ -e /opt/Tavern ]
+	then
+	exit 0
+fi
 apt-key adv --keyserver keyserver.ubuntu.com --recv 7F0CEB10
 echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | sudo tee /etc/apt/sources.list.d/10gen.list
 
@@ -86,7 +91,8 @@ cd Tavern
 mkdir -p libs
 
 cd /opt/Tavern/nginx
-cp nginx.conf /opt/nginx/conf/
+ln -s /opt/Tavern/nginx/nginx.conf /opt/nginx/conf/
+
 
 cd /opt/Tavern/nginx
 cp nginx /opt/nginx/sbin/initscript
@@ -128,6 +134,10 @@ python3.3 setup.py install
 # If not, they happen at startup anyway, so you can ignore ;)
 echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
 echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
+
+
+# Ensure all config files are created
+/etc/init.d/tavern start initonly
 
 chown vagrant:vagrant /opt/Tavern -R
 chown vagrant:vagrant /opt/nginx -R

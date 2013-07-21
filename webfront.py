@@ -1396,7 +1396,7 @@ class AvatarHandler(BaseHandler):
         server.logger.info("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
         self.redirect('https://robohash.org/' + avatar + "?" + "set=" + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size'))
 
-
+define("initonly", default=False, help="Create config files, then quit.",type=bool)
 define("port", default=8080, help="run on the given port", type=int)
 def main():
     tornado.options.parse_command_line()
@@ -1410,16 +1410,16 @@ def main():
     # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
     if not 'guestacct' in serversettings.settings:
     
-        print("NO GUEST...?")
+        server.logger.info("NO GUEST...?")
         serveruser = User()
         serveruser.generate(skipkeys=False, password=serversettings.settings[
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
-    print("About to generate some keys.. This may take a while. This is going to be removed/fixed before release.")
+    server.logger.info("About to generate some keys.. This may take a while. This is going to be removed/fixed before release.")
     server.PopulateUnusedUserCache(num=2)
-    print("Keys generated..")
+    server.logger.info("Keys generated..")
     
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -1460,7 +1460,6 @@ def main():
         (r"/avatar/(.*)", AvatarHandler),
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
-        (r"/loaderio-a80dc3024db2124fb7410acd64bb7e19.txt",VerificationHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
          os.path.join(os.path.dirname(__file__), "static/")}),
         (r"/(.*)/(.*)/(.*)", TriPaneHandler),
@@ -1473,7 +1472,10 @@ def main():
 
     server.logger.info(
         serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
-    tornado.ioloop.IOLoop.instance().start()
+    if options.initonly is False:
+        tornado.ioloop.IOLoop.instance().start()
+    else:
+        server.logger.info("Exiting immediatly as requested")
 
 if __name__ == "__main__":
     main()
