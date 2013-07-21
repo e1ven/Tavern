@@ -3,14 +3,22 @@ echo 'deb http://downloads-distro.mongodb.org/repo/ubuntu-upstart dist 10gen' | 
 
 
 apt-get update
-apt-get -y install mongodb-10gen rng-tools luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
+apt-get -y install mongodb-10gen haveged luajit libluajit-5.1-dev g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3.3 python3.3-dev libmagic-dev python-imaging java-common yui-compressor  gnupg make git-core scons libpq-dev curl lib32z1
 
 # Install Distribute + Pip
 curl http://python-distribute.org/distribute_setup.py | python3.3
 curl https://raw.github.com/pypa/pip/master/contrib/get-pip.py | python3.3
 
-# Artifically increase entropy for Dev Env.
-echo 'HRNGDEVICE=/dev/urandom' >  /etc/default/rng-tools
+
+# We're going to need more randomness to create encryption keys
+# For dev, we'll use the tool haveged to "generate" more entropy
+# This isn't particularly secure - It uses various HW timings, but it should be OK for dev boxes..
+
+# The primary use of this Vagrantfile is to generate software that talks to Tavern, not to be a production Tavern relay.
+# For prod, I'd suggest the use of a USB device that generates random numbers.
+echo 'DAEMON_ARGS="-w 4096"' > /etc/default/haveged
+update-rc.d haveged defaults
+/etc/init.d/haveged restart
 
 
 # Temporarily add /usr/local/bin to the path so root can run pip-3.3,etc
@@ -129,3 +137,7 @@ chown vagrant:vagrant /opt/nginx -R
 
 update-rc.d nginx defaults 
 update-rc.d tavern defaults
+
+# Update again, so the logs/etc that were just created by root are now Vagrant owned.
+chown vagrant:vagrant /opt/Tavern -R
+chown vagrant:vagrant /opt/nginx -R

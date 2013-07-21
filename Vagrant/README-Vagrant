@@ -1,5 +1,9 @@
 We've setup a Vagrant Image to make Developent faster.
 It's build using veewee, since the ubuntu Raring builds weren't always working right.
+Vagrant 1.x is kinda old, so I've built the file assuming vagrant 1.1+
+This means that you should install via http://downloads.vagrantup.com, not rubygems.
+
+
 Fire it up with
 	vagrant up
 

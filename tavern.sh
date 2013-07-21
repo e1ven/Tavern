@@ -35,16 +35,6 @@ function start {
 
     mkdir -p logs
 
-    if [ "$1" != 'debug' ]
-    then
-        for ((i=0;i<=numservers;i++))
-    	do
-    		port=$((8080 +i))
-    		echo "Starting on port $port"
-     		nohup /usr/bin/env python3 ./webfront.py --port=$port > logs/webfront-$port.log &
-    	done
-    fi
-
 
     # Run the various functions to ensure DB caches and whatnot
     echo "Running onStart functions."
@@ -238,14 +228,20 @@ function start {
     rm tmp/unchecked/*.exists
 
     echo "Starting Tavern..."
-    # If we're running in debug mode, fire up the server
     if [ "$1" == 'debug' ]
     then
         /usr/bin/env python3 ./webfront.py
-    else
+    else    
+        for ((i=0;i<=numservers;i++))
+        do
+            port=$((8080 +i))
+            echo "Starting on port $port"
+            nohup /usr/bin/env python3 ./webfront.py --port=$port > logs/webfront-$port.log &
+        done
         tail -n 10 logs/*
     fi
     cd $CURDIR
+
 }
 
 

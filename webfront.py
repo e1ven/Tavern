@@ -1417,7 +1417,10 @@ def main():
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
+    print("About to generate some keys.. This may take a while. This is going to be removed/fixed before release.")
     server.PopulateUnusedUserCache(num=2)
+    print("Keys generated..")
+    
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": serversettings.settings['cookie-encryption'],
