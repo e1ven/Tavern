@@ -121,6 +121,48 @@ class ServerSettings():
             self.settings['cache']['topiccount']['size'] = 1000
             self.settings['cache']['topiccount']['seconds'] = 10
 
+        if not 'formatEnvelope' in self.settings['cache']:
+            self.settings['cache']['formatEnvelope'] = {}
+            self.settings['cache']['formatEnvelope']['size'] = 10000
+            self.settings['cache']['formatEnvelope']['seconds'] = 1000
+
+        if not 'receiveEnvelope' in self.settings['cache']:
+            self.settings['cache']['receiveEnvelope'] = {}
+            self.settings['cache']['receiveEnvelope']['size'] = 10000
+            self.settings['cache']['receiveEnvelope']['seconds'] = 1000
+
+        if not 'getUsersPosts' in self.settings['cache']:
+            self.settings['cache']['getUsersPosts'] = {}
+            self.settings['cache']['getUsersPosts']['size'] = 10000
+            self.settings['cache']['getUsersPosts']['seconds'] = 2
+
+        if not 'sorttopic' in self.settings['cache']:
+            self.settings['cache']['sorttopic'] = {}
+            self.settings['cache']['sorttopic']['size'] = 1000000
+            self.settings['cache']['sorttopic']['seconds'] = 10000000000
+
+        if not 'formatText' in self.settings['cache']:
+            self.settings['cache']['formatText'] = {}
+            self.settings['cache']['formatText']['size'] = 1000
+            self.settings['cache']['formatText']['seconds'] = 10000000000
+
+        if not 'error_envelope' in self.settings['cache']:
+            self.settings['cache']['error_envelope'] = {}
+            self.settings['cache']['error_envelope']['size'] = 20
+            self.settings['cache']['error_envelope']['seconds'] = 10000000000
+
+
+
+
+        if not 'UserGenerator' in self.settings:
+            self.settings['UserGenerator'] = {}
+        if not 'num_pregens' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['num_pregens'] = 5
+        if not 'workers' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['workers'] = 1
+        if not 'sleep' in self.settings['UserGenerator']:
+            self.settings['UserGenerator']['sleep'] = 5
+
 
         if not 'upload-dir' in self.settings:
             self.settings['upload-dir'] = '/opt/uploads'

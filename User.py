@@ -311,12 +311,16 @@ class User(object):
                     'guestacct']['pubkey_sha1']
                 self.Keys = Keys(pub=self.UserSettings['pubkey'])
         else:
+            validkey = False
             # Make a real key if we don't have one.
-            validpriv = False
             if 'encryptedprivkey' in self.UserSettings:
                 if self.UserSettings['encryptedprivkey'] is not None:
-                    validpriv = True
-            if not validpriv:
+                    # Our keys look OK.
+                    self.Keys = Keys(pub=self.UserSettings['pubkey'])
+                    validkey = True
+
+            if validkey == False: 
+                # if it was either empty or not set
                 self.Keys = lockedKey()
                 self.Keys.generate(password=password)
                 self.Keys.format_keys()
@@ -361,6 +365,8 @@ class User(object):
 
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
+
+        self.UserSettings['author_wordhash'] = server.wordlist.wordhash(self.UserSettings['pubkey'])
 
     def changepass(self, oldpasskey, newpass):
         """

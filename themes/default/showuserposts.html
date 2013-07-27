@@ -1,23 +1,19 @@
 
 <div class="single">
 
-{% if len(envelopes) != 0 %}    
-<h1> Posts for  {{envelopes[0]['envelope']['payload']['author']['friendlyname']}}</b>@{{envelopes[0]['envelope']['local']['author_wordhash']}} </h1>
-{% else %}
-<h1> Posts for {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_wordhash']}} </h1>
-{% end %}
+<h1> Posts for {{hisname}} </h1>
 
 <p></p>
 <ul>
 
 {% if len(envelopes) != 0 %}
     {% for envelope in envelopes %}
-        {% if envelope['envelope']['payload']['class'] == 'message' %}
-            <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['local']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a></li>
+        {% if envelope.dict['envelope']['payload']['class'] == 'message' %}
+            <li><a href="/message/{{envelope.dict['envelope']['local']['sorttopic']}}/{{envelope.dict['envelope']['local']['short_subject']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">{{envelope.dict['envelope']['payload']['subject']}}</a></li>
         {% end %}
     {% end %}
 {% else %}
-    {{thatguy.UserSettings['friendlyname']}}</b>@{{thatguy.UserSettings['author_wordhash']}} has not yet posted any messages.
+    {{hisname}} has not yet posted any messages.
 {% end %}
 
 </ul>

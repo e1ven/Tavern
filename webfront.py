@@ -30,6 +30,7 @@ from TavernUtils import memorise
 import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
+from UserGenerator import UserGenerator
 
 try:
     from hashlib import md5 as md5_func
@@ -67,6 +68,10 @@ class BaseHandler(tornado.web.RequestHandler):
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
 
+        # Get the Browser version.
+        if 'User-Agent' in self.request.headers:
+            ua = self.request.headers['User-Agent']
+            self.browser = server.browserdetector.parse(ua)
 
     
     @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
@@ -324,12 +329,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 if self.user.UserSettings['encryptedprivkey'] is not None:
                     validkey = True
             if not validkey:
-                server.logger.info("Making keys with a random password.")
-
-                # Generate a random password with a random number of characters
-                numcharacters = 100 + TavernUtils.randrange(1, 100)
-                password = TavernUtils.randstr(numcharacters)
-                self.user.generate(skipkeys=False, password=password)
+                newuser = server.GetUnusedUser()
+                self.user = newuser['user']
+                password = newuser['password']
 
                 # Save it out.
                 self.setvars()
@@ -342,10 +344,6 @@ class BaseHandler(tornado.web.RequestHandler):
             if self.user.passkey is None:
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
-        # Get the Browser version.
-        if 'User-Agent' in self.request.headers:
-            ua = self.request.headers['User-Agent']
-            self.browser = server.browserdetector.parse(ua)
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
@@ -780,26 +778,12 @@ class UserHandler(BaseHandler):
         u = User()
         u.UserSettings['pubkey'] = pubkey
         u.generate(self, skipkeys=True)
-        u.UserSettings['author_wordhash'] = server.wordlist.wordhash(pubkey)
-
-        envelopes = []
-        for envelope in server.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
-            envelopes.append(envelope)
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
 
-        if pubkey == self.user.Keys.pubkey:
-            if not 'author_wordhash' in self.user.UserSettings:
-                self.user.UserSettings['author_wordhash'] = u.UserSettings[
-                    'author_wordhash']
-            self.write(self.render_string('mysettings.html'))
-
         self.write(self.render_string(
-            'userpage.html', me=self.user, thatguy=u, envelopes=envelopes))
-
-        self.write(self.render_string(
-            'showuserposts.html', envelopes=envelopes, thatguy=u))
+            'userpage.html', me=self.user, thatguy=u,topic=None))
 
         self.write(self.render_string('footer.html'))
 
@@ -1338,7 +1322,7 @@ class ShowPrivatesHandler(BaseHandler):
         self.write(self.render_string('header.html',
                    title="Welcome to the Tavern!", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, fields=['envelope.local.payload_sha512', 'envelope.payload.subject'], limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, limit=10, sortkey='value', sortdirection='descending'):
             message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
@@ -1410,7 +1394,7 @@ class AvatarHandler(BaseHandler):
         server.logger.info("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
         self.redirect('https://robohash.org/' + avatar + "?" + "set=" + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size'))
 
-
+define("initonly", default=False, help="Create config files, then quit.",type=bool)
 define("port", default=8080, help="run on the given port", type=int)
 def main():
     tornado.options.parse_command_line()
@@ -1424,13 +1408,13 @@ def main():
     # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
     if not 'guestacct' in serversettings.settings:
     
-        print("NO GUEST...?")
+        server.logger.info("NO GUEST...?")
         serveruser = User()
         serveruser.generate(skipkeys=False, password=serversettings.settings[
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
-
+    
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": serversettings.settings['cookie-encryption'],
@@ -1470,7 +1454,6 @@ def main():
         (r"/avatar/(.*)", AvatarHandler),
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
-        (r"/loaderio-a80dc3024db2124fb7410acd64bb7e19.txt",VerificationHandler), 
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
          os.path.join(os.path.dirname(__file__), "static/")}),
         (r"/(.*)/(.*)/(.*)", TriPaneHandler),
@@ -1483,7 +1466,10 @@ def main():
 
     server.logger.info(
         serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
-    tornado.ioloop.IOLoop.instance().start()
+    if options.initonly is False:
+        tornado.ioloop.IOLoop.instance().start()
+    else:
+        server.logger.info("Exiting immediatly as requested")
 
 if __name__ == "__main__":
     main()

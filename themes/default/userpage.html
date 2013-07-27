@@ -1,37 +1,55 @@
-{% if len(envelopes) != 0 %}
-{% set hisname = envelopes[0]['envelope']['payload']['author']['friendlyname'] + "@" + envelopes[0]['envelope']['local']['author_wordhash'] %}
-{% else %}
-{% set hisname =  thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
+{% extends "tripane.html" %}
+{% block column2 %}
 {% end %}
-<div class="single userportrait">
-<h1> Details about {{hisname}} </h1>
-<p></p>
-<p><a href="/newprivatemessage/{{thatguy.UserSettings['pubkey']}}">Send {{hisname}} a private message</a></p><br>
-<ul>
 
+{% block column3 %}
 
-<img id="avatar_{{''.join(thatguy.UserSettings['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
-
-
-
-
-{% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['pubkey']) %}
-    You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
-    {% set note = me.getNote(thatguy.UserSettings['pubkey']) %}
-    {% if note is not None %}
-        You set the following note about this user:<Br>
-        <div class="note"><i>{{note}}</i></div>
+    <div id="single">
+    {# If it's me, include my settings page #}
+    {% if thatguy.UserSettings['pubkey'] == me.UserSettings['pubkey'] %}
+        {% include 'mysettings.html' %}
     {% end %}
-        <br><br>
 
-        Set a note about this user:<Br>
-        <form action="/usernote" method="post" class="usernote">
-             {% raw xsrf_form_html() %}
-            <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['pubkey']}}">
-            <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
-        </form>
 
-</ul>
-<Br><br><br>
+    {% set envelopes = server.getUsersPosts(thatguy.UserSettings['pubkey']) %}
 
-</div> <!-- .single -->
+    {% if len(envelopes) != 0 %}
+        {% set thatguy.UserSettings['friendlyname'] = envelopes[0].dict['envelope']['payload']['author']['friendlyname'] %}
+    {% end %}
+
+    {% set hisname = thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
+
+    <h1> Details about {{hisname}} </h1>
+    <p></p>
+    <p><a href="/newprivatemessage/{{thatguy.UserSettings['pubkey']}}">Send {{hisname}} a private message</a></p><br>
+    <ul>
+
+
+    <img id="avatar_{{''.join(thatguy.UserSettings['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
+
+
+
+
+    {% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['pubkey']) %}
+        You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
+        {% set note = me.getNote(thatguy.UserSettings['pubkey']) %}
+        {% if note is not None %}
+            You set the following note about this user:<Br>
+            <div class="note"><i>{{note}}</i></div>
+        {% end %}
+            <br><br>
+
+            Set a note about this user:<Br>
+            <form action="/usernote" method="post" class="usernote">
+                 {% raw xsrf_form_html() %}
+                <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['pubkey']}}">
+                <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
+            </form>
+
+    </ul>
+    <Br><br><br>
+
+    </div>
+
+    {% include 'showuserposts.html' %}
+{% end %}
