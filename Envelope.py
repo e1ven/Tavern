@@ -66,6 +66,15 @@ class Envelope(object):
             self.format()
             return True
 
+    class EditedMessage(Payload):
+        def validate(self):
+            if not Envelope.Payload(self.dict).validate():
+                server.logger.info("Super does not Validate")
+                return False
+            if not 'regarding' in self.dict:
+                server.logger.info("EditedMessages must refer to an original message.")
+                return False
+
     class Message(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
@@ -225,6 +234,8 @@ class Envelope(object):
         results =  server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
         print(results)
         return results
+
+
     def addAncestor(self,ancestorid):
         """
         A new Ancestor has been found (parent, parent's parent, etc) for this message.
@@ -269,6 +280,40 @@ class Envelope(object):
             self.dict['envelope']['local']['citedby'].append(citedby)
         self.saveMongo()
 
+
+    def editMessage(self,editid):
+        """
+        Another message has come in that says it's an edit of this one.
+        """
+        newmessage = Envelope()
+        if newmessage.loadmongo(mongo_id=editid):
+
+            # Store this edit locally
+            if not 'edits' in self.dict['envelope']['local']:
+                self.dict['envelope']['local']['edits'] = []
+            self.dict['envelope']['local']['edits'].append(self.payload.hash())
+
+            # If we're replying to an edit, propagate up.
+            if self.dict['envelope']['payload']['class'] != "message":
+                parentmessage = Envelope()
+                if parentmessage.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
+                    parentmessage.editMessage(editid)
+
+            self.dict['envelope']['local']['editedbody'] = server.formatEnvelope(newmongo.dict['envelope']['local']['formattedbody'])
+            self.saveMongo()
+
+    def addcite(self, citedby):
+        """
+        Another message has referenced this one. Mark it in the local area.
+        """
+        if not 'citedby' in self.dict['envelope']['local']:
+            self.dict['envelope']['local']['citedby'] = []
+        if citedby not in self.dict['envelope']['local']['citedby']:
+            self.dict['envelope']['local']['citedby'].append(citedby)
+        self.saveMongo()
+
+
+
     class binary(object):
         def __init__(self, sha512):
             self.dict = OrderedDict()
@@ -298,6 +343,9 @@ class Envelope(object):
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "privatemessage":
                     self.payload = Envelope.PrivateMessage(
+                        self.dict['envelope']['payload'])
+                elif self.dict['envelope']['payload']['class'] == "editedmessage":
+                    self.payload = Envelope.EditedMessage(
                         self.dict['envelope']['payload'])
                 else:
                     return False

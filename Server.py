@@ -434,9 +434,22 @@ class Server(object):
 
         elif c.dict['envelope']['payload']['class'] == "messagerating":
             # If this is a rating, cache the AUTHOR of the rated message.
-                regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
-                if regardingPost is not None:
-                    c.dict['envelope']['local']['regardingAuthor'] = regardingPost['envelope']['payload']['author']
+            regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
+            if regardingPost is not None:
+                c.dict['envelope']['local']['regardingAuthor'] = regardingPost['envelope']['payload']['author']
+
+        elif c.dict['envelope']['payload']['class'] == "editedmessage":
+            # This is an edit to an existing message. 
+            # Mark the old message with this edit.
+            regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
+            if regardingPost is not None:
+                if regardingPost['envelope']['payload']['author'] != c.dict['envelope']['payload']['author']:
+                    self.logger.info("Invalid Update. Author must match.")
+                    self.logger.info(c.text())
+                    return False    
+                else:
+                    add
+
         #Create the HTML version, and store it in local
         c.dict = self.formatEnvelope(c.dict)
 
@@ -612,6 +625,8 @@ class Server(object):
         if 'body' in envelope['envelope']['payload']:
             formattedbody = self.formatText(text=envelope['envelope']['payload']['body'], formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
+        if 'editedbody' in envelope['envelope']['local']:
+            envelope['envelope']['local']['formattedbody'] = envelope['envelope']['local']['editedbody']
 
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!

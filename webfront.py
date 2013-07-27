@@ -408,7 +408,7 @@ class TriPaneHandler(BaseHandler):
     The TriPane Handler is the beefiest handler in the project.
     It renders the main tri-panel interface, and only pushes out the parts that are needed.
     """
-    def get(self, param1=None, param2=None, param3=None):
+    def get(self, param1=None, param2=None, param3=None,param4=None):
         
         # We want to assign the parameters differently, depending on how many there are.
         # Normally, we'd just say get(action=None,param=None,bullshit=None)
@@ -420,41 +420,30 @@ class TriPaneHandler(BaseHandler):
         # Mark this as None up here, so if it changes we know.
         displayenvelope = None
 
-        # Count up our number of parameters.
-        if param3 is None:
-            if param2 is None:
-                if param1 is None:
-                    numparams = 0
-                else:
-                    numparams = 1
-            else:
-                numparams = 2
-                param2 = tornado.escape.xhtml_escape(
+        # Count up our number of parameters, and unquote them.
+        numparams = 0
+        for i in [param1,param2,param3,param4]:
+            if i is not None:
+                numparams += 1
+                locals()['param'+i] = tornado.escape.xhtml_escape(
                     urllib.parse.unquote(param2))
-        else:
-            numparams = 3
-            param3 = tornado.escape.xhtml_escape(urllib.parse.unquote(param3))
+                    
 
-        #Decide what to do, based on the number of incoming actions.
-        if numparams < 2:
-            # Defaults all around
-            action = "topic"
-            topic = "sitecontent"
-        else:
+        # Set the default values for action and topic. These may (probably will) be overwritten later.
+        action = "topic"
+        topic = "sitecontent"
+
+        if numparams > 1:
             action = param1
             if action == "t" or action == "topic" or action == "topictag":
                 action = "topic"
+                topic = param2
             elif action == "m" or action == "message":
                 action = "message"
-            else:
-                action = "message"
-            if action == "message":
                 if numparams == 2:
                     messageid = param2
-                if numparams == 3:
+                if numparams > 2:
                     messageid = param3
-            elif action == "topic":
-                topic = param2
 
         if "before" in self.request.arguments:
             # Used for multiple pages, because skip() is slow
@@ -462,6 +451,14 @@ class TriPaneHandler(BaseHandler):
             before = float(self.get_argument('before'))
         else:
             before = None
+
+        if "showoriginal" in self.request.arguments:
+            # Used for multiple pages, because skip() is slow
+            # Don't really need xhtml escape, since we're converting to a float
+            showoriginal = bool(self.get_argument('showoriginal'))
+        else:
+            showoriginal = False
+
 
         if action == "topic":
             divs = ['scrollablediv2','scrollablediv3']
