@@ -1,7 +1,7 @@
 {% set envelope = stack[0] %}
 {% import datetime %}
 {% set medialink = None %}
-{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/attachment/' + attachment  %}
+{% set permalink = serversettings.settings['primaryurl'] + '/attachment/' + attachment  %}
 
 {{preview}}
 <div class="single">

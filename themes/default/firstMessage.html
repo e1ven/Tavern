@@ -1,11 +1,11 @@
 {% import Envelope %}
 {% set envelope = Envelope.Envelope() %}
-{% if not envelope.loadmongo(messageid) %}
-    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded... " + messageid) %}
+{% if not envelope.loaddict(edict) %}
+    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded... ") %}
 {% end %}
 
 {% set medialink = None %}
-{% set permalink = request.protocol + "://" + serversettings.settings['hostname'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
+{% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 {% set note = user.getNote(envelope.dict['envelope']['payload']['author']['pubkey']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
@@ -104,7 +104,7 @@
                         </a>
                     </abbr>
                     <abbr title="Permalink">
-                        <a href="#">
+                        <a href="{{permalink}}">
                             <i class="icon-twitter-squared floatLeft iconLabelColorLight"></i>
                         </a>
                     </abbr>

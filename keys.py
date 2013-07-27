@@ -63,7 +63,7 @@ class Keys(object):
             if "-----BEGIN PGP PRIVATE KEY BLOCK-----" in self.privkey:
                 noHeaders = self.privkey[self.privkey.find("-----BEGIN PGP PRIVATE KEY BLOCK-----") + 36:self.privkey.find("-----END PGP PRIVATE KEY BLOCK-----")]
             else:
-                self.logger.info("USING NO HEADER VERSION OF PRIVKEY")
+                self.logger.debug("USING NO HEADER VERSION OF PRIVKEY")
                 noHeaders = self.privkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
@@ -77,7 +77,7 @@ class Keys(object):
             if "-----BEGIN PGP PUBLIC KEY BLOCK-----" in self.pubkey:
                 noHeaders = self.pubkey[self.pubkey.find("-----BEGIN PGP PUBLIC KEY BLOCK-----") + 36:self.pubkey.find("-----END PGP PUBLIC KEY BLOCK-----")]
             else:
-                self.logger.info("USING NO HEADER VERSION OF PUBKEY")
+                self.logger.debug("USING NO HEADER VERSION OF PUBKEY")
                 noHeaders = self.pubkey
             noBreaks = "".join(noHeaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
@@ -88,7 +88,7 @@ class Keys(object):
         """
         Replaces whatever keys currently might exist with new ones.
         """
-        self.logger.info("MAKING A KEY.")
+        self.logger.debug("MAKING A KEY.")
         key_options = self.gpg.gen_key_input(key_type="RSA", key_length=2048)
         key = self.gpg.gen_key(key_options)
         self.pubkey = self.gpg.export_keys(key.fingerprint)

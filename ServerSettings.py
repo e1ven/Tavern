@@ -4,7 +4,7 @@ import json
 import collections
 from collections import OrderedDict
 import TavernUtils
-
+import socket
 
 class ServerSettings():
 
@@ -32,29 +32,49 @@ class ServerSettings():
         self.saveconfig()
 
     def saveconfig(self, filename=None):
+        newsettings = self.settings
+        newsettings['temp'] = {}
+
         if filename is None:
             filename = self.settings['hostname'] + \
                 ".TavernServerSettings"
         filehandle = open(filename, 'w')
         filehandle.write(
-            json.dumps(self.settings, separators=(',', ':')))
+            json.dumps(newsettings, separators=(',', ':')))
         filehandle.close()
 
     def updateconfig(self):
-
-     #   self.logger.info("Generating any missing config values")
+        
+        if not 'temp' in self.settings:
+            self.settings['temp'] = {}
 
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
+
+        if not 'primaryurl' in self.settings:
+            self.settings['primaryurl'] = False
+
+        if not 'downloadsurl' in self.settings:
+            self.settings['downloadsurl'] = '/binaries/'
+     
+                    
         if not 'logfile' in self.settings:
             self.settings[
-                'logfile'] = self.settings['hostname'] + '.log'
+                'logfile'] = "logs/" + self.settings['hostname'] + '.log'
+
+        if not 'loglevel' in self.settings:
+            self.settings[
+                'loglevel'] = "INFO"
+
+
         if not 'mongo-hostname' in self.settings:
             self.settings['mongo-hostname'] = 'localhost'
         if not 'mongo-port' in self.settings:
             self.settings['mongo-port'] = 27017
         if not 'dbname' in self.settings:
             self.settings['dbname'] = 'Tavern'
+
+
         if not 'bin-mongo-hostname' in self.settings:
             self.settings['bin-mongo-hostname'] = 'localhost'
         if not 'bin-mongo-port' in self.settings:
@@ -106,10 +126,34 @@ class ServerSettings():
             self.settings['cache']['toptopics']['size'] = 1
             self.settings['cache']['toptopics']['seconds'] = 3602
 
+
+        ##### Settings related to the Web View
         if not 'templates' in self.settings['cache']:
             self.settings['cache']['templates'] = {}
             self.settings['cache']['templates']['size'] = 1000
-            self.settings['cache']['templates']['seconds'] = 1
+            self.settings['cache']['templates']['seconds'] = 5
+
+
+        if not 'getpagelemenent' in self.settings['cache']:
+            self.settings['cache']['getpagelemenent'] = {}
+            self.settings['cache']['getpagelemenent']['size'] = 1000
+            self.settings['cache']['getpagelemenent']['seconds'] = 20
+
+        if not 'message-page' in self.settings['cache']:
+            self.settings['cache']['message-page'] = {}
+            self.settings['cache']['message-page']['size'] = 1000
+            self.settings['cache']['message-page']['seconds'] = 1
+        
+        if not 'topic-page' in self.settings['cache']:
+            self.settings['cache']['topic-page'] = {}
+            self.settings['cache']['topic-page']['size'] = 1000
+            self.settings['cache']['topic-page']['seconds'] = 1
+
+
+
+
+
+
 
         if not 'uasparser' in self.settings['cache']:
             self.settings['cache']['uasparser'] = {}
@@ -184,8 +228,6 @@ class ServerSettings():
         if not 'embedserver' in self.settings:
             self.settings['embedserver'] = 'http://embed.is'
 
-        if not 'downloadsurl' in self.settings:
-            self.settings['downloadsurl'] = '/binaries/'
         if not 'maxembeddedurls' in self.settings:
             self.settings['maxembeddedurls'] = 10
 

@@ -47,7 +47,6 @@ class Envelope(object):
             self.format()
             h = hashlib.sha512()
             h.update(self.text().encode('utf-8'))
-            # server.logger.info "Hashing --" + self.text() + "--"
             return h.hexdigest()
 
         def text(self):
@@ -57,11 +56,11 @@ class Envelope(object):
 
         def validate(self):
             if 'author' not in self.dict:
-                server.logger.info("No Author Information")
+                server.logger.debug("No Author Information")
                 return False
             else:
                 if 'pubkey' not in self.dict['author']:
-                    server.logger.info("No Pubkey line in Author info")
+                    server.logger.debug("No Pubkey line in Author info")
                     return False
             self.format()
             return True
@@ -69,65 +68,65 @@ class Envelope(object):
     class EditedMessage(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.info("Super does not Validate")
+                server.logger.debug("Super does not Validate")
                 return False
             if not 'regarding' in self.dict:
-                server.logger.info("EditedMessages must refer to an original message.")
+                server.logger.debug("EditedMessages must refer to an original message.")
                 return False
 
     class Message(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.info("Super does not Validate")
+                server.logger.debug("Super does not Validate")
                 return False
             if 'subject' not in self.dict:
-                server.logger.info("No subject")
+                server.logger.debug("No subject")
                 return False
             if 'body' not in self.dict:
-                server.logger.info("No Body")
+                server.logger.debug("No Body")
                 return False
             if 'topic' not in self.dict:
-                server.logger.info("No Topic")
+                server.logger.debug("No Topic")
                 return False
             if 'formatting' not in self.dict:
-                server.logger.info("No Formatting")
+                server.logger.debug("No Formatting")
                 return False
             if self.dict['formatting'] not in ['markdown', 'plaintext']:
-                server.logger.info("Formatting not in pre-approved list")
+                server.logger.debug("Formatting not in pre-approved list")
                 return False
             if 'topic' in self.dict:
                 if len(self.dict['topic']) > 200:
-                    server.logger.info("Topic too long")
+                    server.logger.debug("Topic too long")
                     return False
             if 'subject' in self.dict:
                 if len(self.dict['subject']) > 200:
-                    server.logger.info("Subject too long")
+                    server.logger.debug("Subject too long")
                     return False
             return True
 
     class PrivateMessage(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.info("Super does not Validate")
+                server.logger.debug("Super does not Validate")
                 return False
             if 'to' not in self.dict:
-                server.logger.info("No 'to' field")
+                server.logger.debug("No 'to' field")
                 return False
             # if 'topic' in self.dict:
-            #     server.logger.info("Topic not allowed in privmessage.")
+            #     server.logger.debug("Topic not allowed in privmessage.")
             #     return False
             return True
 
     class Rating(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.info("Super fails")
+                server.logger.debug("Super fails")
                 return False
             if 'rating' not in self.dict:
-                server.logger.info("No rating number")
+                server.logger.debug("No rating number")
                 return False
             if self.dict['rating'] not in [-1, 0, 1]:
-                server.logger.info(
+                server.logger.debug(
                     "Evelope ratings must be either -1, 1, or 0.")
                 return False
 
@@ -138,14 +137,14 @@ class Envelope(object):
             if not Envelope.Payload(self.dict).validate():
                 return False
             if 'trusted_pubkey' not in self.dict:
-                server.logger.info("No trusted_pubkey to set trust for.")
+                server.logger.debug("No trusted_pubkey to set trust for.")
                 return False
             if self.dict['trust'] not in [-100, 0, 100]:
-                server.logger.info(
+                server.logger.debug(
                     "Message ratings must be either -100, 0, or 100")
                 return False
             if 'topic' not in self.dict:
-                server.logger.info(
+                server.logger.debug(
                     "User trust must be per topic. Please include a topic.")
                 return False
             return True
@@ -154,7 +153,7 @@ class Envelope(object):
         #Validate an Envelope
         #Check headers
         if 'envelope' not in self.dict:
-            server.logger.info("Invalid Envelope. No Header")
+            server.logger.debug("Invalid Envelope. No Header")
             return False
 
         #Ensure we have 1 and only 1 author signature stamp
@@ -165,15 +164,15 @@ class Envelope(object):
                 foundauthor += 1
                 # Ensure that the Author stamp matches the Author in the Payload section!
                 if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
-                    server.logger.info(
+                    server.logger.debug(
                         "Author stamp must match payload author key.")
                     return False
 
         if foundauthor == 0:
-            server.logger.info("No author stamp.")
+            server.logger.debug("No author stamp.")
             return False
         if foundauthor > 1:
-            server.logger.info("Too Many author stamps")
+            server.logger.debug("Too Many author stamps")
             return False
 
         #Ensure Every stamp validates.
@@ -183,12 +182,12 @@ class Envelope(object):
             # Retrieve the key, ensure it's valid.
             stampkey = Keys(pub=stamp['pubkey'])
             if stampkey is None:
-                server.logger.info("Key is invalid.")
+                server.logger.debug("Key is invalid.")
                 return False
 
             # Ensure it matches the signature.
             if stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']) != True:
-                server.logger.info("Signature Failed to verify for stamp :: " +
+                server.logger.debug("Signature Failed to verify for stamp :: " +
                                    stamp['class'] + " :: " + stamp['pubkey'])
                 return False
 
@@ -200,24 +199,24 @@ class Envelope(object):
                     if stamp['proof-of-work']['class'] == 'sha256':
                         result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
                         if result == False:
-                            server.logger.info("Proof of work cannot be verified.")
+                            server.logger.debug("Proof of work cannot be verified.")
                             return False
                     else:
-                        server.logger.info("Proof of work in unrecognized format. Ignoring.")
+                        server.logger.debug("Proof of work in unrecognized format. Ignoring.")
                         
 
         # Check for a valid useragent
         try:
             if len(self.dict['envelope']['payload']['author']['useragent']['name']) < 1:
-                server.logger.info("Bad Useragent name")
+                server.logger.debug("Bad Useragent name")
                 return False
             if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int):
                 if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
-                    server.logger.info(
+                    server.logger.debug(
                         "Bad Useragent version must be a float or integer")
                     return False
         except:
-            server.logger.info("Bad Useragent")
+            server.logger.debug("Bad Useragent")
             return False
 
         #Do this last, so we don't waste time if the stamps are bad.
@@ -350,7 +349,11 @@ class Envelope(object):
                 else:
                     return False
             return True
-                    
+    
+    def loaddict(self,importdict):
+        newstr = json.dumps(importdict, separators=(',', ':'))
+        return self.loadstring(newstr) 
+
     def loadstring(self, importstring):
         self.dict = json.loads(importstring, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
         return self.registerpayload()
@@ -374,8 +377,7 @@ class Envelope(object):
         if env is None:
             return False
         else:
-            self.dict = env
-            return self.registerpayload()
+            return self.loaddict(env)
 
     def reloadfile(self):
         self.loadfile(self.payload.hash() + ".7zTavernEnvelope")

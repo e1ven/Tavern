@@ -54,10 +54,10 @@ class UserGenerator(object):
         Terminate all subprocs
         """
         count = 0
-        server.logger.info("stopping")
+        server.logger.info("Stopping UserGenerator")
         for proc in self.procs:
             proc.terminate()
-            server.logger.info(" Stopped " + str(count))
+            server.logger.info(" Stopped UserGenerator " + str(count))
             count += 1
         server.logger.info("You are now free to turn off your computer.")
 
@@ -65,7 +65,7 @@ class UserGenerator(object):
     # create a random-string user.
     def CreateUnusedUser(self):
         u = User()
-        server.logger.info("Making keys with a random password.")
+        server.logger.debug("Making keys with a random password.")
         # Generate a random password with a random number of characters
         numcharacters = 100 + TavernUtils.randrange(1, 100)
         password = TavernUtils.randstr(numcharacters)

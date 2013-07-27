@@ -83,7 +83,6 @@ function start {
     # The command to run it is different on OSX and Linux, however, so figure out which one we have
     # If we don't have either, use 'cat' as an alternate 'compressor'
     echo "Testing ability to Minimize" 
-
     yui-compressor -h > /dev/null 2>&1
     if [ $? -eq 0 ]
     then
@@ -102,27 +101,37 @@ function start {
         yui='cat'
     fi
 
+    if [ "$yui" != "cat" ]
+    then 
+        flags='--nomunge'
+    fi
+
 
     # Test our ability to take a hash
     # OSX uses md5, linux uses md5sum.
     # We will use the identifier generated in the next section
     echo "Testing ability to hash"
-    echo "foo" | md5 > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        hash='md5'
-    fi
-    echo "foo" | md5sum > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        hash='md5sum'
-    fi
-    if [ -z $hash ]
-    then
-        # No minimization
-        hash='date +%s -r'
-    fi
 
+    if [ "$1" == 'debug' ]
+    then
+        echo "Using faster/less secure hashes for debug mode."
+        hash='cksum'
+    else
+        echo "foo" | md5 > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            hash='md5'
+        fi
+        echo "foo" | md5sum > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            hash='md5sum'
+        fi
+        if [ -z $hash ]
+        then
+            hash='cksum'
+        fi
+    fi
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
     # If we haven't, minimize it. Otherwise, just skip forward, for speed.
@@ -138,7 +147,7 @@ function start {
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
             # No pre-hashed version available
-            $yui $i > static/scripts/$basename.min.js --nomunge
+            $yui $i > static/scripts/$basename.min.js $flags
             result=$?
             echo -e "\t $basename"
             # Reformatted
@@ -152,7 +161,6 @@ function start {
             touch tmp/checked/$filehash.exists
         fi
     done
-
 
     echo "Minimizing CSS"
     for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
@@ -210,9 +218,26 @@ function start {
         touch tmp/checked/$filehash.exists
     done
 
-    echo "Gzipping"
+    echo "Gzipping individual files"
     # Compress the files with gzip
-    for file in `find static -not -name "*.gz" -type f`
+    for file in `find static -not -name "*.gz" -and -not -path "static/scripts/*" -and -not -path "static/css/*" -and -not -path "static/sass/*" -type f`
+    do 
+        filehash=`cat $file | $hash | cut -d" " -f 1`
+        if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
+        then
+            gzip --best < $file > $file.gz
+            echo -e "\t $file"
+            # Compressed
+        else
+            : # No compressing needed 
+        fi
+        touch tmp/gzipchk/$filehash.exists
+    done
+
+
+    echo "Gzipping Unified files"
+    # Compress the files with gzip
+    for file in `echo 'static/css/unified-*.min.css static/scripts/unified.min.js' `
     do 
         filehash=`cat $file | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
@@ -229,10 +254,11 @@ function start {
     rm tmp/unchecked-gzipchk/*.exists
     rm tmp/unchecked/*.exists
 
+
     echo "Starting Tavern..."
     if [ "$1" == 'debug' ]
     then
-        /usr/bin/env python3 ./webfront.py
+        /usr/bin/env python3 ./webfront.py --loglevel=DEBUG --writelog=False
     elif [ "$1" == 'initonly' ]
     then
         /usr/bin/env python3 ./webfront.py --initonly=True
@@ -273,6 +299,14 @@ case "$1" in
         restart)
             stop
             start
+            ;;
+        debug|initonly)
+            if [ $# -eq 1 ]
+            then
+                start $1
+            else
+                usage
+            fi
             ;;
         *)
             usage

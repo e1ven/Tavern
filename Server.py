@@ -242,6 +242,7 @@ class Server(object):
     def __init__(self, settingsfile=None):
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
+
         self.mc = OrderedDict
         self.unusedusercache = multiprocessing.Queue(serversettings.settings['UserGenerator']['num_pregens'])
         # Break out the settings into it's own file, so we can include it without including all of server
@@ -276,8 +277,6 @@ class Server(object):
         self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
         self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
 
-        logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-        #logging.basicConfig(filename=serversettings.settings['logfile'],level=logging.DEBUG)
 
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
@@ -285,15 +284,36 @@ class Server(object):
         self.cache['instance.js'] = file.read()
         file.close()
 
-    def init2(self):
+    def start(self):
         """
-        Stuff that needs to be done later, so other pieces might be ready
+        Stuff that should be done when the server is running as a process, not just imported as a obj.
         """
         self.external = embedis.embedis()
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
         self.usergenerator = UserGenerator.UserGenerator()
+
+        # Allow the log level to be overridden on the command line
+        if 'loglevel' in serversettings.settings['temp']:
+            self.logger.setLevel(serversettings.settings['temp']['loglevel'])
+            level = serversettings.settings['temp']['loglevel']
+        else:
+            self.logger.setLevel(serversettings.settings['loglevel'])
+            level = serversettings.settings['loglevel']
+
+        consolelog = None
+        if 'writelog' in serversettings.settings['temp']:
+            if serversettings.settings['temp']['writelog'] is False:
+                logging.basicConfig(stream=sys.stdout)
+                consolelog = 'stdout'
+        if consolelog == None:
+            logging.basicConfig(filename=serversettings.settings['logfile'])
+
+        self.logger.info("Logging Server started at level: " +  level)
+
+                    
+        # Pregenerate some users in the background.
         self.usergenerator.start()
 
     def prettytext(self):
@@ -322,7 +342,7 @@ class Server(object):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
         e.dict['envelope']['payload']['subject'] = "Error"
-        e.dict['envelope']['payload']['topic'] = "Error"
+        e.dict['envelope']['payload']['topic'] = "sitecontent"
         e.dict['envelope']['payload']['formatting'] = "markdown"
         e.dict['envelope']['payload']['class'] = "message"
         e.dict['envelope']['payload'][
@@ -349,8 +369,8 @@ class Server(object):
 
         #First, ensure we're dealing with a good Env, before we proceed
         if not c.validate():
-            self.logger.info("Validation Error")
-            self.logger.info(c.text())
+            self.logger.info("Received an Envelope which does not validate- " + c.payload.hash())
+            self.logger.debug(c.text())
             return False
 
         # First, calculate the hash once, and store to save cycles.
@@ -359,7 +379,7 @@ class Server(object):
         existing = self.db.unsafe.find_one(
             'envelopes', {'envelope.local.payload_sha512': hashcache })
         if existing is not None:
-            self.logger.info("We already have that msg.")
+            self.logger.debug("We already have that msg.")
             return c.dict['envelope']['local']['payload_sha512']
 
         #If we don't have a local section, add one.
@@ -423,9 +443,9 @@ class Server(object):
             if 'regarding' in c.dict['envelope']['payload']:
                 repliedTo = Envelope()
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                    self.logger.info(
+                    self.logger.debug(
                         " I am :: " + c.dict['envelope']['local']['payload_sha512'])
-                    self.logger.info(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['local']['payload_sha512'])
+                    self.logger.debug(" Adding a cite on my parent :: " + repliedTo.dict['envelope']['local']['payload_sha512'])
                     repliedTo.addcite(c.dict['envelope']['local']['payload_sha512'])
                     c.addAncestor(c.dict['envelope']['payload']['regarding'])
 
@@ -434,10 +454,10 @@ class Server(object):
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
             for citedme in self.db.unsafe.find('envelopes', {'envelope.payload.class':'message','envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
-                self.logger.info('found existing cite, bad order. ')
-                self.logger.info(
+                self.logger.debug('found existing cite, bad order. ')
+                self.logger.debug(
                     " I am :: " + c.dict['envelope']['local']['payload_sha512'])
-                self.logger.info(" Found pre-existing cite at :: " +
+                self.logger.debug(" Found pre-existing cite at :: " +
                                  citedme['envelope']['local']['payload_sha512'])
                 citedme = self.formatEnvelope(citedme)
                 c.addcite(citedme['envelope']['local']['payload_sha512'])
@@ -460,8 +480,8 @@ class Server(object):
             regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
             if regardingPost is not None:
                 if regardingPost['envelope']['payload']['author'] != c.dict['envelope']['payload']['author']:
-                    self.logger.info("Invalid Update. Author must match.")
-                    self.logger.info(c.text())
+                    self.logger.debug("Invalid Update. Author must match.")
+                    self.logger.debug(c.text())
                     return False    
                 else:
                     add
@@ -644,13 +664,12 @@ class Server(object):
                                                 im = im.resize((newx, newy), Image.ANTIALIAS)
 
                                             thumbnail = self.bin_GridFS.new_file(filename=displayable)
-                                            self.logger.info(displayable)
                                             im.save(thumbnail, format='png')
                                             thumbnail.close()
                         attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable, 'detected_mime': detected_mime}
                         attachmentList.append(attachmentdesc)
                     except gridfs.errors.NoFile:
-                        self.logger.info("Error, attachment gone ;(")
+                        self.logger.debug("Error, attachment gone ;(")
         if 'body' in envelope['envelope']['payload']:
             formattedbody = self.formatText(text=envelope['envelope']['payload']['body'], formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
@@ -698,4 +717,4 @@ server = Server()
 from User import User
 import embedis
 import UserGenerator
-server.init2()
+

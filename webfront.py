@@ -54,6 +54,24 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         self.html = ""
         super(BaseHandler, self).__init__(*args, **kwargs)
+        
+        # Set the canonical URL, if possible.
+        self.canon = None
+
+
+        # If people are accessing a URL that isn't by the canonical URL, redirect them.
+        if 'redirected' in self.request.arguments:
+            # Set a bool, to ensure we don't redirect twice....
+            self.redirected = (self.get_argument('redirected') == "True")
+            print("Was redirected")
+        else:
+            self.redirected = False
+            print("Was not redirected")
+
+        # Is this necessary EVERY time? It's quick, I suppose...
+        if serversettings.settings['primaryurl'] == False:
+            serversettings.settings['primaryurl'] = self.request.protocol + "://" + (self.request.host or socket.gethostbyaddr(socket.gethostbyname(socket.gethostname())) )
+            serversettings.saveconfig()
 
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
@@ -111,6 +129,27 @@ class BaseHandler(tornado.web.RequestHandler):
         Pulls in appropriate divs and serves them out via JS if possible.
         This saves bits, and keeps the columns as you left them.
         """
+        # First off, we may be at the wrong URL. Check to see if this is the canonical version of this URL.
+        # If it's not, and it's safe, go there.
+        if not self.redirected:
+            if self.request.method == "GET":
+                if (self.canon != None):
+                    # Break apart current and canonical URLs to check to see if they match.
+                    canon_scheme, canon_netloc, canon_path, canon_query_string, canon_fragment = urllib.parse.urlsplit(serversettings.settings['primaryurl'] + '/' + self.canon)
+                    orig_scheme, orig_netloc, orig_path, orig_query_string, orig_fragment = urllib.parse.urlsplit(self.request.full_url())
+                    if (orig_path != canon_path) or (orig_scheme != canon_scheme) or (orig_netloc != canon_netloc):
+                        # This is not the canonical URL, bounce us.    
+                        # Merge canon with current url
+                        query_params = urllib.parse.parse_qs(orig_query_string)
+                        query_params['redirected'] = ['True']
+                        fixed_query_string = urllib.parse.urlencode(query_params, doseq=True)
+
+                        newurl =  urllib.parse.urlunsplit((canon_scheme, canon_netloc, canon_path, fixed_query_string, canon_fragment))
+                        self.redirected = True
+                        self.redirect(newurl)
+                        return()
+
+
 
         # If they ask for the JS version, we'll calculate it.
         if "js" in self.request.arguments:
@@ -145,7 +184,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         super(BaseHandler, self).finish(message)
 
-    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=serversettings.settings['cache']['getpagelemenent']['size'])
     def getdiv(self, element):
         print("getting" + element)
         soup = BeautifulSoup(self.html,"html.parser")
@@ -159,8 +198,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
     @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def getjssetup(self):
-
-
         # Strip out GET params we don't need to display to the user.
         urlargs = urllib.parse.parse_qs(self.request.query,keep_blank_values=True)
         print(urlargs)
@@ -204,7 +241,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return (ret)
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=serversettings.settings['cache']['getpagelemenent']['size'])
     def getjselement(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
@@ -260,7 +297,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 numchunks), chunk, httponly=True, expires_days=999)
         self.set_secure_cookie("tavern_preferences_count", str(
             numchunks), httponly=True, expires_days=999)
-        server.logger.info("numchunks + " + str(numchunks))
+        server.logger.debug("numchunks + " + str(numchunks))
 
     def recentauth(self, seconds=300):
         """
@@ -281,6 +318,7 @@ class BaseHandler(tornado.web.RequestHandler):
             # The user has NEVER logged in.
             print("Never Logged in Before")
             return True
+
 
     def getvars(self, ensurekeys=False):
         """
@@ -317,7 +355,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # Don't bother doing the keys, since that eats randomness.
         # Not an else, so we can be triggered by corrupt cookie above.
         if self.get_secure_cookie("tavern_preferences_count") is None:
-            server.logger.info("Making cookies")
+            server.logger.debug("Making cookies")
             self.user.generate(skipkeys=True)
             self.setvars()
 
@@ -400,113 +438,125 @@ class RawMessageHandler(BaseHandler):
         self.write(envelope['envelope']['local']['formattedbody'])
 
 
-class TriPaneHandler(BaseHandler):
+# What happens when people request the root level?
+# for now, send them to that Welcome message ;)
+class EntryHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.redirect('/message/sitecontent/Welcome-to-Tavern/57c565db8c926b147f4b33160e2c4f9b994d8d7316bb5938940b8eceb17a4a74c3dce4088c6d82bb7abe4f09a453df9611efa958bd78d2a6d9890b0ea888a50f')
+
+class MessageHandler(BaseHandler):
 
     """
-    The TriPane Handler is the beefiest handler in the project.
-    It renders the main tri-panel interface, and only pushes out the parts that are needed.
+    The Message Handler displays a message, when given by message id.
+    It's intentionally a bit forgiving in the syntax, to make it easy to retrieve messages.
     """
-    def get(self, param1=None, param2=None, param3=None,param4=None):
-        
-        # We want to assign the parameters differently, depending on how many there are.
-        # Normally, we'd just say get(action=None,param=None,bullshit=None)
-        # But in this scenerio, we want the second param to be the text, if there are three, and have the ID as #3
-        # But if there are only two, the second param should be the ID.
-
+    @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['message-page']['seconds'], maxsize=serversettings.settings['cache']['message-page']['size'])
+    def get(self, *args):
+    
         self.getvars()
 
-        # Mark this as None up here, so if it changes we know.
-        displayenvelope = None
+        # We need both col2 and col3, since the currently active message changes in the col2.
+        divs = ['scrollablediv2', 'scrollablediv3']
 
-        # Count up our number of parameters, and unquote them.
-        numparams = 0
-        for i in [param1,param2,param3,param4]:
+
+        # Find the final directory/page sent as part of the request.
+        # This could be /m/123, /m/some-topic/123 or even /m/some-topic/some-subject/123 (which is canonical)
+        # We're being intentionally loose in letting this be accessed by multiple URLs, so it's easy to get here.
+        # We only care about the final argument, which is the messageid.
+        for i in args:
             if i is not None:
-                numparams += 1
-                locals()['param'+i] = tornado.escape.xhtml_escape(
-                    urllib.parse.unquote(param2))
-                    
+                messageid = tornado.escape.xhtml_escape(i)
 
-        # Set the default values for action and topic. These may (probably will) be overwritten later.
-        action = "topic"
-        topic = "sitecontent"
-
-        if numparams > 1:
-            action = param1
-            if action == "t" or action == "topic" or action == "topictag":
-                action = "topic"
-                topic = param2
-            elif action == "m" or action == "message":
-                action = "message"
-                if numparams == 2:
-                    messageid = param2
-                if numparams > 2:
-                    messageid = param3
-
+        # 'before' is used for multiple pages, because skip() is slow
+        # Don't really need xhtml escape, since we're converting to a float
         if "before" in self.request.arguments:
-            # Used for multiple pages, because skip() is slow
-            # Don't really need xhtml escape, since we're converting to a float
             before = float(self.get_argument('before'))
         else:
             before = None
 
+        # Do we want to show the original, ignoring edits?
         if "showoriginal" in self.request.arguments:
-            # Used for multiple pages, because skip() is slow
-            # Don't really need xhtml escape, since we're converting to a float
-            showoriginal = bool(self.get_argument('showoriginal'))
+            # Convert the string to a bool.
+            showoriginal = (self.get_argument('showoriginal') == "True")
         else:
             showoriginal = False
+      
+        messagesenvelope = server.db.unsafe.find_one('envelopes',
+                                                    {'envelope.local.payload_sha512': messageid})
 
-
-        if action == "topic":
-            divs = ['scrollablediv2','scrollablediv3']
-
-            if topic != 'sitecontent':
-                canon = "topic/" + topic
-                title = topic
-            else:
-                canon = ""
-                title = "Discuss what matters"
-            topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
-
-            if len(topicEnvelopes) > 0:
-                displayenvelope = topicEnvelopes[0]
-
-        if action == "message":
-            # We need both col2 and col3, since the currently active message changes in the col2.
-            divs = ['scrollablediv2', 'scrollablediv3']
-
-            displayenvelope = server.db.unsafe.find_one('envelopes',
-                                                        {'envelope.local.payload_sha512': messageid})
-            if displayenvelope is not None:
-                topic = displayenvelope['envelope']['payload']['topic']
-                canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['local']['payload_sha512']
-                title = displayenvelope['envelope']['payload']['subject']
-
-
-
-        # Detect people accessing via odd URLs, but don't do it twice.
-        # Check for a redirected flag.
-        if 'redirected' in self.request.arguments:
-            redirected = tornado.escape.xhtml_escape(
-                self.get_argument("redirected"))
-            if redirected == 'true':
-                redirected = True
-            else:
-                redirected = False
+        if messagesenvelope is not None:
+            displayenvelope = messagesenvelope
+            topic = displayenvelope['envelope']['payload']['topic']
+            self.canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['local']['payload_sha512']
+            title = displayenvelope['envelope']['payload']['subject']
         else:
-            redirected = None
+            # If we didn't find that message, throw an error.
+            displayenvelope = server.error_envelope("The Message you are looking for can not be found.").dict
+            title = displayenvelope['envelope']['payload']['subject']
+            topic = displayenvelope['envelope']['payload']['topic']
 
-        #Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html', title=title, canon=canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
+        print("topic" + str(topic))
+        # Gather up all the replies to this message, so we can send those to the template as well
+        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 
-        if action == "message" or action == "topic":
-            self.finish(divs=divs)
+        self.finish(divs=divs)
+
+
+class TopicHandler(BaseHandler):
+
+    """
+    The Topic Handler displays a topic, and the messages that are in it.
+    """
+
+    @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['topic-page']['seconds'], maxsize=serversettings.settings['cache']['topic-page']['size'])
+    def get(self, topic='all'):
+    
+        self.getvars()
+        divs = ['scrollablediv2','scrollablediv3']
+
+        topic = tornado.escape.xhtml_escape(topic)
+
+        # Used for multiple pages, because skip() is slow
+        # Don't really need xhtml escape, since we're converting to a float
+        if "before" in self.request.arguments:
+            before = float(self.get_argument('before'))
         else:
-            self.finish()
+            before = None
+
+        # Do we want to show the original, ignoring edits?
+        if "showoriginal" in self.request.arguments:
+            # Convert the string to a bool.
+            showoriginal = (self.get_argument('showoriginal') == "True")
+        else:
+            showoriginal = False
+
+        if topic != 'sitecontent':
+            self.canon = "topic/" + topic
+            title = topic
+        else:
+            title = "Discuss what matters"
+
+        topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
+
+        if len(topicEnvelopes) > 0:
+            displayenvelope = topicEnvelopes[0]
+        else:
+            displayenvelope = server.error_envelope("That topic does not have any messages in it yet.").dict
+            canon = None
+            title = displayenvelope['envelope']['payload']['subject']
+            topic = displayenvelope['envelope']['payload']['topic']
+            print("topic - " + topic)
+
+        # Gather up all the replies to this message, so we can send those to the template as well
+        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
+        self.write(self.render_string('showmessage.html',
+                   envelope=displayenvelope, before=before, topic=topic))
+        self.write(self.render_string('footer.html'))
+
+        self.finish(divs=divs)
 
 
 class AllTopicsHandler(BaseHandler):
@@ -705,18 +755,16 @@ class LoginHandler(BaseHandler):
                 login = True
             if login == True:
                 self.user = u
-                server.logger.info(
-                    "Passkey - " + self.user.Keys.passkey(client_password))
 
                 self.clear_cookie('tavern_passkey')
                 self.set_secure_cookie("tavern_passkey", self.user.Keys.passkey(client_password), httponly=True, expires_days=999)
                 self.user.UserSettings['lastauth'] = int(time.time())
 
                 self.setvars()
-                server.logger.info("Login Successful.")
+                server.logger.debug("Login Successful.")
                 self.redirect(successredirect)
             else:
-                server.logger.info("Username/password fail.")
+                server.logger.debug("Username/password fail.")
                 self.redirect("http://Google.com")
 
 
@@ -762,7 +810,7 @@ class ChangepasswordHandler(BaseHandler):
             password=client_newpass), httponly=True, expires_days=999)
 
         self.setvars()
-        server.logger.info("Password Change Successful.")
+        server.logger.debug("Password Change Successful.")
         self.redirect("/")
 
 
@@ -825,7 +873,6 @@ class ChangeManySettingsHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
 
-        server.logger.info("set")
         if "js" in self.request.arguments:
             self.finish(divs=['scrollablediv3'])
         else:
@@ -846,15 +893,14 @@ class ChangeSingleSettingHandler(BaseHandler):
                 self.get_argument("topic"))
         elif setting == "showembeds":
             self.user.UserSettings['allowembed'] = 1
-            server.logger.info("allowing embeds")
             if option == 'ajax':
                 self.write('Tavern will now display all external media.')
                 redirect = False
         elif setting == "dontshowembeds":
             self.user.UserSettings['allowembed'] = -1
-            server.logger.info("forbidding embeds")
+            server.logger.debug("forbidding embeds")
         else:
-            server.logger.info("Warning, you didn't do anything!")
+            server.logger.debug("Warning, you didn't do anything!")
 
         self.user.savemongo()
         self.setvars()
@@ -951,7 +997,7 @@ class UserNoteHandler(BaseHandler):
 
         # Write it back to the page
         self.write('<input class="usernote" type="text" value="" name="note" placeholder="' + client_note + '">')
-        server.logger.info("Note Submitted.")
+        server.logger.debug("Note Submitted.")
 
 
 class UserTrustHandler(BaseHandler):
@@ -1027,7 +1073,7 @@ class UserTrustHandler(BaseHandler):
         #Send to the server
 
         server.receiveEnvelope(e.text())
-        server.logger.info("Trust Submitted.")
+        server.logger.debug("Trust Submitted.")
 
 
 class NewmessageHandler(BaseHandler):
@@ -1119,7 +1165,7 @@ class NewmessageHandler(BaseHandler):
         # Attach the files that are actually here, submitted alongside the message.
         for attached_file in filelist:
             #All the same, let's strip out all but the basename.
-            server.logger.info("Dealing with File " + attached_file['filename']
+            server.logger.debug("Dealing with File " + attached_file['filename']
                                + " with hash " + attached_file['hash'])
             if not server.bin_GridFS.exists(filename=attached_file['hash']):
                 attached_file['filehandle'].seek(0)
@@ -1135,7 +1181,7 @@ class NewmessageHandler(BaseHandler):
                         attached_file['filehandle'], format=imagetype)
                 attached_file['filehandle'].seek(0)
                 server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
-            server.logger.info("Creating Message")
+            server.logger.debug("Creating Message")
             #Create a message binary.
             mybinary = Envelope.binary(sha512=attached_file['hash'])
             #Set the Filesize. Clients can't trust it, but oh-well.
@@ -1227,7 +1273,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['body'] = client_body
 
             if client_regarding is not None:
-                server.logger.info("Adding Regarding - " + client_regarding)
+                server.logger.debug("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
                 e.payload.dict['topic'] = regardingmsg['envelope'][
@@ -1246,7 +1292,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['body'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=client_body, passkey=self.user.passkey)
 
             if client_regarding is not None:
-                server.logger.info("Adding Regarding - " + client_regarding)
+                server.logger.debug("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
@@ -1377,16 +1423,7 @@ class BinariesHandler(tornado.web.RequestHandler):
         req = server.bin_GridFS.get_last_version(filename=binaryhash)
         self.write(req.read())
 
-class VerificationHandler(BaseHandler):
-    """
-    For users who aren't using nginx (like in dev), this will pull in the avatars
-    """
-    def get(self):
-        self.write("loaderio-a80dc3024db2124fb7410acd64bb7e19")
-
-
-
-class AvatarHandler(BaseHandler):
+class AvatarHandler(tornado.web.RequestHandler):
     """
     For users who aren't using nginx (like in dev), this will pull in the avatars
     """
@@ -1394,8 +1431,11 @@ class AvatarHandler(BaseHandler):
         server.logger.info("Bouncing to offsite avatar. Install the NGINX package to avoid this! ")
         self.redirect('https://robohash.org/' + avatar + "?" + "set=" + self.get_argument('set') + "&bgset=" + self.get_argument('bgset') + "&size=" + self.get_argument('size'))
 
+define("writelog", default=True, help="Determines if Tavern writes to a log file.",type=bool)
+define("loglevel", default="UNSET", help="Amount of detail you want.",type=str)
 define("initonly", default=False, help="Create config files, then quit.",type=bool)
 define("port", default=8080, help="run on the given port", type=int)
+
 def main():
     tornado.options.parse_command_line()
     # timeout in seconds
@@ -1414,7 +1454,15 @@ def main():
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
-    
+
+
+    serversettings.settings['temp']['loglevel'] = options.loglevel
+    serversettings.settings['temp']['writelog'] = options.writelog
+
+    # Tell the server process to fire up and run for a while.
+    server.start()
+
+
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": serversettings.settings['cookie-encryption'],
@@ -1424,7 +1472,15 @@ def main():
         "autoescape": "xhtml_escape"
     }
     application = tornado.web.Application([
-        (r"/", TriPaneHandler),
+        (r"/", EntryHandler),
+        (r"/message/(.*)/(.*)/(.*)", MessageHandler),
+        (r"/message/(.*)/(.*)", MessageHandler),
+        (r"/message/(.*)", MessageHandler),
+        (r"/m/(.*)/(.*)/(.*)", MessageHandler),
+        (r"/m/(.*)/(.*)", MessageHandler),
+        (r"/m/(.*)", MessageHandler),
+        (r"/topic/(.*)", TopicHandler),
+        (r"/t/(.*)", TopicHandler),
         (r"/register", RegisterHandler),
         (r"/login/(.*)", LoginHandler),
         (r"/login", LoginHandler),
@@ -1455,10 +1511,7 @@ def main():
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
         (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
-         os.path.join(os.path.dirname(__file__), "static/")}),
-        (r"/(.*)/(.*)/(.*)", TriPaneHandler),
-        (r"/(.*)/(.*)", TriPaneHandler),
-        (r"/(.*)", TriPaneHandler),
+         os.path.join(os.path.dirname(__file__), "static/")})
     ], **settings)
 
     http_server = tornado.httpserver.HTTPServer(application)

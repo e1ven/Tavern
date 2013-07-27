@@ -4,7 +4,7 @@
 
     <hr id="rightColumnTopHR">
     <div id="allreplies">
-        {% raw handler.render_string('firstMessage.html',messageid=envelope['envelope']['local']['payload_sha512']) %}
+        {% raw handler.render_string('firstMessage.html',edict=envelope) %}
 
         {% if 'citedby' in envelope['envelope']['local'] %}
             {% for cite in envelope['envelope']['local']['citedby'] %}
