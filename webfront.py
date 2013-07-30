@@ -20,7 +20,7 @@ from keys import *
 from User import User
 import urllib.parse
 from bs4 import BeautifulSoup
-import rss
+from libs import rss
 import pprint
 import Image
 import imghdr
@@ -946,7 +946,7 @@ class RatingHandler(BaseHandler):
         e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
         e.payload.dict['author']['useragent']['version'] = .01
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
             #Don't check from home.
@@ -1037,10 +1037,10 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author']['useragent']['version'] = .01
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
-            #Don't check from home.
+            # Don't check from home.
             if ip == "127.0.0.1":
                 ip = "8.8.8.8"
 

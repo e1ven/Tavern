@@ -1,3 +1,4 @@
+
 Pluric has not yet been released publicly, and should be considered a Trade Secret at this point.
 
 If you have this Document, keep it secret for now please.
@@ -47,7 +48,7 @@ Using the following Libraries:
 
 	MaxMind GeoIP used for GeoLocation (LGPL)
 		http://www.maxmind.com/app/c
-		http://www.maxmind.com/app/python
+		http://www.maxmind.com/app/python/
 		
 	PyGeoIP (For Pure-Python reading of the Above)
 		http://code.google.com/p/pygeoip/
@@ -80,9 +81,7 @@ Using the following Libraries:
 
 	jQuery Tools v1.2.6 - Some CSS was copied for the Tooltip.
 	It gives the following license " * NO COPYRIGHTS OR LICENSES. DO WHAT YOU LIKE."
-		
-	uaParser (Apache license)
-	
+
 	pyYaml (MIT)
 	
 	Python-Magic (PSF)
@@ -344,3 +343,19 @@ Feel free to email any questions regarding this license or any other questions a
 UK Advanced Cryptics Dictionary Licensing Information: (Used as part of the EOWL wordlist)
 
 Copyright © J Ross Beresford 1993-1999. All Rights Reserved. The following restriction is placed on the use of this publication: if the UK Advanced Cryptics Dictionary is used in a software package or redistributed in any form, the copyright notice must be prominently displayed and the text of this document must be included verbatim.
+
+-------
+
+Data is used from http://user-agent-string.info/download
+
+Data download (data file for UASparser, icons for UASparser, samples useragentstrings and crawler IP addresses) are available under 
+license Creative Commons: Attribution 3.0 Unported
+
+--------
+
+The GeoLite databases are distributed under the Creative Commons Attribution-ShareAlike 3.0 Unported License. The attribution requirement may be met by including the following in all advertising and documentation mentioning features of or use of this database:
+
+This product includes GeoLite data created by MaxMind, available from
+<a href="http://www.maxmind.com">http://www.maxmind.com</a>.
+
+

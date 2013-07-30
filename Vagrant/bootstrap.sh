@@ -91,14 +91,14 @@ cd /opt
 cd Tavern
 mkdir -p libs
 
-cd /opt/Tavern/nginx
+# Setup nginx
+cd /opt/Tavern/data/nginx
 rm /opt/nginx/conf/nginx.conf
-ln -s /opt/Tavern/nginx/nginx.conf /opt/nginx/conf/
-
-
-cd /opt/Tavern/nginx
-cp nginx /opt/nginx/sbin/initscript
+ln -s /opt/Tavern/data/nginx/nginx.conf /opt/nginx/conf/
+cp /opt/Tavern/data/nginx/nginx /opt/nginx/sbin/initscript
 ln -s /opt/nginx/sbin/initscript /etc/init.d/nginx
+
+# Setup Tavern init script
 ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
 
 
@@ -108,9 +108,9 @@ pip-3.3 install -r requirements.txt
 
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
-mkdir -p /usr/local/share/GeoIP
-curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  /usr/local/share/GeoIP/GeoIPCity.dat.gz
-gunzip /usr/local/share/GeoIP/GeoIPCity.dat.gz
+mkdir -p /opt/Tavern/data
+curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  /opt/Tavern/data/GeoIPCity.dat.gz
+gunzip /opt/Tavern/data/GeoIPCity.dat.gz
 
 
 # Install the Python3 port of PIL.
@@ -153,8 +153,9 @@ update-rc.d tavern defaults
 # Update again, so the logs/etc that were just created by root are now Vagrant owned.
 chown vagrant:vagrant /opt/Tavern -R
 chown vagrant:vagrant /opt/nginx -R
+/etc/init.d/tavern start
 
-
+# Create a touchfile, so we don't run all these steps on every boot.
 echo `date` >  /opt/Tavern/data/COMPLETED-INSTALL
 
 

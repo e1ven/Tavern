@@ -77,7 +77,7 @@ class EmailServer(object):
         """
         count = 0
 
-        self.kill()
+        self.stop()
         self.procs = []
         for proc in range(0, serversettings.settings['email']['workers']):
             newproc = multiprocessing.Process(target=self.sendmail, args=())
@@ -89,7 +89,7 @@ class EmailServer(object):
             server.logger.info(" Started " + str(count))
             count += 1
 
-    def kill(self):
+    def stop(self):
         """
         Terminate all subprocs
         """

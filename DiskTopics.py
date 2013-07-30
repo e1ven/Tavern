@@ -10,8 +10,7 @@ import os
 import argparse
 from ServerSettings import serversettings
 
-
-msgsdir = "MESSAGES/TOPICS/"
+msgsdir = "data/messages/topics/"
 
 parser = argparse.ArgumentParser(
     description='Save/Load messages from the filesystem.')
@@ -77,26 +76,39 @@ def loaddir(directory):
         if e.validate():
             server.receiveEnvelope(e.text())
 
-if len(sys.argv) == 1:
-    parser.print_help()
-    sys.exit(1)
+
+def main():
+
+    # Start Tavern services.
+    server.start()
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
 
 
-if args.dump:
-    for topic in args.topic:
-        print("Writing - " + topic)
-        writetopic(topic)
+    if args.dump:
+        for topic in args.topic:
+            print("Writing - " + topic)
+            writetopic(topic)
 
 
-if args.read:
-    for topic in args.topic:
-        if topic == 'all':
-            for idt in os.listdir(msgsdir):
-                if os.path.isdir(msgsdir + idt):
-                    print("Loading Topic - " + idt)
-                    loaddir(idt)
-                else:
-                    print("Non topic file in messages directory.")
-        else:
-            if os.path.isdir(topic):
-                loaddir(topic)
+    if args.read:
+        for topic in args.topic:
+            if topic == 'all':
+                for idt in os.listdir(msgsdir):
+                    if os.path.isdir(msgsdir + idt):
+                        print("Loading Topic - " + idt)
+                        loaddir(idt)
+                    else:
+                        print("Non topic file in messages directory.")
+            else:
+                if os.path.isdir(topic):
+                    loaddir(topic)
+
+    # We're done here.
+    server.stop()
+
+# Run the main() function.
+if __name__ == "__main__":
+    main()

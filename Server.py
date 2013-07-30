@@ -14,7 +14,7 @@ from Envelope import Envelope
 import sys
 import markdown
 import datetime
-import bbcodepy
+from libs import bbcodepy
 from bs4 import BeautifulSoup
 import magic
 try:
@@ -315,6 +315,14 @@ class Server(object):
                     
         # Pregenerate some users in the background.
         self.usergenerator.start()
+
+    def stop(self):
+        """
+        Stop all server procs.
+        """
+        self.logger.info("Shutting down Server instance")
+        self.usergenerator.stop()
+
 
     def prettytext(self):
         newstr = json.dumps(
@@ -717,4 +725,3 @@ server = Server()
 from User import User
 import embedis
 import UserGenerator
-

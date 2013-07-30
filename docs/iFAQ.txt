@@ -2,42 +2,52 @@ Infrequently Asked Questions-
 
 
 
-What type of Keys does Tavern generate?
+What type of Keys does Tavern generate, and why?
 	Tavern generates keys using GPG keys with RSA Encryption.
-	Earlier versions of Tavern uses RSA directly, but given that we hope to see many client developers, we don't want to  have to 
-	trust that no one ever screws up.
-	Using GPG pushes more of the options (Padding, etc) upstream, reducing the number of errors developers can make.
+	While earlier versions of Tavern used keys using crypto primitives directly, that introduces too many places for bugs to creep in.
+	Not only could there be bugs in our code, but in any of the client implementations, which would ALSO need to get it right, ever time.
+	It's just not worth it. GPG is reasonable well tested in the wild, and with GPGME it's embeddable (even if it's ugly)
+
+	I'd love to use ECC rather than RSA, but GPG does not support this in the mainline/released version yet.
+	Once 2.1 is released, and ECC is commonly available, it's certainly possible to have Tavern use keys in that format.
 
 
 Why use 2048-bit keys, rather than 4096-bit keys?
-	The underlying Tavern system will work with keys of any length - 
-	Tavern will work with keys of any length, but 2048 bit keys are substantially faster to generate.
-	2048-bit keys really are sufficiently hard to factor that it would take super-national effort to try to decrypt a message.
+	Tavern does not rely on a specic key length - It will work fine with 4096 bit keys.
+	That said, I'd suggest against using them.
 
-Why are you identifying with a SHA512 rather than a HMAC? Isn't that insecure?
-	Messages are *not* being authenticated using the SHA512, nor 
-	Messaages are being signed using RSA keypairs, which is the primary means of authenticating a message.
-	That is, knowing who sent it.
-	Authenticating a message using the SHA(Message+Secret) would be insecure, and that's not what we're doing.
-	Instead, the SHA512 hash is separate from the identification - It's there to give the message a unique ID.
-	This allow us to store the message in the server, have a single identifier to mark descendants, etc.
-	Essentially, we are using the SHA512 purely as a message reference, not as authentication.
-	If you swap out both the key, the signature, and the messagem It's essentially a new message from a new sender.
+	Tavern messages include the public key in EVERY message.
+	Using 4096-bit keys will bloat your messages, but not provide substantially more security.
+	2048-bit keys are currently believed to be sufficiently hard to factor, so longer messages would add more network time for little gain.
 
+How are you authenticating messages?
 
+	The Tavern security model is based around ensuring that your messages are difficult to impersonate.
+	When you post a message publicly, there is nothing stopping someone from copy/pasting your words into a new message.
+	This message would appear to come from them, however, and not from you.
+
+	Each message that is posted to Tavern includes a "payload" dictionary in the JSON message.
+	This Payload is passed along untouched - Each node that receives a message can alter parts of it, but nothing in the 'payload' section.
+	We use this Payload section to create a hash for the message. This hash acts as the identifier for your message.
+
+	Each message will also contain a signature.
+	This GPG-generated signature asserts that a certain public key is the author of the work.
+
+	While it would be possible for a server to remove your signature and add their own, this is no different than copy and pasting the text of your message.
+	It would create a duplicate of your message, under their name.
+
+Why doesn't Tavern include support for Analytics or Facebook Like iframes?
+	Many startups want to know as much as possible about their users, to help optimize the site and focus on the features they really use.
+	I love and support the mindset, but the more data we capture, the more opportunities there are for data to leak.
+
+	Adding Google Analytics or Facebook Likes would tell those sites about every visitor to Tavern, and that's not who we want to be.
+
+Why does Tavern embed certain content, like Youtube/Vimeo videos?
 	
-Why doesn't Tavern.com use Google Analytics or other Javascript trackers?
-	Google Analytics is really useful, and provides a lot of data, but the way it works is by embedding raw Javascript from Google into your site.
-	Google is generally trustworthy, but allowing their JS to run directly on the site allows them to modify the site, capture your keys, or otherwise compromise your security.
-	That's a risk that we just don't want to take.
-	Because of that, Tavern does not load any external JS resources.
-
-Then why do you embed YouTube/Vimeo videos and other media?
-	If you enable outside embedded content (it is disabled by default) Tavern can display YouTube/Vimeo videos by use of an iframe.
+	By default, Tavern does not embed any external content.
 	
-	This loads the external page in a small, contained sandbox.
-    Web Browsers are specifically designed to prevent content in iframes from interacting with the main page. 
-	The sites that are embedded this way will know what media you viewed that they host, but can't interact with the main page, or rewrite it to pose a major threat.
+	For convenience, users are able to opt-in to including certain external sources, in an iframe.
+	The iframe helps protect their JS from doing anything to intercept Tavern.com, but if you enable this option, they will be able to see your IP address.
 
 
 Why can't I click on embeded (external) images, and go to them directly?
@@ -78,7 +88,6 @@ Why not allow something to be posted into multiple topics?
 	This will create better discussions, more meaningful voting, and allow for better filtering at the topic level.
 
 	
-
 How is my key stored?
 	When you create an account at Tavern, we generate a private and public keypair for each account. 
 	The public key is stored in the database, while the private key is encrypted, using a hashed version of your password as the encryption secret.

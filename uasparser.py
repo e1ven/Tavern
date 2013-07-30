@@ -1,20 +1,19 @@
 """
 A python interface to http://user-agent-string.info/
 A python version of http://user-agent-string.info/download/UASparser
+Modified for use in Tavern.
 
-By Hicro Kee (http://hicrokee.com)
+
+Originally by Hicro Kee (http://hicrokee.com)
 email: hicrokee AT gmail DOT com
 
 Modified by Michal Molhanec http://molhanec.net and Colin Davis (E1ven.com)
 
+
 Usage:
-
 from uasparser import UASparser
-
 uas_parser = UASparser('/path/to/your/cache/folder')
-
 result = uas_parser.parse('YOUR_USERAGENT_STRING',entire_url='ua_icon,os_icon') #only 'ua_icon' or 'os_icon' or both are allowed in entire_url
-
 
 Examples:
 
@@ -60,7 +59,7 @@ class UASException(Exception):
 
 class UASparser:
 
-    ini_file = 'useragent.ini'
+    ini_file = 'data/useragent.ini'
     cache_data = None
     info_url = '/useragent/'
     os_img_url = '/useragent/img/%s'

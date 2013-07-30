@@ -1,7 +1,7 @@
 Cython
 Mako
 MarkupSafe
-tornado>3.1
+tornado>=3.1
 Markdown>=2.2.1
 pygeoip
 postmarkup

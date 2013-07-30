@@ -37,7 +37,7 @@ class UserGenerator(object):
         """
         count = 0
 
-        self.kill()
+        self.stop()
         self.procs = []
         for proc in range(0, serversettings.settings['UserGenerator']['workers']):
             newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
@@ -49,7 +49,7 @@ class UserGenerator(object):
             server.logger.info(" Started UserGenerator" + str(count))
             count += 1
 
-    def kill(self):
+    def stop(self):
         """
         Terminate all subprocs
         """
@@ -59,7 +59,7 @@ class UserGenerator(object):
             proc.terminate()
             server.logger.info(" Stopped UserGenerator " + str(count))
             count += 1
-        server.logger.info("You are now free to turn off your computer.")
+        server.logger.info("All UserGenerator threads ceased.")
 
 
     # create a random-string user.

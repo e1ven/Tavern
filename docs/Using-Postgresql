@@ -1,0 +1,67 @@
+# Tavern works with either MongoDB or Postgres.
+# The support for postgres is not as well tested as other parts of Tavern-
+# It works reasonably well, but there's more work to do.
+
+# Giving build instructions for OSX below.
+# You may be able to use http://postgresapp.com/ instead of the indented section.
+# It's untested, but looks to support the necessary libs.
+
+
+		# First, we'll need to install postgres, and the V8 engine. 
+		brew install postgres v8 coreutils
+
+		# Now, let's create our first DB
+		initdb /usr/local/var/postgres -E utf8
+
+		# Set Postgres home variables, by scraping from the psql binary.
+		# We want to set the path to use the one in /usr/local/bin BEFORE the default OSX bin
+
+
+		echo PGHOME=`greadlink -f /usr/local/bin/psql | awk -F'/bin' {'print $1'}` >> ~/.profile
+		echo PATH=/usr/local/bin:$PATH >> ~/.profile
+		source ~/.profile
+
+		# Now, let's pull in the plv8 language addon for Postgres
+		cd /opt/Tavern/libs
+		git clone https://code.google.com/p/plv8js/
+		cd plv8js/
+		# The -dev version doesn't always work (and it's bad practice!), so switch to a known version
+		git checkout v1.4.1
+
+
+		# Download a copy of V8
+		git clone http://github.com/v8/v8.git -b 3.18 v8 && cd v8
+		cd v8
+		make dependencies
+		make native library=shared
+		sudo cp out/native/libv8.dylib /usr/lib/libv8.dylib
+
+		# Install the plv8.
+		cd ..
+		sudo ln -s /usr/local/bin/postgres /usr/bin/postgres
+		cp ./v8/include/* .
+
+		make 
+		sudo make install
+
+		# Start Postgres
+		pg_ctl -D /usr/local/var/postgres -l /usr/local/var/log/postgres start
+
+
+
+
+# Create Tavern DB
+createdb -O`whoami` -Eutf8 Tavern
+psql -d Tavern -c "CREATE EXTENSION plv8" 
+
+
+cd /opt/Tavern/libs
+git clone https://github.com/JerrySievert/mongolike.git
+cd mongolike
+
+
+psql Tavern < create_collection.sql
+psql Tavern < find.sql 
+psql Tavern < mapreduce.sql 
+psql Tavern < save.sql
+psql Tavern < whereclause.sql 
