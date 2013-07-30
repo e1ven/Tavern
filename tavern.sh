@@ -136,8 +136,8 @@ function start {
     # Go through each JS file in the project, and check to see if we've minimized it already.
     # If we haven't, minimize it. Otherwise, just skip forward, for speed.
     echo "Minimizing JS"
-    mv tmp/checked/* tmp/unchecked/ > /dev/null
-    mv tmp/gzipchk/* tmp/unchecked-gzipchk
+    mv tmp/checked/* tmp/unchecked/ > /dev/null 2>&1 
+    mv tmp/gzipchk/* tmp/unchecked-gzipchk > /dev/null 2>&1 
 
     result=255
     for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
@@ -251,8 +251,8 @@ function start {
         touch tmp/gzipchk/$filehash.exists
     done
 
-    rm tmp/unchecked-gzipchk/*.exists
-    rm tmp/unchecked/*.exists
+    rm tmp/unchecked-gzipchk/*.exists > /dev/null 2>&1 
+    rm tmp/unchecked/*.exists > /dev/null 2>&1 
 
 
     echo "Starting Tavern..."
