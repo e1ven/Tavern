@@ -12,33 +12,32 @@ class ServerSettings():
         self.settings = OrderedDict()
         self.loadconfig()
         
-    def loadconfig(self, filename=None):
+    def loadconfig(self, filename=None,directory='data/conf/'):
 
         if filename is None:
+            filename = platform.node() + ".TavernServerSettings"
 
-            if filename is None:
-                filename = platform.node() + ".TavernServerSettings"
-
-            try:
-                filehandle = open(filename, 'r')
-                filecontents = filehandle.read()
-                self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-                filehandle.close()
-            except:
-                print("Error opening config file. Making New one.")
-                pass
+        try:
+            filehandle = open(directory + filename, 'r')
+            filecontents = filehandle.read()
+            self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+            filehandle.close()
+        except:
+            print("Error opening config file. Making New one.")
+            pass
 
         self.updateconfig()
         self.saveconfig()
 
-    def saveconfig(self, filename=None):
+    def saveconfig(self, filename=None,directory='data/conf/'):
         newsettings = self.settings
         newsettings['temp'] = {}
 
         if filename is None:
             filename = self.settings['hostname'] + \
                 ".TavernServerSettings"
-        filehandle = open(filename, 'w')
+
+        filehandle = open(directory + filename, 'w')
         filehandle.write(
             json.dumps(newsettings, separators=(',', ':')))
         filehandle.close()

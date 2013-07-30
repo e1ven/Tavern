@@ -48,8 +48,8 @@ function start {
 
 
     echo "Ensuring fontello directory compliance"
-    gsed > /dev/null 2&>1
-    if [ $? -eq 1 ]
+    echo foo | gsed 's/foo/bar/' > /dev/null 2>&1
+    if [ $? -eq 0 ]
         then
         #Use Gnu sed
         sed='gsed'

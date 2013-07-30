@@ -42,7 +42,9 @@ class Keys(object):
         Clean up after ourselves.
         In this case, remove the tempdir used to store gnukeys.
         """
-        shutil.rmtree(self.gnuhome)
+        if self.gnuhome is not None:
+            if shutil is not None:
+                shutil.rmtree(self.gnuhome,ignore_errors=True,onerror=None)
 
     def format_keys(self):
         """
