@@ -92,7 +92,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.browser = server.browserdetector.parse(ua)
 
     
-    @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name, **kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -382,6 +382,9 @@ class BaseHandler(tornado.web.RequestHandler):
             if self.user.passkey is None:
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
+        # Ensure we have any missing fields.
+        self.user.generate(skipkeys=True)
+
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be better, if you're a recurrent reader
@@ -429,20 +432,37 @@ class RSSHandler(BaseHandler):
                 channel.additem(item)
             self.write(channel.toprettyxml())
 
-
-class RawMessageHandler(BaseHandler):
-    def get(self, message):
-        envelope = server.db.unsafe.find_one(
-            'envelopes', {'envelope.local.payload_sha512': message})
-        envelope = server.formatEnvelope(envelope)
-        self.write(envelope['envelope']['local']['formattedbody'])
-
-
 # What happens when people request the root level?
 # for now, send them to that Welcome message ;)
 class EntryHandler(tornado.web.RequestHandler):
     def get(self):
         self.redirect('/message/sitecontent/Welcome-to-Tavern/57c565db8c926b147f4b33160e2c4f9b994d8d7316bb5938940b8eceb17a4a74c3dce4088c6d82bb7abe4f09a453df9611efa958bd78d2a6d9890b0ea888a50f')
+
+
+class MessageHistoryHandler(BaseHandler):
+    """
+    Display the various edits to a message.
+    """
+    def get(self, messageid):
+        self.getvars()
+        origid = server.getOriginalMessage(messageid)
+        
+        e = Envelope()
+
+        if not e.loadmongo(origid):
+            self.write("I can't load that message's history. ;(")
+        else:
+            # Pull out the edits, and ensure the current/requested one is on top.
+            messages = []
+            current_message = (messageid,e.dict['envelope']['local']['time_added'])
+            messages.append(current_message)
+
+            if 'edits' in e.dict['envelope']['local']:
+                for msg in e.dict['envelope']['local']['edits']:
+                    messages.append(msg)
+                    print("Adding " + str(msg[0]))
+
+            self.write(self.render_string('messagehistory.html',messages=messages))
 
 class MessageHandler(BaseHandler):
 
@@ -450,7 +470,7 @@ class MessageHandler(BaseHandler):
     The Message Handler displays a message, when given by message id.
     It's intentionally a bit forgiving in the syntax, to make it easy to retrieve messages.
     """
-    @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['message-page']['seconds'], maxsize=serversettings.settings['cache']['message-page']['size'])
+    # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['message-page']['seconds'], maxsize=serversettings.settings['cache']['message-page']['size'])
     def get(self, *args):
     
         self.getvars()
@@ -1075,6 +1095,29 @@ class UserTrustHandler(BaseHandler):
         server.receiveEnvelope(e.text())
         server.logger.debug("Trust Submitted.")
 
+class EditMessageHandler(BaseHandler):
+    def get(self, regarding):
+        self.getvars()
+        self.write(self.render_string('header.html',
+                   title="Edit a message", rsshead=None, type=None))
+
+        e = Envelope()
+        e.loadmongo(regarding)
+        oldtext = e.dict['envelope']['payload']['body']
+        topic = e.dict['envelope']['payload']['topic']
+
+        if 'edits' in e.dict['envelope']['local']:
+            newestedit = e.dict['envelope']['local']['edits'][-1:][0]
+            print("New- " + str(newestedit))
+            e2 = Envelope()
+            e2.loadmongo(newestedit)
+            print(e2.dict['envelope']['payload'])
+            oldtext = e2.dict['envelope']['payload']['body']
+            topic = e2.dict['envelope']['payload']['topic']
+
+        self.write(self.render_string('newmessageform.html',regarding=regarding, topic=topic, oldtext=oldtext,edit=True))
+        self.write(self.render_string('footer.html'))
+        self.finish(divs=['scrollablediv3'])
 
 class NewmessageHandler(BaseHandler):
 
@@ -1087,7 +1130,7 @@ class NewmessageHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Post a new message", rsshead=None, type=None))
-        self.write(self.render_string('newmessageform.html',regarding=regarding, topic=topic, args=self.request.arguments))
+        self.write(self.render_string('newmessageform.html',regarding=regarding, topic=topic, oldtext=None,edit=False))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['scrollablediv3'])
 
@@ -1269,7 +1312,10 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['formatting'] = "markdown"
 
         if client_to is None:
-            e.payload.dict['class'] = "message"
+            if flag == "edit":
+                e.payload.dict['class'] = "messagerevision"
+            else:
+                e.payload.dict['class'] = "message"
             e.payload.dict['body'] = client_body
 
             if client_regarding is not None:
@@ -1344,13 +1390,12 @@ class NewmessageHandler(BaseHandler):
         stamplist.append(stamp)
         e.dict['envelope']['stamps'] = stamplist
 
-
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
         if newmsgid != False:
             if client_to is None:
                 if client_regarding is not None:
-                    self.redirect('/message/' + server.find_top_parent(
+                    self.redirect('/message/' + server.getTopMessage(
                         newmsgid) + "?jumpto=" + newmsgid, permanent=False)
                 else:
                     self.redirect('/message/' + newmsgid, permanent=False)
@@ -1476,6 +1521,7 @@ def main():
         (r"/message/(.*)/(.*)/(.*)", MessageHandler),
         (r"/message/(.*)/(.*)", MessageHandler),
         (r"/message/(.*)", MessageHandler),
+        (r"/messagehistory/(.*)", MessageHistoryHandler),
         (r"/m/(.*)/(.*)/(.*)", MessageHandler),
         (r"/m/(.*)/(.*)", MessageHandler),
         (r"/m/(.*)", MessageHandler),
@@ -1488,8 +1534,8 @@ def main():
         (r"/changepassword", ChangepasswordHandler),
         (r"/logout", LogoutHandler),
         (r"/rss/(.*)/(.*)", RSSHandler),
-        (r"/raw/(.*)", RawMessageHandler),
         (r"/newmessage", NewmessageHandler),
+        (r"/edit/(.*)", EditMessageHandler),
         (r"/uploadfile/(.*)", NewmessageHandler),
         (r"/reply/(.*)/(.*)", NewmessageHandler),
         (r"/reply/(.*)", NewmessageHandler),

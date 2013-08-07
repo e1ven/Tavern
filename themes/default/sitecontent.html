@@ -5,7 +5,13 @@
 <p></p>
 
 
-<p>{% raw formattedbody %}</p>
+<p>
+	{% if not 'editedbody' in envelope.dict['envelope']['local'] %}
+	    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+	{% else %}
+	    {% raw envelope.dict['envelope']['local']['editedbody'] %}
+	{% end %}
+</p>
 
 
 {% if 'attachmentlist' in envelope['envelope']['local'] %}

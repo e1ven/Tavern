@@ -9,6 +9,7 @@ import pymongo
 import pylzma
 from ServerSettings import serversettings
 import TavernUtils
+from operator import itemgetter
 
 class Envelope(object):
 
@@ -63,16 +64,18 @@ class Envelope(object):
                     server.logger.debug("No Pubkey line in Author info")
                     return False
             self.format()
+            print("formatted")
             return True
 
-    class EditedMessage(Payload):
+    class MessageRevision(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 server.logger.debug("Super does not Validate")
                 return False
             if not 'regarding' in self.dict:
-                server.logger.debug("EditedMessages must refer to an original message.")
+                server.logger.debug("Message Revisions must refer to an original message.")
                 return False
+            return True
 
     class Message(Payload):
         def validate(self):
@@ -279,27 +282,44 @@ class Envelope(object):
             self.dict['envelope']['local']['citedby'].append(citedby)
         self.saveMongo()
 
-
-    def editMessage(self,editid):
+    def addEdit(self,editid):
         """
         Another message has come in that says it's an edit of this one.
         """
         newmessage = Envelope()
         if newmessage.loadmongo(mongo_id=editid):
 
-            # Store this edit locally
+            # Store the hash of the edit in this message.
             if not 'edits' in self.dict['envelope']['local']:
                 self.dict['envelope']['local']['edits'] = []
-            self.dict['envelope']['local']['edits'].append(self.payload.hash())
 
-            # If we're replying to an edit, propagate up.
-            if self.dict['envelope']['payload']['class'] != "message":
-                parentmessage = Envelope()
-                if parentmessage.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                    parentmessage.editMessage(editid)
+            # Store the hash, and the 'date' the message gives us.
+            if 'time_added' in newmessage.dict['envelope']['local']:
+                dt = newmessage.dict['envelope']['local']['time_added']
+            else:
+                dt = TavernUtils.inttime()
 
-            self.dict['envelope']['local']['editedbody'] = server.formatEnvelope(newmongo.dict['envelope']['local']['formattedbody'])
+            edit = (newmessage.payload.hash(), dt)
+            self.dict['envelope']['local']['edits'].append(edit)
+
+            # Sort by time received
+            self.dict['envelope']['local']['edits'] = sorted(self.dict['envelope']['local']['edits'], key=itemgetter(1))
+
+            # If the new text is newer than the original message, change the display text.
+            if newmessage.dict['envelope']['local']['time_added'] > self.dict['envelope']['local']['time_added']:
+                if 'editedbody' in newmessage.dict['envelope']['local']:
+                    self.dict['envelope']['local']['editedbody'] = newmessage.dict['envelope']['local']['editedbody']
+                else:
+                    self.dict['envelope']['local']['editedbody'] = server.formatEnvelope(newmessage.dict)['envelope']['local']['formattedbody']
             self.saveMongo()
+
+            # If we're saving this edit onto another edit, propogate up to tell the original message.
+            if self.dict['envelope']['payload']['class'] == "messagerevision":
+                parentmessage = Envelope()
+                if parentmessage.loadmongo(mongo_id=self.dict['envelope']['payload']['regarding']):
+                    print("Going upstream.")
+                    parentmessage.addEdit(editid)
+
 
     def addcite(self, citedby):
         """
@@ -343,10 +363,11 @@ class Envelope(object):
                 elif self.dict['envelope']['payload']['class'] == "privatemessage":
                     self.payload = Envelope.PrivateMessage(
                         self.dict['envelope']['payload'])
-                elif self.dict['envelope']['payload']['class'] == "editedmessage":
-                    self.payload = Envelope.EditedMessage(
+                elif self.dict['envelope']['payload']['class'] == "messagerevision":
+                    self.payload = Envelope.MessageRevision(
                         self.dict['envelope']['payload'])
                 else:
+                    server.logger.info("Rejecting message of class " + self.dict['envelope']['payload'])
                     return False
             return True
     
@@ -378,6 +399,10 @@ class Envelope(object):
             return False
         else:
             return self.loaddict(env)
+
+    def reloadmongo(self):
+        self.loadmongo(self.payload.hash())
+        return self.registerpayload()
 
     def reloadfile(self):
         self.loadfile(self.payload.hash() + ".7zTavernEnvelope")

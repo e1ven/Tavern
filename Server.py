@@ -482,9 +482,10 @@ class Server(object):
             if regardingPost is not None:
                 c.dict['envelope']['local']['regardingAuthor'] = regardingPost['envelope']['payload']['author']
 
-        elif c.dict['envelope']['payload']['class'] == "editedmessage":
+        elif c.dict['envelope']['payload']['class'] == "messagerevision":
             # This is an edit to an existing message. 
             # Mark the old message with this edit.
+
             regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
             if regardingPost is not None:
                 if regardingPost['envelope']['payload']['author'] != c.dict['envelope']['payload']['author']:
@@ -492,7 +493,20 @@ class Server(object):
                     self.logger.debug(c.text())
                     return False    
                 else:
-                    add
+
+                    # Store this edit.
+                    # Save this message out to mongo, so we can then retrieve it in addEdit().
+                    c.saveMongo()
+
+                    # Modify the original message.
+                    r  = Envelope()
+                    r.loaddict(regardingPost)
+                    r.addEdit(c.dict['envelope']['local']['payload_sha512'])
+
+                    # Ensure we have the freshest version in memory.
+                    c.reloadmongo()
+            else:
+                 self.logger.debug("Received an edit without the original")
 
         #Create the HTML version, and store it in local
         c.dict = self.formatEnvelope(c.dict)
@@ -531,29 +545,62 @@ class Server(object):
         return envelopes
 
 
-    def find_top_parent(self, messageid):
+    def getTopMessage(self, messageid):
         # Find the top level of a post that we currently have.
 
-        # First, pull the message.
-        envelope = self.db.unsafe.find_one('envelopes',
-                                           {'envelope.local.payload_sha512': messageid})
-        envelope = self.formatEnvelope(envelope)
+        env = Envelope()
+        # First, pull the referenced message.
+        if env.loadmongo(mongo_id=messageid):
+            # If we have no references, congrats, we're the top.
+            if not 'regarding' in env.dict['envelope']['payload']:
+                return env.dict['envelope']['local']['payload_sha512']
+            if env.dict['envelope']['payload']['regarding'] is None:
+                return env.dict['envelope']['local']['payload_sha512']                
+            # If we're here, it means we have a parent.
+            # Recurse upstream
+            result =  self.getTopMessage(env.dict['envelope']['payload']['regarding'])
 
-        # IF we don't have a parent, or if it's null, return self./
-        if not 'regarding' in envelope['envelope']['payload']:
-            return messageid
-        if envelope['envelope']['payload']['regarding'] is None:
-            return messageid
+            # Don't blindly return it, since it might be None in broken chains.
+            # In that case, return yourself.
+            if result is not None:
+                return result
+            else:
+                return env.dict['envelope']['local']['payload_sha512']
+        else:
+            return None
 
-        # If we do have a parent, Check to see if it's in our datastore.
-        parentid = envelope['envelope']['payload']['regarding']
-        parent = self.db.unsafe.find_one('envelopes',
-                                         {'envelope.local.payload_sha512': parentid})
-        if parent is None:
-            return messageid
+    def getOriginalMessage(self, messageid):
+        # Find the unedited original of a edit
+        env = Envelope()
+        # First, pull the referenced message.
+        if env.loadmongo(mongo_id=messageid):
+            print("We found something")
+            # If we're a message, we're not an edit. Exit out.            
+            if env.dict['envelope']['payload']['class'] == 'message':
+                return env.dict['envelope']['local']['payload_sha512'] 
 
-        # If it is, recurse
-        return self.find_top_parent(parentid)
+            print("Staples")
+            # If we have no references, or we're a message (not an revision) congrats, we're the top.
+            if not 'regarding' in env.dict['envelope']['payload']:
+                return env.dict['envelope']['local']['payload_sha512']
+            print("Rubarb.")
+            if env.dict['envelope']['payload']['regarding'] is None:
+                return env.dict['envelope']['local']['payload_sha512']      
+             
+            print("Going.... Up!")
+            # If we're here, it means we have a parent.
+            # Recurse upstream IF we're still 
+            result =  self.getOriginalMessage(env.dict['envelope']['payload']['regarding'])
+
+            # Don't blindly return it, since it might be None in broken chains.
+            # In that case, return yourself.
+            if result is not None:
+                return result
+            else:
+                print("Pizza")
+                return env.dict['envelope']['local']['payload_sha512']
+        else:
+            return None        
 
     def urlize(self, url):
         # I do NOT want to urlencode this, because that encodes the unicode characters.
@@ -681,8 +728,6 @@ class Server(object):
         if 'body' in envelope['envelope']['payload']:
             formattedbody = self.formatText(text=envelope['envelope']['payload']['body'], formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
-        if 'editedbody' in envelope['envelope']['local']:
-            envelope['envelope']['local']['formattedbody'] = envelope['envelope']['local']['editedbody']
 
         #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
         #But since the file is IN the payload, we can't modify that one, either!

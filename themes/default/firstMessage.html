@@ -11,6 +11,20 @@
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
 
 
+{# Show edited version of comment, if there's nothing stopping us.... #}
+{% if 'editedbody' in envelope.dict['envelope']['local'] %}
+    {% set showedit = True %}
+{% else %}
+    {% set showedit = False %}
+{% end %}
+{% if 'ignoreedits' in request.arguments %}
+    {% set showedit = False %}
+{% end %}
+{% if user.UserSettings['ignoreedits'] == True %}
+    {% set showedit = False %}
+{% end %}
+
+
 <div id="firstMessage" class="comment">
     <ul>
         <li>
@@ -38,7 +52,11 @@
             </p>
             <br>
             <div id="firstMessageBody" class="MessageBody">
-                    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+                    {% if showedit == True %}
+                        {% raw envelope.dict['envelope']['local']['editedbody'] %}
+                    {% else %}
+                        {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+                    {% end %} 
             </div>
 
             <hr class="clear firstMessageSeparationLine">
@@ -113,6 +131,11 @@
                     <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
+                    {% if user.UserSettings['pubkey'] == envelope.dict['envelope']['payload']['author']['pubkey'] %}
+                        <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                            Edit
+                        </a>
+                    {% end %}
                 </div>
             </div>
             <div id="commentSliderWrapper">

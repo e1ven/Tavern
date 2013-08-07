@@ -366,6 +366,9 @@ class User(object):
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
 
+        if not 'ignoreedits' in self.UserSettings:
+            self.UserSettings['ignoreedits'] = False
+
         self.UserSettings['author_wordhash'] = server.wordlist.wordhash(self.UserSettings['pubkey'])
 
     def changepass(self, oldpasskey, newpass):

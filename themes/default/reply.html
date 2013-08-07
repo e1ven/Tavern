@@ -8,7 +8,6 @@
 
 {% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 
-
 {% if 'medialink' in envelope.dict['envelope']['local'] %}
     {% set medialink = str(serversettings.settings['downloadsurl']) + str(envelope.dict['envelope']['local']['medialink']) %}
 {% else %}
@@ -17,6 +16,21 @@
 {% set note = user.getNote(envelope.dict['envelope']['payload']['author']['pubkey']) %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
+
+
+{# Show edited version of comment, if there's nothing stopping us.... #}
+{% if 'editedbody' in envelope.dict['envelope']['local'] %}
+    {% set showedit = True %}
+{% else %}
+    {% set showedit = False %}
+{% end %}
+{% if 'ignoreedits' in request.arguments %}
+    {% set showedit = False %}
+{% end %}
+{% if user.UserSettings['ignoreedits'] == True %}
+    {% set showedit = False %}
+{% end %}
+
 
 <ul>
     <li>
@@ -39,6 +53,10 @@
            
             <div class="messageDate">
                 Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr>
+
+                {% if 'edits' in envelope.dict['envelope']['local'] %}
+                    <abbr title="This message has been edited."><a href="/messagehistory/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
+                {% end %}
             </div>
             <div class="messageRating">
                 {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
@@ -47,7 +65,11 @@
             <hr id="lowerCommentSeparation" class="commentSeparation">
 
             <div class="floatLeft clear paraBuffer MessageBody">
-                    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+                    {% if showedit == True %}
+                        {% raw envelope.dict['envelope']['local']['editedbody'] %}
+                    {% else %}
+                        {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+                    {% end %}           
             </div>
 
 
@@ -114,7 +136,7 @@
                         </a>
                     </abbr>
                     <abbr title="Permalink">
-                        <a href="#">
+                        <a href="{{permalink}}">
                             <i class="icon-twitter-squared floatLeft iconLabelColorDark"></i>
                         </a>
                     </abbr>
@@ -123,6 +145,11 @@
                     <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
+                    {% if user.UserSettings['pubkey'] == envelope.dict['envelope']['payload']['author']['pubkey'] %}
+                        <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                            Edit
+                        </a>
+                    {% end %}
                 </div>
                 <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorDark'></div>
 
