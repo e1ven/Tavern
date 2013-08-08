@@ -1,4 +1,16 @@
 
+{# Show edited version of comment, if there's nothing stopping us.... #}
+{% if 'edits' in envelope.dict['envelope']['local'] %}
+    {% set showedit = True %}
+{% else %}
+    {% set showedit = False %}
+{% end %}
+{% if 'ignoreedits' in request.arguments %}
+    {% set showedit = False %}
+{% end %}
+{% if user.UserSettings['ignoreedits'] == True %}
+    {% set showedit = False %}
+{% end %}
 
 <div class="single">
 <h1> {{envelope['envelope']['payload']['subject']}}</h1>
@@ -6,12 +18,12 @@
 
 
 <p>
-	{% if not 'editedbody' in envelope.dict['envelope']['local'] %}
-	    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+	{% if showedit == True %}
+	    {% raw envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] %}
 	{% else %}
-	    {% raw envelope.dict['envelope']['local']['editedbody'] %}
-	{% end %}
-</p>
+	    {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+	{% end %}    
+	</p>
 
 
 {% if 'attachmentlist' in envelope['envelope']['local'] %}

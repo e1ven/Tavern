@@ -12,7 +12,7 @@
 
 
 {# Show edited version of comment, if there's nothing stopping us.... #}
-{% if 'editedbody' in envelope.dict['envelope']['local'] %}
+{% if 'edits' in envelope.dict['envelope']['local'] %}
     {% set showedit = True %}
 {% else %}
     {% set showedit = False %}
@@ -53,7 +53,7 @@
             <br>
             <div id="firstMessageBody" class="MessageBody">
                     {% if showedit == True %}
-                        {% raw envelope.dict['envelope']['local']['editedbody'] %}
+                        {% raw envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] %}
                     {% else %}
                         {% raw envelope.dict['envelope']['local']['formattedbody'] %}
                     {% end %} 

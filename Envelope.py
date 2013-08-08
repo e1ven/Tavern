@@ -75,6 +75,17 @@ class Envelope(object):
             if not 'regarding' in self.dict:
                 server.logger.debug("Message Revisions must refer to an original message.")
                 return False
+
+            # See if we have the original. If so, is the right type?
+            e = Envelope()
+            if e.loadmongo(self.dict['regarding']):
+                print("We have the original message this revision refers to")
+                if e.dict['envelope']['payload']['class'] != 'message':
+                    print("Message Revisions must refer to a message.")
+                    return False
+                if e.dict['envelope']['payload']['author']['pubkey'] != self.dict['author']['pubkey']:
+                    print("Invalid Revision. Author pubkey must match original message.")
+                    return False  
             return True
 
     class Message(Payload):
@@ -105,6 +116,17 @@ class Envelope(object):
                 if len(self.dict['subject']) > 200:
                     server.logger.debug("Subject too long")
                     return False
+
+
+            # See if we have the original. If so, is the right type?
+            if 'regarding' in self.dict:
+                e = Envelope()
+                if e.loadmongo(self.dict['regarding']):
+                    print("We have the original message this revision refers to")
+                    if e.dict['envelope']['payload']['class'] != 'message':
+                        print("Message can only reply to other messages.")
+                        return False
+
             return True
 
     class PrivateMessage(Payload):
@@ -285,52 +307,29 @@ class Envelope(object):
     def addEdit(self,editid):
         """
         Another message has come in that says it's an edit of this one.
+        Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.
         """
         newmessage = Envelope()
-        if newmessage.loadmongo(mongo_id=editid):
 
+        if newmessage.loadmongo(mongo_id=editid):
             # Store the hash of the edit in this message.
             if not 'edits' in self.dict['envelope']['local']:
                 self.dict['envelope']['local']['edits'] = []
 
-            # Store the hash, and the 'date' the message gives us.
-            if 'time_added' in newmessage.dict['envelope']['local']:
-                dt = newmessage.dict['envelope']['local']['time_added']
-            else:
-                dt = TavernUtils.inttime()
+            # Check to see if we already have this edit
+            foundedit = False
+            for edit in self.dict['envelope']['local']['edits']:
+                if edit['envelope']['payload']['sha_512'] == editid:
+                    # We already have this message
+                    return False
 
-            edit = (newmessage.payload.hash(), dt)
-            self.dict['envelope']['local']['edits'].append(edit)
-
-            # Sort by time received
-            self.dict['envelope']['local']['edits'] = sorted(self.dict['envelope']['local']['edits'], key=itemgetter(1))
-
-            # If the new text is newer than the original message, change the display text.
-            if newmessage.dict['envelope']['local']['time_added'] > self.dict['envelope']['local']['time_added']:
-                if 'editedbody' in newmessage.dict['envelope']['local']:
-                    self.dict['envelope']['local']['editedbody'] = newmessage.dict['envelope']['local']['editedbody']
-                else:
-                    self.dict['envelope']['local']['editedbody'] = server.formatEnvelope(newmessage.dict)['envelope']['local']['formattedbody']
+            # Add this message.
+            self.dict['envelope']['local']['edits'].append(server.formatEnvelope(newmessage.dict))
+    
+            # Order by Priority, then date if they match
+            # This will ensure that ['edits'][-1] is the one we want to display.
+            self.dict['envelope']['local']['edits'].sort(key=lambda e: (e['envelope']['local']['priority'], (e['envelope']['local']['time_added'])))
             self.saveMongo()
-
-            # If we're saving this edit onto another edit, propogate up to tell the original message.
-            if self.dict['envelope']['payload']['class'] == "messagerevision":
-                parentmessage = Envelope()
-                if parentmessage.loadmongo(mongo_id=self.dict['envelope']['payload']['regarding']):
-                    print("Going upstream.")
-                    parentmessage.addEdit(editid)
-
-
-    def addcite(self, citedby):
-        """
-        Another message has referenced this one. Mark it in the local area.
-        """
-        if not 'citedby' in self.dict['envelope']['local']:
-            self.dict['envelope']['local']['citedby'] = []
-        if citedby not in self.dict['envelope']['local']['citedby']:
-            self.dict['envelope']['local']['citedby'].append(citedby)
-        self.saveMongo()
-
 
 
     class binary(object):

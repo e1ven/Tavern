@@ -35,18 +35,19 @@ class FakeMongo():
     def __init__(self):
 
         # Create a connection to Postgres.
-        self.conn = psycopg2.connect("dbname=" + serversettings.settings['dbname'] + " user=e1ven", connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn = psycopg2.connect(dbname=serversettings.settings['dbname'],user=serversettings.settings['postgres-user'], host=serversettings.settings['postgres-hostname'],port=serversettings.settings['postgres-port'],connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
     def find(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
-
         cur.callproc('find', [collection, jsonquery, limit, skip])
         results = []
 
+        # reconstruct the results
         for row in cur.fetchall():
-            results.append(json.loads(json.loads(row['find'], object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict), object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict))
+            row = row['find']
+            results.append(row)
 
         # Sort if necessary
         if sortdirection not in ['ascending', 'descending']:
@@ -68,13 +69,12 @@ class FakeMongo():
         if len(result) == 0:
             return None
         else:
-            return result
+            return result[0]
 
     def save(self, collection, query):
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
         result = cur.callproc('save', [collection, jsonquery])
-        print("runing FakeMongo Save()")
         return result
 
     # TODO - Change insert to not insert dups. Probably in mongolike.
@@ -82,8 +82,6 @@ class FakeMongo():
         cur = self.conn.cursor()
         jsonquery = json.dumps(query)
         result = cur.callproc('save', [collection, jsonquery])
-        print("runing FakeMongo insert()")
-
         return result
 
     def count(self,collection,query={}):
@@ -94,6 +92,29 @@ class FakeMongo():
         results = []
 
         return cur.rowcount
+
+    def drop_collection(self,collection):
+        cur = self.conn.cursor()
+        cur.callproc('drop_collection', [collection])
+
+    def map_reduce(self, collection, map, reduce, out):
+        cur = self.conn.cursor()
+        query = {
+                    'mapreduce': collection,
+                    'map':map,
+                    'reduce':reduce,
+                    'out':out
+                }
+        jsonquery = json.dumps(query)
+        cur.callproc('runcommand',[jsonquery] )
+
+
+        # Export out results.
+        self.drop_collection(out)
+        results = []
+        rows = cur.fetchone()['runcommand']
+        for row in rows:
+            self.insert(out,row)
 
 class MongoWrapper():
     def __init__(self, safe=True):
@@ -107,6 +128,9 @@ class MongoWrapper():
             self.unsafeconn = pymongo.MongoClient(serversettings.settings['mongo-hostname'], serversettings.settings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.settings['mongo-connections'])
             self.mongo = self.unsafeconn[
                 serversettings.settings['dbname']]
+
+    def drop_collection(self,collection):
+        self.mongo.drop_collection(collection)
 
     def find(self, collection, query={}, limit=0, skip=0, sortkey=None, sortdirection="ascending"):
 
@@ -461,20 +485,30 @@ class Server(object):
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
-            for citedme in self.db.unsafe.find('envelopes', {'envelope.payload.class':'message','envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
+            for citedict in self.db.unsafe.find('envelopes',{'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
                 self.logger.debug('found existing cite, bad order. ')
                 self.logger.debug(
                     " I am :: " + c.dict['envelope']['local']['payload_sha512'])
                 self.logger.debug(" Found pre-existing cite at :: " +
-                                 citedme['envelope']['local']['payload_sha512'])
-                citedme = self.formatEnvelope(citedme)
-                c.addcite(citedme['envelope']['local']['payload_sha512'])
-                citedme.addAncestor(c.dict['envelope']['local']['payload_sha512'])
+                                 citedict['envelope']['local']['payload_sha512'])
 
-            # Also check to see if there are already ratings for this post, ahead of the message itself.
-            for citedme in self.db.unsafe.find('envelopes', {'envelope.payload.class':'messagerating','envelope.local.sorttopic': self.sorttopic(c.dict['envelope']['payload']['topic']), 'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
-                citedme.dict['envelope']['local']['regardingAuthor'] = c.dict['envelope']['payload']['author']
-                citedme.saveMongo()
+                # If it's a message, write that in the reply, and in me.
+                if citedict['envelope']['payload']['class'] == 'message':
+                    citedme = Envelope()
+                    citedme.loaddict(citedict)
+                    c.addcite(citedme.dict['envelope']['local']['payload_sha512'])
+                    citedme.addAncestor(c.dict['envelope']['local']['payload_sha512'])
+                    citedme.saveMongo()
+
+                # If it's an edit, write that in me.
+                elif citedict['envelope']['payload']['class'] == 'messagerevision':
+                    c.addEdit(citedict['envelope']['local']['payload_sha512'])
+
+                elif citedict['envelope']['payload']['class'] == 'messagerating':
+                    citedme = Envelope()
+                    citedme.loaddict(citedict)
+                    citedme.dict['envelope']['local']['regardingAuthor'] = c.dict['envelope']['payload']['author']
+                    citedme.saveMongo()
 
         elif c.dict['envelope']['payload']['class'] == "messagerating":
             # If this is a rating, cache the AUTHOR of the rated message.
@@ -484,16 +518,14 @@ class Server(object):
 
         elif c.dict['envelope']['payload']['class'] == "messagerevision":
             # This is an edit to an existing message. 
-            # Mark the old message with this edit.
 
             regardingPost = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
             if regardingPost is not None:
-                if regardingPost['envelope']['payload']['author'] != c.dict['envelope']['payload']['author']:
-                    self.logger.debug("Invalid Update. Author must match.")
-                    self.logger.debug(c.text())
-                    return False    
-                else:
-
+                    if 'priority' in c.dict['envelope']['payload']:
+                        c.dict['envelope']['local']['priority'] = c.dict['envelope']['payload']['priority']
+                    else:
+                        c.dict['envelope']['local']['priority'] = 0
+                        
                     # Store this edit.
                     # Save this message out to mongo, so we can then retrieve it in addEdit().
                     c.saveMongo()
@@ -568,40 +600,7 @@ class Server(object):
                 return env.dict['envelope']['local']['payload_sha512']
         else:
             return None
-
-    def getOriginalMessage(self, messageid):
-        # Find the unedited original of a edit
-        env = Envelope()
-        # First, pull the referenced message.
-        if env.loadmongo(mongo_id=messageid):
-            print("We found something")
-            # If we're a message, we're not an edit. Exit out.            
-            if env.dict['envelope']['payload']['class'] == 'message':
-                return env.dict['envelope']['local']['payload_sha512'] 
-
-            print("Staples")
-            # If we have no references, or we're a message (not an revision) congrats, we're the top.
-            if not 'regarding' in env.dict['envelope']['payload']:
-                return env.dict['envelope']['local']['payload_sha512']
-            print("Rubarb.")
-            if env.dict['envelope']['payload']['regarding'] is None:
-                return env.dict['envelope']['local']['payload_sha512']      
-             
-            print("Going.... Up!")
-            # If we're here, it means we have a parent.
-            # Recurse upstream IF we're still 
-            result =  self.getOriginalMessage(env.dict['envelope']['payload']['regarding'])
-
-            # Don't blindly return it, since it might be None in broken chains.
-            # In that case, return yourself.
-            if result is not None:
-                return result
-            else:
-                print("Pizza")
-                return env.dict['envelope']['local']['payload_sha512']
-        else:
-            return None        
-
+      
     def urlize(self, url):
         # I do NOT want to urlencode this, because that encodes the unicode characters.
         # Browsers are perfectly capable of handling these!

@@ -5,6 +5,7 @@ import collections
 from collections import OrderedDict
 import TavernUtils
 import socket
+import getpass
 
 class ServerSettings():
 
@@ -70,6 +71,19 @@ class ServerSettings():
             self.settings['mongo-hostname'] = 'localhost'
         if not 'mongo-port' in self.settings:
             self.settings['mongo-port'] = 27017
+
+
+        if not 'postgres-hostname' in self.settings:
+            self.settings['postgres-hostname'] = 'localhost'
+        if not 'postgres-user' in self.settings:
+            self.settings['postgres-user'] = getpass.getuser()
+        if not 'postgres-hostname' in self.settings:
+            self.settings['postgres-hostname'] = "localhost"
+        if not 'postgres-port' in self.settings:
+            self.settings['postgres-port'] = 5432
+            
+   
+
         if not 'dbname' in self.settings:
             self.settings['dbname'] = 'Tavern'
 

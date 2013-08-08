@@ -1500,9 +1500,9 @@ def main():
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
-
-    serversettings.settings['temp']['loglevel'] = options.loglevel
-    serversettings.settings['temp']['writelog'] = options.writelog
+    if options.loglevel is not "UNSET":
+        serversettings.settings['temp']['loglevel'] = options.loglevel
+        serversettings.settings['temp']['writelog'] = options.writelog
 
     # Tell the server process to fire up and run for a while.
     server.start()

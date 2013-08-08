@@ -9,11 +9,16 @@ import sys
 import os
 import argparse
 from ServerSettings import serversettings
+import tempfile
+import shutil
 
 msgsdir = "data/messages/topics/"
 
 parser = argparse.ArgumentParser(
     description='Save/Load messages from the filesystem.')
+parser.add_argument(
+    '-r', '--reprocess', dest='reprocess', action='store_true', default=False,
+    help='Reprocess the Tavern DB - Save all messages to a tmpdir, drop the DB, then load them all in.')
 parser.add_argument(
     '-s', '--save', dest='dump', action='store_true', default=False,
     help='Save all messages from the DB to a local directory')
@@ -28,11 +33,11 @@ parser.add_argument(
     help='Store only messages in topic (Can be used more than once)')
 parser.add_argument(
     '-v', '--verbose', dest='verbose', action='store_true', default=False,
-    help='Store each message as it\'s imported.')
+    help='Explain more things.')
 args = parser.parse_args()
 
 
-def writetopic(topic, since=0, limit=0, skip=0):
+def writetopic(topic, since=0, limit=0, skip=0,directory=None):
     """
     Write a topic out to .7z files
     """
@@ -52,7 +57,10 @@ def writetopic(topic, since=0, limit=0, skip=0):
         e.validate()
 
         topic = e.payload.dict['topic']
-        topicdir = msgsdir + topic
+        if directory == None:
+            topicdir = msgsdir + topic
+        else:
+            topicdir = directory
 
         # Make a dir if nec.
         if not os.path.isdir(topicdir):
@@ -62,15 +70,19 @@ def writetopic(topic, since=0, limit=0, skip=0):
             e.savefile(topicdir)
 
 
-def loaddir(directory):
+def loaddir(directory=None,topic='sitecontent'):
     """
     Load in a directory full of Tavern Messages.
     """
-    listing = os.listdir(msgsdir + directory)
+    print(directory)
+    if directory == None:
+        directory = msgsdir + topic
+    
+    listing = os.listdir(directory)
     e = Envelope()
 
     for infile in listing:
-        e.loadfile(msgsdir + directory + "/" + infile)
+        e.loadfile(directory + "/" + infile)
         if args.verbose:
             print(e.text())
         if e.validate():
@@ -80,31 +92,46 @@ def loaddir(directory):
 def main():
 
     # Start Tavern services.
-    server.start()
 
-    if len(sys.argv) == 1:
+    if len(sys.argv) <= 1:
         parser.print_help()
         sys.exit(1)
 
 
+    print("Starting server for message-processing...")
+    server.start()
+
+    # Save files to the local HD.
     if args.dump:
         for topic in args.topic:
             print("Writing - " + topic)
             writetopic(topic)
 
-
+    # Load local files.
     if args.read:
         for topic in args.topic:
             if topic == 'all':
                 for idt in os.listdir(msgsdir):
                     if os.path.isdir(msgsdir + idt):
                         print("Loading Topic - " + idt)
-                        loaddir(idt)
+                        loaddir(directory=msgsdir + idt)
                     else:
-                        print("Non topic file in messages directory.")
+                        print("Non topic file in envelopes directory.")
             else:
                 if os.path.isdir(topic):
-                    loaddir(topic)
+                    loaddir(topic=topic)
+
+
+    # Reprocess all Tavern messages
+    if args.reprocess:
+        print("Writing all envelopes to files...")
+        directory = tempfile.mkdtemp()
+        writetopic(topic='all',directory=directory)
+        server.db.safe.drop_collection('envelopes')
+        print("Reading envelopes back in...")
+        loaddir(directory=directory)
+        shutil.rmtree(directory,ignore_errors=True,onerror=None)
+
 
     # We're done here.
     server.stop()
