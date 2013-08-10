@@ -209,6 +209,24 @@ function setupReplies(jqueryobj)
 }
 
 
+// Show a spinner, so people know it's loading
+function showSpinner(jqueryobj)
+{
+  if ( detectAnimation() == true)
+  {
+    jQuery(jqueryobj).addClass("spinner");
+  }  
+  else
+  {
+  // set the main spinner block, including the dimming
+    jQuery('#spinner').show()
+    jQuery("#spinner").height(jQuery(this).parent().height());
+    jQuery("#spinner").width(jQuery(this).parent().width());
+    jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
+    jQuery(".spinnerimg").css("height","95%");
+  }
+}
+
 // Override the click on .internal to load them via JS instead.
 function setupInternalLinks(jqueryobj)
 {
@@ -224,12 +242,8 @@ function setupInternalLinks(jqueryobj)
           event.preventDefault();
           event.stopImmediatePropagation();
           
-          // set the main spinner block, including the dimming
-          jQuery('#spinner').show()
-          jQuery("#spinner").height(jQuery(this).parent().height());
-          jQuery("#spinner").width(jQuery(this).parent().width());
-          jQuery("#spinner").css("top", jQuery(this).parent().offset().top).css("left", jQuery(this).parent().offset().left).show();
-          jQuery(".spinnerimg").css("height","95%");
+          showSpinner(this);
+
 
           if (jQuery(this).attr('href').indexOf('?') == -1 )
             urlsep = '?';
@@ -528,25 +542,7 @@ jQuery(document).ready(function() {
     // Create a spinner in JS, so we don't see it with Lynx/etc.
     if ( detectAnimation() == true)
     {
-      var opts = {
-        lines: 13, // The number of lines to draw
-        length: 7, // The length of each line
-        width: 4, // The line thickness
-        radius: 8, // The radius of the inner circle
-        corners: 1, // Corner roundness (0..1)
-        rotate: 0, // The rotation offset
-        color: '#000', // #rgb or #rrggbb
-        speed: 1, // Rounds per second
-        trail: 60, // Afterglow percentage
-        shadow: false, // Whether to render a shadow
-        hwaccel: true, // Whether to use hardware acceleration
-        className: 'spinnerimg', // The CSS class to assign to the spinner
-        zIndex: 1002, // The z-index (defaults to 2000000000)
-        top: '0px', // Top position relative to parent in px
-        left: '90%' // Left position relative to parent in px
-      };
-      var spinner = new Spinner(opts).spin();
-      jQuery("#spinner").html(spinner.el);
+      jQuery('#spinner').html('<div class="spinnerimg"></div>');
     }
     else
     {

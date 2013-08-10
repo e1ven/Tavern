@@ -268,6 +268,9 @@ class Server(object):
         self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
 
+        # Should the server run in debug mode
+        self.debug = False
+
         self.mc = OrderedDict
         self.unusedusercache = multiprocessing.Queue(serversettings.settings['UserGenerator']['num_pregens'])
         # Break out the settings into it's own file, so we can include it without including all of server
@@ -576,6 +579,20 @@ class Server(object):
             e.loadstring(messagetext)
             envelopes.append(e)
         return envelopes
+
+
+    def getOriginalMessage(self,messageid):
+
+        env = Envelope()
+        # First, pull the referenced message.
+        if env.loadmongo(mongo_id=messageid):
+            if  env.dict['envelope']['payload']['class'] == 'message':
+                return env.dict['envelope']['local']['payload_sha512']
+            else:
+                return env.dict['envelope']['payload']['regarding']        
+
+        return None    
+
 
 
     def getTopMessage(self, messageid):

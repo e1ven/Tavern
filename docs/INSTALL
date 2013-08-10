@@ -22,7 +22,8 @@ source ~/.rvm/scripts/rvm
 
 
 # Install the Gems that convert the sass files into CSS
-gem install sass compass
+gem install sass compass bourbon
+
 
 
 # Install the current Tavern source
@@ -78,7 +79,6 @@ ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
     cd distribute-0.6.30
     python3 setup.py install
     /usr/local/bin/easy_install-3.2 pip
-    
     
     
 # Install the python deps.    

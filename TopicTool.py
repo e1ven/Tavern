@@ -77,7 +77,7 @@ class TopicTool(object):
     def toptopics(self,limit=10,skip=0):
         toptopics = []
         for quicktopic in server.db.unsafe.find('topiclist', skip=skip,sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic)
+            toptopics.append(quicktopic['_id'])
         return toptopics
 
     @memorise(ttl=serversettings.settings['cache']['topiccount']['seconds'], maxsize=serversettings.settings['cache']['topiccount']['size'])

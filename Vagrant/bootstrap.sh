@@ -39,6 +39,7 @@ PATH=$PATH:/usr/local/bin
 # Install the Gems that convert the sass files into CSS
 gem install sass compass
 
+
 # Compile Nginx
 NGINX_VER=1.4.2
 

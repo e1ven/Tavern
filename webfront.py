@@ -81,7 +81,10 @@ class BaseHandler(tornado.web.RequestHandler):
         # Don't try to guess content-type.
         # This helps avoid JS sent in an image.
         self.set_header("X-Content-Type-Options", "nosniff")
-        self.set_header("X-Content-Security-Policy","default-src 'self'; script-src 'self'; object-src 'none'; style-src 'self'; img-src *; media-src *; frame-src " + serversettings.settings['embedserver'] +  " https://www.youtube.com https://player.vimeo.com ;font-src 'self' connect-src 'self'")
+        
+        # http://cspisawesome.com/content_security_policies
+        self.set_header("Content-Security-Policy-Report-Only","default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " + serversettings.settings['embedserver'] + " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+        
         self.fullcookies = {}
         for cookie in self.request.cookies:
             self.fullcookies[cookie] = self.get_cookie(cookie)
@@ -264,6 +267,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # The stuff at the bottom of the JS file.
         ret =   '''
                 jQuery('#spinner').hide();
+                jQuery('.spinner').removeClass("spinner");
                 tavern_setup();
                 tavern_setup =  null;
                 ''' + server.cache['instance.js']
@@ -448,19 +452,19 @@ class MessageHistoryHandler(BaseHandler):
         origid = server.getOriginalMessage(messageid)
         
         e = Envelope()
-
         if not e.loadmongo(origid):
             self.write("I can't load that message's history. ;(")
         else:
-            # Pull out the edits, and ensure the current/requested one is on top.
             messages = []
+
+            # Add the root msg.
             current_message = (messageid,e.dict['envelope']['local']['time_added'])
             messages.append(current_message)
 
-            if 'edits' in e.dict['envelope']['local']:
-                for msg in e.dict['envelope']['local']['edits']:
-                    messages.append(msg)
-                    print("Adding " + str(msg[0]))
+            # Add all the edits
+            for message in e.dict['envelope']['local']['edits']:
+                current_message = (message['envelope']['local']['payload_sha512'],message['envelope']['local']['time_added'])
+                messages.append(current_message)
 
             self.write(self.render_string('messagehistory.html',messages=messages))
 
@@ -531,7 +535,7 @@ class TopicHandler(BaseHandler):
     The Topic Handler displays a topic, and the messages that are in it.
     """
 
-    @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['topic-page']['seconds'], maxsize=serversettings.settings['cache']['topic-page']['size'])
+    #@memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['topic-page']['seconds'], maxsize=serversettings.settings['cache']['topic-page']['size'])
     def get(self, topic='all'):
     
         self.getvars()
@@ -590,8 +594,8 @@ class ShowTopicsHandler(BaseHandler):
             self.render_string('header.html', title="List of all Topics",
                                rsshead=None, type=None))
         
-        self.write(self.render_string('alltopics.html',
-                   topics=alltopics, toptopics=toptopics))
+        self.write(self.render_string('showtopics.html',
+                   topics=alltopics, toptopics=toptopics,topic='all'))
 
         self.write(self.render_string('footer.html'))
         self.finish(divs=['column3'])
@@ -607,9 +611,8 @@ class TopicPropertiesHandler(BaseHandler):
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)
 
-        toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic)
+        toptopics = toptool.toptopics()
+
         subjects = []
         for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
             subjects.append(envelope)
@@ -1104,10 +1107,10 @@ class EditMessageHandler(BaseHandler):
         topic = e.dict['envelope']['payload']['topic']
 
         if 'edits' in e.dict['envelope']['local']:
-            newestedit = e.dict['envelope']['local']['edits'][-1:][0]
-            print("New- " + str(newestedit))
+
+            newestedit = e.dict['envelope']['local']['edits'][-1:]
             e2 = Envelope()
-            e2.loadmongo(newestedit)
+            e2.loaddict(newestedit)
             print(e2.dict['envelope']['payload'])
             oldtext = e2.dict['envelope']['payload']['body']
             topic = e2.dict['envelope']['payload']['topic']
@@ -1476,6 +1479,7 @@ class AvatarHandler(tornado.web.RequestHandler):
 define("writelog", default=True, help="Determines if Tavern writes to a log file.",type=bool)
 define("loglevel", default="UNSET", help="Amount of detail you want.",type=str)
 define("initonly", default=False, help="Create config files, then quit.",type=bool)
+define("debug", default=False, help="Run with options that make debugging easier.",type=bool)
 define("port", default=8080, help="run on the given port", type=int)
 
 def main():
@@ -1501,6 +1505,9 @@ def main():
         serversettings.settings['temp']['loglevel'] = options.loglevel
         serversettings.settings['temp']['writelog'] = options.writelog
 
+
+    server.debug = options.debug
+    print(server.debug)
     # Tell the server process to fire up and run for a while.
     server.start()
 

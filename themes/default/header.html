@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 	<!-- Hey, Source Reader!
 	Welcome to Tavern. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
 	This project is Open Source - You can help change it - Check out our Github - https://github.com/e1ven/Tavern
@@ -6,7 +6,7 @@
 	Anyway, Enjoy the site, and I'd love any thoughts.
 	-->
 	
-<html lang="en" style="height: 100%;"> 
+<html lang="en"> 
 <head>
     <meta name="robots" content="noindex">
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
@@ -57,7 +57,7 @@
     	
 	{% end %}
 	
-	
+
     <link rel="icon" href="/static/icons/32x32Icon.png?revision={{serversettings.settings['static-revision']}}" type="image/png" />
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?revision={{serversettings.settings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?revision={{serversettings.settings['static-revision']}}" />
@@ -67,13 +67,19 @@
 {% if browser['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
   <script src="/static/scripts/IE9.min.js?revision={{serversettings.settings['static-revision']}}"></script>  
 {% end %}
-{% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
-  <script defer src="/static/scripts/unified.min.js?revision={{serversettings.settings['static-revision']}}"></script>
+
+
+
+{% if server.debug %}
+	{% include 'header-debug-JS.html' %}
+{% else %}
+	{% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
+	  <script defer src="/static/scripts/unified.min.js?revision={{serversettings.settings['static-revision']}}"></script>
+	{% end %}
 {% end %}
 
-
 </head>
-<body link="#000000" visited="#000000" text="#000000" background="#CCCCCC" style="height: 100%;" id="body">
+<body link="#000000" visited="#000000" text="#000000" background="#CCCCCC" id="body">
 
 		<div id="spinner" class="black_overlay clear">
-		</div> <!-- #spinner is inserted via JS, so it won't show up in lynx or with CSS disabled-->
+		</div> <!-- SpinnerImg is inserted via JS, so it won't show up in lynx or with CSS disabled-->

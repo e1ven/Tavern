@@ -86,38 +86,43 @@ function findcommands
 # The system commands are often different between GNU and BSD ecosystems.
 # Find the versions to call.
 
-    if [ -z "$yui" ]
+    if [ $DEBUG -eq 1 ]
     then
-        # The yui-compressor will compress JS and CSS.
-        # The command to run it is different on OSX and Linux, however, so figure out which one we have
-        # If we don't have either, use 'cat' as an alternate 'compressor'
-
-        echo "Testing ability to Minimize" 
-        yui-compressor -h > /dev/null 2>&1
-        if [ $? -eq 0 ]
+        echo "Avoiding compressing JS due to debug mode.."
+        yui='cat'
+    else
+        if [ -z "$yui" ]
         then
-            yui='yui-compressor'
-        fi
+            # The yui-compressor will compress JS and CSS.
+            # The command to run it is different on OSX and Linux, however, so figure out which one we have
+            # If we don't have either, use 'cat' as an alternate 'compressor'
 
-        yuicompressor -h  > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            yui='yuicompressor'
-        fi
+            echo "Testing ability to Minimize" 
+            yui-compressor -h > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+                yui='yui-compressor'
+            fi
 
-        if [ -z $yui ]
-        then
-            # No minimization
-            yui='cat'
-        fi
+            yuicompressor -h  > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+                yui='yuicompressor'
+            fi
 
-        if [ "$yui" != "cat" ]
-        then 
-            flags='--nomunge'
+            if [ -z $yui ]
+            then
+                # No minimization
+                yui='cat'
+            fi
+
+            if [ "$yui" != "cat" ]
+            then 
+                flags='--nomunge'
+            fi
         fi
+        writearg yui $yui
     fi
-    writearg yui $yui
-
     # Find which version of sed we should use.
     if [ -z "$sed" ]
     then
@@ -177,10 +182,6 @@ function start
     CURDIR=`pwd`
     cd /opt/Tavern
 
-    # Load in the StartScript settings
-    loadargs
-    findcommands
-
     numservers=2
     # First, create two working directories
     mkdir -p tmp/checked
@@ -192,6 +193,24 @@ function start
 
     mkdir -p logs
     mkdir -p data/conf
+
+    if [ "$1" == "debug" ]
+    then
+        DEBUG=1
+    else
+        DEBUG=0
+    fi
+    if [ "$1" == "initonly" ]
+    then
+        INITONLY=1
+    else
+        INITONLY=0
+    fi
+
+    # Load in the StartScript settings
+    loadargs
+    findcommands
+
 
     if [ $(since lastrun) -gt 3600 ]
     then
@@ -287,20 +306,30 @@ function start
     done
 
 
-    echo "Combining and further minimizing JS.."
-    cat static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js  static/scripts/spin.min.js > static/scripts/unified.js
 
-    # It's smaller if we re-minimize afterwords. 
-    filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
-    if [ ! -f tmp/unchecked/$filehash.exists ]
-    then
-        $yui static/scripts/unified.js > static/scripts/unified.min.js
-    else
-        : # No Reformatting needed 
-    fi
-    touch tmp/checked/$filehash.exists
+        echo "Combining and further minimizing JS.."
+        JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js"
+        if [ $DEBUG -eq 0 ]
+        then
+            cat $JSFILES > static/scripts/unified.js
 
-
+            # It's smaller if we re-minimize afterwords. 
+            filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
+            if [ ! -f tmp/unchecked/$filehash.exists ]
+            then
+                $yui static/scripts/unified.js > static/scripts/unified.min.js
+            else
+                : # No Reformatting needed 
+            fi
+            touch tmp/checked/$filehash.exists
+        else
+            # In debug mode, let's include these inline, so we can debug easier.
+            echo "" > themes/default/header-debug-JS.html
+            for script in $JSFILES
+            do 
+                echo "<script src=\"/$script\"></script>" >> themes/default/header-debug-JS.html
+            done
+        fi
 
     echo "Ensuring Proper Python formatting.."
     for i in `find . -maxdepth 1 -name "*.py"`
@@ -356,10 +385,10 @@ function start
 
 
     echo "Starting Tavern..."
-    if [ "$1" == 'debug' ]
+    if [ $DEBUG -eq 1 ]
     then
-        /usr/bin/env python3 ./webfront.py --loglevel=DEBUG --writelog=False
-    elif [ "$1" == 'initonly' ]
+        /usr/bin/env python3 ./webfront.py --loglevel=DEBUG --writelog=False --debug=True
+    elif [ $INITONLY -eq 1 ]
     then
         /usr/bin/env python3 ./webfront.py --initonly=True
     else    
@@ -390,13 +419,6 @@ if [ $# -lt 1 ]
 then
     usage
     exit 1
-fi
-
-if [ "$2" == "debug" ]
-then
-    DEBUG=1
-else
-    DEBUG=0
 fi
 
 case "$1" in

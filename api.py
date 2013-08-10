@@ -31,6 +31,7 @@ import urllib.error
 #import TopicList
 import uuid
 from ServerSettings import serversettings
+from TopicTool import topictool
 
 import re
 try:
@@ -73,10 +74,7 @@ class NotFoundHandler(BaseHandler):
 
 class ListActiveTopics(BaseHandler):
     def get(self):
-        toptopics = []
-        for quicktopic in server.db.unsafe['topiclist'].find(collection='topiclist', limit=10, sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic['_id'])
-        self.write(json.dumps(toptopics, separators=(',', ':')))
+        self.write(json.dumps(topictool.toptopics(), separators=(',', ':')))
         self.finish()
 
 

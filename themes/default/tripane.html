@@ -2,6 +2,12 @@
     {% from TopicTool import topictool %}
     {% import TavernUtils %}
 
+{# Make sure defaults are set #}
+    {% if not 'before' in locals() %}
+        {% set before = None %}
+    {% end %}
+
+
 <table id="wrappertable" cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
@@ -23,15 +29,15 @@
                                     </a>
                                     {% if user.UserSettings['username'] != "Anonymous" %}
                                         You are logged in as: <br>
-                                        <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['username']}}</a><br>
+                                        <a href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['username']}}</a><br>
                                     {% else %}You are logged in with a temporary account.<br><br>
                                     {% end %}
                                     You are posting under the alias:<br>
-                                    <a style="padding 0 0 0 0;" href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
+                                    <a href="/user/{{user.UserSettings['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
                                     <li>
                                         <form action="/logout" method="post">
                                             {% raw xsrf_form_html() %}
-                                            <input style="padding 0 0 0 0;"  type="submit" class="textbutton" value="logout">
+                                            <input  type="submit" class="textbutton" value="logout">
                                         </form>
                                     </li>
                             </p>
@@ -58,10 +64,10 @@
                     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
                         <ul class="sub-element sub-menu">
                             {% for quicktopic in topictool.toptopics() %}
-                                <li {% if server.sorttopic(quicktopic['_id']) == server.sorttopic(topic) %} class="active"{% end %} >
-                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id'])}}">
-                                        <bdi>{{quicktopic['_id']}}</bdi>
-                                        <span>{{topictool.topicCount(topic=quicktopic['_id'],toponly=True)}}</span>
+                                <li {% if server.sorttopic(quicktopic) == server.sorttopic(topic) %} class="active"{% end %} >
+                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
+                                        <bdi>{{quicktopic}}</bdi>
+                                        <span>{{topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
                                     </a>
                                 </li>
                             {% end %}
@@ -94,13 +100,13 @@
                     {% block column2 %}
 
 
-                    {# Calculate the before/next button links #}
-
+                    {# Get the messages for the middle column #}
                         {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
-                        {% set aftercount = topictool.topicCount(before=subjects[0]['envelope']['local']['time_added'],topic=topic) %}
 
+
+                        {% set beforecount = topictool.topicCount(before=subjects[0]['envelope']['local']['time_added'],topic=topic) %}
+                        {% set aftercount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
                         {% set newbefore = topictool.getbackdate(after=subjects[0]['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
-                        {% set beforecount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
 
 
 
@@ -157,7 +163,7 @@
                                         <ul class="messages">
                                         {% for subject in subjects %}
                                             <li class="message {%if subject['envelope']['local']['payload_sha512'] == envelope['envelope']['local']['payload_sha512']%} active{% end %}">
-                                                <abbr title="{{subject['envelope']['payload']['subject']}}"</abbr>
+                                                <abbr title="{{subject['envelope']['payload']['subject']}}">
                                                 <a class='internal messagelink' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">
                                                   <h2><bdi>{{subject['envelope']['payload']['subject']}}</bdi></h2>
                                                   <span class="bodypreview">{{subject['envelope']['local']['short_body']}}</span> 
@@ -174,7 +180,7 @@
                                         <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
                                             <tr>
                                                 <td>   
-                                                    {% if beforecount > 0 %}
+                                                    {% if aftercount > 0 %}
                                                     <a href="/topic/{{topic}}?before={{newbefore}}">
                                                        <button id="NewerMessages" class="column2Buttons" type="button">
                                                         Newer Messages
@@ -184,7 +190,7 @@
                                                     {% end %}
                                                 </td>
                                                 <td>
-                                                    {% if aftercount > 0 %}
+                                                    {% if beforecount > 0 %}
                                                     <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
                                                        <button id="OlderMessages" class="column2Buttons" type="button">
                                                         Older Messages
