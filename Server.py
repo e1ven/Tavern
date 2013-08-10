@@ -650,12 +650,22 @@ class Server(object):
         """
         print("Calling FormatEnvelope...")
         attachmentList = []
+
+        # Get a short version of the subject, for display.
         if 'subject' in envelope['envelope']['payload']:
-            #First 50 characters, in a URL-friendly-manner
             temp_short = envelope['envelope']['payload'][
                 'subject'][:50].rstrip()
             envelope['envelope']['local'][
                 'short_subject'] = self.urlize(temp_short)
+
+        # Get a short version of the body, to use as a preview.
+        # First line only.
+        if 'body' in envelope['envelope']['payload']:
+            short_body = envelope['envelope']['payload'][
+                'body'].split('\n', 1)[0][:60].strip()
+            envelope['envelope']['local'][
+                'short_body'] = short_body
+
         if 'binaries' in envelope['envelope']['payload']:
             for binary in envelope['envelope']['payload']['binaries']:
                 if 'sha_512' in binary:

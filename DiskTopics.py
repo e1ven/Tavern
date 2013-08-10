@@ -56,7 +56,11 @@ def writetopic(topic, since=0, limit=0, skip=0,directory=None):
         e.loadmongo(id)
         e.validate()
 
-        topic = e.payload.dict['topic']
+        if 'topic' in e.payload.dict:
+            topic = e.payload.dict['topic']
+        else:
+            topic = 'none'
+
         if directory == None:
             topicdir = msgsdir + topic
         else:
@@ -85,8 +89,8 @@ def loaddir(directory=None,topic='sitecontent'):
         e.loadfile(directory + "/" + infile)
         if args.verbose:
             print(e.text())
-        if e.validate():
-            server.receiveEnvelope(e.text())
+        # Send to the server. Don't bother to validate it first, the server will do it.
+        server.receiveEnvelope(e.text())
 
 
 def main():

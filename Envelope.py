@@ -175,7 +175,10 @@ class Envelope(object):
             return True
 
     def validate(self):
-        #Validate an Envelope
+        """
+        Ensures an envelope is valid, legal, and according to spec.
+        """
+        self.registerpayload()
         #Check headers
         if 'envelope' not in self.dict:
             server.logger.debug("Invalid Envelope. No Header")
@@ -187,6 +190,7 @@ class Envelope(object):
         for stamp in stamps:
             if stamp['class'] == "author":
                 foundauthor += 1
+
                 # Ensure that the Author stamp matches the Author in the Payload section!
                 if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
                     server.logger.debug(
@@ -366,7 +370,7 @@ class Envelope(object):
                     self.payload = Envelope.MessageRevision(
                         self.dict['envelope']['payload'])
                 else:
-                    server.logger.info("Rejecting message of class " + self.dict['envelope']['payload'])
+                    server.logger.info("Rejecting message of class " + self.dict['envelope']['payload']['class'])
                     return False
             return True
     
@@ -400,12 +404,10 @@ class Envelope(object):
             return self.loaddict(env)
 
     def reloadmongo(self):
-        self.loadmongo(self.payload.hash())
-        return self.registerpayload()
+        return self.loadmongo(self.payload.hash())
 
     def reloadfile(self):
-        self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
-        return self.registerpayload()
+        return self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
 
     def text(self,striplocal=False):
         self.payload.format()

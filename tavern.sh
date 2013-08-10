@@ -36,7 +36,7 @@ function start {
     mkdir -p tmp/unchecked-gzipchk
 
     mkdir -p logs
-
+    mkdir -p data/conf
 
     # Run the various functions to ensure DB caches and whatnot
     echo "Running onStart functions."
