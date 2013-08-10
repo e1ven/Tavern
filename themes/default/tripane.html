@@ -58,10 +58,10 @@
                     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
                         <ul class="sub-element sub-menu">
                             {% for quicktopic in topictool.toptopics() %}
-                                <li {% if server.sorttopic(quicktopic['_id']['tag']) == server.sorttopic(topic) %} class="active"{% end %} >
-                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id']['tag'])}}">
-                                        <bdi>{{quicktopic['_id']['tag']}}</bdi>
-                                        <span>{{topictool.topicCount(topic=quicktopic['_id']['tag'],toponly=True)}}</span>
+                                <li {% if server.sorttopic(quicktopic['_id']) == server.sorttopic(topic) %} class="active"{% end %} >
+                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic['_id'])}}">
+                                        <bdi>{{quicktopic['_id']}}</bdi>
+                                        <span>{{topictool.topicCount(topic=quicktopic['_id'],toponly=True)}}</span>
                                     </a>
                                 </li>
                             {% end %}
@@ -79,7 +79,7 @@
                     <li id="four" class="mainheader"><a href="#">Special</a>
                         <ul class="sub-element sub-menu">
                             <li><a href="/topic/all">All Messages</a></li>
-                            <li><a href="/alltopics">All Topics</a></li>
+                            <li><a href="/showtopics">All Topics</a></li>
                         </ul>
                     </li>
 <!--                     <li id="five" class="mainheader"><a href="#">All Messages</a></li>

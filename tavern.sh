@@ -3,13 +3,71 @@
 # To do so, it performs a few tests, as well as compressing files where possible.
 
 
-function usage {
+function usage 
+{
     echo "Usage: $0 {start|stop|restart} [debug/initonly]"
     echo "initonly will startup, create config files, then exit"
     echo "debug will run a single process without backgrounding"
 }
 
-function stop {
+
+function getarg 
+{
+# Get an argument.. Or if it doesn't exist, echo 0
+# This way, we don't get "unary operator expected" errors.
+
+    c=$1
+    v=${!c}
+    if [ ! -z $v ]
+    then
+        echo $v
+    else
+        echo 0
+    fi
+}
+
+function since
+{
+# Calculate time since Variable
+
+    ODATE=$(getarg $1)
+    if [ -z $DATE ]
+    then
+        DATE=`date +s`
+    fi
+    echo $(($DATE-$ODATE))
+}
+
+
+function loadargs 
+{
+# Load in args the quick and dirty (and fast!) way
+
+    if [ -s tmp/startup-settings ]
+    then
+        source tmp/startup-settings
+        true > tmp/startup-settings
+    fi
+    DATE=`date +%s`
+}
+
+function writearg 
+{
+# Write out an argument
+    if [ $# -eq 2 ]
+    then    
+        echo $1=$2 >> tmp/startup-settings
+    elif [ $# -eq 1 ]
+    then
+        writearg $1 $(getarg $1)
+    fi
+}
+
+
+
+function stop 
+{
+# Stop the Tavern servers
 
     user=`whoami`
 
@@ -23,9 +81,106 @@ function stop {
     done
 }
 
-function start {
+function findcommands
+{
+# The system commands are often different between GNU and BSD ecosystems.
+# Find the versions to call.
+
+    if [ -z "$yui" ]
+    then
+        # The yui-compressor will compress JS and CSS.
+        # The command to run it is different on OSX and Linux, however, so figure out which one we have
+        # If we don't have either, use 'cat' as an alternate 'compressor'
+
+        echo "Testing ability to Minimize" 
+        yui-compressor -h > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            yui='yui-compressor'
+        fi
+
+        yuicompressor -h  > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            yui='yuicompressor'
+        fi
+
+        if [ -z $yui ]
+        then
+            # No minimization
+            yui='cat'
+        fi
+
+        if [ "$yui" != "cat" ]
+        then 
+            flags='--nomunge'
+        fi
+    fi
+    writearg yui $yui
+
+    # Find which version of sed we should use.
+    if [ -z "$sed" ]
+    then
+        echo "Setting Sed."
+        echo foo | gsed 's/foo/bar/' > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            #Use Gnu sed
+            sed='gsed'
+        else
+            sed='sed'
+        fi
+    fi
+    writearg sed $sed
+
+
+    # Test our ability to take a hash
+    # OSX uses md5, linux uses md5sum.
+    # We will use the identifier generated in the next section
+
+    if [ $DEBUG -eq 1 ]
+    then
+        echo "Using faster/less secure hashes for debug mode."
+        hash='cksum'
+    else
+        if [ -z "$hash" ]
+        then
+            echo "Testing ability to hash"
+            echo "foo" | md5 > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+                hash='md5'
+            fi
+            echo "foo" | md5sum > /dev/null 2>&1
+            if [ $? -eq 0 ]
+            then
+                hash='md5sum'
+            fi
+            if [ -z $hash ]
+            then
+                hash='cksum'
+            fi
+            writearg hash $hash
+        fi
+    fi
+}
+
+
+
+
+
+function start 
+{
+# Start up Tavern.
+
+    # Save the current dir, so we can return at the end of the script
     CURDIR=`pwd`
     cd /opt/Tavern
+
+    # Load in the StartScript settings
+    loadargs
+    findcommands
+
     numservers=2
     # First, create two working directories
     mkdir -p tmp/checked
@@ -38,24 +193,23 @@ function start {
     mkdir -p logs
     mkdir -p data/conf
 
-    # Run the various functions to ensure DB caches and whatnot
-    echo "Running onStart functions."
-
-    ./ensureindex.sh
-    ./TopicList.py
-    ./ModList.py
-    ./DiskTopics.py -l
+    if [ $(since lastrun) -gt 3600 ]
+    then
+        # Run the various functions to ensure DB caches and whatnot
+        echo "Running onStart functions."
+        ./ensureindex.sh
+        ./TopicList.py
+        ./ModList.py
+        ./DiskTopics.py -l
+        writearg lastrun $DATE
+    else
+        echo "It's only been $(($(since lastrun)/60)) minutes.. Not running onStart functions again until the hour mark."
+        writearg lastrun
+    fi
 
 
     echo "Ensuring fontello directory compliance"
-    echo foo | gsed 's/foo/bar/' > /dev/null 2>&1
-    if [ $? -eq 0 ]
-        then
-        #Use Gnu sed
-        sed='gsed'
-    else
-        sed='sed'
-    fi
+
 
     "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' static/css/fontello*.css
     "$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
@@ -77,61 +231,6 @@ function start {
     compass compile static/sass/ -e production
     cp static/sass/css/* static/css/
 
-
-
-    # The yui-compressor will compress JS and CSS
-    # The command to run it is different on OSX and Linux, however, so figure out which one we have
-    # If we don't have either, use 'cat' as an alternate 'compressor'
-    echo "Testing ability to Minimize" 
-    yui-compressor -h > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        yui='yui-compressor'
-    fi
-
-    yuicompressor -h  > /dev/null 2>&1
-    if [ $? -eq 0 ]
-    then
-        yui='yuicompressor'
-    fi
-
-    if [ -z $yui ]
-    then
-        # No minimization
-        yui='cat'
-    fi
-
-    if [ "$yui" != "cat" ]
-    then 
-        flags='--nomunge'
-    fi
-
-
-    # Test our ability to take a hash
-    # OSX uses md5, linux uses md5sum.
-    # We will use the identifier generated in the next section
-    echo "Testing ability to hash"
-
-    if [ "$1" == 'debug' ]
-    then
-        echo "Using faster/less secure hashes for debug mode."
-        hash='cksum'
-    else
-        echo "foo" | md5 > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            hash='md5'
-        fi
-        echo "foo" | md5sum > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            hash='md5sum'
-        fi
-        if [ -z $hash ]
-        then
-            hash='cksum'
-        fi
-    fi
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
     # If we haven't, minimize it. Otherwise, just skip forward, for speed.
@@ -180,6 +279,7 @@ function start {
 
     echo "Combining CSS.."
     # No need to re-minimize the CSS, it's already OK.
+    # It's faster to combine them, then to hash to see if we need to.
     for i in `ls static/css/style-*.min.css`
     do  
         echo $i
@@ -276,17 +376,27 @@ function start {
 }
 
 
-function restart {
+function restart 
+{
     stop
     sleep 2
     start
 }
 
 
+
+
 if [ $# -lt 1 ]
 then
     usage
     exit 1
+fi
+
+if [ "$2" == "debug" ]
+then
+    DEBUG=1
+else
+    DEBUG=0
 fi
 
 case "$1" in

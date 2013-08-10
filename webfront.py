@@ -579,25 +579,22 @@ class TopicHandler(BaseHandler):
         self.finish(divs=divs)
 
 
-class AllTopicsHandler(BaseHandler):
+class ShowTopicsHandler(BaseHandler):
     def get(self, start=0):
         self.getvars()
 
-        alltopics = []
-        for quicktopic in server.db.unsafe.find('topiclist', limit=start + 1000, skip=start, sortkey='value', sortdirection='descending'):
-            alltopics.append(quicktopic)
-
-        toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist', limit=10, sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic)
+        alltopics = topictool.toptopics(limit=start + 1000,skip=start)
+        toptopics =  topictool.toptopics()
 
         self.write(
             self.render_string('header.html', title="List of all Topics",
                                rsshead=None, type=None))
+        
         self.write(self.render_string('alltopics.html',
                    topics=alltopics, toptopics=toptopics))
+
         self.write(self.render_string('footer.html'))
-        #self.finish(divs=['column3'])
+        self.finish(divs=['column3'])
 
 
 class TopicPropertiesHandler(BaseHandler):
@@ -1359,7 +1356,7 @@ class NewmessageHandler(BaseHandler):
         e.payload.dict['author']['useragent']['version'] = .01
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('/usr/local/share/GeoIP/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
             #Don't check from home.
@@ -1543,7 +1540,7 @@ def main():
         (r"/vote", RatingHandler),
         (r"/usertrust", UserTrustHandler),
         (r"/usernote", UserNoteHandler),
-        (r"/alltopics", AllTopicsHandler),
+        (r"/showtopics", ShowTopicsHandler),
         (r"/attachment/(.*)", AttachmentHandler),
         (r"/topicinfo/(.*)", TopicPropertiesHandler),
         (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),

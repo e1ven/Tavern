@@ -194,7 +194,8 @@ class DBWrapper():
         elif dbtype == "postgres":
             self.safe = FakeMongo()
             self.unsafe = FakeMongo()
-
+        else:
+            raise Exception('DBError', 'Invalid type of database')
         self.binarycon = pymongo.MongoClient(serversettings.settings['bin-mongo-hostname'], serversettings.settings['bin-mongo-port'], max_pool_size=serversettings.settings['mongo-connections'])
         self.binaries = self.binarycon[
             serversettings.settings['bin-mongo-db']]

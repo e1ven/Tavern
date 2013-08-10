@@ -1,81 +1,45 @@
-{% import urllib,re %}
-			<div id="left">
-				<h2>Your Topics</h2>
-					<ul>
-					{% for quicktopic in user.UserSettings['followedTopics'] %}
-      					<li {%if quicktopic == topic %} class="active"{% end %} >
-	                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic)}}/"><bdi>{{quicktopic}}</bdi></a>
-	                    </li>
-                    {% end %}
+{% extends 'tripane.html' %}
 
-					</ul>
 
-				
-				<h2>Top Topics</h2>
-					<ul>
-					{% for quicktopic in toptopics %}
-                    <li {%if quicktopic['_id']['tag'] == topic %} class="active"{% end %} >
-                    	<a class="internal" href="/topic/{{urllib.parse.quote(quicktopic['_id']['tag'])}}"><bdi>{{quicktopic['_id']['tag']}}</bdi></a>
-                    </li>
-                    {% end %}
-					</ul>
-			</div><!-- #left -->
-			<div id="centerandright">
-			<div id="center">
-				<h2>
-					{% if topic == 'sitecontent' %}
-					Messages from {{serversettings.settings['hostname']}}
+{% block column3 %}
+
+    <hr id="rightColumnTopHR">
+
+	<h1>{{topic}} Preferences</h1>
+		<div class="padder">
+				<br>
+				Showing Preferences for {{topic}}.  <p>
+				<Br>
+				<a href="/rss/topic/{{topic}}"><i class="icon-rss"></i> RSS</a><br>
+				<p>
+
+
+				{% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
+	
+
+				{% if server.sorttopic(topic) in sortedtopic %}
+					<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
 					{% else %}
-					Messages in {{topic}}
-					{% end %}
-				</h2>
-					<ul>
-					{% for subject in subjects %}
-					<li><a class='internal' href="/message/{{subject['envelope']['local']['sorttopic']}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">{{subject['envelope']['payload']['subject']}}</a></li>
-                    {% end %}
-                    
-					</ul>				
-			
-			</div><!-- #center -->
-			
-			<div id="right">
-				<div class="thread">
-					<h1>{{topic}} Preferences</h1>
-						<div class="padder">
-								<br>
-								Showing Preferences for {{topic}}.  <p>
-								<Br>
-								<a href="/rss/topic/{{topic}}"><i class="icon-rss"></i> RSS</a><br>
-								<p>
+					<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
+				{% end %}
+				<p>
+				The following users are popular moderators, you might want to consider adding them:<br>
+				<ul>
+				{% for mod in mods %}
+					<li>
+					<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
+						<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+		    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+		    			</a>
+		    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+		    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
+						</a>
+					</abbr>
+					</li>
+					<br><Br>
+				{% end %}
+				</ul>
+		</div>
 
+{% end %}
 
-								{% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
-					
-
-								{% if server.sorttopic(topic) in sortedtopic %}
-									<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
-									{% else %}
-									<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
-								{% end %}
-								<p>
-								The following users are popular moderators, you might want to consider adding them:<br>
-								<ul>
-								{% for mod in mods %}
-									<li>
-									<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
-										<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
-						    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
-						    			</a>
-						    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
-						    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
-										</a>
-									</abbr>
-									</li>
-									<br><Br>
-								{% end %}
-								</ul>
-						</div>
-					</div>
-				
-			</div><!-- #right -->
-		    </div><!-- #centerandright -->

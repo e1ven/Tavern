@@ -75,7 +75,7 @@ class ListActiveTopics(BaseHandler):
     def get(self):
         toptopics = []
         for quicktopic in server.db.unsafe['topiclist'].find(collection='topiclist', limit=10, sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic['_id']['tag'])
+            toptopics.append(quicktopic['_id'])
         self.write(json.dumps(toptopics, separators=(',', ':')))
         self.finish()
 

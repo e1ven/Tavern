@@ -19,11 +19,7 @@ def main():
 
                         {
                         tag = this.envelope.local.sorttopic;
-                        if (tag != '222sitecontent')
-                        {
-                                emit({tag:tag},{count:1});
-                        }
-
+                        emit(tag,{count:1});
                     }
 
                 }
@@ -39,16 +35,18 @@ def main():
                     count += v['count'];
                 });
 
-                return {count: count};
+                return count;
             }
 
             """
 
-    server.db.safe.map_reduce('envelopes',
-                          map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist");
 
+    server.db.safe.drop_collection('topiclist')
+    server.db.safe.map_reduce('envelopes',
+                          map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+
+    a = server.db.safe.find('topiclist',{})
 
 # Run the main() function.
 if __name__ == "__main__":
     main()
-    

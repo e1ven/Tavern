@@ -1,0 +1,32 @@
+{% extends 'tripane.html' %}
+
+
+{% block column3 %}
+
+    <hr id="rightColumnTopHR">
+	<h1>All Topics</h1>
+
+	<p>Here is a list of every topic.<Br>
+			If you find ones you like, you can Subscribe to them to add them to your list on the left
+	</p><br><Br><p>
+
+	<ul>
+		{% for topictag in topics %}
+			{% set topic = topictag['_id']  %}
+		
+		<li><b><a href="/topic/{{topic}}" <bdi>{{topic}}</bdi></a></b>  - 
+			{% if topic in user.UserSettings['followedTopics'] %}
+						<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe"' class="textbutton topicpref"></form>
+
+			{% else %}
+						<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe"' class="textbutton topicpref"></form>
+			{% end %}
+		</li>
+
+		{% end %}
+	</ul>
+
+{% end %}
+
+
+
