@@ -99,7 +99,6 @@ class MessageHandler(BaseHandler):
             usertrust = 100
             messagerating = 1
 
-        envelope = server.formatEnvelope(envelope)
         envelope['envelope']['local'] = {}
         envelope['envelope']['local']['calculatedrating'] = messagerating
         self.write(json.dumps(envelope, separators=(',', ':')))
@@ -127,7 +126,6 @@ class TopicHandler(BaseHandler):
                 envelope['envelope']['local'][
                     'calculatedrating'] = messagerating
 
-            envelope = server.formatEnvelope(envelope)
             envelopes.append(envelope)
 
         self.write(json.dumps(envelopes, separators=(',', ':')))

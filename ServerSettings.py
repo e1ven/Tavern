@@ -178,11 +178,6 @@ class ServerSettings():
             self.settings['cache']['topiccount']['size'] = 1000
             self.settings['cache']['topiccount']['seconds'] = 10
 
-        if not 'formatEnvelope' in self.settings['cache']:
-            self.settings['cache']['formatEnvelope'] = {}
-            self.settings['cache']['formatEnvelope']['size'] = 10000
-            self.settings['cache']['formatEnvelope']['seconds'] = 1000
-
         if not 'receiveEnvelope' in self.settings['cache']:
             self.settings['cache']['receiveEnvelope'] = {}
             self.settings['cache']['receiveEnvelope']['size'] = 10000

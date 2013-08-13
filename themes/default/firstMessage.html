@@ -7,8 +7,8 @@
 {% set medialink = None %}
 {% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
-{% set note = user.getNote(envelope.dict['envelope']['payload']['author']['pubkey']) %}
-{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['payload']['author']['pubkey']) %}
+{% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
+{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
 
 
 {# Show edited version of comment, if there's nothing stopping us.... #}
@@ -29,15 +29,15 @@
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}" rel="author">
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
 
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <abbr title="{{envelope.dict['envelope']['payload']['subject']}}"</abbr>
                     <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
                 </abbr>
                 <h6 class="firstMessageAuthorInfo">
-                    By <b>{{envelope.dict['envelope']['payload']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
+                    By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
                     {% if note is not None %}
                         <div class="note"> ( {{note}} ) </div>
                     {% end %}
@@ -131,7 +131,7 @@
                     <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
-                    {% if user.UserSettings['pubkey'] == envelope.dict['envelope']['payload']['author']['pubkey'] %}
+                    {% if user.UserSettings['keys']['master']['pubkey'] == envelope.dict['envelope']['local']['author']['pubkey'] %}
                         <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                             Edit
                         </a>

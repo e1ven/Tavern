@@ -10,6 +10,12 @@ import pylzma
 from ServerSettings import serversettings
 import TavernUtils
 from operator import itemgetter
+import magic
+import imghdr
+import Image
+import gridfs
+from bs4 import BeautifulSoup
+
 
 class Envelope(object):
 
@@ -56,15 +62,7 @@ class Envelope(object):
             return newstr
 
         def validate(self):
-            if 'author' not in self.dict:
-                server.logger.debug("No Author Information")
-                return False
-            else:
-                if 'pubkey' not in self.dict['author']:
-                    server.logger.debug("No Pubkey line in Author info")
-                    return False
             self.format()
-            print("formatted")
             return True
 
     class MessageRevision(Payload):
@@ -83,12 +81,11 @@ class Envelope(object):
                 if e.dict['envelope']['payload']['class'] != 'message':
                     print("Message Revisions must refer to a message.")
                     return False
-                if e.dict['envelope']['payload']['author']['pubkey'] != self.dict['author']['pubkey']:
-                    print("Invalid Revision. Author pubkey must match original message.")
-                    return False  
             return True
 
     class Message(Payload):
+
+
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 server.logger.debug("Super does not Validate")
@@ -255,13 +252,220 @@ class Envelope(object):
 
         return True
 
+    def munge(self):
+        """
+        Set things in the local block of the message.
+        """
+
+        #If we don't have a local section, add one.
+        #This isn't inside of validation since it's legal not to have one.
+        #if 'local' not in c.dict['envelope']:
+        self.dict['envelope']['local'] = OrderedDict()
+
+        # Don't caclulate the SHA_512 each time. Store it in local, so we can reference it going forward.
+        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
+
+        #Pull out serverstamps.
+        stamps = self.dict['envelope']['stamps']
+
+        highestPOW = 0
+        for stamp in stamps:
+
+            # Find the author of the message, save it where it's easy to find later.
+            if stamp['class'] == "author":
+                self.dict['envelope']['local']['author'] = stamp
+
+            # Calculate highest proof of work difficuly.
+            # Only use proof-of-work class sha256 for now.
+            if 'proof-of-work' in stamp:
+                if stamp['proof-of-work']['class'] == 'sha256':
+                    if stamp['proof-of-work']['difficulty'] >  highestPOW:
+                        highestPOW = stamp['proof-of-work']['difficulty']
+            
+        self.dict['envelope']['local']['highestPOW'] = highestPOW
+
+        # Copy a lowercase/simplified version of the topic into 'local', so StarTrek and startrek show up together.
+        if 'topic' in self.dict['envelope']['payload']:
+            self.dict['envelope']['local']['sorttopic'] = server.sorttopic(
+                self.dict['envelope']['payload']['topic'])
+
+
+        # Get a short version of the subject, for display.
+        if 'subject' in self.dict['envelope']['payload']:
+            temp_short = self.dict['envelope']['payload'][
+                'subject'][:50].rstrip()
+            self.dict['envelope']['local']['short_subject'] = server.urlize(temp_short)
+        # Get a short version of the body, to use as a preview.
+        # First line only.
+        if 'body' in self.dict['envelope']['payload']:
+            short_body = self.dict['envelope']['payload'][
+                'body'].split('\n', 1)[0][:60].strip()
+            self.dict['envelope']['local'][
+                'short_body'] = short_body
+
+
+        # Process any binaries which are listed in the envelope
+        if 'binaries' in self.dict['envelope']['payload']:
+            self.mungebins()
+
+        if 'body' in self.dict['envelope']['payload']:
+            formattedbody = server.formatText(text=self.dict['envelope']['payload']['body'], formatting=self.dict['envelope']['payload']['formatting'])
+            self.dict['envelope']['local']['formattedbody'] = formattedbody
+
+
+            # Check for any Embeddable (Youtube, Vimeo, etc) Links.
+            # Don't check a given message more than once.
+            # Iterate through the list of possible embeddables.
+
+            # cap the number of URLs we can embed.
+            foundurls = 0                    
+            if not 'embed' in self.dict['envelope']['local']:
+                self.dict['envelope']['local']['embed'] = []
+
+
+            soup = BeautifulSoup(formattedbody,"html.parser")
+            for href in soup.findAll('a'):
+                result = server.external.lookup(href.get('href'))
+                if result is not None and foundurls < serversettings.settings['maxembeddedurls']:
+                    self.dict['envelope']['local']['embed'].append(result)
+                    foundurls += 1
+
+        self.dict['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
+
+
+        if '_id' in self.dict:
+            del(self.dict['_id'])
+
+    def mungebins(self):
+        """
+        Store detailed information for any binaries.
+        Create Thumbnails for all images.
+        """
+        attachmentList = []
+        for binary in self.dict['envelope']['payload']['binaries']:
+            if 'sha_512' in binary:
+                fname = binary['sha_512']
+                try:
+                    attachment = server.bin_GridFS.get_last_version(
+                        filename=fname)
+                    if 'filename' not in binary:
+                        binary['filename'] = "unknown_file"
+                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
+                    #Python and be a valid image.
+                    attachment.seek(0)
+                    detected_mime = magic.from_buffer(
+                        attachment.read(serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
+                    displayable = False
+                    if attachment.length < serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                        if 'content_type' in binary:
+                            if binary['content_type'].rsplit('/')[0].lower() == "image":
+                                attachment.seek(0)
+                                imagetype = imghdr.what(
+                                    'ignoreme', h=attachment.read())
+                                acceptable_images = [
+                                    'gif', 'jpeg', 'jpg', 'png', 'bmp']
+                                if imagetype in acceptable_images:
+                                    #If we pass -all- the tests, create a thumb once.
+                                    displayable = binary[
+                                        'sha_512'] + "-thumb"
+                                    if not server.bin_GridFS.exists(filename=displayable):
+                                        attachment.seek(0)
+                                        im = Image.open(attachment)
+
+                                        # Check to see if we need to rotate the image
+                                        # This is caused by iPhones saving the orientation
+
+                                        if hasattr(im, '_getexif'):  # only present in JPEGs
+                                                e = im._getexif()       # returns None if no EXIF data
+                                                if e is not None:
+                                                    exif = dict(e.items())
+                                                    if 'Orientation' in exif:
+                                                        orientation = exif[
+                                                            'Orientation']
+
+                                                        if orientation == 3:
+                                                            image = im.transpose(Image.ROTATE_180)
+                                                        elif orientation == 6:
+                                                            image = im.transpose(Image.ROTATE_270)
+                                                        elif orientation == 8:
+                                                            image = im.transpose(Image.ROTATE_90)
+
+                                        # resize if nec.
+                                        if im.size[0] > 640:
+                                            imAspect = float(im.size[1]) / float(im.size[0])
+                                            newx = 640
+                                            newy = int(640 * imAspect)
+                                            im = im.resize((newx, newy), Image.ANTIALIAS)
+                                        if im.size[1] > 480:
+                                            imAspect = float(im.size[0]) / float(im.size[1])
+                                            newy = 480
+                                            newx = int(480 * imAspect)
+                                            im = im.resize((newx, newy), Image.ANTIALIAS)
+
+                                        thumbnail = server.bin_GridFS.new_file(filename=displayable)
+                                        im.save(thumbnail, format='png')
+                                        thumbnail.close()
+                    
+                    attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable, 'detected_mime': detected_mime}
+                    attachmentList.append(attachmentdesc)
+                except gridfs.errors.NoFile:
+                    self.logger.debug("Error, attachment gone ;(")
+
+
+        # Create an attachment list - Store the calculated filesize in it.
+        # We can't trust the one the client gives us, but since it's in the payload, we can't modify it.
+        self.dict['envelope']['local']['attachmentlist'] = attachmentList
+
+        # Check for a medialink for FBOG, Pinterest, etc.
+        # Leave off if it doesn't exist
+        if len(attachmentList) > 0:
+            medialink = None
+            for attachment in attachmentList:
+                if attachment['displayable'] is not False:
+                    self.dict['envelope']['local']['medialink'] = medialink
+                    break
+
+
 
     @TavernUtils.memorise(ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
         print("Looking for childen for :" + self.payload.hash())
         results =  server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
-        print(results)
         return results
+
+    def addStamp(self,stampclass,keys,passkey=None,**kwargs):
+        """
+        Adds a stamp of type `class` to the current envelope
+        """
+
+
+        if passkey != None:
+            signature = keys.signstring(self.payload.text(), passkey)
+        else:
+            signature = keys.signstring(self.payload.text())
+
+
+        # Generate the full stamp obj we will insert.
+        fullstamp = {}
+        fullstamp['class'] = stampclass
+        fullstamp['pubkey'] = keys.pubkey
+        fullstamp['signature'] = signature
+        fullstamp['time_added'] = TavernUtils.inttime()
+
+        # Copy in any passed values
+        for key in kwargs.keys():
+            # Remove the kwargs we know we already added
+            if key not in ["stampclass","keys","passkey"]:
+                fullstamp[key] = kwargs[key]
+
+        proof = {}
+        proof['class'] = 'sha256'
+        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
+        proof['proof'] = TavernUtils.proveWork(self.payload.hash(),proof['difficulty'])
+        fullstamp['proof-of-work'] = proof
+
+        self.dict['envelope']['stamps'].append(fullstamp)
+
 
 
     def addAncestor(self,ancestorid):
@@ -315,26 +519,31 @@ class Envelope(object):
         """
         newmessage = Envelope()
 
+        if not 'edits' in self.dict['envelope']['local']:
+            self.dict['envelope']['local']['edits'] = []
+
+        # Check to see if we already have this edit
+        for edit in self.dict['envelope']['local']['edits']:
+            if edit['envelope']['local']['payload_sha512'] == editid:
+                # We already have this message
+                print("We've already stored this edit.")
+                return False
+
         if newmessage.loadmongo(mongo_id=editid):
-            # Store the hash of the edit in this message.
-            if not 'edits' in self.dict['envelope']['local']:
-                self.dict['envelope']['local']['edits'] = []
 
-            # Check to see if we already have this edit
-            for edit in self.dict['envelope']['local']['edits']:
-                if newmessage.dict['envelope']['local']['payload_sha512'] == edit:
-                    # We already have this message
-                    print("We've already stored this edit.")
-                    return False
+            # Ensure the two messages have the same author. If not, abort.
+            # Do this here, rather in validate, so we can receive them in either order.
+            if self.dict['envelope']['local']['author']['pubkey'] != newmessage.dict['envelope']['local']['author']['pubkey']:
+                print("Invalid Revision. Author pubkey must match original message.")
+                return False  
 
-            # Add this message.
-            self.dict['envelope']['local']['edits'].append(server.formatEnvelope(newmessage.dict))
+            self.dict['envelope']['local']['edits'].append(newmessage.dict)
             
             # Order by Priority, then date if they match
             # This will ensure that ['edits'][-1] is the one we want to display.
             self.dict['envelope']['local']['edits'].sort(key=lambda e: (e['envelope']['local']['priority'], (e['envelope']['local']['time_added'])))
             self.saveMongo()
-
+            return True
 
     class binary(object):
         def __init__(self, sha512):

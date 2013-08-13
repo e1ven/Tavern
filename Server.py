@@ -1,22 +1,18 @@
 import json
-import imghdr
 import platform
 import time
 from keys import *
-import Image
 import collections
 from collections import OrderedDict
 import pymongo
 import pymongo.read_preferences
 from gridfs import GridFS
-import gridfs
 from Envelope import Envelope
 import sys
 import markdown
 import datetime
 from libs import bbcodepy
 from bs4 import BeautifulSoup
-import magic
 try:
     from hashlib import md5 as md5_func
 except ImportError:
@@ -391,9 +387,10 @@ class Server(object):
         e.dict['envelope']['local']['time_added'] = 1297396876
         e.dict['envelope']['local']['author_wordhash'] = "ErrorMessage!"
         e.dict['envelope']['local']['sorttopic'] = "error"
-
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
-        e.dict = self.formatEnvelope(e.dict)
+
+        e.addStamp(stampclass='author',keys=self.ServerKeys,friendlyname=self.serversettings['hostname'])
+        e.munge()
         return e
 
 
@@ -403,77 +400,38 @@ class Server(object):
         c = Envelope()
         c.loadstring(importstring=envelope)
 
-        #First, ensure we're dealing with a good Env, before we proceed
+
+        # Fill-out the message's local fields. 
+        c.munge()
+        # Make sure the message is valid, meets our standards, and is good to accept and save.
         if not c.validate():
             self.logger.info("Received an Envelope which does not validate- " + c.payload.hash())
             self.logger.debug(c.text())
             return False
 
-        # First, calculate the hash once, and store to save cycles.
-        hashcache = c.payload.hash()
+        utctime = time.time()
 
         existing = self.db.unsafe.find_one(
-            'envelopes', {'envelope.local.payload_sha512': hashcache })
+            'envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['local']['payload_sha512'] })
+
         if existing is not None:
             self.logger.debug("We already have that msg.")
             return c.dict['envelope']['local']['payload_sha512']
 
-        #If we don't have a local section, add one.
-        #This isn't inside of validation since it's legal not to have one.
-        #if 'local' not in c.dict['envelope']:
-        c.dict['envelope']['local'] = OrderedDict()
-
-        # Don't caclulate the SHA_512 each time. Store it in local, so we can reference it going forward.
-        c.dict['envelope']['local']['payload_sha512'] = hashcache
-
-        #Pull out serverstamps.
-        stamps = c.dict['envelope']['stamps']
-
-        serversTouched = 0
-        highestPOW = 0
-        for stamp in stamps:
-
-            # Count the parters the message has danced with.
-            if stamp['class'] == "server" or stamp['class'] == "server":
-                serversTouched += 1
-
-            # Calculate highest proof of work difficuly.
-            # Only use proof-of-work class sha256 for now.
-            if 'proof-of-work' in stamp:
-                if stamp['proof-of-work']['class'] == 'sha256':
-                    if stamp['proof-of-work']['difficulty'] >  highestPOW:
-                        highestPOW = stamp['proof-of-work']['difficulty']
-                        
-        c.dict['envelope']['local']['highestPOW'] = highestPOW
-        utctime = time.time()
-
-
 
         # Sign the message to saw we saw it.
         if serversettings.settings['mark-seen'] == True:
-            signedpayload = self.ServerKeys.signstring(c.payload.text())
-            myserverinfo = {'class': 'server', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
-            stamps.append(myserverinfo)
+            c.addStamp(stampclass='server',keys=self.ServerKeys,hostname=serversettings.settings['hostname'])
 
-        # If we are the first to see this, and it's enabled -- set outselves as the Origin.
-        if serversettings.settings['mark-origin'] == True:
-            if serversTouched == 0:
-                myserverinfo = {'class': 'origin', 'hostname': serversettings.settings['hostname'], 'time_added': int(utctime), 'signature': signedpayload, 'pubkey': self.ServerKeys.pubkey}
-                stamps.append(myserverinfo)
 
-        # Copy a lowercase version of the topic into sorttopic, so that StarTrek and Startrek and startrek all show up together.
-        if 'topic' in c.dict['envelope']['payload']:
-            c.dict['envelope']['local']['sorttopic'] = self.sorttopic(
-                c.dict['envelope']['payload']['topic'])
-
-        c.dict['envelope']['stamps'] = stamps
-        # Do NOT round UTC time, in LOCAL. This allows us to page properly, rather than using skip() which is expensive.
+        # Store the time, in full UTC (with precision). This is used to skip pages in the viewer later.
         c.dict['envelope']['local']['time_added'] = utctime
 
 
         if c.dict['envelope']['payload']['class'] == "message":
+
             # If the message referenes anyone, mark the original, for ease of finding it later.
-            # Do this in the {local} block, so we don't waste bits passing this on.
+            # Do this in the 'local' block, so we don't waste bits passing this on to others.
             # Partners can calculate this when they receive it.
 
             if 'regarding' in c.dict['envelope']['payload']:
@@ -544,9 +502,6 @@ class Server(object):
             else:
                  self.logger.debug("Received an edit without the original")
 
-        #Create the HTML version, and store it in local
-        c.dict = self.formatEnvelope(c.dict)
-
         #Store our Envelope
         c.saveMongo()
         return  c.dict['envelope']['local']['payload_sha512']
@@ -556,7 +511,6 @@ class Server(object):
         
         # Run the text through Tornado's escape to ensure you're not a badguy.
         text = tornado.escape.xhtml_escape(text)
-        
         if formatting == 'bbcode':
             formatted = bbcodepy.Parser().to_html(text)
         elif formatting == "plaintext":
@@ -573,7 +527,7 @@ class Server(object):
     @memorise(ttl=serversettings.settings['cache']['getUsersPosts']['seconds'], maxsize=serversettings.settings['cache']['getUsersPosts']['size'])
     def getUsersPosts(self,pubkey):
         envelopes = []
-        for envelope in self.db.safe.find('envelopes', {'envelope.payload.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
             messagetext = json.dumps(envelope, separators=(',', ':'))
             e = Envelope()
             e.loadstring(messagetext)
@@ -659,140 +613,7 @@ class Server(object):
                           c_url + "\">" + c_url + "</a>",
                           html)
         return html
-        
-    @memorise(ttl=serversettings.settings['cache']['formatEnvelope']['seconds'], maxsize=serversettings.settings['cache']['formatEnvelope']['size'])
-    def formatEnvelope(self, envelope):
-        """
-        Ensure an envelope has proper formatting.
-        Supposed to be called when you receive an envelope, not on view.
-        """
-        print("Calling FormatEnvelope...")
-        attachmentList = []
-
-        # Get a short version of the subject, for display.
-        if 'subject' in envelope['envelope']['payload']:
-            temp_short = envelope['envelope']['payload'][
-                'subject'][:50].rstrip()
-            envelope['envelope']['local'][
-                'short_subject'] = self.urlize(temp_short)
-
-        # Get a short version of the body, to use as a preview.
-        # First line only.
-        if 'body' in envelope['envelope']['payload']:
-            short_body = envelope['envelope']['payload'][
-                'body'].split('\n', 1)[0][:60].strip()
-            envelope['envelope']['local'][
-                'short_body'] = short_body
-
-        if 'binaries' in envelope['envelope']['payload']:
-            for binary in envelope['envelope']['payload']['binaries']:
-                if 'sha_512' in binary:
-                    fname = binary['sha_512']
-                    try:
-                        attachment = self.bin_GridFS.get_last_version(
-                            filename=fname)
-                        if 'filename' not in binary:
-                            binary['filename'] = "unknown_file"
-                        #In order to display an image, it must be of the right MIME type, the right size, it must open in
-                        #Python and be a valid image.
-                        attachment.seek(0)
-                        detected_mime = magic.from_buffer(
-                            attachment.read(serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
-                        displayable = False
-                        if attachment.length < serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
-                            if 'content_type' in binary:
-                                if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                    attachment.seek(0)
-                                    imagetype = imghdr.what(
-                                        'ignoreme', h=attachment.read())
-                                    acceptable_images = [
-                                        'gif', 'jpeg', 'jpg', 'png', 'bmp']
-                                    if imagetype in acceptable_images:
-                                        #If we pass -all- the tests, create a thumb once.
-                                        displayable = binary[
-                                            'sha_512'] + "-thumb"
-                                        if not self.bin_GridFS.exists(filename=displayable):
-                                            attachment.seek(0)
-                                            im = Image.open(attachment)
-
-                                            # Check to see if we need to rotate the image
-                                            # This is caused by iPhones saving the orientation
-
-                                            if hasattr(im, '_getexif'):  # only present in JPEGs
-                                                    e = im._getexif()       # returns None if no EXIF data
-                                                    if e is not None:
-                                                        exif = dict(e.items())
-                                                        if 'Orientation' in exif:
-                                                            orientation = exif[
-                                                                'Orientation']
-
-                                                            if orientation == 3:
-                                                                image = im.transpose(Image.ROTATE_180)
-                                                            elif orientation == 6:
-                                                                image = im.transpose(Image.ROTATE_270)
-                                                            elif orientation == 8:
-                                                                image = im.transpose(Image.ROTATE_90)
-
-                                            # resize if nec.
-                                            if im.size[0] > 640:
-                                                imAspect = float(im.size[1]) / float(im.size[0])
-                                                newx = 640
-                                                newy = int(640 * imAspect)
-                                                im = im.resize((newx, newy), Image.ANTIALIAS)
-                                            if im.size[1] > 480:
-                                                imAspect = float(im.size[0]) / float(im.size[1])
-                                                newy = 480
-                                                newx = int(480 * imAspect)
-                                                im = im.resize((newx, newy), Image.ANTIALIAS)
-
-                                            thumbnail = self.bin_GridFS.new_file(filename=displayable)
-                                            im.save(thumbnail, format='png')
-                                            thumbnail.close()
-                        attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable, 'detected_mime': detected_mime}
-                        attachmentList.append(attachmentdesc)
-                    except gridfs.errors.NoFile:
-                        self.logger.debug("Error, attachment gone ;(")
-        if 'body' in envelope['envelope']['payload']:
-            formattedbody = self.formatText(text=envelope['envelope']['payload']['body'], formatting=envelope['envelope']['payload']['formatting'])
-            envelope['envelope']['local']['formattedbody'] = formattedbody
-
-        #Create an attachment list that includes the calculated filesize, since we can't trust the one from the client.
-        #But since the file is IN the payload, we can't modify that one, either!
-        envelope['envelope']['local']['attachmentlist'] = attachmentList
-        envelope['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(envelope['envelope']['payload']['author']['pubkey'])
-
-        # Check for a medialink for FBOG, Pinterest, etc.
-        # Leave off if it doesn't exist
-        if len(attachmentList) > 0:
-            medialink = None
-            for attachment in attachmentList:
-                if attachment['displayable'] is not False:
-                    envelope['envelope']['local']['medialink'] = medialink
-                    break
-
-        # Check for any Embeddable (Youtube, Vimeo, etc) Links.
-        # Don't check a given message more than once.
-        # Iterate through the list of possible embeddables.
-
-        foundurls = 0  # Don't embed too many URLs
-        if 'body' in envelope['envelope']['payload']:
-            if not 'embed' in envelope['envelope']['local']:
-                envelope['envelope']['local']['embed'] = []
-            if envelope['envelope']['local']['embed'] == []:
-                # Don't check more than once.
-                soup = BeautifulSoup(formattedbody,"html.parser")
-                for href in soup.findAll('a'):
-                    result = self.external.lookup(href.get('href'))
-                    if result is not None and foundurls < serversettings.settings['maxembeddedurls']:
-                        if not 'embed' in envelope['envelope']['local']:
-                            envelope['envelope']['local']['embed'] = []
-                        envelope['envelope']['local']['embed'].append(result)
-                        foundurls += 1
-
-        if '_id' in envelope:
-            del(envelope['_id'])
-        return envelope
-        
+                
 server = Server()
 from User import User
 import embedis

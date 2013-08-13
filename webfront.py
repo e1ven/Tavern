@@ -373,26 +373,29 @@ class BaseHandler(tornado.web.RequestHandler):
         # Not an else, so we can be triggered by corrupt cookie above.
         if self.get_secure_cookie("tavern_preferences_count") is None:
             server.logger.debug("Making cookies")
-            self.user.generate(skipkeys=True)
+            self.user.generate(forceUnique=False)
             self.setvars()
 
-        # If we've asked to make the keys.. Generate them.
-        # This won't overwrite existing values, since user.generate() is additive.
+        # If a method has asked us to ensure a user is full, with a privkey and everything, do so.
+        # This is done here, rather than in user, so we can save the passkey out to a cookie.
         if ensurekeys == True:
             validkey = False
-            if 'encryptedprivkey' in self.user.UserSettings:
-                if self.user.UserSettings['encryptedprivkey'] is not None:
+            if 'encryptedprivkey' in self.user.UserSettings['keys']['master']:
+                if self.user.UserSettings['keys']['master']['encryptedprivkey'] is not None:
                     validkey = True
             if not validkey:
                 newuser = server.GetUnusedUser()
                 self.user = newuser['user']
                 password = newuser['password']
 
+                # ensure user is fleshed out
+                self.user.generate()
+
                 # Save it out.
                 self.setvars()
                 self.user.savemongo()
-                self.set_secure_cookie('tavern_passkey', self.user.Keys.passkey(password), httponly=True, expires_days=999)
-                self.user.passkey = self.user.Keys.passkey(password)
+                self.set_secure_cookie('tavern_passkey', self.user.Keys['master'].passkey(password), httponly=True, expires_days=999)
+                self.user.passkey = self.user.Keys['master'].passkey(password)
 
             if not hasattr(self.user, 'passkey'):
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
@@ -400,7 +403,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Ensure we have any missing fields.
-        self.user.generate(skipkeys=True)
+        self.user.generate(forceUnique=False)
 
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
@@ -453,8 +456,7 @@ class RSSHandler(BaseHandler):
 # for now, send them to that Welcome message ;)
 class EntryHandler(tornado.web.RequestHandler):
     def get(self):
-        self.redirect('/message/sitecontent/Welcome-to-Tavern/57c565db8c926b147f4b33160e2c4f9b994d8d7316bb5938940b8eceb17a4a74c3dce4088c6d82bb7abe4f09a453df9611efa958bd78d2a6d9890b0ea888a50f')
-
+        self.redirect('/topic/sitecontent')
 
 class MessageHistoryHandler(BaseHandler):
     """
@@ -532,7 +534,6 @@ class MessageHandler(BaseHandler):
             title = displayenvelope['envelope']['payload']['subject']
             topic = displayenvelope['envelope']['payload']['topic']
 
-        print("topic" + str(topic))
         # Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
@@ -577,7 +578,6 @@ class TopicHandler(BaseHandler):
             title = "Discuss what matters"
 
         topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
-
         if len(topicEnvelopes) > 0:
             displayenvelope = topicEnvelopes[0]
         else:
@@ -585,8 +585,8 @@ class TopicHandler(BaseHandler):
             canon = None
             title = displayenvelope['envelope']['payload']['subject']
             topic = displayenvelope['envelope']['payload']['topic']
-            print("topic - " + topic)
 
+        print(displayenvelope)
         # Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
@@ -725,7 +725,7 @@ class RegisterHandler(BaseHandler):
 
         else:
             # Generate the user
-            self.user.generate(
+            self.user.generate(forceUnique=True,
                 username=client_newuser.lower(), password=client_newpass)
             self.user.UserSettings['lastauth'] = int(time.time())
 
@@ -735,7 +735,7 @@ class RegisterHandler(BaseHandler):
             self.user.savemongo()
 
             # Save the passkey out to a separate cookie.
-            self.set_secure_cookie("tavern_passkey", self.user.Keys.passkey(
+            self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(
                 client_newpass), httponly=True, expires_days=999)
 
             self.setvars()
@@ -790,7 +790,7 @@ class LoginHandler(BaseHandler):
                 self.user = u
 
                 self.clear_cookie('tavern_passkey')
-                self.set_secure_cookie("tavern_passkey", self.user.Keys.passkey(client_password), httponly=True, expires_days=999)
+                self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(client_password), httponly=True, expires_days=999)
                 self.user.UserSettings['lastauth'] = int(time.time())
 
                 self.setvars()
@@ -839,7 +839,7 @@ class ChangepasswordHandler(BaseHandler):
             oldpasskey=client_oldpasskey, newpass=client_newpass)
 
         # Set the Passkey, to be able to unlock the Privkey
-        self.set_secure_cookie("tavern_passkey", self.user.Keys.passkey(
+        self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(
             password=client_newpass), httponly=True, expires_days=999)
 
         self.setvars()
@@ -857,8 +857,8 @@ class UserHandler(BaseHandler):
         pubkey = Keys(pub=pubkey).pubkey
 
         u = User()
-        u.UserSettings['pubkey'] = pubkey
-        u.generate(self, skipkeys=True)
+        u.UserSettings['keys']['master']['pubkey'] = pubkey
+        u.generate(self, forceUnique=False)
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
@@ -909,7 +909,7 @@ class ChangeManySettingsHandler(BaseHandler):
         if "js" in self.request.arguments:
             self.finish(divs=['scrollablediv3'])
         else:
-            keyurl = ''.join(self.user.Keys.pubkey.split())
+            keyurl = ''.join(self.user.Keys['master'].pubkey.split())
             self.redirect('/user/' + keyurl)
 
 
@@ -971,8 +971,9 @@ class RatingHandler(BaseHandler):
 
         #Instantiate the user who's currently logged in
 
+        #TODO - set comm key
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
+        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}
@@ -990,26 +991,12 @@ class RatingHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
-        #Sign this bad boy
-        usersig = self.user.Keys.signstring(
-            e.payload.text(), self.user.passkey)
 
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.Keys.pubkey
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
+        # Add stamps to show we're the author (and optionally) we're the origin server
+        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        if serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
 
-        proof = {}
-        proof['class'] = 'sha256'
-        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
-        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
-        stamp['proof-of-work'] = proof
-
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist
 
         #Send to the server
         server.receiveEnvelope(e.text())
@@ -1062,7 +1049,7 @@ class UserTrustHandler(BaseHandler):
         #Instantiate the user who's currently logged in
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
+        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}
@@ -1081,27 +1068,12 @@ class UserTrustHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
-        #Sign this bad boy
-        usersig = self.user.Keys.signstring(
-            e.payload.text(), self.user.passkey)
 
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.Keys.pubkey
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
+        # Add stamps to show we're the author (and optionally) we're the origin server
+        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        if serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
 
-        proof = {}
-        proof['class'] = 'sha256'
-        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
-        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
-        stamp['proof-of-work'] = proof
-
-
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist
 
         #Send to the server
 
@@ -1347,7 +1319,7 @@ class NewmessageHandler(BaseHandler):
             touser = Keys(pub=client_to)
             touser.format_keys()
             e.payload.dict['to'] = touser.pubkey
-            e.payload.dict['body'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=client_body, passkey=self.user.passkey)
+            e.payload.dict['body'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=client_body, passkey=self.user.passkey)
 
             if client_regarding is not None:
                 server.logger.debug("Adding Regarding - " + client_regarding)
@@ -1355,15 +1327,15 @@ class NewmessageHandler(BaseHandler):
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
                 oldsubject = self.user.decrypt(
                     regardingmsg['envelope']['payload']['subject'])
-                e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
+                e.payload.dict['subject'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
             else:
-                e.payload.dict['subject'] = self.user.Keys.encrypt(encrypt_to=touser.pubkey, encryptstring=client_subject, passkey=self.user.passkey)
+                e.payload.dict['subject'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=client_subject, passkey=self.user.passkey)
 
         if len(envelopebinarylist) > 0:
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys.pubkey
+        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}
@@ -1382,25 +1354,12 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
-        #Sign this bad boy
-        usersig = self.user.Keys.signstring(
-            e.payload.text(), self.user.passkey)
 
-        stamp = OrderedDict()
-        stamp['class'] = 'author'
-        stamp['pubkey'] = self.user.Keys.pubkey
-        stamp['signature'] = usersig
-        utctime = time.time()
-        stamp['time_added'] = int(utctime)
-        proof = {}
-        proof['class'] = 'sha256'
-        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
-        proof['proof'] = TavernUtils.proveWork(e.payload.hash(),proof['difficulty'])
-        stamp['proof-of-work'] = proof
+        # Add stamps to show we're the author (and optionally) we're the origin server
+        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        if serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
 
-        stamplist = []
-        stamplist.append(stamp)
-        e.dict['envelope']['stamps'] = stamplist
 
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
@@ -1425,8 +1384,8 @@ class ShowPrivatesHandler(BaseHandler):
         self.write(self.render_string('header.html',
                    title="Welcome to the Tavern!", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys.pubkey}, limit=10, sortkey='value', sortdirection='descending'):
-            message['envelope']['payload']['subject'] = "Message: " + self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys['master'].pubkey}, limit=10, sortkey='value', sortdirection='descending'):
+            message['envelope']['payload']['subject'] = "Message: " + self.user.Keys['master'].decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
             messages.append(message)
 
         self.write(
@@ -1438,9 +1397,9 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(ensurekeys=True)
 
-        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys.pubkey, 'envelope.local.payload_sha512': message})
+        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys['master'].pubkey, 'envelope.local.payload_sha512': message})
         if message is not None:
-            decrypted_subject = self.user.Keys.decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
+            decrypted_subject = self.user.Keys['master'].decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
         else:
             decrypted_subject = ""
         self.write(self.render_string('header.html', title="Private Message - " + decrypted_subject, rsshead=None, type=None))
@@ -1508,7 +1467,7 @@ def main():
     
         server.logger.info("NO GUEST...?")
         serveruser = User()
-        serveruser.generate(skipkeys=False, password=serversettings.settings[
+        serveruser.generate(forceUnique=True,password=serversettings.settings[
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()

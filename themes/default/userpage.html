@@ -6,33 +6,33 @@
 
     <div id="single">
     {# If it's me, include my settings page #}
-    {% if thatguy.UserSettings['pubkey'] == me.UserSettings['pubkey'] %}
+    {% if thatguy.UserSettings['keys']['master']['pubkey'] == me.UserSettings['keys']['master']['pubkey'] %}
         {% include 'mysettings.html' %}
     {% end %}
 
 
-    {% set envelopes = server.getUsersPosts(thatguy.UserSettings['pubkey']) %}
+    {% set envelopes = server.getUsersPosts(thatguy.UserSettings['keys']['master']['pubkey']) %}
 
     {% if len(envelopes) != 0 %}
-        {% set thatguy.UserSettings['friendlyname'] = envelopes[0].dict['envelope']['payload']['author']['friendlyname'] %}
+        {% set thatguy.UserSettings['friendlyname'] = envelopes[0].dict['envelope']['local']['author']['friendlyname'] %}
     {% end %}
 
     {% set hisname = thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
 
     <h1> Details about {{hisname}} </h1>
     <p></p>
-    <p><a href="/newprivatemessage/{{thatguy.UserSettings['pubkey']}}">Send {{hisname}} a private message</a></p><br>
+    <p><a href="/newprivatemessage/{{thatguy.UserSettings['keys']['master']['pubkey']}}">Send {{hisname}} a private message</a></p><br>
     <ul>
 
 
-    <img id="avatar_{{''.join(thatguy.UserSettings['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
+    <img id="avatar_{{''.join(thatguy.UserSettings['keys']['master']['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['keys']['master']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
 
 
 
-    {% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['pubkey']) %}
+    {% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['keys']['master']['pubkey']) %}
         You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
-        {% set note = me.getNote(thatguy.UserSettings['pubkey']) %}
+        {% set note = me.getNote(thatguy.UserSettings['keys']['master']['pubkey']) %}
         {% if note is not None %}
             You set the following note about this user:<Br>
             <div class="note"><i>{{note}}</i></div>
@@ -42,7 +42,7 @@
             Set a note about this user:<Br>
             <form action="/usernote" method="post" class="usernote">
                  {% raw xsrf_form_html() %}
-                <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['pubkey']}}">
+                <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['keys']['master']['pubkey']}}">
                 <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
             </form>
 

@@ -18,7 +18,7 @@
                                     {% raw xsrf_form_html() %}
                                     <input type="hidden" name="trust" value="100">
                                     <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                                    <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                                    <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                     <input class="textbutton icon-label" type="submit" value="Endorse this user">
                                 </form>
                         </div>
@@ -30,18 +30,18 @@
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="-100">
                                 <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['local']['pubkey']}}">
                                 <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                             </form>
                         </div>
                     {% end %}
                     <form action="/usernote" method="post" class="usernote">
                          {% raw xsrf_form_html() %}
-                        <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['payload']['author']['pubkey']}}">
+                        <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                         <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
                     </form>
                     <div class='DetailsOption'>
                         <i class="icon icon-twitter-squared"></i>
-                        <a href="/user/{{''.join(envelope.dict['envelope']['payload']['author']['pubkey'].split())}}">Full Details</a>
+                        <a href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}">Full Details</a>
                     </div>
             </div>  
