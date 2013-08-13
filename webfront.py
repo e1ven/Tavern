@@ -31,7 +31,7 @@ import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
 from UserGenerator import UserGenerator
-
+import inspect, sys
 try:
     from hashlib import md5 as md5_func
 except ImportError:
@@ -53,11 +53,13 @@ class BaseHandler(tornado.web.RequestHandler):
         Wrap the default RequestHandler with extra methods
         """
         self.html = ""
-        super(BaseHandler, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         
         # Set the canonical URL, if possible.
         self.canon = None
 
+        # Ensure we don't run finish() twice.
+        self._basefinish = False
 
         # If people are accessing a URL that isn't by the canonical URL, redirect them.
         if 'redirected' in self.request.arguments:
@@ -93,7 +95,8 @@ class BaseHandler(tornado.web.RequestHandler):
         if 'User-Agent' in self.request.headers:
             ua = self.request.headers['User-Agent']
             self.browser = server.browserdetector.parse(ua)
-
+        else:
+            self.browser = server.browserdetector.parse("Unknown") 
     
     # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name, **kwargs):
@@ -131,7 +134,17 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         Pulls in appropriate divs and serves them out via JS if possible.
         This saves bits, and keeps the columns as you left them.
+
+        Finish() is a function defined by tornado, so this will be called automatically if not included manually.
         """
+
+        # Don't run this function twice. If we're called a second time, get the frig out.
+        if self._basefinish == True:
+            print("short circuiting")
+            return
+
+        self._basefinish = True
+
         # First off, we may be at the wrong URL. Check to see if this is the canonical version of this URL.
         # If it's not, and it's safe, go there.
         if not self.redirected:
@@ -150,7 +163,7 @@ class BaseHandler(tornado.web.RequestHandler):
                         newurl =  urllib.parse.urlunsplit((canon_scheme, canon_netloc, canon_path, fixed_query_string, canon_fragment))
                         self.redirected = True
                         self.redirect(newurl)
-                        return()
+                        return super().finish(message)
 
 
 
@@ -185,7 +198,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if "js" in self.request.arguments:
             self.set_header("Content-Type", "application/json")
 
-        super(BaseHandler, self).finish(message)
+        return super().finish(message)
 
     @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=serversettings.settings['cache']['getpagelemenent']['size'])
     def getdiv(self, element):
@@ -525,8 +538,8 @@ class MessageHandler(BaseHandler):
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
-
-        self.finish(divs=divs)
+        print("Func complete.")
+        #self.finish(divs=divs)
 
 
 class TopicHandler(BaseHandler):
@@ -665,7 +678,7 @@ class AttachmentHandler(BaseHandler):
 
         self.write(self.render_string('header.html', title="Tavern Attachment " + client_attachment_id, rsshead=client_attachment_id, type="attachment"))
         self.write(self.render_string(
-            'attachments.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
+            'showattachment.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
         self.write(self.render_string('footer.html'))
 
 
@@ -1108,10 +1121,9 @@ class EditMessageHandler(BaseHandler):
 
         if 'edits' in e.dict['envelope']['local']:
 
-            newestedit = e.dict['envelope']['local']['edits'][-1:]
+            newestedit = e.dict['envelope']['local']['edits'][-1]
             e2 = Envelope()
             e2.loaddict(newestedit)
-            print(e2.dict['envelope']['payload'])
             oldtext = e2.dict['envelope']['payload']['body']
             topic = e2.dict['envelope']['payload']['topic']
 

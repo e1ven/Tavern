@@ -321,15 +321,15 @@ class Envelope(object):
                 self.dict['envelope']['local']['edits'] = []
 
             # Check to see if we already have this edit
-            foundedit = False
             for edit in self.dict['envelope']['local']['edits']:
-                if edit['envelope']['payload']['sha_512'] == editid:
+                if newmessage.dict['envelope']['local']['payload_sha512'] == edit:
                     # We already have this message
+                    print("We've already stored this edit.")
                     return False
 
             # Add this message.
             self.dict['envelope']['local']['edits'].append(server.formatEnvelope(newmessage.dict))
-    
+            
             # Order by Priority, then date if they match
             # This will ensure that ['edits'][-1] is the one we want to display.
             self.dict['envelope']['local']['edits'].sort(key=lambda e: (e['envelope']['local']['priority'], (e['envelope']['local']['time_added'])))

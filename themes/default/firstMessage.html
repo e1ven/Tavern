@@ -168,7 +168,7 @@
             </div>
             <Br><br>
             <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
+            {% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}            
         </li>
     </ul>     
 </div>
-{% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}

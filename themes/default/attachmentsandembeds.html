@@ -24,6 +24,16 @@
 
                 {% end %}   
 
+                {% if 'displayable' in attachment %}
+                    {% if attachment['displayable'] is not False %}
+                        <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                            <img src="{{serversettings.settings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image">
+                            <br>
+                        </a>
+                    {% end %} 
+                {% end %} 
+
+
                 <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
                 <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
                 <br>
