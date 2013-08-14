@@ -4,30 +4,17 @@
 
 {% block column3 %}
 
-    <div id="single">
+    {% set hisname = envelopes[0].dict['envelope']['local']['author']['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
+    <h1> Details about {{hisname}} </h1>
+
     {# If it's me, include my settings page #}
     {% if thatguy.UserSettings['keys']['master']['pubkey'] == me.UserSettings['keys']['master']['pubkey'] %}
         {% include 'mysettings.html' %}
+    {% else %}
+        <p><a href="/newprivatemessage/{{thatguy.UserSettings['keys']['master']['pubkey']}}">Send {{hisname}} a private message</a></p>
     {% end %}
-
-
-    {% set envelopes = server.getUsersPosts(thatguy.UserSettings['keys']['master']['pubkey']) %}
-
-    {% if len(envelopes) != 0 %}
-        {% set thatguy.UserSettings['friendlyname'] = envelopes[0].dict['envelope']['local']['author']['friendlyname'] %}
-    {% end %}
-
-    {% set hisname = thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
-
-    <h1> Details about {{hisname}} </h1>
-    <p></p>
-    <p><a href="/newprivatemessage/{{thatguy.UserSettings['keys']['master']['pubkey']}}">Send {{hisname}} a private message</a></p><br>
-    <ul>
-
 
     <img id="avatar_{{''.join(thatguy.UserSettings['keys']['master']['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['keys']['master']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
-
-
 
 
     {% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['keys']['master']['pubkey']) %}
@@ -46,10 +33,7 @@
                 <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
             </form>
 
-    </ul>
     <Br><br><br>
-
-    </div>
 
     {% include 'showuserposts.html' %}
 {% end %}

@@ -22,11 +22,10 @@ class Keys(object):
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
-        self.format_keys()
 
         self.gnuhome = tempfile.mkdtemp()
         self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
-                             options="--no-emit-version --no-comments --no-default-keyring")
+                             options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'
         keyimport = None
         if self.privkey is not None:
@@ -36,6 +35,7 @@ class Keys(object):
         if keyimport is not None:
             if keyimport.count > 0:
                 self.fingerprint = keyimport.fingerprints[0]
+                self.format_keys()
 
     def __del__(self):
         """
@@ -45,6 +45,61 @@ class Keys(object):
         if self.gnuhome is not None:
             if shutil is not None:
                 shutil.rmtree(self.gnuhome,ignore_errors=True,onerror=None)
+
+
+    def setKeyDetails(self,key):
+        """
+        Set the format of the key.
+        Format types via https://bitbucket.org/skskeyserver/sks-keyserver/src/4069c369eaaa718c6d4f19427f8f164fb9a1e1f0/packet.ml?at=default#cl-250
+        """
+
+        self.keydetails = {}
+        self.keydetails['format'] = 'gpg'
+
+        details = self.gpg.list_keys()[0]
+
+        if self.fingerprint != details['fingerprint']
+            raise Exception('KeyError', 'Key not found in keyring.')
+
+        self.keydetails['length'] = details['length']
+        self.keydetails['expires'] = details['expires']
+
+        if details['algo'] is '1' or 'R':
+            self.keydetails['algorithm'] = 'RSA'
+            self.keydetails['sign'] = True
+            self.keydetails['encrypt'] = True
+        elif details['algo'] is '2' or 'r':
+            self.keydetails['algorithm'] = 'RSA'
+            self.keydetails['sign'] = False
+            self.keydetails['encrypt'] = True
+        elif details['algo'] is '3' or 's':
+            self.keydetails['algorithm'] = 'RSA'
+            self.keydetails['sign'] = True
+            self.keydetails['encrypt'] = False
+        elif details['algo'] is '16' or 'g':
+            self.keydetails['algorithm'] = 'ElGamal'
+            self.keydetails['sign'] = False
+            self.keydetails['encrypt'] = True
+        elif details['algo'] is '20' or 'G':
+            self.keydetails['algorithm'] = 'ElGamal'
+            self.keydetails['sign'] = True
+            self.keydetails['encrypt'] = True
+        elif details['algo'] is '17' or 'D':
+            self.keydetails['algorithm'] = 'DSA'
+            self.keydetails['sign'] = True
+            self.keydetails['encrypt'] = False
+        elif details['algo'] is '18' or 'e':
+            self.keydetails['algorithm'] = 'ECDH'
+            self.keydetails['sign'] = False
+            self.keydetails['encrypt'] = True        
+        elif details['algo'] is '19' or 'e':
+            self.keydetails['algorithm'] = 'ECDSA'
+            self.keydetails['sign'] = True
+            self.keydetails['encrypt'] = False
+        elif details['algo'] is '_' or '?':
+            self.keydetails['algorithm'] = 'Unknown'
+            self.keydetails['sign'] = False
+            self.keydetails['encrypt'] = False
 
     def format_keys(self):
         """
@@ -86,16 +141,20 @@ class Keys(object):
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
 
+        self.setKeyDetails()
+
     def generate(self):
         """
         Replaces whatever keys currently might exist with new ones.
         """
         self.logger.debug("MAKING A KEY.")
-        key_options = self.gpg.gen_key_input(key_type="RSA", key_length=2048)
-        key = self.gpg.gen_key(key_options)
+        # We don't want to use gen_key_input here because it insists on having an email, when it's not needed.
+        # GPG doesn't require one, but many email programs do, so for general-use it's usually best practice.
+        # Instead, we'll manually specify the string that it would otherwise generate.
+        keystr = 'Key-Type: RSA\nKey-Length: 2048\nName-Real: TAVERN\n\n\n%commit\n'
+        key = self.gpg.gen_key(keystr)
         self.pubkey = self.gpg.export_keys(key.fingerprint)
         self.privkey = self.gpg.export_keys(key.fingerprint, True)
-
         self.fingerprint = key.fingerprint
         self.format_keys()
 

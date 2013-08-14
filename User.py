@@ -21,15 +21,15 @@ class User(object):
         self.UserSettings['keys']['master'] = {}
         self.UserSettings['followedUsers'] = []
         self.UserSettings['followedTopics'] = []
+        self.UserSettings['status'] = {}
         self.Keys = {}
 
-    def isLoggedIn(self):
-        if self.UserSettings['keys']['master']['pubkey'] == serversettings.settings['guestacct']['keys']['master']['pubkey']:
-            return False
-        if 'encryptedprivkey' in self.UserSettings['keys']['master']:
-            if self.UserSettings['keys']['master']['encryptedprivkey'] is not None:
-                return True
-        return False
+    def get_current_commkey(self):
+        """
+        Gets the current communication key.
+        If one does not exist, it creates one.
+        """
+        
 
     def randstr(self, length):
         # Random.randint isn't secure, use the OS urandom instead.
@@ -282,7 +282,7 @@ class User(object):
 
 
                 
-    def generate(self, email=None, username=None, forceUnique=False,forcePrivKey=False,password=None):
+    def generate(self,GuestKey=True,password=None,email=None, username=None,):
         """
         Create a Tavern user, filling in any missing information for existing users.
         Only creates keys if asked to.
@@ -305,21 +305,28 @@ class User(object):
             self.UserSettings['hashedpass'] = self.hash_password(password)
 
 
+        if not 'guest' in self.UserSettings['status']:
+            self.UserSettings['status']['guest'] = True
+        if not 'setpassword' in self.UserSettings['status']:
+            self.UserSettings['status']['setpassword'] = None
+
         if not 'keys' in self.UserSettings:
             self.UserSettings['keys'] = {}
         if not 'master' in self.UserSettings['keys']:
             self.UserSettings['keys']['master'] = {}
 
         # Ensure we have a valid public key, one way or another.
-        # If forceUnique is off, then use the server default acct.
+        # If GuestKey is true, then use the server default acct.
 
-        if forceUnique == False:
+        if GuestKey == True:
             # With the default server key, there will be no way to privkey/way to post.
             if not 'pubkey' in self.UserSettings['keys']['master']:
                 self.UserSettings['keys']['master']['pubkey'] = serversettings.settings['guestacct']['keys']['master']['pubkey']
             if not 'master' in self.Keys:
                 self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
-        else:         
+            self.UserSettings['status']['guest']  = True
+        else:    
+            self.UserSettings['status']['guest'] = False
             # Make a real key if we don't have one.
             validkey = False
             if 'encryptedprivkey' in self.UserSettings['keys']['master']:
@@ -366,8 +373,16 @@ class User(object):
         if not 'maxreplies' in self.UserSettings:
             self.UserSettings['maxreplies'] = 100
 
+        # Set Friendlyname to most recent post, or Anonymous for lurkers
         if not 'friendlyname' in self.UserSettings:
-            self.UserSettings['friendlyname'] = "Anonymous"
+            self.UserSettings['status']['guest'] == False:
+                # They're registered, they may have posted.
+                self.UserSettings['status']['friendlyname'] 
+                posts = server.getUsersPosts(self.UserSettings['keys']['master']['pubkey'])
+                if len(posts) > 0:
+                    self.UserSettings['friendlyname'] = posts[0].dict['envelope']['local']['author']['friendlyname']
+            if not 'friendlyname' in self.UserSettings:
+                self.UserSettings['friendlyname'] = 'Anonymous'
 
         if not 'include_location' in self.UserSettings:
             self.UserSettings['include_location'] = False
@@ -388,7 +403,7 @@ class User(object):
         hashedpass = self.hash_password(newpass)
         self.UserSettings['hashedpass'] = hashedpass
         self.UserSettings['lastauth'] = int(time.time())
-
+        self.UserSettings['status']['setpassword'] = int(time.time())
         self.savemongo()
 
     def load_string(self, incomingstring):

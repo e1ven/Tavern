@@ -20,17 +20,18 @@
                 
                 <ul class="accordion">      
 
-                    {% if user.isLoggedIn() %}
+                    {% if user.UserSettings['status']['guest'] == False %}
                     <li id="two" class="mainheader"><a href="#">Your Account</a>
                         <ul  class="sub-element sub-menu">
                                     <p>
                                     <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">
                                         <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['keys']['master']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                                     </a>
-                                    {% if user.UserSettings['username'] != "Anonymous" %}
+                                    {% if user.UserSettings['status']['setpassword'] is not None: %}
                                         You are logged in as: <br>
-                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['username']}}</a><br>
-                                    {% else %}You are logged in with a temporary account.<br><br>
+                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['username']}}</a>.<br>
+                                    {% else %}
+                                        You have not yet entered any <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">account information</a>.<br>
                                     {% end %}
                                     You are posting under the alias:<br>
                                     <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>

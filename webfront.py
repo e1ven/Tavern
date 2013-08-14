@@ -373,7 +373,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # Not an else, so we can be triggered by corrupt cookie above.
         if self.get_secure_cookie("tavern_preferences_count") is None:
             server.logger.debug("Making cookies")
-            self.user.generate(forceUnique=False)
+            self.user.generate(GuestKey=True)
             self.setvars()
 
         # If a method has asked us to ensure a user is full, with a privkey and everything, do so.
@@ -403,7 +403,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Ensure we have any missing fields.
-        self.user.generate(forceUnique=False)
+        self.user.generate(GuestKey=True)
 
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
@@ -725,7 +725,7 @@ class RegisterHandler(BaseHandler):
 
         else:
             # Generate the user
-            self.user.generate(forceUnique=True,
+            self.user.generate(GuestKey=False,
                 username=client_newuser.lower(), password=client_newpass)
             self.user.UserSettings['lastauth'] = int(time.time())
 
@@ -858,7 +858,7 @@ class UserHandler(BaseHandler):
 
         u = User()
         u.UserSettings['keys']['master']['pubkey'] = pubkey
-        u.generate(self, forceUnique=False)
+        u.generate(self, GuestKey=True)
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
@@ -1467,7 +1467,7 @@ def main():
     
         server.logger.info("NO GUEST...?")
         serveruser = User()
-        serveruser.generate(forceUnique=True,password=serversettings.settings[
+        serveruser.generate(GuestKey=False,password=serversettings.settings[
                             'serverkey-password'])
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
