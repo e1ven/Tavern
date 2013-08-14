@@ -181,13 +181,12 @@ class Envelope(object):
             server.logger.debug("Invalid Envelope. No Header")
             return False
 
-        #Ensure we have 1 and only 1 author signature stamp
+        # Ensure we have 1 and only 1 author signature stamp
         stamps = self.dict['envelope']['stamps']
         foundauthor = 0
         for stamp in stamps:
             if stamp['class'] == "author":
                 foundauthor += 1
-
                 # Ensure that the Author stamp matches the Author in the Payload section!
                 if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
                     server.logger.debug(
@@ -201,9 +200,31 @@ class Envelope(object):
             server.logger.debug("Too Many author stamps")
             return False
 
-        #Ensure Every stamp validates.
+        # Ensure Every stamp validates.
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
+
+            if stamp ['keydetails']:
+                server.logger.debug("Key information is unavailable.")
+                return False
+                
+            if stamp['keydetails']['format'] is not 'gpg':
+                server.logger.debug("Key not in acceptable container format.")
+                return False
+
+            if stamp['keydetails']['algorithm'] is not in ['ElGamal','RSA','DSA']:
+                server.logger.debug(
+                    "Key does not use an acceptable algorithm.")
+                return False
+            
+            if stamp['keydetails']['algorithm'] in ['ElGamal','RSA','DSA']:
+                if stamp['keydetails']['length'] < 2048:
+                    server.logger.debug("Key is too small.")
+                    return False
+            elif stamp['keydetails']['algorithm'] is 'ECDSA':
+                if stamp['keydetails']['length'] < 233:
+                    server.logger.debug("Key is too small.")
+                    return False
 
             # Retrieve the key, ensure it's valid.
             stampkey = Keys(pub=stamp['pubkey'])
@@ -229,15 +250,14 @@ class Envelope(object):
                             return False
                     else:
                         server.logger.debug("Proof of work in unrecognized format. Ignoring.")
-                        
+        
 
-        # Check for a valid useragent
-        try:
-            if len(self.dict['envelope']['payload']['author']['useragent']['name']) < 1:
-                server.logger.debug("Bad Useragent name")
+        # It's OK if they don't include a user-agent, but not if they include a bad one.
+        if 'useragent' in self.dict['envelope']['payload']['author']:
+            if not 'name' in  self.dict['envelope']['payload']['author']['useragent']:
+                server.logger.debug("If you supply a user agent, it must have a valid name")
                 return False
-            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int):
-                if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
+            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) or isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
                     server.logger.debug(
                         "Bad Useragent version must be a float or integer")
                     return False
@@ -448,6 +468,7 @@ class Envelope(object):
         # Generate the full stamp obj we will insert.
         fullstamp = {}
         fullstamp['class'] = stampclass
+        fullstamp['keydetails'] = keys.keydetails
         fullstamp['pubkey'] = keys.pubkey
         fullstamp['signature'] = signature
         fullstamp['time_added'] = TavernUtils.inttime()
