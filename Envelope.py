@@ -351,7 +351,8 @@ class Envelope(object):
                     foundurls += 1
 
         self.dict['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
-
+        if not 'priority' in self.dict['envelope']['local']:
+            self.dict['envelope']['local']['priority'] = 0
 
         if '_id' in self.dict:
             del(self.dict['_id'])

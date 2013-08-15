@@ -1,3 +1,4 @@
+
 from keys import Keys
 import scrypt
 import base64
@@ -19,7 +20,6 @@ class lockedKey(object):
         self.maxtime_create = 1
         tempkey = Keys(pub=pub, priv=priv)
         self.pubkey = tempkey.pubkey
-        tempkey.format_keys()
         self.pubkey = tempkey.pubkey
 
         if encryptedprivkey is not None:
@@ -29,8 +29,8 @@ class lockedKey(object):
             self.encryptedprivkey = self.__encryptprivkey(
                 password=password, privkey=tempkey.privkey)
 
-        if self.pubkey is not None:
-            self.setKeyDetails()
+        if hasattr(tempkey, 'keydetails'):
+            self.keydetails = tempkey.keydetails
 
     def __encryptprivkey(self, password, privkey):
         """
@@ -39,6 +39,7 @@ class lockedKey(object):
         key = scrypt.encrypt(input=privkey, password=self.passkey(
             password), maxtime=self.maxtime_create)
         return base64.b64encode(key).decode('utf-8')
+
 
     def passkey(self, password):
         """
@@ -77,17 +78,11 @@ class lockedKey(object):
         """
         tempkey = Keys()
         tempkey.generate()
-        tempkey.format_keys()
         self.pubkey = tempkey.pubkey
         self.encryptedprivkey = self.__encryptprivkey(
             password=password, privkey=tempkey.privkey)
 
-    def format_keys(self):
-        tempkey = Keys(pub=self.pubkey)
-        tempkey.format_keys()
-        self.pubkey = tempkey.pubkey
-        if self.pubkey is not None:
-            self.setKeyDetails()
+        self.keydetails = tempkey.keydetails
 
     def signstring(self, signstring, passkey):
         """
@@ -117,7 +112,3 @@ class lockedKey(object):
         """
         tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
         return tempkey.decrypt(decryptstring=decryptstring)
-
-    def setKeyDetails(self):
-        tempkey =  Keys(pub=self.pubkey)
-        self.keydetails  = tempkey.keydetails

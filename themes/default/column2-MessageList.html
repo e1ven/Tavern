@@ -1,0 +1,107 @@
+    {# Get the messages for the middle column #}
+                        {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
+
+
+                        {% set beforecount = topictool.topicCount(before=subjects[0]['envelope']['local']['time_added'],topic=topic) %}
+                        {% set aftercount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
+                        {% set newbefore = topictool.getbackdate(after=subjects[0]['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
+
+
+
+                        {% if topic is not None %}
+            	            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+            	            	<tr height="10px">
+            	            		<td colspan=2>
+            	            			<hr id="column2HR">
+            	            		</td>
+            	            	</tr>
+            	            	<tr>
+            	                	<td>
+            			            	<h4><a id="column2Topic" href="/topic/{{server.sorttopic(topic)}}">{{topic}}</a>
+                                        </h4>
+            			            </td>
+            			            <td>
+            			        		<h4 id="column2MsgCount">{{topictool.topicCount(topic=topic,toponly=True)}} Messages</h4>
+            			        	</td>
+                                </tr>
+                                <tr>
+                                    <td colspan=2>
+                                        {% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
+                                        {% if server.sorttopic(topic) in sortedtopic %}
+                                            <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
+                                            {% else %}
+                                            <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
+                                        {% end %}
+                                    </td>
+                                </tr>
+            			        <tr>
+            			        	<td>    
+                                        <a href="/topicinfo/{{server.sorttopic(topic)}}">
+            			        		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
+                                            Topic Setting
+            			        			<span class="icon-tools navIcon"></span>
+            			        		   </button>
+                                        </a>
+            			        	</td>
+            			        	<td>
+                                      <a href="/reply/{{server.sorttopic(topic)}}" class="internal">
+                                           <button id="column2ButtonRight" class="column2Buttons" type="button">
+                                            New Message
+                                            <span class="icon-tools navIcon"></span>
+                                           </button>
+                                        </a>
+            	          			</td>
+            	                </tr>
+            	            </table>
+
+
+            	          	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+            	          		<tr>
+            	            		<td valign="top">
+                                        <ul class="messages">
+                                        {% for subject in subjects %}
+                                            <li class="message {%if subject['envelope']['local']['payload_sha512'] == envelope['envelope']['local']['payload_sha512']%} active{% end %}">
+                                                <abbr title="{{subject['envelope']['payload']['subject']}}">
+                                                <a class='internal messagelink' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">
+                                                  <h2><bdi>{{subject['envelope']['payload']['subject']}}</bdi></h2>
+                                                  <span class="bodypreview">{{subject['envelope']['local']['short_body']}}</span> 
+                                                </a>
+                                                {% if 'citedby' in subject['envelope']['local'] %}
+                                                    <div class="replies"><div>{{len(subject['envelope']['local']['citedby'])}}</div></div> 
+                                                {% end %}
+                                                </abbr>
+                                            </li>
+                                        {% end %}
+                                        </ul>
+
+            				          
+                                        <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+                                            <tr>
+                                                <td>   
+                                                    {% if aftercount > 0 %}
+                                                    <a href="/topic/{{topic}}?before={{newbefore}}">
+                                                       <button id="NewerMessages" class="column2Buttons" type="button">
+                                                        Newer Messages
+                                                        <span class="icon-tools navIcon"></span>
+                                                       </button>
+                                                    </a>
+                                                    {% end %}
+                                                </td>
+                                                <td>
+                                                    {% if beforecount > 0 %}
+                                                    <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
+                                                       <button id="OlderMessages" class="column2Buttons" type="button">
+                                                        Older Messages
+                                                        <span class="icon-tools navIcon"></span>
+                                                       </button>
+                                                    </a>
+                                                    {% end %}
+                                                </td>
+                                            </tr>
+                                        </table>
+
+
+            	            		</td>
+            	                </tr>
+            	            </table>
+                        {% end %}

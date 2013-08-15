@@ -356,7 +356,7 @@ class Server(object):
     # Get the next one.
     def GetUnusedUser(self):
         if self.unusedusercache.empty():
-            return self.CreateUnusedUser()
+            return self.usergenerator.CreateUnusedUser()
         else:
             return self.unusedusercache.get()
 
@@ -525,9 +525,9 @@ class Server(object):
 
 
     @memorise(ttl=serversettings.settings['cache']['getUsersPosts']['seconds'], maxsize=serversettings.settings['cache']['getUsersPosts']['size'])
-    def getUsersPosts(self,pubkey):
+    def getUsersPosts(self,pubkey,limit=1000):
         envelopes = []
-        for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey,'envelope.payload.class': 'message'}, limit=limit,sortkey='envelope.local.time_added', sortdirection='descending'):
             messagetext = json.dumps(envelope, separators=(',', ':'))
             e = Envelope()
             e.loadstring(messagetext)

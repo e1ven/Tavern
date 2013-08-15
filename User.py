@@ -322,9 +322,7 @@ class User(object):
             # With the default server key, there will be no way to privkey/way to post.
             if not 'pubkey' in self.UserSettings['keys']['master']:
                 self.UserSettings['keys']['master']['pubkey'] = serversettings.settings['guestacct']['keys']['master']['pubkey']
-            if not 'master' in self.Keys:
-                self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
-            self.UserSettings['status']['guest']  = True
+                self.UserSettings['status']['guest']  = True
         else:    
             self.UserSettings['status']['guest'] = False
             # Make a real key if we don't have one.
@@ -340,11 +338,18 @@ class User(object):
 
                 self.Keys['master'] = lockedKey()
                 self.Keys['master'].generate(password=password)
-                self.Keys['master'].format_keys()
 
                 self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey
                 self.UserSettings['keys']['master']['encryptedprivkey'] = self.Keys['master'].encryptedprivkey
                 self.UserSettings['keys']['master']['time_privkey'] = int(time.time())
+
+
+        # Ensure we have the local .Keys objs, not just the dict versions.
+        if not self.Keys.get('master'):
+            self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
+
+        # Make sure our keys are pretty
+        self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey
 
         if not 'time_created' in self.UserSettings:
             self.UserSettings['time_created'] = int(time.time())
@@ -422,7 +427,6 @@ class User(object):
         self.load_string(filecontents)
 
     def savefile(self, filename=None):
-        self.masterkeys.format_keys()
         if filename is None:
             filename = self.UserSettings['username'] + ".TavernUser"
         filehandle = open(filename, 'w')
@@ -435,30 +439,28 @@ class User(object):
         """
         user = server.db.safe.find_one('users',
                                        {"keys.master.pubkey": pubkey})
-        if user is None:
-            # If the user doesn't exist in our service, he's only someone we've heard about.
-            # We won't know their privkey, so just return their pubkey back out.
-            self.Keys['master'] = Keys(pub=pubkey)
+        if user is not None:
+            # If we find a local user, load in their priv and pub keys.
+            self.load_string(json.dumps(user))
         else:
-            # If we *do* find you locally, load in both Priv and Pubkeys
-            # And load in the user settings.
-            self.UserSettings = user
-            self.Keys['master'] = lockedKey(pub=self.UserSettings['keys']['master']['pubkey'],encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
-        self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey
+            # If the user doesn't exist in our service, he's only someone we've heard about.
+            # We won't know their privkey, so load the pubkey, and then reload the user
+            self.masterkeys = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
+            self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey
+            self.load_string(json.dumps(self.UserSettings))
 
     def load_mongo_by_username(self, username):
         #Local server Only
         user = server.db.safe.find_one('users',
                                        {"username": username})
-        self.UserSettings = user
         self.Keys['master'] = lockedKey(pub=self.UserSettings['keys']['master']['pubkey'], encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
         self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey
+        self.load_string(json.dumps(self.UserSettings))
 
     def savemongo(self):
         if not 'encryptedprivkey' in self.UserSettings['keys']['master']:
             raise Exception("Asked to save a bad user")
 
-        self.Keys['master'].format_keys()
         self.UserSettings['keys']['master']['privkey'] = None
         self.UserSettings['passkey'] = None
         self.UserSettings['keys']['master']['pubkey'] = self.Keys['master'].pubkey

@@ -3,6 +3,7 @@
 
 html {
     height: 100%;
+    font-family:'Source Sans Pro', "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 body {
     height: 100%;
@@ -189,15 +190,7 @@ a.commentDetails
     height:100%;
     vertical-align: top;
     background-repeat: repeat;
-    font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-weight: 300;
-
-    #youravatar{
-        @include border-radius(12px);
-        display:block;
-        margin-left:auto;
-        margin-right:auto;
-    }
 
     .accordion {
         margin: 0;
@@ -289,10 +282,14 @@ a.commentDetails
             > .sub-menu {
                 @extend .sub-element;
                 padding: 0 0 0 0;
-                padding-left: 10px;
+                margin: 0 0 0 0;
+
                 li {
                     @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
-                    border-bottom: 1px solid #2B1306;
+                    font: 12px/32px Arial, sans-serif;
+                    text-decoration: none;
+                    text-shadow: 0px 1px 0px rgba(0,0,0, .35);
+                 
 
                     > a,.textbutton {
                         width:100%;
@@ -305,11 +302,6 @@ a.commentDetails
                         display: block;
                         position: relative;
                         min-width: 110px;
-                        font: 12px/32px Arial, sans-serif;
-                        text-decoration: none;
-                        text-shadow: 0px 1px 0px rgba(0,0,0, .35);
-                     
-                        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 
                         @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
 
@@ -346,9 +338,21 @@ a.commentDetails
                 }
 
                 #login {
+
+                    #youravatar{
+                        @include border-radius(12px);
+                        display:block;
+                        margin-left:auto;
+                        margin-right:auto;
+                    }
+
                     padding-left:15px;
                     padding-top:15px;
                     padding-bottom:15px;
+                    text-shadow:none;
+                    font-weight: 100;
+
+
                 }
 
 
@@ -360,14 +364,13 @@ a.commentDetails
  } // column1
       
  
-#column2 {
+#column2-MessageList {
     min-width: 80px;
     width:320px;
     height:100%;
     vertical-align: top;
     color:$darkgrey;
     background:#fff;
-    font-family:'Source Sans Pro', "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
     font-size:inherit;
     margin:0 auto;
     padding:0;
@@ -566,7 +569,6 @@ a.commentDetails
     #firstMessage {
         margin-left:20px;
         margin-top:35px;
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         background-color: #56504d; 
         background-image: url(/static/images/texture.png);
 
@@ -583,7 +585,6 @@ a.commentDetails
         #firstMessageBody {
             margin-bottom: 18px;
             margin-top: 22px;
-            font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
             color: #ffffff;
             font: 13px;
             line-height: 16px;
@@ -688,7 +689,6 @@ a.commentDetails
     }
          
     .iconLabels {
-        font-family: "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
         font-size: 12px;
         font-weight: bold;
         margin-left: 5px;

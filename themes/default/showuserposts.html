@@ -6,6 +6,8 @@
 <p></p>
 <ul>
 
+{% set envelopes = server.getUsersPosts(thatguy.UserSettings['keys']['master']['pubkey']) %}
+
 {% if len(envelopes) != 0 %}
     {% for envelope in envelopes %}
         {% if envelope.dict['envelope']['payload']['class'] == 'message' %}

@@ -1,85 +1,87 @@
-{% set envelope = stack[0] %}
-{% import datetime %}
-{% set medialink = None %}
-{% set permalink = serversettings.settings['primaryurl'] + '/attachment/' + attachment  %}
+{% extends "dualpane.html" %}
 
-{{preview}}
-<div class="single">
-<h1> General information regarding {{attachment}} </h1>
-
-<br><br>
-<ul>
-
-This file is estimated to be {{round(float(myattach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
-
-
-It was first seen 
- <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
-
-<div class="externalsharing">
-                <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
-                <i class="icon-facebook-squared"></i></a>
-                <a href="http://twitter.com/home?status=Check out this post, via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
-                <i class="icon-twitter-squared"></i></a>
-                <a href="https://plus.google.com/share?url={{permalink}}">
-                <i class="icon-gplus-squared"></i></a>
-                <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}">
-                <i class="icon-pinterest-squared"></i></a>
-                </div>
-</ul>
-<br><br>
-</div> <!-- .single -->
+{% block column2 %}
 
 
 
-{% if preview == True %}
-    <div class="single">
-    <h1> Preview </h1>
+    {% set envelope = stack[0] %}
+    {% import datetime %}
+    {% set medialink = None %}
+    {% set permalink = serversettings.settings['primaryurl'] + '/attachment/' + attachment  %}
+
+    {{preview}}
+    <h1> General information regarding {{attachment}} </h1>
+
     <br><br>
     <ul>
 
-    {% if 'detected_mime' in myattach %}
-        {% if myattach['detected_mime'] in ['video/mp4','video/webm'] %}
-            <video id="my_video_1" class="video-js vjs-default-skin center" controls
-            preload="auto" width="640" height="264"
-            data-setup="{}">
-                <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" type='{{myattach['detected_mime']}}'>
-            </video>
-        {% end %}
-        {% if myattach['detected_mime'] in ['audio/mpeg'] %}
-        <audio preload="auto" class="center">
-          <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
-        </audio>
-        {% end %}
-    {% end %}   
+    This file is estimated to be {{round(float(myattach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
 
 
-    {% if 'displayable' in myattach %}
-        {% if myattach['displayable'] is not False %}
-            <a href="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
-            <img class='center' src="{{serversettings.settings['downloadsurl']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+    It was first seen 
+     <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+
+    <div class="externalsharing">
+                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                    <i class="icon-facebook-squared"></i></a>
+                    <a href="http://twitter.com/home?status=Check out this post, via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                    <i class="icon-twitter-squared"></i></a>
+                    <a href="https://plus.google.com/share?url={{permalink}}">
+                    <i class="icon-gplus-squared"></i></a>
+                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}">
+                    <i class="icon-pinterest-squared"></i></a>
+                    </div>
+    </ul>
+    <br><br>
+
+
+
+    {% if preview == True %}
+        <h1> Preview </h1>
+        <br><br>
+        <ul>
+
+        {% if 'detected_mime' in myattach %}
+            {% if myattach['detected_mime'] in ['video/mp4','video/webm'] %}
+                <video id="my_video_1" class="video-js vjs-default-skin center" controls
+                preload="auto" width="640" height="264"
+                data-setup="{}">
+                    <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" type='{{myattach['detected_mime']}}'>
+                </video>
+            {% end %}
+            {% if myattach['detected_mime'] in ['audio/mpeg'] %}
+            <audio preload="auto" class="center">
+              <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
+            </audio>
+            {% end %}
+        {% end %}   
+
+
+        {% if 'displayable' in myattach %}
+            {% if myattach['displayable'] is not False %}
+                <a href="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
+                <img class='center' src="{{serversettings.settings['downloadsurl']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+            {% end %} 
         {% end %} 
+
+
+        </ul>
+        <br><br>
+
     {% end %} 
 
 
+    <h1> Messages involving Attachment {{attachment}} </h1>
+
+    <p></p>
+
+    <br><br>
+    <ul>
+    {% for envelope in stack %}
+                <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['local']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a>
+                </li>
+    {% end %}
     </ul>
     <br><br>
-    </div> <!-- .single -->
 
-{% end %} 
-
-
-<div class="single">
-<h1> Messages involving Attachment {{attachment}} </h1>
-
-<p></p>
-
-<br><br>
-<ul>
-{% for envelope in stack %}
-            <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['local']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a>
-            </li>
 {% end %}
-</ul>
-<br><br>
-</div> <!-- .single -->

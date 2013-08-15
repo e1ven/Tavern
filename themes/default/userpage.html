@@ -1,25 +1,24 @@
-{% extends "tripane.html" %}
+{% extends "dualpane.html" %}
+
 {% block column2 %}
-{% end %}
 
-{% block column3 %}
-
-    {% set hisname = envelopes[0].dict['envelope']['local']['author']['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
+    {% set hisname = thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
     <h1> Details about {{hisname}} </h1>
 
+
+    <img id="avatar_{{''.join(thatguy.UserSettings['keys']['master']['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['keys']['master']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
+
     {# If it's me, include my settings page #}
-    {% if thatguy.UserSettings['keys']['master']['pubkey'] == me.UserSettings['keys']['master']['pubkey'] %}
+    {% if thatguy.UserSettings['keys']['master']['pubkey'] == user.UserSettings['keys']['master']['pubkey'] %}
         {% include 'mysettings.html' %}
     {% else %}
         <p><a href="/newprivatemessage/{{thatguy.UserSettings['keys']['master']['pubkey']}}">Send {{hisname}} a private message</a></p>
     {% end %}
 
-    <img id="avatar_{{''.join(thatguy.UserSettings['keys']['master']['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['keys']['master']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
-
-    {% set trust = me.gatherTrust(askingabout=thatguy.UserSettings['keys']['master']['pubkey']) %}
-        You <abbr title='{{trust}}'>{{me.translateTrustToWords(trust)}}</abbr> this user.<br>
-        {% set note = me.getNote(thatguy.UserSettings['keys']['master']['pubkey']) %}
+    {% set trust = user.gatherTrust(askingabout=thatguy.UserSettings['keys']['master']['pubkey']) %}
+        You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
+        {% set note = user.getNote(thatguy.UserSettings['keys']['master']['pubkey']) %}
         {% if note is not None %}
             You set the following note about this user:<Br>
             <div class="note"><i>{{note}}</i></div>
@@ -36,4 +35,5 @@
     <Br><br><br>
 
     {% include 'showuserposts.html' %}
+
 {% end %}

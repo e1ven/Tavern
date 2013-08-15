@@ -385,6 +385,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     validkey = True
             if not validkey:
                 newuser = server.GetUnusedUser()
+                
                 self.user = newuser['user']
                 password = newuser['password']
 
@@ -586,7 +587,6 @@ class TopicHandler(BaseHandler):
             title = displayenvelope['envelope']['payload']['subject']
             topic = displayenvelope['envelope']['payload']['topic']
 
-        print(displayenvelope)
         # Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
@@ -858,13 +858,13 @@ class UserHandler(BaseHandler):
 
         u = User()
         u.UserSettings['keys']['master']['pubkey'] = pubkey
-        u.generate(self, GuestKey=True)
+        u.generate(GuestKey=True)
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
 
         self.write(self.render_string(
-            'userpage.html', me=self.user, thatguy=u,topic=None))
+            'userpage.html', thatguy=u,topic=None))
 
         self.write(self.render_string('footer.html'))
 
@@ -1317,7 +1317,6 @@ class NewmessageHandler(BaseHandler):
         else:
             e.payload.dict['class'] = "privatemessage"
             touser = Keys(pub=client_to)
-            touser.format_keys()
             e.payload.dict['to'] = touser.pubkey
             e.payload.dict['body'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=client_body, passkey=self.user.passkey)
 
@@ -1478,7 +1477,6 @@ def main():
 
 
     server.debug = options.debug
-    print(server.debug)
     # Tell the server process to fire up and run for a while.
     server.start()
 

@@ -1,0 +1,82 @@
+{% if not 'topic' in locals() %}
+    {% set topic = 'sitecontent' %}
+{% end %}
+
+                <a href="/"><img id="logo" src="/static/images/logo.png" alt="TAVERN"/></a>
+                
+                <ul class="accordion">      
+
+                    {% if user.UserSettings['status']['guest'] == False %}
+                    <li id="two" class="mainheader"><a href="#">Your Account</a>
+                        <ul  class="sub-element sub-menu">
+                                <div id= "login">
+                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">
+                                            <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['keys']['master']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
+                                        </a>
+                                        {% if user.UserSettings['status']['setpassword'] is not None %}
+                                            <p>You are logged in as: <br>
+                                            <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['username']}}</a>.</p>
+                                        {% else %}
+                                            <p>You've using a <br><a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}"> temporary account</a>.</p>
+                                        {% end %}
+                                        You are posting under the alias:<br>
+                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
+                                </div>
+                                    <li>
+                                        <form action="/logout" method="post">
+                                            {% raw xsrf_form_html() %}
+                                            <input  type="submit" class="textbutton" value="logout">
+                                        </form>
+                                    </li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li id="two" class="mainheader"><a href="#">Register or Login</a>
+                        <ul  class="sub-element">
+                            <div id="login">
+                                <form action="/login" method="post">
+                                  {% raw xsrf_form_html() %}
+                                <p>
+                                Username: <input type="text" name="username">
+                                </p><p>
+                                Password: <input type="password" name="pass">
+                                </p>
+                                <p>
+                                <input type="submit" value="Login">
+                                </p>
+                                </form>
+                            </div>
+                        </ul>
+                    {% end %}
+                    <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
+                        <ul class="sub-element sub-menu">
+                            {% for quicktopic in topictool.toptopics() %}
+                                <li 
+                                {% if server.sorttopic(quicktopic) == server.sorttopic(topic) %} class="active"{% end %} >
+                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
+                                        <bdi>{{quicktopic}}</bdi>
+                                        <span>{{topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
+                                    </a>
+                                </li>
+                            {% end %}
+                        </ul>
+                    </li>
+                    <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
+                        <ul class="sub-element sub-menu">
+                            {% for quicktopic in user.UserSettings['followedTopics'] %}
+                                <li {%if quicktopic == topic %} class="active"{% end %} >
+                                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
+                                </li>
+                            {% end %}
+                        </ul>
+                    </li>
+                    <li id="four" class="mainheader"><a href="#">Special</a>
+                        <ul class="sub-element sub-menu">
+                            <li><a href="/topic/all">All Messages</a></li>
+                            <li><a href="/showtopics">All Topics</a></li>
+                        </ul>
+                    </li>
+<!--                     <li id="five" class="mainheader"><a href="#">All Messages</a></li>
+                    <li id="six" class="mainheader"><a href="#">Extras</a></li> -->
+
+                </ul>

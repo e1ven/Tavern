@@ -81,9 +81,12 @@ class randomWords():
         self.fortunes = []
         fortunes = open(fortunefile, "r", encoding='utf-8')
         line = fortunes.readline()
+        lines = 0
         while line:
+            lines+= 1
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
+        print(str(lines) + " fortunes loaded.")
 
     def random(self):
         """

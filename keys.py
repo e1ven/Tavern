@@ -19,6 +19,7 @@ class Keys(object):
         Create a Key object.
         Pass in either pub=foo, or priv=foo, to use pre-existing keys.
         """
+        print("Starting Keys")
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
@@ -27,6 +28,9 @@ class Keys(object):
         self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'
+
+        self._format_keys()
+
         keyimport = None
         if self.privkey is not None:
             keyimport = self.gpg.import_keys(self.privkey)
@@ -35,7 +39,7 @@ class Keys(object):
         if keyimport is not None:
             if keyimport.count > 0:
                 self.fingerprint = keyimport.fingerprints[0]
-                self.format_keys()
+                self._setKeyDetails()
 
     def __del__(self):
         """
@@ -47,7 +51,7 @@ class Keys(object):
                 shutil.rmtree(self.gnuhome,ignore_errors=True,onerror=None)
 
 
-    def setKeyDetails(self):
+    def _setKeyDetails(self):
         """
         Set the format of the key.
         Format types via https://bitbucket.org/skskeyserver/sks-keyserver/src/4069c369eaaa718c6d4f19427f8f164fb9a1e1f0/packet.ml?at=default#cl-250
@@ -55,7 +59,6 @@ class Keys(object):
 
         self.keydetails = {}
         self.keydetails['format'] = 'gpg'
-
         details = self.gpg.list_keys()[0]
 
         if self.fingerprint != details['fingerprint']:
@@ -101,7 +104,7 @@ class Keys(object):
             self.keydetails['sign'] = False
             self.keydetails['encrypt'] = False
 
-    def format_keys(self):
+    def _format_keys(self):
         """
         Ensure the keys are in the proper format, with linebreaks.
         linebreaks are every 64 characters, and we have a header/footer.
@@ -140,7 +143,6 @@ class Keys(object):
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
 
-            self.setKeyDetails()
 
     def generate(self):
         """
@@ -155,7 +157,8 @@ class Keys(object):
         self.pubkey = self.gpg.export_keys(key.fingerprint)
         self.privkey = self.gpg.export_keys(key.fingerprint, True)
         self.fingerprint = key.fingerprint
-        self.format_keys()
+        self._format_keys()
+        self._setKeyDetails()
 
     def signstring(self, signstring):
         """
@@ -215,7 +218,7 @@ class Keys(object):
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
         recipient = Keys(pub=encrypt_to)
-        recipient.format_keys()
+        recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
         encrypted_string = str(self.gpg.encrypt(data=encryptstring, recipients=[recipient.fingerprint], always_trust=True, armor=True))
         self.gpg.delete_keys(recipient.fingerprint)
@@ -234,7 +237,7 @@ class Keys(object):
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
         recipient = Keys(pub=encrypt_to)
-        recipient.format_keys()
+        recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
         tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
@@ -255,11 +258,11 @@ class Keys(object):
         """
         Verify the signing/verification engine works as expected
         """
-        self.format_keys()
+        self._format_keys()
         return self.verify_string(stringtoverify="ABCD1234", signature=self.signstring("ABCD1234"))
 
     def test_encryption(self):
-        self.format_keys()
+        self._format_keys()
         recipient = Keys()
         recipient.generate()
         test_string = "foo"
