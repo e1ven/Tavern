@@ -1472,7 +1472,7 @@ def main():
         serversettings.settings['guestacct'] = serveruser.UserSettings
         serversettings.saveconfig()
 
-    if options.loglevel is not "UNSET":
+    if options.loglevel != "UNSET":
         serversettings.settings['temp']['loglevel'] = options.loglevel
         serversettings.settings['temp']['writelog'] = options.writelog
 

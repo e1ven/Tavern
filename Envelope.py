@@ -204,25 +204,25 @@ class Envelope(object):
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
 
-            if stamp ['keydetails']:
+            if 'keydetails' not in stamp:
                 server.logger.debug("Key information is unavailable.")
                 return False
                 
-            if stamp['keydetails']['format'] is not 'gpg':
+            if stamp['keydetails']['format'] != 'gpg':
                 server.logger.debug("Key not in acceptable container format.")
                 return False
 
-            if stamp['keydetails']['algorithm'] is not in ['ElGamal','RSA','DSA']:
+            if stamp['keydetails']['algorithm'] not in ['ElGamal','RSA','DSA']:
                 server.logger.debug(
                     "Key does not use an acceptable algorithm.")
                 return False
             
             if stamp['keydetails']['algorithm'] in ['ElGamal','RSA','DSA']:
-                if stamp['keydetails']['length'] < 2048:
+                if int(stamp['keydetails']['length']) < 2048:
                     server.logger.debug("Key is too small.")
                     return False
             elif stamp['keydetails']['algorithm'] is 'ECDSA':
-                if stamp['keydetails']['length'] < 233:
+                if int(stamp['keydetails']['length']) < 233:
                     server.logger.debug("Key is too small.")
                     return False
 
@@ -257,11 +257,11 @@ class Envelope(object):
             if not 'name' in  self.dict['envelope']['payload']['author']['useragent']:
                 server.logger.debug("If you supply a user agent, it must have a valid name")
                 return False
-            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) or isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
+            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) and not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
                     server.logger.debug(
                         "Bad Useragent version must be a float or integer")
                     return False
-        except:
+        else:
             server.logger.debug("Bad Useragent")
             return False
 

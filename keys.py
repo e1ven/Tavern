@@ -47,7 +47,7 @@ class Keys(object):
                 shutil.rmtree(self.gnuhome,ignore_errors=True,onerror=None)
 
 
-    def setKeyDetails(self,key):
+    def setKeyDetails(self):
         """
         Set the format of the key.
         Format types via https://bitbucket.org/skskeyserver/sks-keyserver/src/4069c369eaaa718c6d4f19427f8f164fb9a1e1f0/packet.ml?at=default#cl-250
@@ -58,7 +58,7 @@ class Keys(object):
 
         details = self.gpg.list_keys()[0]
 
-        if self.fingerprint != details['fingerprint']
+        if self.fingerprint != details['fingerprint']:
             raise Exception('KeyError', 'Key not found in keyring.')
 
         self.keydetails['length'] = details['length']
@@ -116,7 +116,6 @@ class Keys(object):
             self.privkey = self.privkey.replace("-----BEGINPGPPRIVATEKEYBLOCK-----", "-----BEGIN PGP PRIVATE KEY BLOCK-----")
             self.privkey = self.privkey.replace("-----ENDPGPPRIVATEKEYBLOCK-----", "-----END PGP PRIVATE KEY BLOCK-----")
 
-        if self.privkey is not None:
             if "-----BEGIN PGP PRIVATE KEY BLOCK-----" in self.privkey:
                 noHeaders = self.privkey[self.privkey.find("-----BEGIN PGP PRIVATE KEY BLOCK-----") + 36:self.privkey.find("-----END PGP PRIVATE KEY BLOCK-----")]
             else:
@@ -141,7 +140,7 @@ class Keys(object):
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
 
-        self.setKeyDetails()
+            self.setKeyDetails()
 
     def generate(self):
         """

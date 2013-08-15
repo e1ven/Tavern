@@ -69,7 +69,7 @@ class UserGenerator(object):
         # Generate a random password with a random number of characters
         numcharacters = 100 + TavernUtils.randrange(1, 100)
         password = TavernUtils.randstr(numcharacters)
-        u.generate(forceUnique=True, password=password)
+        u.generate(GuestKey=False, password=password)
         unuseduser = {'user':u,'password':password}
         return unuseduser
 

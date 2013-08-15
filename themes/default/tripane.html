@@ -27,7 +27,7 @@
                                     <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">
                                         <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['keys']['master']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                                     </a>
-                                    {% if user.UserSettings['status']['setpassword'] is not None: %}
+                                    {% if user.UserSettings['status']['setpassword'] is not None %}
                                         You are logged in as: <br>
                                         <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['username']}}</a>.<br>
                                     {% else %}

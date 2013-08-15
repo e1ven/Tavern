@@ -30,7 +30,7 @@
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="-100">
                                 <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['payload']['local']['pubkey']}}">
+                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                 <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                             </form>
                         </div>

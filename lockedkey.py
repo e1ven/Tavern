@@ -29,6 +29,9 @@ class lockedKey(object):
             self.encryptedprivkey = self.__encryptprivkey(
                 password=password, privkey=tempkey.privkey)
 
+        if self.pubkey is not None:
+            self.setKeyDetails()
+
     def __encryptprivkey(self, password, privkey):
         """
         Internal-only method to encrypt the private key.
@@ -83,6 +86,8 @@ class lockedKey(object):
         tempkey = Keys(pub=self.pubkey)
         tempkey.format_keys()
         self.pubkey = tempkey.pubkey
+        if self.pubkey is not None:
+            self.setKeyDetails()
 
     def signstring(self, signstring, passkey):
         """
@@ -112,3 +117,7 @@ class lockedKey(object):
         """
         tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
         return tempkey.decrypt(decryptstring=decryptstring)
+
+    def setKeyDetails(self):
+        tempkey =  Keys(pub=self.pubkey)
+        self.keydetails  = tempkey.keydetails

@@ -29,7 +29,7 @@ class User(object):
         Gets the current communication key.
         If one does not exist, it creates one.
         """
-        
+
 
     def randstr(self, length):
         # Random.randint isn't secure, use the OS urandom instead.
@@ -375,9 +375,8 @@ class User(object):
 
         # Set Friendlyname to most recent post, or Anonymous for lurkers
         if not 'friendlyname' in self.UserSettings:
-            self.UserSettings['status']['guest'] == False:
+            if self.UserSettings['status']['guest'] == False:
                 # They're registered, they may have posted.
-                self.UserSettings['status']['friendlyname'] 
                 posts = server.getUsersPosts(self.UserSettings['keys']['master']['pubkey'])
                 if len(posts) > 0:
                     self.UserSettings['friendlyname'] = posts[0].dict['envelope']['local']['author']['friendlyname']
