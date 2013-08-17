@@ -277,8 +277,12 @@ class Server(object):
             self.logger.info("Generating new Config")
             self.ServerKeys = Keys()
             self.ServerKeys.generate()
+
+            # We can't encrypt this.. We'd need to store the key here on the machine...
+            # If you're worried about it, encrypt the disk, or use a loopback.
             serversettings.settings['pubkey'] = self.ServerKeys.pubkey
             serversettings.settings['privkey'] = self.ServerKeys.privkey
+
             serversettings.updateconfig()
             serversettings.saveconfig()
             
@@ -336,9 +340,31 @@ class Server(object):
 
         self.logger.info("Logging Server started at level: " +  level)
 
+
+        if not 'guestacct' in serversettings.settings:
+            self.logger.info("Generating a Guest user acct.")
+            
+            tmpdict = self.GetUnusedUser()
+            server.guestacct = tmpdict['user']
+            oldpassword = tmpdict['password']
+
+            # Change it's password, to be extra-safe
+            numcharacters = 100 + TavernUtils.randrange(1, 100)
+            newpassword = TavernUtils.randstr(numcharacters)
+            self.guestacct.changepass(oldpasskey=server.guestacct.Keys['master'].passkey(oldpassword),newpassword=newpassword)
+
+            serversettings.settings['guestacct'] = {}
+            serversettings.settings['guestacct']['pubkey'] = self.guestacct.Keys['master'].pubkey
+            serversettings.saveconfig()
+            self.guestacct.savemongo()
+        else:
+            self.logger.info("Loading the Guest user acct.")
+            self.guestacct = User()
+            self.guestacct.load_mongo_by_pubkey(serversettings.settings['guestacct']['pubkey'])
+
                     
         # Pregenerate some users in the background.
-        self.usergenerator.start()
+        #self.usergenerator.start()
 
     def stop(self):
         """
@@ -356,6 +382,7 @@ class Server(object):
     # Get the next one.
     def GetUnusedUser(self):
         if self.unusedusercache.empty():
+            self.logger.info("Empty user cache. Generating user on the fly..")
             return self.usergenerator.CreateUnusedUser()
         else:
             return self.unusedusercache.get()

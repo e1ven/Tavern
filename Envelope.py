@@ -187,12 +187,7 @@ class Envelope(object):
         for stamp in stamps:
             if stamp['class'] == "author":
                 foundauthor += 1
-                # Ensure that the Author stamp matches the Author in the Payload section!
-                if stamp['pubkey'] != self.dict['envelope']['payload']['author']['pubkey']:
-                    server.logger.debug(
-                        "Author stamp must match payload author key.")
-                    return False
-
+                
         if foundauthor == 0:
             server.logger.debug("No author stamp.")
             return False
@@ -460,11 +455,12 @@ class Envelope(object):
         """
 
 
-        if passkey != None:
-            signature = keys.signstring(self.payload.text(), passkey)
-        else:
+        if passkey is None:
+            # Unsigned keys. No passkey needed.
             signature = keys.signstring(self.payload.text())
-
+        else:
+            signature = keys.signstring(self.payload.text(), passkey)
+        
 
         # Generate the full stamp obj we will insert.
         fullstamp = {}

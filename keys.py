@@ -8,6 +8,7 @@ import functools
 import gnupg
 import tempfile
 import shutil
+import time
 import TavernUtils
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
@@ -19,7 +20,6 @@ class Keys(object):
         Create a Key object.
         Pass in either pub=foo, or priv=foo, to use pre-existing keys.
         """
-        print("Starting Keys")
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
@@ -159,6 +159,7 @@ class Keys(object):
         self.fingerprint = key.fingerprint
         self._format_keys()
         self._setKeyDetails()
+        self.generated = int(time.time())
 
     def signstring(self, signstring):
         """

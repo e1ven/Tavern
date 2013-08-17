@@ -248,4 +248,6 @@ class ServerSettings():
         if not 'proof-of-work-difficulty' in self.settings:
             self.settings['proof-of-work-difficulty'] = 19
 
+
+
 serversettings = ServerSettings()

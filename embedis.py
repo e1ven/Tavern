@@ -98,7 +98,7 @@ class embedis:
         """
         Retrieve the Avatar from Robohash.org, for use in the datauri embed.
         """
-        if datauri == True:
+        if datauri:
             try:
                 f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=' + str(width) + 'x' + str(height))
                 return f.read()

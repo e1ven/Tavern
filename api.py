@@ -89,6 +89,7 @@ class MessageHandler(BaseHandler):
 
         envelope = server.db.unsafe.find_one(
             'envelopes', {'envelope.local.payload_sha512': client_message_id})
+        
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)

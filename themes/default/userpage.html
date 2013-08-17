@@ -6,19 +6,19 @@
     <h1> Details about {{hisname}} </h1>
 
 
-    <img id="avatar_{{''.join(thatguy.UserSettings['keys']['master']['pubkey'].split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.UserSettings['keys']['master']['pubkey'].split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
+    <img id="avatar_{{''.join(thatguy.Keys['master'].pubkey.split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.Keys['master'].pubkey.split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
     {# If it's me, include my settings page #}
-    {% if thatguy.UserSettings['keys']['master']['pubkey'] == user.UserSettings['keys']['master']['pubkey'] %}
+    {% if thatguy.Keys['master'].pubkey == user.Keys['master'].pubkey %}
         {% include 'mysettings.html' %}
     {% else %}
-        <p><a href="/newprivatemessage/{{thatguy.UserSettings['keys']['master']['pubkey']}}">Send {{hisname}} a private message</a></p>
+        <p><a href="/newprivatemessage/{{thatguy.Keys['master'].pubkey}}">Send {{hisname}} a private message</a></p>
     {% end %}
 
 
-    {% set trust = user.gatherTrust(askingabout=thatguy.UserSettings['keys']['master']['pubkey']) %}
+    {% set trust = user.gatherTrust(askingabout=thatguy.Keys['master'].pubkey) %}
         You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
-        {% set note = user.getNote(thatguy.UserSettings['keys']['master']['pubkey']) %}
+        {% set note = user.getNote(thatguy.Keys['master'].pubkey) %}
         {% if note is not None %}
             You set the following note about this user:<Br>
             <div class="note"><i>{{note}}</i></div>
@@ -28,7 +28,7 @@
             Set a note about this user:<Br>
             <form action="/usernote" method="post" class="usernote">
                  {% raw xsrf_form_html() %}
-                <input type="hidden" name="pubkey" value="{{thatguy.UserSettings['keys']['master']['pubkey']}}">
+                <input type="hidden" name="pubkey" value="{{thatguy.Keys['master'].pubkey}}">
                 <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
             </form>
 

@@ -1,8 +1,7 @@
-
 from keys import Keys
 import scrypt
 import base64
-
+import time
 
 class lockedKey(object):
     """
@@ -32,12 +31,19 @@ class lockedKey(object):
         if hasattr(tempkey, 'keydetails'):
             self.keydetails = tempkey.keydetails
 
-    def __encryptprivkey(self, password, privkey):
+    def __encryptprivkey(self, privkey, password=None,passkey=None):
         """
         Internal-only method to encrypt the private key.
         """
-        key = scrypt.encrypt(input=privkey, password=self.passkey(
-            password), maxtime=self.maxtime_create)
+
+        if password is None and passkey is None:
+            raise Exception('KeyError', 'Invalid call to encryptedprivkey')
+
+        if password is not None:
+            key = scrypt.encrypt(input=privkey, password=self.passkey(password), maxtime=self.maxtime_create)
+        elif passkey is not None:
+            key = scrypt.encrypt(input=privkey, password=passkey, maxtime=self.maxtime_create)
+
         return base64.b64encode(key).decode('utf-8')
 
 
@@ -64,25 +70,35 @@ class lockedKey(object):
         """
         byteprivatekey = base64.b64decode(
             self.encryptedprivkey.encode('utf-8'))
-        return scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
+        result =  scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
+        return result
 
-    def changepass(self, oldpasskey, newpass):
+
+    def changepass(self, oldpasskey, newpassword):
         privkey = self.privkey(oldpasskey)
         self.encryptedprivkey = self.__encryptprivkey(
-            password=newpass, privkey=privkey)
+            password=newpassword, privkey=privkey)
 
-    def generate(self, password):
+    def generate(self, password=None,passkey=None):
         """
         Generate a new set of keys.
         Store only the encrypted version
         """
+
+        if password is None and passkey is None:
+            raise Exception('KeyError', 'Invalid call to generate()')
+
         tempkey = Keys()
         tempkey.generate()
         self.pubkey = tempkey.pubkey
-        self.encryptedprivkey = self.__encryptprivkey(
-            password=password, privkey=tempkey.privkey)
+        if password is not None:
+            self.encryptedprivkey = self.__encryptprivkey(password=password, privkey=tempkey.privkey)
+        elif passkey is not None:
+            self.encryptedprivkey = self.__encryptprivkey(passkey=passkey, privkey=tempkey.privkey)
 
         self.keydetails = tempkey.keydetails
+        self.generated = int(time.time())
+
 
     def signstring(self, signstring, passkey):
         """

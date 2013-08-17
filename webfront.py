@@ -31,7 +31,10 @@ import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
 from UserGenerator import UserGenerator
-import inspect, sys
+import inspect
+import sys
+import lockedkey
+
 try:
     from hashlib import md5 as md5_func
 except ImportError:
@@ -97,7 +100,7 @@ class BaseHandler(tornado.web.RequestHandler):
             self.browser = server.browserdetector.parse(ua)
         else:
             self.browser = server.browserdetector.parse("Unknown") 
-    
+
     # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name, **kwargs):
         """
@@ -299,8 +302,17 @@ class BaseHandler(tornado.web.RequestHandler):
         Saves out the current userobject to a cookie, or series of cookies.
         These are encrypted using the built-in Tornado cookie encryption.
         """
+
+
+        print("Running Setvars..")
+
+
+        self.user.presave_clean()
+
         # Zero out the stuff in 'local', since it's big.
         usersettings = self.user.UserSettings
+        usersettings['local'] = []
+
 
         # Create the Cookie value, and sign it.
         signed = self.create_signed_value("tavern_preferences", json.dumps(
@@ -355,33 +367,30 @@ class BaseHandler(tornado.web.RequestHandler):
                 "tavern_preferences", value=restoredcookie)
             if not isinstance(decodedcookie, str):
                 decodedcookie = decodedcookie.decode('utf-8')
-
-            if decodedcookie is not None:
-                self.user.load_string(decodedcookie)
-            else:
-                # We shouldn't get here.
-                server.logger.info("Cookie doesn't validate. Deleting...")
-                self.clear_cookie('tavern_preferences')
-                self.clear_cookie('tavern_preferences1')
-                self.clear_cookie('tavern_preferences2')
-                self.clear_cookie('tavern_preferences3')
-                self.clear_cookie('tavern_preferences_count')
-                self.clear_cookie('tavern_passkey')
+            try:
+                if decodedcookie is not None:
+                    self.user.load_string(decodedcookie)
+            except:
+                # We shouldn't get here. Kill cookies, reset the user to fresh.
+                server.logger.info("Cookie doesn't validate. Noping the heck out of here." + str(e = sys.exc_info()[0]))
+                self.clear_all_cookies()                
+                self.set_cookie("_xsrf",self.xsrf_token)
+                self.user = User()
 
         # If there isn't already a cookie, make a very basic one.
         # Don't bother doing the keys, since that eats randomness.
         # Not an else, so we can be triggered by corrupt cookie above.
         if self.get_secure_cookie("tavern_preferences_count") is None:
             server.logger.debug("Making cookies")
-            self.user.generate(GuestKey=True)
-            self.setvars()
+            if self.user.generate(GuestKey=True):
+                self.setvars()
 
         # If a method has asked us to ensure a user is full, with a privkey and everything, do so.
         # This is done here, rather than in user, so we can save the passkey out to a cookie.
         if ensurekeys == True:
             validkey = False
-            if 'encryptedprivkey' in self.user.UserSettings['keys']['master']:
-                if self.user.UserSettings['keys']['master']['encryptedprivkey'] is not None:
+            if isinstance(self.user.Keys['master'],lockedkey.lockedKey):
+                if self.user.UserSettings['status'].get('guest') == False:
                     validkey = True
             if not validkey:
                 newuser = server.GetUnusedUser()
@@ -389,19 +398,17 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user = newuser['user']
                 password = newuser['password']
 
-                # ensure user is fleshed out
+                # ensure user is fleshed out. Ignore t/f return, we KNOW it's new.
                 self.user.generate()
-
-                # Save it out.
                 self.setvars()
                 self.user.savemongo()
+
+                # Save our Passkey to a cookie, and ensure it's set for future options. in this HTTP request.
                 self.set_secure_cookie('tavern_passkey', self.user.Keys['master'].passkey(password), httponly=True, expires_days=999)
                 self.user.passkey = self.user.Keys['master'].passkey(password)
 
-            if not hasattr(self.user, 'passkey'):
-                self.user.passkey = self.get_secure_cookie('tavern_passkey')
-            if self.user.passkey is None:
-                self.user.passkey = self.get_secure_cookie('tavern_passkey')
+        if self.user.passkey is None:
+            self.user.passkey = self.get_secure_cookie('tavern_passkey')
 
         # Ensure we have any missing fields.
         self.user.generate(GuestKey=True)
@@ -426,7 +433,9 @@ class BaseHandler(tornado.web.RequestHandler):
             elif self.get_argument("datauri").lower() == 'false':
                 self.user.datauri = False
 
+
         return self.user.UserSettings['username']
+
 
     def write_error(self, status_code, **kwargs):
         """
@@ -557,7 +566,6 @@ class TopicHandler(BaseHandler):
         divs = ['scrollablediv2','scrollablediv3']
 
         topic = tornado.escape.xhtml_escape(topic)
-
         # Used for multiple pages, because skip() is slow
         # Don't really need xhtml escape, since we're converting to a float
         if "before" in self.request.arguments:
@@ -577,7 +585,6 @@ class TopicHandler(BaseHandler):
             title = topic
         else:
             title = "Discuss what matters"
-
         topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
         if len(topicEnvelopes) > 0:
             displayenvelope = topicEnvelopes[0]
@@ -586,7 +593,6 @@ class TopicHandler(BaseHandler):
             canon = None
             title = displayenvelope['envelope']['payload']['subject']
             topic = displayenvelope['envelope']['payload']['topic']
-
         # Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
@@ -594,7 +600,6 @@ class TopicHandler(BaseHandler):
         self.write(self.render_string('footer.html'))
 
         self.finish(divs=divs)
-
 
 class ShowTopicsHandler(BaseHandler):
     def get(self, start=0):
@@ -836,7 +841,7 @@ class ChangepasswordHandler(BaseHandler):
 
         # Encrypt the the privkey with the new password
         self.user.changepass(
-            oldpasskey=client_oldpasskey, newpass=client_newpass)
+            oldpasskey=client_oldpasskey, newpassword=client_newpass)
 
         # Set the Passkey, to be able to unlock the Privkey
         self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(
@@ -856,9 +861,11 @@ class UserHandler(BaseHandler):
         pubkey = urllib.parse.unquote(pubkey)
         pubkey = Keys(pub=pubkey).pubkey
 
+        # Generate a clean user obj with that pubkey and nothing else.
         u = User()
+
         u.UserSettings['keys']['master']['pubkey'] = pubkey
-        u.generate(GuestKey=True)
+        u.load_string(u.dumps(self.UserSettings))
 
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
@@ -1459,17 +1466,6 @@ def main():
     socket.setdefaulttimeout(timeout)
     server.logger.info(
         "Starting Web Frontend for " + serversettings.settings['hostname'])
-
-    # Generate a default user, to use when no one is logged in.
-    # This can't be done in the Server module, because it requires User, which requires Server, which can't then require User....
-    if not 'guestacct' in serversettings.settings:
-    
-        server.logger.info("NO GUEST...?")
-        serveruser = User()
-        serveruser.generate(GuestKey=False,password=serversettings.settings[
-                            'serverkey-password'])
-        serversettings.settings['guestacct'] = serveruser.UserSettings
-        serversettings.saveconfig()
 
     if options.loglevel != "UNSET":
         serversettings.settings['temp']['loglevel'] = options.loglevel

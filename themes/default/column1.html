@@ -10,17 +10,17 @@
                     <li id="two" class="mainheader"><a href="#">Your Account</a>
                         <ul  class="sub-element sub-menu">
                                 <div id= "login">
-                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">
-                                            <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.UserSettings['keys']['master']['pubkey'].split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
+                                        <a href="/user/{{user.Keys['master'].pubkey}}">
+                                            <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.Keys['master'].pubkey.split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                                         </a>
                                         {% if user.UserSettings['status']['setpassword'] is not None %}
                                             <p>You are logged in as: <br>
-                                            <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['username']}}</a>.</p>
+                                            <a href="/user/{{user.Keys['master'].pubkey}}">{{user.UserSettings['username']}}</a>.</p>
                                         {% else %}
-                                            <p>You've using a <br><a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}"> temporary account</a>.</p>
+                                            <p>You've using a <br><a href="/user/{{user.Keys['master'].pubkey}}"> temporary account</a>.</p>
                                         {% end %}
                                         You are posting under the alias:<br>
-                                        <a href="/user/{{user.UserSettings['keys']['master']['pubkey']}}">{{user.UserSettings['friendlyname']}}</a>
+                                        <a href="/user/{{user.Keys['master'].pubkey}}">{{user.UserSettings['friendlyname']}}</a>
                                 </div>
                                     <li>
                                         <form action="/logout" method="post">

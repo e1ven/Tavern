@@ -1,3 +1,4 @@
+
 {% import Envelope %}
 {% set envelope = Envelope.Envelope() %}
 {% if not envelope.loaddict(edict) %}
@@ -131,7 +132,7 @@
                     <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
-                    {% if user.UserSettings['keys']['master']['pubkey'] == envelope.dict['envelope']['local']['author']['pubkey'] %}
+                    {% if user.Keys['master'].pubkey == envelope.dict['envelope']['local']['author']['pubkey'] %}
                         <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                             Edit
                         </a>
