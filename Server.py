@@ -306,6 +306,17 @@ class Server(object):
         self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
 
 
+        # Define out logging options.
+        formatter = logging.Formatter('[%(levelname)s] %(message)s')
+        self.consolehandler = logging.StreamHandler()
+        self.consolehandler.setFormatter(formatter)
+        self.handler_file = logging.FileHandler(filename=serversettings.settings['logfile'])
+        self.handler_file.setFormatter(formatter)
+
+        self.logger.setLevel(serversettings.settings['loglevel'])
+        level = serversettings.settings['loglevel']
+
+
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
         self.logger.info("Cached JS")
@@ -322,23 +333,11 @@ class Server(object):
         self.browserdetector = UASparser()
         self.usergenerator = UserGenerator.UserGenerator()
 
-        # Allow the log level to be overridden on the command line
-        if 'loglevel' in serversettings.settings['temp']:
-            self.logger.setLevel(serversettings.settings['temp']['loglevel'])
-            level = serversettings.settings['temp']['loglevel']
-        else:
-            self.logger.setLevel(serversettings.settings['loglevel'])
-            level = serversettings.settings['loglevel']
-
-        consolelog = None
-        if 'writelog' in serversettings.settings['temp']:
-            if serversettings.settings['temp']['writelog'] is False:
-                logging.basicConfig(stream=sys.stdout)
-                consolelog = 'stdout'
-        if consolelog == None:
-            logging.basicConfig(filename=serversettings.settings['logfile'])
-
-        self.logger.info("Logging Server started at level: " +  level)
+        # Start actually logging to file or console
+        if self.debug == True:
+            self.logger.addHandler(self.consolehandler)
+        self.logger.addHandler(self.handler_file)
+        print("Logging Server started at level: " +  str(self.logger.getEffectiveLevel()))
 
 
         if not 'guestacct' in serversettings.settings:
@@ -426,7 +425,6 @@ class Server(object):
     def receiveEnvelope(self, envelope):
         c = Envelope()
         c.loadstring(importstring=envelope)
-
 
         # Fill-out the message's local fields. 
         c.munge()

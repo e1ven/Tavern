@@ -358,21 +358,24 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.get_secure_cookie("tavern_preferences_count") is not None:
             # Restore the signed cookie, across many chunks
             restoredcookie = ""
-            for i in range(1, 1 + int(self.get_secure_cookie("tavern_preferences_count"))):
-                restoredcookie += self.get_cookie(
-                    "tavern_preferences" + str(i))
+            count = int(self.get_secure_cookie("tavern_preferences_count"))
+            for i in range(1, 1 + count):
+                if self.get_cookie("tavern_preferences" + str(i)) is not None:
+                    restoredcookie += self.get_cookie(  
+                        "tavern_preferences" + str(i))
+                else:
+                    restoredcookie = "ERROR"
+                    break
 
             # Validate the cookie, and load if it passes
             decodedcookie = self.get_secure_cookie(
                 "tavern_preferences", value=restoredcookie)
-            if not isinstance(decodedcookie, str):
-                decodedcookie = decodedcookie.decode('utf-8')
             try:
-                if decodedcookie is not None:
-                    self.user.load_string(decodedcookie)
+                decodedcookie = decodedcookie.decode('utf-8')
+                self.user.load_string(decodedcookie)
             except:
                 # We shouldn't get here. Kill cookies, reset the user to fresh.
-                server.logger.info("Cookie doesn't validate. Noping the heck out of here." + str(e = sys.exc_info()[0]))
+                server.logger.info("Cookie doesn't validate. Noping the heck out of here." + str(sys.exc_info()[0]))
                 self.clear_all_cookies()                
                 self.set_cookie("_xsrf",self.xsrf_token)
                 self.user = User()
@@ -863,10 +866,7 @@ class UserHandler(BaseHandler):
 
         # Generate a clean user obj with that pubkey and nothing else.
         u = User()
-
-        u.UserSettings['keys']['master']['pubkey'] = pubkey
-        u.load_string(u.dumps(self.UserSettings))
-
+        u.load_pubkey_only(pubkey)
         self.write(self.render_string('header.html', title="User page",
                                       rsshead=None, type=None))
 
@@ -980,7 +980,7 @@ class RatingHandler(BaseHandler):
 
         #TODO - set comm key
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
+        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}
@@ -1056,7 +1056,7 @@ class UserTrustHandler(BaseHandler):
         #Instantiate the user who's currently logged in
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
+        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}
@@ -1341,7 +1341,7 @@ class NewmessageHandler(BaseHandler):
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['pubkey'] = self.user.Keys['master'].pubkey
+        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
         e.payload.dict['author']['useragent'] = {}

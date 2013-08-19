@@ -78,14 +78,15 @@ def loaddir(directory=None,topic='sitecontent'):
     """
     Load in a directory full of Tavern Messages.
     """
-    print(directory)
     if directory == None:
         directory = msgsdir + topic
+    print("Using directory: " + directory)
     
     listing = os.listdir(directory)
     e = Envelope()
 
     for infile in listing:
+        print(infile)
         e.loadfile(directory + "/" + infile)
         if args.verbose:
             print(e.text())
@@ -101,9 +102,11 @@ def main():
         parser.print_help()
         sys.exit(1)
 
-
     print("Starting server for message-processing...")
     server.start()
+
+    server.logger.setLevel("DEBUG")
+    server.logger.addHandler(server.consolehandler)
 
     # Save files to the local HD.
     if args.dump:

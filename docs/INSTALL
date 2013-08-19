@@ -89,8 +89,8 @@ pip3 install -r requirements.txt
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
 # This is not included in git because it is 17M, and frequently updated.
 mkdir -p /opt/Tavern/data
-curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  /opt/Tavern/data/GeoIPCity.dat.gz
-gunzip /opt/Tavern/data/GeoIPCity.dat.gz
+curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  data/GeoIPCity.dat.gz
+gunzip data/GeoIPCity.dat.gz
 
 
 # There is a list of user agents included in the Tavern 'data' directory.

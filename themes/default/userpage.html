@@ -12,7 +12,9 @@
     {% if thatguy.Keys['master'].pubkey == user.Keys['master'].pubkey %}
         {% include 'mysettings.html' %}
     {% else %}
-        <p><a href="/newprivatemessage/{{thatguy.Keys['master'].pubkey}}">Send {{hisname}} a private message</a></p>
+        {% if thatguy.get_current_commkey() is not None %}
+            <p><a href="/newprivatemessage/{{thatguy.get_current_commkey()}}">Send {{hisname}} a private message</a></p>
+        {% end %}
     {% end %}
 
 

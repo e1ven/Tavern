@@ -13,21 +13,24 @@ from TavernUtils import memorise
 from ServerSettings import serversettings
 import time
 import datetime
+import calendar
+
 import math
 from keys import Keys
 
 class User(object):
 
-    def __init__(self,pubkey=None):
+    def __init__(self):
         self.UserSettings = {}
         self.UserSettings['followedUsers'] = []
         self.UserSettings['followedTopics'] = []
         self.UserSettings['status'] = {}
         self.UserSettings['keys'] = {}
-        self.UserSettings['keys']['master'] = None
+        self.UserSettings['keys']['master'] = {}
         self.passkey = None
         self.Keys = {}
         self.Keys['posted'] = []
+        self.Keys['secret'] = []
         self.Keys['master'] = None
 
     def get_current_commkey(self):
@@ -35,8 +38,11 @@ class User(object):
         Gets the current communication key.
         If one does not exist, it creates one.
         """
-        print("nope!")
-
+        posts = server.getUsersPosts(self.Keys['master'].pubkey)
+        if len(posts) > 0:
+            return posts[0].dict['envelope']['payload']['author']['replyto']
+        else:
+            return None
 
     def randstr(self, length):
         # Random.randint isn't secure, use the OS urandom instead.
@@ -352,22 +358,32 @@ class User(object):
             if len(self.Keys['posted']) > 0:
                 # Sort the keys that we've already posted, highest expires first.
                 self.Keys['posted'].sort(key=lambda e: (e.expires),reverse=True)
-                # Calculate a time 2 weeks in the future
-                futuretimedate = datetime.datetime.now() + datetime.timedelta(days=14)
-                futuredate =  time.mktime(futuretimedate.timetuple())            
-                curkey = self.Keys['posted'][-1]
-                if curkey.expires > futuredate:
-                    validcommkey = True
+                
+                # Are we still in the same month we generated the key in?
+                gen_month = datetime.datetime.fromtimestamp(self.Keys['posted'][-1].generated).month
+                gen_year = datetime.datetime.fromtimestamp(self.Keys['posted'][-1].generated).year
+                if gen_year == datetime.datetime.now().year:
+                    if gen_month == datetime.datetime.now().month:
+                        validcommkey = True
 
             # Either we have no key, or an old one.
             if validcommkey == False:
                 print("Generating new posted key")
                 newkey = lockedKey()
-                newkey.generate(passkey = self.passkey)   
-                # Calculate a time 60 days in the future
-                futuretimedate = datetime.datetime.now() + datetime.timedelta(days=60)
-                futuredate =  time.mktime(futuretimedate.timetuple())
-                newkey.expires = futuredate
+                newkey.generate(passkey = self.passkey) 
+
+                # We want the key to expire on the last second of NEXT month.
+                # So if it's currently Oct 15, we want the answer Nov31-23:59:59
+                # This makes it harder to pin down keys by when they were generated, since it's not based on current time
+                
+                number_of_days_this_month =  calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month)[1]
+                number_of_days_next_month = calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month + 1)[1]
+                two_months = datetime.datetime.now() + datetime.timedelta(days = number_of_days_this_month + number_of_days_next_month)
+                expiresdate = datetime.date(two_months.year, two_months.month, 1) - datetime.timedelta (days = 1)
+                expiresdatetime = datetime.datetime.combine(expiresdate,datetime.time.max)
+                expirestamp = calendar.timegm(expiresdatetime.utctimetuple())
+                
+                newkey.expires = expirestamp
                 self.Keys['posted'].append(newkey)
                 anychages = True
 
@@ -433,6 +449,18 @@ class User(object):
 
         return anychanges
 
+    def decrypt(text,passkey):
+        """
+        Decrypt a message sent to me, using one of my communication keys.
+
+        Note - We don't try to decrypt using the master key, even though it's technically possible.
+        This is intentional, so that other clients don't start sending PMs to the master key, and compromise security.
+        """
+        for key in self.Keys['posted']:
+            result = key.decrypt(text, passkey=passkey)
+            if len(result) > 0:
+                return result
+
 
     def changepass(self, oldpasskey, newpassword):
         """
@@ -471,7 +499,22 @@ class User(object):
                 keydict['encryptedprivkey'] = key.encryptedprivkey
                 keydict['generated'] = key.generated
                 keydict['expires'] = key.expires
-                self.UserSettings['keys']['posted'].append(keydict)
+
+                if key.expires > time.time():
+                    self.UserSettings['keys']['posted'].append(keydict)
+
+        self.UserSettings['keys']['secret'] = []
+        for key in self.Keys['secret']:
+
+                keydict = {}
+                keydict['pubkey'] = key.pubkey
+                keydict['encryptedprivkey'] = key.encryptedprivkey
+                keydict['generated'] = key.generated
+                keydict['expires'] = key.expires
+
+                if key.expires > time.time():
+                    self.UserSettings['keys']['secret'].append(keydict)
+
 
         self.UserSettings['passkey'] = None
         self.UserSettings['_id'] = self.Keys['master'].pubkey
@@ -490,13 +533,13 @@ class User(object):
                 server.logger.info("Reconstructed with encryptedprivkey")
             else:
                 # If we just have a pubkey string, do the best we can.
-                if self.Keys['master'] is not None:
-                    if self.Keys['master'].get('pubkey'):
-                        self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
-                        self.Keys['master'].generated = self.UserSettings['keys']['master'].get('generated')
-                        self.Keys['master'].expires = self.UserSettings['keys']['master'].get('expires')
-                        server.logger.info("reconstructed user without privkey")
-                
+                if self.UserSettings['keys']['master'].get('pubkey'):
+                    self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
+                    self.Keys['master'].generated = self.UserSettings['keys']['master'].get('generated')
+                    self.Keys['master'].expires = self.UserSettings['keys']['master'].get('expires')
+                    server.logger.info("reconstructed user without privkey")
+        else:
+            print("Requested user had no master key.")        
         # Restore any Posted communication keys.
         for key in self.UserSettings['keys'].get('posted',[]):
             lk = lockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
@@ -504,12 +547,24 @@ class User(object):
             lk.expires = key['expires']
             self.Keys['posted'].append(lk)
 
+        # Restore any oneoff communication keys
+        for key in self.UserSettings['keys'].get('secret',[]):
+            lk = lockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
+            lk.generated =  key['generated']
+            lk.expires = key['expires']
+            self.Keys['secret'].append(lk)
+
     def load_string(self, incomingstring):
         self.UserSettings = json.loads(incomingstring, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
         # Sort our Posted keys.
         self.Keys['posted'].sort(key=lambda e: (e.expires),reverse=True)
         self.restore_keys()
         self.generate()
+
+    def load_pubkey_only(self,pubkey):
+        print("public only requested")
+        self.UserSettings['keys']['master']['pubkey'] = pubkey
+        self.load_string(json.dumps(self.UserSettings))
 
     def load_file(self, filename):
         filehandle = open(filename, 'r')
@@ -541,8 +596,7 @@ class User(object):
             # If the user doesn't exist in our service, he's only someone we've heard about.
             # We won't know their privkey, so load the pubkey, and then reload the user
             print("Can't find user by pubkey. Using pub-only.")
-            self.UserSettings['keys']['master']['pubkey'] = pubkey
-            self.load_string(json.dumps(self.UserSettings))
+            self.load_pubkey_only(pubkey)
 
     def load_mongo_by_username(self, username):
         #Local server Only
