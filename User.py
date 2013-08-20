@@ -14,7 +14,7 @@ from ServerSettings import serversettings
 import time
 import datetime
 import calendar
-
+import hashlib
 import math
 from keys import Keys
 
@@ -293,7 +293,7 @@ class User(object):
 
 
                 
-    def generate(self,GuestKey=True,password=None,email=None, username=None):
+    def generate(self,AllowGuestKey=True,password=None,email=None, username=None):
         """
         Create a Tavern user, filling in any missing information for existing users.
         Only creates keys if asked to.
@@ -305,50 +305,75 @@ class User(object):
         # Keep track of if anything changed.
         anychanges = False
 
-        if username is not None:
-            self.UserSettings['username'] = username
-            anychages = True
+        if self.UserSettings.get('username') is None:
+            if username is not None:
+                self.UserSettings['username'] = username
+            else:
+                self.UserSettings['username'] = "Anonymous"
+            anychanges = True
 
-        elif not 'username' in self.UserSettings:
-            self.UserSettings['username'] = "Anonymous"
-            anychages = True
-
-        if email is not None:
-            self.UserSettings['email'] = email
-            anychages = True
-
-        elif not 'email' in self.UserSettings:
-            self.UserSettings['email'] = "email@example.org"
-            anychages = True
+        if self.UserSettings.get('email') is None:
+            if email is not None:
+                self.UserSettings['email'] = email
+            else:
+                self.UserSettings['email'] = "email@example.org"
+            anychanges = True
 
         if password is not None and self.passkey is None:
             self.passkey = self.hash_password(password)
-            anychages = True
+            anychanges = True
 
-        if not 'guest' in self.UserSettings['status']:
+        if self.UserSettings['status'].get('guest') is None:
             self.UserSettings['status']['guest'] = True
-            anychages = True
+            anychanges = True
 
         if not 'setpassword' in self.UserSettings['status']:
             self.UserSettings['status']['setpassword'] = None
-            anychages = True
+            anychanges = True
+
+        # If we've been told not to use a GuestKey, make sure we don't have one.
+        if AllowGuestKey == False:
+            if server.guestacct.Keys.get('master') is not None and self.Keys.get('master') is not None:
+                if self.Keys['master'].pubkey == server.guestacct.Keys['master'].pubkey:
+                    print("Getting rid of a GuestKey.")
+                    self.UserSettings['keys'] = {}
+                    self.UserSettings['keys']['master'] = {}
+                    self.passkey = None
+                    self.Keys = {}
+                    self.Keys['posted'] = []
+                    self.Keys['secret'] = []
+                    self.Keys['master'] = None
+                    anychanges = True
+
+        # Ensure we don't somehow end up as an empty, but keyed user..
+        if isinstance(self.Keys['master'],lockedKey):
+            if self.Keys['master'].pubkey is None:
+                self.Keys['master'] = None
+
 
         # Ensure we have a valid keys, one way or another.
         # If GuestKey is true, then use the server default accts.
         # Otherwise, make the keys.
 
-        if self.Keys['master'] is None:
+        if self.Keys.get('master') is None:
             # Save if we're using the GuestKey or not.
-            if GuestKey == True:
+            if AllowGuestKey == True:
                     self.Keys = server.guestacct.Keys   
                     self.UserSettings['status']['guest']  = True
             else:
                 print("Generating a LockedKeys")
                 self.Keys['master'] = lockedKey()
+
+                if password == None:
+                    print("Generating a user with a random password")
+                    numcharacters = 100 + TavernUtils.randrange(1, 100)
+                    password = TavernUtils.randstr(numcharacters)
+
                 self.Keys['master'].generate(password=password)                
                 self.UserSettings['status']['guest']  = False
+                self.passkey = self.Keys['master'].passkey(password)
 
-            anychages = True
+            anychanges = True
 
         # Ensure we have a valid/current public posted key.
         if self.UserSettings['status']['guest'] is not True:
@@ -385,67 +410,75 @@ class User(object):
                 
                 newkey.expires = expirestamp
                 self.Keys['posted'].append(newkey)
-                anychages = True
+                anychanges = True
 
 
-        if not 'time_created' in self.UserSettings:
+
+        if self.UserSettings.get('time_created') is None:
             self.UserSettings['time_created'] = int(time.time())
-            anychages = True
+            anychanges = True
 
-        if not 'display_useragent' in self.UserSettings:
+        if self.UserSettings.get('display_useragent') is None:
             self.UserSettings['display_useragent'] = False
-            anychages = True
+            anychanges = True
 
-        if not 'theme' in self.UserSettings:
+        if self.UserSettings.get('theme') is None:
             self.UserSettings['theme'] = 'default'
-            anychages = True
+            anychanges = True
 
-        if not 'followedTopics' in self.UserSettings:
+        if self.UserSettings.get('followedTopics') is None:
             self.UserSettings['followedTopics'] = []
-            anychages = True
+            anychanges = True
 
-        if not 'allowembed' in self.UserSettings:
+        if self.UserSettings.get('allowembed') is None:
             self.UserSettings['allowembed'] = 0
-            anychages = True
+            anychanges = True
+
 
         if self.UserSettings['followedTopics'] == []:
             self.followTopic("StarTrek")
             self.followTopic("Python")
             self.followTopic("Egypt")
             self.followTopic("Funny")
-            anychages = True
+            anychanges = True
 
-        if not 'maxposts' in self.UserSettings:
+        if self.UserSettings.get('maxposts') is None:
             self.UserSettings['maxposts'] = 100
-            anychages = True
+            anychanges = True
 
-        if not 'maxreplies' in self.UserSettings:
+        if self.UserSettings.get('maxreplies') is None:
             self.UserSettings['maxreplies'] = 100
-            anychages = True
+            anychanges = True
 
         # Set Friendlyname to most recent post, or Anonymous for lurkers
-        if not 'friendlyname' in self.UserSettings:
+        if self.UserSettings.get('friendlyname') is None:
             if self.UserSettings['status']['guest'] == False:
                 # They're registered, they may have posted.
                 posts = server.getUsersPosts(self.Keys['master'].pubkey)
                 if len(posts) > 0:
                     self.UserSettings['friendlyname'] = posts[0].dict['envelope']['local']['author']['friendlyname']
-                    anychages = True
-            if not 'friendlyname' in self.UserSettings:
+                    anychanges = True
+            if self.UserSettings.get('friendlyname') is None:
                 self.UserSettings['friendlyname'] = 'Anonymous'
-                anychages = True
+                anychanges = True
 
-        if not 'include_location' in self.UserSettings:
+        if self.UserSettings.get('include_location') is None:
             self.UserSettings['include_location'] = False
-            anychages = True
+            anychanges = True
 
-        if not 'ignoreedits' in self.UserSettings:
+        if self.UserSettings.get('ignoreedits') is None:
             self.UserSettings['ignoreedits'] = False
-            anychages = True
+            anychanges = True
 
-        if not 'author_wordhash' in self.UserSettings:
+        if self.UserSettings.get('author_wordhash') is None:
             self.UserSettings['author_wordhash'] = server.wordlist.wordhash(self.Keys['master'].pubkey)
-            anychages = True
+            anychanges = True
+
+        if self.UserSettings.get('author_sha512') is None:
+            if self.UserSettings['status']['guest'] is False:
+                self.UserSettings['author_sha512'] = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
+            else:
+                self.UserSettings['author_sha512'] = None
 
         return anychanges
 
@@ -570,6 +603,10 @@ class User(object):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
         self.load_string(filecontents)
+
+    def load_dict(self,userdict):
+        self.UserSettings = userdict
+        self.load_string(json.dumps(self.UserSettings))
 
     def savefile(self, filename=None):
         if filename is None:

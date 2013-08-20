@@ -2,6 +2,7 @@ from keys import Keys
 import scrypt
 import base64
 import time
+import TavernUtils
 
 class lockedKey(object):
     """
@@ -18,7 +19,6 @@ class lockedKey(object):
         self.maxtime_verify = 5
         self.maxtime_create = 1
         tempkey = Keys(pub=pub, priv=priv)
-        self.pubkey = tempkey.pubkey
         self.pubkey = tempkey.pubkey
 
         if encryptedprivkey is not None:
@@ -79,26 +79,37 @@ class lockedKey(object):
         self.encryptedprivkey = self.__encryptprivkey(
             password=newpassword, privkey=privkey)
 
-    def generate(self, password=None,passkey=None):
+    def generate(self, password=None,passkey=None,random=False):
         """
         Generate a new set of keys.
         Store only the encrypted version
         """
 
-        if password is None and passkey is None:
+        if password is None and passkey is None and random is False:
             raise Exception('KeyError', 'Invalid call to generate()')
+
+        if random is True:
+            numcharacters = 100 + TavernUtils.randrange(1, 100)
+            password = TavernUtils.randstr(numcharacters)
+            print("Generating a lockedkey with a random password")
+            ret = password
+        else:
+            ret = None
 
         tempkey = Keys()
         tempkey.generate()
         self.pubkey = tempkey.pubkey
+
         if password is not None:
             self.encryptedprivkey = self.__encryptprivkey(password=password, privkey=tempkey.privkey)
+
         elif passkey is not None:
             self.encryptedprivkey = self.__encryptprivkey(passkey=passkey, privkey=tempkey.privkey)
 
         self.keydetails = tempkey.keydetails
         self.generated = int(time.time())
 
+        return ret
 
     def signstring(self, signstring, passkey):
         """

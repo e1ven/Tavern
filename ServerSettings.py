@@ -93,13 +93,14 @@ class ServerSettings():
         if not 'bin-mongo-port' in self.settings:
             self.settings['bin-mongo-port'] = 27017
         if not 'bin-mongo-db' in self.settings:
-            self.settings['bin-mongo-db'] = 'Tavern-Binaries'
-        if not 'sessions-mongo-hostname' in self.settings:
-            self.settings['sessions-mongo-hostname'] = 'localhost'
-        if not 'sessions-mongo-port' in self.settings:
-            self.settings['sessions-mongo-port'] = 27017
-        if not 'sessions-mongo-db' in self.settings:
-            self.settings['sessions-mongo-db'] = 'Tavern-Sessions'
+            self.settings['bin-mongo-db'] = 'Tavern_Binaries'
+
+        if not 'sessions-db-hostname' in self.settings:
+            self.settings['sessions-db-hostname'] = 'localhost'
+        if not 'sessions-db-port' in self.settings:
+            self.settings['sessions-db-port'] = 27017
+        if not 'sessions-db-name' in self.settings:
+            self.settings['sessions-db-name'] = 'Tavern_Sessions'
 
         if not 'cache' in self.settings:
             self.settings['cache'] = {}
@@ -206,14 +207,14 @@ class ServerSettings():
 
 
 
-        if not 'UserGenerator' in self.settings:
-            self.settings['UserGenerator'] = {}
-        if not 'num_pregens' in self.settings['UserGenerator']:
-            self.settings['UserGenerator']['num_pregens'] = 5
-        if not 'workers' in self.settings['UserGenerator']:
-            self.settings['UserGenerator']['workers'] = 1
-        if not 'sleep' in self.settings['UserGenerator']:
-            self.settings['UserGenerator']['sleep'] = 5
+        if not 'KeyGenerator' in self.settings:
+            self.settings['KeyGenerator'] = {}
+        if not 'num_pregens' in self.settings['KeyGenerator']:
+            self.settings['KeyGenerator']['num_pregens'] = 5
+        if not 'workers' in self.settings['KeyGenerator']:
+            self.settings['KeyGenerator']['workers'] = 1
+        if not 'sleep' in self.settings['KeyGenerator']:
+            self.settings['KeyGenerator']['sleep'] = 5
 
 
         if not 'upload-dir' in self.settings:

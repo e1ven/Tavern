@@ -30,10 +30,10 @@ from TavernUtils import memorise
 import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
-from UserGenerator import UserGenerator
 import inspect
 import sys
 import lockedkey
+import uuid
 
 try:
     from hashlib import md5 as md5_func
@@ -143,7 +143,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # Don't run this function twice. If we're called a second time, get the frig out.
         if self._basefinish == True:
-            print("short circuiting")
             return
 
         self._basefinish = True
@@ -297,36 +296,7 @@ class BaseHandler(tornado.web.RequestHandler):
         for start in range(0, len(s), n):
             yield s[start:start + n]
 
-    def setvars(self):
-        """
-        Saves out the current userobject to a cookie, or series of cookies.
-        These are encrypted using the built-in Tornado cookie encryption.
-        """
 
-
-        print("Running Setvars..")
-
-
-        self.user.presave_clean()
-
-        # Zero out the stuff in 'local', since it's big.
-        usersettings = self.user.UserSettings
-        usersettings['local'] = []
-
-
-        # Create the Cookie value, and sign it.
-        signed = self.create_signed_value("tavern_preferences", json.dumps(
-            usersettings, separators=(',', ':')))
-
-        # Chunk up the cookie value, so we can spread across multiple cookies.
-        numchunks = 0
-        for chunk in self.chunks(signed, 3000):
-            numchunks += 1
-            self.set_cookie("tavern_preferences" + str(
-                numchunks), chunk, httponly=True, expires_days=999)
-        self.set_secure_cookie("tavern_preferences_count", str(
-            numchunks), httponly=True, expires_days=999)
-        server.logger.debug("numchunks + " + str(numchunks))
 
     def recentauth(self, seconds=300):
         """
@@ -349,72 +319,59 @@ class BaseHandler(tornado.web.RequestHandler):
             return True
 
 
-    def getvars(self, ensurekeys=False):
+    def setvars(self):
+        """
+        Saves out the current userid to a cookie
+        These are encrypted using the built-in Tornado cookie encryption.
+        """
+
+        print("Running Setvars..")
+
+        # If we're over https, ensure the cookie can't be read over HTTP
+        if self.request.protocol == 'https':
+            secure = True
+        else:
+            secure = False
+
+        # Save our out passkey
+        if self.user.UserSettings['status']['guest'] is False:
+            if self.user.passkey is not None:
+                self.set_secure_cookie("tavern_passkey",self.user.passkey, httponly=True, expires_days=999)
+
+        if self.user.UserSettings['author_sha512'] is not None:
+            # Delete our sensetive data before saving out.
+            self.user.presave_clean()
+            server.sessions.safe.save('web_session',{'_id':self.user.UserSettings['author_sha512'],'user':self.user.UserSettings})
+            self.set_secure_cookie("tavern_settings",self.user.UserSettings['author_sha512'], httponly=True, expires_days=999)
+
+    def getvars(self, AllowGuestKey=True):
         """
         Retrieve the basic user variables out of your cookies.
         """
-
         self.user = User()
-        if self.get_secure_cookie("tavern_preferences_count") is not None:
-            # Restore the signed cookie, across many chunks
-            restoredcookie = ""
-            count = int(self.get_secure_cookie("tavern_preferences_count"))
-            for i in range(1, 1 + count):
-                if self.get_cookie("tavern_preferences" + str(i)) is not None:
-                    restoredcookie += self.get_cookie(  
-                        "tavern_preferences" + str(i))
-                else:
-                    restoredcookie = "ERROR"
-                    break
+        # Load in our session token if we have one.
+        userid = self.get_secure_cookie("tavern_settings")
+        if userid is not None:
+            userid = userid.decode('utf-8')
+            sessionobj = server.sessions.safe.find_one('web_session',{'user.author_sha512':userid})
+            if sessionobj is not None:
+                userdict = sessionobj['user']
+                self.user.load_dict(userdict=userdict)
+        else:
+            # Either no cookie, or bad cookie. Either way, abort.
+            self.clear_all_cookies()                
+            self.set_cookie("_xsrf",self.xsrf_token)
+            self.user = User()
 
-            # Validate the cookie, and load if it passes
-            decodedcookie = self.get_secure_cookie(
-                "tavern_preferences", value=restoredcookie)
-            try:
-                decodedcookie = decodedcookie.decode('utf-8')
-                self.user.load_string(decodedcookie)
-            except:
-                # We shouldn't get here. Kill cookies, reset the user to fresh.
-                server.logger.info("Cookie doesn't validate. Noping the heck out of here." + str(sys.exc_info()[0]))
-                self.clear_all_cookies()                
-                self.set_cookie("_xsrf",self.xsrf_token)
-                self.user = User()
+        # Get the passkey to unlock our privkey
+        passkey = self.get_secure_cookie("tavern_passkey")
+        if passkey is not None:
+            self.user.passkey = passkey
 
-        # If there isn't already a cookie, make a very basic one.
-        # Don't bother doing the keys, since that eats randomness.
-        # Not an else, so we can be triggered by corrupt cookie above.
-        if self.get_secure_cookie("tavern_preferences_count") is None:
-            server.logger.debug("Making cookies")
-            if self.user.generate(GuestKey=True):
-                self.setvars()
-
-        # If a method has asked us to ensure a user is full, with a privkey and everything, do so.
-        # This is done here, rather than in user, so we can save the passkey out to a cookie.
-        if ensurekeys == True:
-            validkey = False
-            if isinstance(self.user.Keys['master'],lockedkey.lockedKey):
-                if self.user.UserSettings['status'].get('guest') == False:
-                    validkey = True
-            if not validkey:
-                newuser = server.GetUnusedUser()
-                
-                self.user = newuser['user']
-                password = newuser['password']
-
-                # ensure user is fleshed out. Ignore t/f return, we KNOW it's new.
-                self.user.generate()
-                self.setvars()
-                self.user.savemongo()
-
-                # Save our Passkey to a cookie, and ensure it's set for future options. in this HTTP request.
-                self.set_secure_cookie('tavern_passkey', self.user.Keys['master'].passkey(password), httponly=True, expires_days=999)
-                self.user.passkey = self.user.Keys['master'].passkey(password)
-
-        if self.user.passkey is None:
-            self.user.passkey = self.get_secure_cookie('tavern_passkey')
-
-        # Ensure we have any missing fields.
-        self.user.generate(GuestKey=True)
+        # Ensure our user has all expected fields
+        # This method will also generate a key if necessary.
+        if self.user.generate(AllowGuestKey=AllowGuestKey):
+            self.setvars()
 
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
@@ -435,7 +392,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.datauri = True
             elif self.get_argument("datauri").lower() == 'false':
                 self.user.datauri = False
-
 
         return self.user.UserSettings['username']
 
@@ -552,7 +508,6 @@ class MessageHandler(BaseHandler):
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
-        print("Func complete.")
         #self.finish(divs=divs)
 
 
@@ -733,7 +688,7 @@ class RegisterHandler(BaseHandler):
 
         else:
             # Generate the user
-            self.user.generate(GuestKey=False,
+            self.user.generate(AllowGuestKey=False,
                 username=client_newuser.lower(), password=client_newpass)
             self.user.UserSettings['lastauth'] = int(time.time())
 
@@ -831,7 +786,7 @@ class ChangepasswordHandler(BaseHandler):
             self.write(self.render_string('footer.html'))
 
     def post(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         client_newpass = self.get_argument("pass")
         client_newpass2 = self.get_argument("pass2")
@@ -878,7 +833,7 @@ class UserHandler(BaseHandler):
 
 class ChangeManySettingsHandler(BaseHandler):
     def post(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         friendlyname = self.get_argument('friendlyname')
         maxposts = int(self.get_argument('maxposts'))
@@ -923,7 +878,7 @@ class ChangeManySettingsHandler(BaseHandler):
 class ChangeSingleSettingHandler(BaseHandler):
 
     def post(self, setting, option=None):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
         redirect = True
         if setting == "followtopic":
             self.user.followTopic(
@@ -957,7 +912,7 @@ class RatingHandler(BaseHandler):
         #Calculate the votes for that post.
 
     def post(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         #So you may be asking yourself.. Self, why did we do this as a POST, rather than
         #Just a GET value, of the form server.com/msg123/voteup
@@ -1016,7 +971,7 @@ class UserNoteHandler(BaseHandler):
         #Show the Note for a user
 
     def post(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         client_pubkey = self.get_argument("pubkey")
         client_note = self.get_argument("note")
@@ -1033,7 +988,7 @@ class UserTrustHandler(BaseHandler):
         #Calculate the trust for a user.
 
     def post(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         trusted_pubkey = urllib.parse.unquote(
             self.get_argument("trusted_pubkey"))
@@ -1126,7 +1081,7 @@ class NewmessageHandler(BaseHandler):
         self.finish(divs=['scrollablediv3'])
 
     def post(self, flag=None):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
         filelist = []
 
         # We might be getting files either through nginx, or through directly.
@@ -1384,7 +1339,7 @@ class NewmessageHandler(BaseHandler):
 
 class ShowPrivatesHandler(BaseHandler):
     def get(self):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         messages = []
         self.write(self.render_string('header.html',
@@ -1401,7 +1356,7 @@ class ShowPrivatesHandler(BaseHandler):
 
 class PrivateMessageHandler(BaseHandler):
     def get(self, message):
-        self.getvars(ensurekeys=True)
+        self.getvars(AllowGuestKey=False)
 
         message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys['master'].pubkey, 'envelope.local.payload_sha512': message})
         if message is not None:

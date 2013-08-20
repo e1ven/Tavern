@@ -7,16 +7,11 @@ from collections import OrderedDict
 import pymongo
 import pymongo.read_preferences
 from gridfs import GridFS
-from Envelope import Envelope
 import sys
 import markdown
 import datetime
 from libs import bbcodepy
 from bs4 import BeautifulSoup
-try:
-    from hashlib import md5 as md5_func
-except ImportError:
-    from md5 import new as md5_func
 import psycopg2
 from psycopg2.extras import RealDictConnection
 from ServerSettings import serversettings
@@ -28,10 +23,11 @@ from TavernUtils import memorise
 import multiprocessing
 
 class FakeMongo():
-    def __init__(self):
+
+    def __init__(self,host,port,name):
 
         # Create a connection to Postgres.
-        self.conn = psycopg2.connect(dbname=serversettings.settings['dbname'],user=serversettings.settings['postgres-user'], host=serversettings.settings['postgres-hostname'],port=serversettings.settings['postgres-port'],connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn = psycopg2.connect(dbname=name,user=serversettings.settings['postgres-user'], host=host,port=port,connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
     def find(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
@@ -113,17 +109,17 @@ class FakeMongo():
             self.insert(out,row)
 
 class MongoWrapper():
-    def __init__(self, safe=True):
+
+    def __init__(self,host,port,name,safe=True):
 
         if safe == True:
             # Slower, more reliable mongo connection.
-            self.safeconn = pymongo.MongoClient(serversettings.settings['mongo-hostname'], serversettings.settings['mongo-port'], safe=True, journal=True, max_pool_size=serversettings.settings['mongo-connections'])
-            self.mongo = self.safeconn[serversettings.settings['dbname']]
+            self.safeconn = pymongo.MongoClient(host,port, safe=True, journal=True, max_pool_size=serversettings.settings['mongo-connections'])
+            self.mongo = self.safeconn[name]
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
-            self.unsafeconn = pymongo.MongoClient(serversettings.settings['mongo-hostname'], serversettings.settings['mongo-port'], read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.settings['mongo-connections'])
-            self.mongo = self.unsafeconn[
-                serversettings.settings['dbname']]
+            self.unsafeconn = pymongo.MongoClient(host, port, read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.settings['mongo-connections'])
+            self.mongo = self.unsafeconn[name]
 
     def drop_collection(self,collection):
         self.mongo.drop_collection(collection)
@@ -182,23 +178,28 @@ class MongoWrapper():
         return self.mongo[collection].find(query).count()
 
 class DBWrapper():
-    def __init__(self, dbtype):
+    def __init__(self, name,dbtype=None,host=None,port=None):
 
         if dbtype == "mongo":
-            self.safe = MongoWrapper(True)
-            self.unsafe = MongoWrapper(False)
+            if host == None:
+                host = serversettings.settings['mongo-hostname']
+            if port == None:
+                port = serversettings.settings['mongo-port']
+
+            self.safe = MongoWrapper(safe=True,host=host,port=port,name=name)
+            self.unsafe = MongoWrapper(safe=False,host=host,port=port,name=name)
+
         elif dbtype == "postgres":
-            self.safe = FakeMongo()
-            self.unsafe = FakeMongo()
+            if host == None:
+                host=serversettings.settings['postgres-hostname']
+            if port == None:
+                port=serversettings.settings['postgres-port']          
+
+            self.safe = FakeMongo(host=host,port=port,name=name)
+            self.unsafe = FakeMongo(host=host,port=port,name=name)
+
         else:
             raise Exception('DBError', 'Invalid type of database')
-        self.binarycon = pymongo.MongoClient(serversettings.settings['bin-mongo-hostname'], serversettings.settings['bin-mongo-port'], max_pool_size=serversettings.settings['mongo-connections'])
-        self.binaries = self.binarycon[
-            serversettings.settings['bin-mongo-db']]
-        self.sessioncon = pymongo.MongoClient(serversettings.settings['sessions-mongo-hostname'], serversettings.settings['sessions-mongo-port'])
-        self.session = self.sessioncon[
-            serversettings.settings['sessions-mongo-db']]
-
 
 def print_timing(func):
     def wrapper(*arg):
@@ -268,7 +269,7 @@ class Server(object):
         self.debug = False
 
         self.mc = OrderedDict
-        self.unusedusercache = multiprocessing.Queue(serversettings.settings['UserGenerator']['num_pregens'])
+        self.unusedkeycache = multiprocessing.Queue(serversettings.settings['KeyGenerator']['num_pregens'])
         # Break out the settings into it's own file, so we can include it without including all of server
         # This does cause a few shenanigans while loading here, but hopefully it's minimal
 
@@ -289,8 +290,11 @@ class Server(object):
         self.ServerKeys = Keys(pub=serversettings.settings['pubkey'],
                                priv=serversettings.settings['privkey'])
 
-        self.db = DBWrapper(serversettings.settings['dbtype'])
-        self.bin_GridFS = GridFS(self.db.binaries)
+        self.db =  DBWrapper(name=serversettings.settings['dbname'],dbtype=serversettings.settings['dbtype'],host=serversettings.settings['mongo-hostname'],port=serversettings.settings['mongo-port'])
+        self.sessions = DBWrapper(name=serversettings.settings['sessions-db-name'],dbtype=serversettings.settings['dbtype'],host=serversettings.settings['sessions-db-hostname'],port=serversettings.settings['sessions-db-port'])
+        self.binaries = DBWrapper(name=serversettings.settings['bin-mongo-db'],dbtype='mongo',host=serversettings.settings['bin-mongo-hostname'],port=serversettings.settings['bin-mongo-port'])
+        self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
+
         serversettings.saveconfig()
 
         # Get a list of all the valid templates that can be used, to compare against later on.
@@ -331,7 +335,7 @@ class Server(object):
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
-        self.usergenerator = UserGenerator.UserGenerator()
+        self.keygenerator = KeyGenerator.KeyGenerator()
 
         # Start actually logging to file or console
         if self.debug == True:
@@ -342,16 +346,8 @@ class Server(object):
 
         if not 'guestacct' in serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
-            
-            tmpdict = self.GetUnusedUser()
-            server.guestacct = tmpdict['user']
-            oldpassword = tmpdict['password']
-
-            # Change it's password, to be extra-safe
-            numcharacters = 100 + TavernUtils.randrange(1, 100)
-            newpassword = TavernUtils.randstr(numcharacters)
-            self.guestacct.changepass(oldpasskey=server.guestacct.Keys['master'].passkey(oldpassword),newpassword=newpassword)
-
+            self.guestacct = User()
+            self.guestacct.generate(AllowGuestKey=False)
             serversettings.settings['guestacct'] = {}
             serversettings.settings['guestacct']['pubkey'] = self.guestacct.Keys['master'].pubkey
             serversettings.saveconfig()
@@ -363,7 +359,7 @@ class Server(object):
 
                     
         # Pregenerate some users in the background.
-        #self.usergenerator.start()
+        #self.keygenerator.start()
 
     def stop(self):
         """
@@ -377,14 +373,6 @@ class Server(object):
         newstr = json.dumps(
             serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
-
-    # Get the next one.
-    def GetUnusedUser(self):
-        if self.unusedusercache.empty():
-            self.logger.info("Empty user cache. Generating user on the fly..")
-            return self.usergenerator.CreateUnusedUser()
-        else:
-            return self.unusedusercache.get()
 
     @memorise(ttl=serversettings.settings['cache']['sorttopic']['seconds'], maxsize=serversettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
@@ -641,5 +629,6 @@ class Server(object):
                 
 server = Server()
 from User import User
+from Envelope import Envelope
 import embedis
-import UserGenerator
+import KeyGenerator
