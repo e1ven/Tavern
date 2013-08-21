@@ -77,6 +77,9 @@ Using the following Libraries:
 	ColResizable (MIT)
 		http://quocity.com/colresizable/
 
+	python-hashes (MIT)
+		https://github.com/sangelone/python-hashes
+
 	At least one icon is included from glyphish.com.
 
 	jQuery Tools v1.2.6 - Some CSS was copied for the Tooltip.

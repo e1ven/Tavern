@@ -180,7 +180,7 @@ def randstr(length, printable=False):
 class TavernCache(object):
         def __init__(self):
             self.mc = OrderedDict()
-            self.store = OrderedDict()
+            self.cache = {}
             self.queues = {}
 TavernCache = TavernCache()
 
@@ -201,7 +201,6 @@ def objresolve(obj, attrspec):
             obj = getattr(obj, attr)
     return obj
 
-
 class memorise(object):
         """Decorate any function or class method/staticmethod with a memcace
         enabled caching wrapper. Similar to the memoise pattern, this will push
@@ -221,10 +220,13 @@ class memorise(object):
             Tells memcached the time which this value should expire.
             We default to 0 == cache forever. None is turn off caching.
 
-            If the original function has a "forcerecache" paramater, re will respect it.
+
+            If we pass a `taverncache` entry to the wrapped function, memorise will intercept it.
+            taverncache='invalidate' will remove the entry from the cache, if it's there.
+            taverncache='bypass' will ignore the stored entry, re-run the function, and re-store the result. 
         """
 
-        def __init__(self, parent_keys=[], recache=True, set=None, ttl=60, maxsize=None):
+        def __init__(self, parent_keys=[], set=None, ttl=60, maxsize=None):
                 # Instance some default values, and customisations
                 self.parent_keys = parent_keys
 
@@ -245,24 +247,26 @@ class memorise(object):
                             :fn.__code__.co_argcount]
                         method = False
                         static = False
-                        forcerecache = False
+                        taverncache = None
                         if len(argnames) > 0:
                                 if argnames[0] == 'self' or argnames[0] == 'cls':
-                                        method = True
-                                        if argnames[0] == 'cls':
-                                                static = True
+                                    method = True
+                                if argnames[0] == 'cls':
+                                    static = True
+
 
                         arg_values_hash = []
                         # Grab all the keyworded and non-keyworded arguements so
                         # that we can use them in the hashed memcache key
                         for i, v in sorted(itertools.chain(zip(argnames, args), iter(kwargs.items()))):
-                                if i != 'self':
-                                        if i != 'cls':
-                                            if i != 'forcerecache':
+                                if i not in ['self','cls','taverncache']:
                                                 arg_values_hash.append(
                                                     "%s=%s" % (i, v))
-                                            else:
-                                                forcerecache = v
+                                elif i == 'taverncache':
+                                    taverncache = v
+
+                        if 'taverncache' in kwargs:
+                            kwargs.pop('taverncache')
 
                         class_name = None
                         if method:
@@ -291,10 +295,19 @@ class memorise(object):
                         # Create a unique hash of the function/method call
                         key = "%s%s(%s)" % (parent_name,
                                             fn.__name__, ",".join(arg_values_hash))
-                        # Check to see if we have the value, we're inside the TTL, and we're not over maxsize.
-                        # If not true to both, then re-calculate and store.
 
 
+                        # If taverncache is set to 'invalidate', don't run the function..
+                        # Instead, just drop the result from the cache.
+                        if taverncache == 'invalidate':
+                            if key in TavernCache.mc:
+                                val = TavernCache.mc.pop(key)
+                                return val['value']
+                            else:
+                                return False 
+
+
+                        # Check to see if we have a valid/current cached result.
                         usecached = False
                         if key in TavernCache.mc:
                             output = TavernCache.mc[key]['value']
@@ -302,14 +315,8 @@ class memorise(object):
                                 output = TavernCache.mc[key]['value']
                                 usecached = True
 
-                        # print("wrapper -  " + str(self.ttl))
-
-                        if usecached == False or forcerecache == True:
-                            # Allow the caller to send in a "forcerecache" entry
-                            # This will cause us to NOT use the cache
-
-                            if 'forcerecache' in kwargs:
-                                kwargs.pop('forcerecache')
+                        # 'taverncache=bypass' will skip the cached value, and end up restoring.
+                        if usecached == False or taverncache == 'bypass':
                             output = fn(*args, **kwargs)
                             if output is None:
                                 set_value = memcache_none()

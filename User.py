@@ -477,6 +477,7 @@ class User(object):
         if self.UserSettings.get('author_sha512') is None:
             if self.UserSettings['status']['guest'] is False:
                 self.UserSettings['author_sha512'] = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
+                anychanges = True
             else:
                 self.UserSettings['author_sha512'] = None
 
@@ -635,6 +636,21 @@ class User(object):
             print("Can't find user by pubkey. Using pub-only.")
             self.load_pubkey_only(pubkey)
 
+
+
+    def load_mongo_by_sha512(self, sha):
+        """
+        Returns a user object for a given sha512
+        """
+        print("Trying to load : " + str(sha))
+        user = server.db.unsafe.find_one('users',{'author_sha512':sha})
+        if user is not None:
+             self.load_string(json.dumps(user))
+             print("Got it.")
+             return True
+        else:
+            return False
+
     def load_mongo_by_username(self, username):
         #Local server Only
         user = server.db.safe.find_one('users',
@@ -649,4 +665,5 @@ class User(object):
 
     def savemongo(self):
         self.presave_clean()
+        print("Saving User to mongo " +  str(self.UserSettings['author_sha512']) )
         server.db.safe.save('users', self.UserSettings)

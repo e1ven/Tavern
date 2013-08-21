@@ -19,8 +19,8 @@ import TavernUtils
 from TavernUtils import memorise
 import tornado.escape
 import html
-from TavernUtils import memorise
 import multiprocessing
+from TavernUtils import TavernCache
 
 class FakeMongo():
 
@@ -262,7 +262,6 @@ class Server(object):
         return serversettings.settings['queues'][queuename]
 
     def __init__(self, settingsfile=None):
-        self.cache = OrderedDict()
         self.logger = logging.getLogger('Tavern')
 
         # Should the server run in debug mode
@@ -324,7 +323,7 @@ class Server(object):
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
         self.logger.info("Cached JS")
-        self.cache['instance.js'] = file.read()
+        TavernCache.cache['instance.js'] = file.read()
         file.close()
 
     def start(self):
@@ -403,7 +402,7 @@ class Server(object):
         e.dict['envelope']['local']['sorttopic'] = "error"
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
 
-        e.addStamp(stampclass='author',keys=self.ServerKeys,friendlyname=self.serversettings['hostname'])
+        e.addStamp(stampclass='author',keys=self.ServerKeys,friendlyname=serversettings.settings['hostname'])
         e.munge()
         return e
 

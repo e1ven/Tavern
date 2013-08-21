@@ -27,6 +27,7 @@ import imghdr
 import io
 from TopicTool import topictool
 from TavernUtils import memorise
+from TavernUtils import TavernCache
 import TavernUtils
 from ServerSettings import serversettings
 from tornado.options import define, options
@@ -285,7 +286,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 jQuery('.spinner').removeClass("spinner");
                 tavern_setup();
                 tavern_setup =  null;
-                ''' + server.cache['instance.js']
+                ''' + TavernCache.cache['instance.js']
         return(ret)
 
 
@@ -340,8 +341,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         if self.user.UserSettings['author_sha512'] is not None:
             # Delete our sensetive data before saving out.
-            self.user.presave_clean()
-            server.sessions.safe.save('web_session',{'_id':self.user.UserSettings['author_sha512'],'user':self.user.UserSettings})
+            self.user.savemongo()
             self.set_secure_cookie("tavern_settings",self.user.UserSettings['author_sha512'], httponly=True, expires_days=999)
 
     def getvars(self, AllowGuestKey=True):
@@ -351,13 +351,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.user = User()
         # Load in our session token if we have one.
         userid = self.get_secure_cookie("tavern_settings")
+
+        loaded = False
         if userid is not None:
-            userid = userid.decode('utf-8')
-            sessionobj = server.sessions.safe.find_one('web_session',{'user.author_sha512':userid})
-            if sessionobj is not None:
-                userdict = sessionobj['user']
-                self.user.load_dict(userdict=userdict)
-        else:
+             loaded = self.user.load_mongo_by_sha512(userid.decode('utf-8'))
+
+        if loaded is False:
             # Either no cookie, or bad cookie. Either way, abort.
             self.clear_all_cookies()                
             self.set_cookie("_xsrf",self.xsrf_token)
