@@ -46,6 +46,15 @@ class lockedKey(object):
 
         return base64.b64encode(key).decode('utf-8')
 
+    def isValid(self):
+        """
+        Does this key have an 'expires' variable set in the past?
+        """
+        if vars(self).get('expires') is not None:
+            print(self.expires)
+            return time.time() < self.expires
+        else:
+            print("Does not expire")
 
     def passkey(self, password):
         """

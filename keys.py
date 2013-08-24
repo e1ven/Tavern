@@ -143,6 +143,12 @@ class Keys(object):
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
 
+    def isValid(self):
+        """
+        Does this key have an 'expires' variable set in the past?
+        """
+        if vars(self).get('expires') is not None:
+            return time.time() < self.expires
 
     def generate(self):
         """

@@ -33,16 +33,43 @@ class User(object):
         self.Keys['secret'] = []
         self.Keys['master'] = None
 
-    def get_current_commkey(self):
+    def get_commkey(self):
         """
-        Gets the current communication key.
-        If one does not exist, it creates one.
+        Gets the current public/posted communication key.
         """
+        
         posts = server.getUsersPosts(self.Keys['master'].pubkey)
         if len(posts) > 0:
             return posts[0].dict['envelope']['payload']['author']['replyto']
         else:
             return None
+
+    def get_all_keys(self,ret='all'):
+        """
+        Iterate through all our kinds of keys
+        """
+        # Allow both Keys['foo'] and Keys['foo']['bar'] styles
+        allkeys = []
+        for keyclass in self.Keys:
+            l2 = self.Keys[keyclass]
+            if isinstance(l2,(Keys,lockedKey)):
+                if l2.isValid():
+                    allkeys.append(l2)
+            elif hasattr(l2,'__iter__'):
+                if not isinstance(l2,(str,bytes)):
+                    for key in l2:
+                        print(key)
+                        if key.isValid():
+                            allkeys.append(key)
+        # Allow routines to request only what they need.
+        # So, for instance, with ret=pubkey, it'll return an array of pubkeys
+        if ret == 'all':
+            return allkeys
+        else:
+            retarray = []
+            for key in allkeys:
+                retarray.append(vars(key)[ret])
+            return retarray
 
     def randstr(self, length):
         # Random.randint isn't secure, use the OS urandom instead.
@@ -483,14 +510,18 @@ class User(object):
 
         return anychanges
 
-    def decrypt(text,passkey):
+    def decrypt(self,text,passkey=None):
         """
         Decrypt a message sent to me, using one of my communication keys.
 
         Note - We don't try to decrypt using the master key, even though it's technically possible.
         This is intentional, so that other clients don't start sending PMs to the master key, and compromise security.
         """
-        for key in self.Keys['posted']:
+        if self.passkey is not None:
+            passkey = self.passkey
+
+        keys = self.Keys['posted'] + self.Keys['secret']
+        for key in keys:
             result = key.decrypt(text, passkey=passkey)
             if len(result) > 0:
                 return result

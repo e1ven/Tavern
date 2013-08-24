@@ -5,32 +5,32 @@
 {% set medialink = None %}
 
 <div class="single userportrait">
-<h1>{{user.Keys.decrypt(envelope['envelope']['payload']['subject'],passkey=user.passkey)}}<br></h1>
+<h1>{{envelope.dict['envelope']['local']['decrypted']['subject']}}<br></h1>
 
-{% set messagerating = user.getRatings(envelope['envelope']['local']['payload_sha512']) %}
+{% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 
 
-            <p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
-                    <a class="details" user="{{envelope['envelope']['local']['payload_sha512']}}"  href="/user/{{''.join(envelope['envelope']['local']['author']['pubkey'].split())}}" rel="author">
+            <p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
+                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}"  href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
                     
-                        <img id="avatar_{{envelope['envelope']['local']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+                        <img id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
 
 
-                        <b>{{envelope['envelope']['local']['author']['friendlyname']}}</b>@{{envelope['envelope']['local']['author_wordhash']}}<br>
+                        <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}<br>
                         {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
                         {% if user.UserSettings['display_useragent'] %}
-                            {% if 'name' in envelope['envelope']['local']['author']['useragent'] %}
-                                <br>Posted Using: {{envelope['envelope']['local']['author']['useragent']['name']}} ({{envelope['envelope']['local']['author']['useragent']['version']}})
+                            {% if 'name' in envelope.dict['envelope']['local']['author']['useragent'] %}
+                                <br>Posted Using: {{envelope.dict['envelope']['local']['author']['useragent']['name']}} ({{envelope.dict['envelope']['local']['author']['useragent']['version']}})
                             {% end %}
                         {% end %}
-                        {% set note = user.getNote(envelope['envelope']['local']['author']['pubkey']) %}
+                        {% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
                         {% if note is not None %}
                             <div class="note"><i>{{note}}</i></div>
                         {% end %}
                     </a>
-                    <div class="UserDetails UserDetails_right" id="details_{{envelope['envelope']['local']['payload_sha512']}}">
-                    {% set trust = user.gatherTrust(askingabout=envelope['envelope']['local']['author']['pubkey']) %}
+                    <div class="UserDetails UserDetails_right" id="details_{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                    {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
                         <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
                              {% if trust > 50 %}
                              This user is allowed to rate comments.
@@ -44,7 +44,7 @@
                             <form action="/usertrust" method="post">
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="100">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['local']['author']['pubkey']}}">
+                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                 <input class="textbutton" type="submit" value="Recommended this users to others.">
                             </form>
                             <br>
@@ -53,32 +53,32 @@
                             <form action="/usertrust" method="post">
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="-100">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope['envelope']['local']['author']['pubkey']}}">
+                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                 <input class="textbutton" type="submit" value="Warn others about this user.">
                             </form>
                             {% end %}
                             <br>
                             <form action="/usernote" method="post" class="usernote">
                                  {% raw xsrf_form_html() %}
-                                <input type="hidden" name="pubkey" value="{{envelope['envelope']['local']['author']['pubkey']}}">
+                                <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                 <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
                             </form>
                             <br>
-                            <a href="/user/{{''.join(envelope['envelope']['local']['author']['pubkey'].split())}}">Full Details</a>
+                            <a href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}">Full Details</a>
                     </div>  
 
 
             <div class="thread_body">
-                {{ user.Keys.decrypt(decryptstring=envelope['envelope']['payload']['body'],passkey=user.passkey) }}
+                {{ envelope.dict['envelope']['local']['decrypted']['body'] }}
             </div><!-- .thread_start -->
-            {% if 'attachmentlist' in envelope['envelope']['local'] %}
+            {% if 'attachmentlist' in envelope.dict['envelope']['local'] %}
                 <div class="attachments">
-                    {% if len(envelope['envelope']['local']['attachmentlist']) > 1 %}
+                    {% if len(envelope.dict['envelope']['local']['attachmentlist']) > 1 %}
                         Attached Files:<br>
-                    {% elif  len(envelope['envelope']['local']['attachmentlist']) > 0  %}
+                    {% elif  len(envelope.dict['envelope']['local']['attachmentlist']) > 0  %}
                         Attached File: <br>
                     {% end %}
-                    {% for attachment in envelope['envelope']['local']['attachmentlist'] %}
+                    {% for attachment in envelope.dict['envelope']['local']['attachmentlist'] %}
 
                             <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
                             <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>

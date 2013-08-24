@@ -1278,18 +1278,26 @@ class NewmessageHandler(BaseHandler):
         else:
             e.payload.dict['class'] = "privatemessage"
             touser = Keys(pub=client_to)
+
+            encrypted = OrderedDict()
+
             e.payload.dict['to'] = touser.pubkey
-            e.payload.dict['body'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=client_body, passkey=self.user.passkey)
+            encrypted['body'] = client_body
 
             if client_regarding is not None:
                 server.logger.debug("Adding Regarding - " + client_regarding)
-                e.payload.dict['regarding'] = client_regarding
+                encrypted['regarding'] = client_regarding
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
-                oldsubject = self.user.decrypt(
-                    regardingmsg['envelope']['payload']['subject'])
-                e.payload.dict['subject'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=oldsubject, passkey=self.user.passkey)
+
+                encrypted_payload = self.user.decrypt(message['envelope']['payload']['encrypted'])
+                unencrypted_dict = json.loads(encrypted_payload, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+                encrypted['subject'] = unencrypted_dict['subject']
             else:
-                e.payload.dict['subject'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=client_subject, passkey=self.user.passkey)
+                encrypted['subject'] = client_subject
+
+            #TODO add encrypted['from'] which includes a HMAC
+            encrypted_dictstr = json.dumps(encrypted, separators=(',', ':'))
+            e.payload.dict['encrypted'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_dictstr, passkey=self.user.passkey)
 
         if len(envelopebinarylist) > 0:
             e.payload.dict['binaries'] = envelopebinarylist
@@ -1342,11 +1350,17 @@ class ShowPrivatesHandler(BaseHandler):
 
         messages = []
         self.write(self.render_string('header.html',
-                   title="Welcome to the Tavern!", rsshead=None, type=None))
+                   title="Your Private messages", rsshead=None, type=None))
 
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': self.user.Keys['master'].pubkey}, limit=10, sortkey='value', sortdirection='descending'):
-            message['envelope']['payload']['subject'] = "Message: " + self.user.Keys['master'].decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
-            messages.append(message)
+
+        # If we can, open the message up.
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in' : self.user.get_all_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
+            print(message)
+            if self.user.decrypt(message['envelope']['payload']['encrypted']):
+                encrypted_payload = self.user.decrypt(message['envelope']['payload']['encrypted'])
+                unencrypted_dict = json.loads(encrypted_payload)
+                message['envelope']['local']['decrypted'] = unencrypted_dict
+                messages.append(message)
 
         self.write(
             self.render_string('showprivatemessages.html', messages=messages))
@@ -1357,14 +1371,25 @@ class PrivateMessageHandler(BaseHandler):
     def get(self, message):
         self.getvars(AllowGuestKey=False)
 
-        message = server.db.unsafe.find_one('envelopes', {'envelope.payload.to': self.user.Keys['master'].pubkey, 'envelope.local.payload_sha512': message})
-        if message is not None:
-            decrypted_subject = self.user.Keys['master'].decrypt(message['envelope']['payload']['subject'], passkey=self.user.passkey)
+        client_message_id = tornado.escape.xhtml_escape(message)
+
+        e = Envelope()
+        if not e.loadmongo(client_message_id):
+            #TODO - Put better error here. Server.Error?
+            return
         else:
-            decrypted_subject = ""
-        self.write(self.render_string('header.html', title="Private Message - " + decrypted_subject, rsshead=None, type=None))
+            if e.dict['envelope']['payload']['to'] not in self.user.get_all_keys(ret='pubkey'):
+                return
+                #TODO - Put better error here. Server.Error?
+
+        if self.user.decrypt(e.dict['envelope']['payload']['encrypted']):
+            encrypted_payload = self.user.decrypt(e.dict['envelope']['payload']['encrypted'])
+            unencrypted_dict = json.loads(encrypted_payload)
+            e.dict['envelope']['local']['decrypted'] = unencrypted_dict
+
+        self.write(self.render_string('header.html', title="Private Message - " + e.dict['envelope']['local']['decrypted']['subject'], rsshead=None, type=None))
         self.write(
-            self.render_string('showprivatemessage.html', envelope=message))
+            self.render_string('showprivatemessage.html', envelope=e))
         self.write(self.render_string('footer.html'))
 
 
