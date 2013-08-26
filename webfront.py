@@ -1354,7 +1354,7 @@ class ShowPrivatesHandler(BaseHandler):
 
 
         # If we can, open the message up.
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in' : self.user.get_all_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in' : self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
             print(message)
             if self.user.decrypt(message['envelope']['payload']['encrypted']):
                 encrypted_payload = self.user.decrypt(message['envelope']['payload']['encrypted'])
@@ -1378,7 +1378,7 @@ class PrivateMessageHandler(BaseHandler):
             #TODO - Put better error here. Server.Error?
             return
         else:
-            if e.dict['envelope']['payload']['to'] not in self.user.get_all_keys(ret='pubkey'):
+            if e.dict['envelope']['payload']['to'] not in self.user.get_keys(ret='pubkey'):
                 return
                 #TODO - Put better error here. Server.Error?
 

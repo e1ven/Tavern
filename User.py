@@ -44,7 +44,7 @@ class User(object):
         else:
             return None
 
-    def get_all_keys(self,ret='all'):
+    def get_keys(self,ret='all',excludeMaster=True):
         """
         Iterate through all our kinds of keys
         """
@@ -52,17 +52,22 @@ class User(object):
         allkeys = []
         for keyclass in self.Keys:
             l2 = self.Keys[keyclass]
+            if excludeMaster is True:
+                if keyclass == 'master':
+                    l2 = None
             if isinstance(l2,(Keys,lockedKey)):
                 if l2.isValid():
                     allkeys.append(l2)
             elif hasattr(l2,'__iter__'):
                 if not isinstance(l2,(str,bytes)):
                     for key in l2:
-                        print(key)
                         if key.isValid():
                             allkeys.append(key)
+
         # Allow routines to request only what they need.
         # So, for instance, with ret=pubkey, it'll return an array of pubkeys
+
+
         if ret == 'all':
             return allkeys
         else:
