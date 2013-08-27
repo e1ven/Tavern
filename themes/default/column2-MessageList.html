@@ -2,9 +2,9 @@
                         {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
 
 
-                        {% set beforecount = topictool.topicCount(before=subjects[0]['envelope']['local']['time_added'],topic=topic) %}
-                        {% set aftercount = topictool.topicCount(after=subjects[0]['envelope']['local']['time_added'],topic=topic) %}  
-                        {% set newbefore = topictool.getbackdate(after=subjects[0]['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
+                        {% set beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}
+                        {% set aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}  
+                        {% set newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
 
 
 
@@ -21,7 +21,7 @@
                                         </h4>
             			            </td>
             			            <td>
-            			        		<h4 id="column2MsgCount">{{topictool.topicCount(topic=topic,toponly=True)}} Messages</h4>
+            			        		<h4 id="column2MsgCount">{{topictool.topicCount(topic=topic,toponly=False)}} Messages</h4>
             			        	</td>
                                 </tr>
                                 <tr>
@@ -60,14 +60,14 @@
             	            		<td valign="top">
                                         <ul class="messages">
                                         {% for subject in subjects %}
-                                            <li class="message {%if subject['envelope']['local']['payload_sha512'] == envelope['envelope']['local']['payload_sha512']%} active{% end %}">
-                                                <abbr title="{{subject['envelope']['payload']['subject']}}">
-                                                <a class='internal messagelink' href="/message/{{server.sorttopic(topic)}}/{{subject['envelope']['local']['short_subject']}}/{{subject['envelope']['local']['payload_sha512']}}">
-                                                  <h2><bdi>{{subject['envelope']['payload']['subject']}}</bdi></h2>
-                                                  <span class="bodypreview">{{subject['envelope']['local']['short_body']}}</span> 
+                                            <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == envelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
+                                                <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
+                                                <a class='internal messagelink' href="/message/{{server.sorttopic(topic)}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
+                                                  <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
+                                                  <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span> 
                                                 </a>
-                                                {% if 'citedby' in subject['envelope']['local'] %}
-                                                    <div class="replies"><div>{{len(subject['envelope']['local']['citedby'])}}</div></div> 
+                                                {% if subject.countChildren() > 0 %}
+                                                    <div class="replies"><div>{{subject.countChildren()}}</div></div> 
                                                 {% end %}
                                                 </abbr>
                                             </li>
@@ -89,7 +89,7 @@
                                                 </td>
                                                 <td>
                                                     {% if beforecount > 0 %}
-                                                    <a href="/topic/{{topic}}?before={{subjects[-1]['envelope']['local']['time_added']}}" class="internal">
+                                                    <a href="/topic/{{topic}}?before={{subjects[-1].dict['envelope']['local']['time_added']}}" class="internal">
                                                        <button id="OlderMessages" class="column2Buttons" type="button">
                                                         Older Messages
                                                         <span class="icon-tools navIcon"></span>

@@ -2,13 +2,13 @@ import os
 import json
 from Envelope import *
 import time
-from keys import *
+from key import Key
 from collections import OrderedDict
 import pymongo
 from Server import server
 import scrypt
 import base64
-from lockedkey import lockedKey
+from lockedkey import LockedKey
 from TavernUtils import memorise
 from ServerSettings import serversettings
 import time
@@ -16,7 +16,6 @@ import datetime
 import calendar
 import hashlib
 import math
-from keys import Keys
 
 class User(object):
 
@@ -33,20 +32,45 @@ class User(object):
         self.Keys['secret'] = []
         self.Keys['master'] = None
 
-    def get_commkey(self):
+    def find_commkey(self,talkingto = None):
         """
-        Gets the current public/posted communication key.
+        Retrieves the current public communication key.
+        This will retrieve the key using only public information.
         """
-        
+
         posts = server.getUsersPosts(self.Keys['master'].pubkey)
         if len(posts) > 0:
             return posts[0].dict['envelope']['payload']['author']['replyto']
         else:
             return None
 
+    def gen_secretkey(self):
+        """
+        Generate and return a Secret Key used for a private message.
+        Each private message we send should use a -new- secret key.
+        This helps avoid analysis, and helps ensure that if our master key is compromised, 
+        our older communications don't leak.
+        """
+        # # Either we have no key, or an old one.
+        # if validcommkey == False:
+        #     print("Generating new posted key")
+        #     newkey = LockedKey()
+        #     newkey.generate(passkey = self.passkey) 
+
+
+            
+        #     newkey.expires = expirestamp
+        #     self.Keys['posted'].append(newkey)
+        #     anychanges = True
+
+
+
+
+
     def get_keys(self,ret='all',excludeMaster=True):
         """
-        Iterate through all our kinds of keys
+        Retrieve a list of all of our Keys objects.
+        Optionally exclude the 'master' key.
         """
         # Allow both Keys['foo'] and Keys['foo']['bar'] styles
         allkeys = []
@@ -55,7 +79,7 @@ class User(object):
             if excludeMaster is True:
                 if keyclass == 'master':
                     l2 = None
-            if isinstance(l2,(Keys,lockedKey)):
+            if isinstance(l2,(Keys,LockedKey)):
                 if l2.isValid():
                     allkeys.append(l2)
             elif hasattr(l2,'__iter__'):
@@ -76,24 +100,18 @@ class User(object):
                 retarray.append(vars(key)[ret])
             return retarray
 
-    def randstr(self, length):
-        # Random.randint isn't secure, use the OS urandom instead.
-        return ''.join(chr(int.from_bytes(os.urandom(1), 'big')) for i in range(length))
+    def verify_password(self, guessed_password, maxtime=50):
+        """
+        Verify if we can unlock the master key.
+        If we can, allow auth to the this user.
+        """
 
-    def hash_password(self, password, maxtime=5, datalength=64):
-        pword = scrypt.encrypt(
-            self.randstr(datalength), password, maxtime=maxtime)
-        return base64.b64encode(pword).decode('utf-8')
-
-    def verify_password(self, guessed_password, hashed_password=None, maxtime=50):
-        try:
-            if hashed_password is None:
-                hashed_password = self.passkey
-            pword = base64.b64decode(hashed_password.encode('utf-8'))
-            scrypt.decrypt(pword, guessed_password, maxtime)
+        passkey = self.Keys['master'].get_passkey(guessed_password)
+        if scrypt.decrypt(pword, guessed_password, maxtime):
             return True
-        except scrypt.error:
+        else:
             return False
+
 
     @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=serversettings.settings['cache']['user-note']['size'])
     def getNote(self, noteabout):
@@ -103,7 +121,7 @@ class User(object):
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 
-        key = Keys(pub=noteabout)
+        key = Key(pub=noteabout)
         noteabout = key.pubkey
         # Retrieve the note from mongo
         note = server.db.unsafe.find_one(
@@ -119,7 +137,7 @@ class User(object):
 
     def setNote(self, noteabout, note=""):
         # Format the Key.
-        key = Keys(pub=noteabout)
+        key = Key(pub=noteabout)
         noteabout = key.pubkey
 
         newnote = {"user": self.Keys['master'].pubkey, "noteabout":
@@ -147,7 +165,7 @@ class User(object):
             [Each generation of friends gets their trust multiplied by .4, since you trust them less and less]
         """
         # Ensure we have proper formatting for the key we're examining, so we find it in the DB.
-        key = Keys(pub=askingabout)
+        key = Key(pub=askingabout)
         askingabout = key.pubkey
 
         # Our opinion of everyone starts off Neutral
@@ -351,10 +369,6 @@ class User(object):
                 self.UserSettings['email'] = "email@example.org"
             anychanges = True
 
-        if password is not None and self.passkey is None:
-            self.passkey = self.hash_password(password)
-            anychanges = True
-
         if self.UserSettings['status'].get('guest') is None:
             self.UserSettings['status']['guest'] = True
             anychanges = True
@@ -378,7 +392,7 @@ class User(object):
                     anychanges = True
 
         # Ensure we don't somehow end up as an empty, but keyed user..
-        if isinstance(self.Keys['master'],lockedKey):
+        if isinstance(self.Keys['master'],LockedKey):
             if self.Keys['master'].pubkey is None:
                 self.Keys['master'] = None
 
@@ -394,17 +408,12 @@ class User(object):
                     self.UserSettings['status']['guest']  = True
             else:
                 print("Generating a LockedKeys")
-                self.Keys['master'] = lockedKey()
+                self.Keys['master'] = LockedKey()
 
-                if password == None:
-                    print("Generating a user with a random password")
-                    numcharacters = 100 + TavernUtils.randrange(1, 100)
-                    password = TavernUtils.randstr(numcharacters)
-
-                self.Keys['master'].generate(password=password)                
+                password = self.Keys['master'].generate(random=True)
+         
                 self.UserSettings['status']['guest']  = False
-                self.passkey = self.Keys['master'].passkey(password)
-
+                self.passkey = self.Keys['master'].get_passkey(password)
             anychanges = True
 
         # Ensure we have a valid/current public posted key.
@@ -426,7 +435,7 @@ class User(object):
             # Either we have no key, or an old one.
             if validcommkey == False:
                 print("Generating new posted key")
-                newkey = lockedKey()
+                newkey = LockedKey()
                 newkey.generate(passkey = self.passkey) 
 
                 # We want the key to expire on the last second of NEXT month.
@@ -445,6 +454,8 @@ class User(object):
                 anychanges = True
 
 
+        if password is not None and self.passkey is None:
+            self.passkey = self.Keys['master'].get_passkey(password=password)
 
         if self.UserSettings.get('time_created') is None:
             self.UserSettings['time_created'] = int(time.time())
@@ -527,24 +538,38 @@ class User(object):
 
         keys = self.Keys['posted'] + self.Keys['secret']
         for key in keys:
-            result = key.decrypt(text, passkey=passkey)
+            if isinstance(key, 'LockedKey'):
+                key.unlock(passkey)
+            result = key.decrypt(text)
+
             if len(result) > 0:
                 return result
 
 
-    def changepass(self, oldpasskey, newpassword):
+    def changepass(self, newpassword,oldpasskey=None):
         """
         Change the User's password
         """
         # Re-encrypt our Privkey
         
+        if oldpasskey is None and self.passkey is not None:
+            oldpasskey = self.passkey
+
+        print("Old Passkey is " + str(oldpasskey))
+        print("Old Key is " + str(self.Keys['master'].encryptedprivkey))
+
+        #TODO - Change --all-- keys
         if self.Keys['master'].changepass(oldpasskey=oldpasskey, newpassword=newpassword):    
-            self.passkey  = self.hash_password(newpassword)
+            self.passkey  = self.Keys['master'].get_passkey(newpassword)
             self.UserSettings['lastauth'] = int(time.time())
             self.UserSettings['status']['setpassword'] = int(time.time())
             self.savemongo()
+            print("New Passkey is " + str(self.passkey))
+            print("New Password is " + str(newpassword))
+            print("New Key is " + str(self.Keys['master'].encryptedprivkey))
         else:
             return False
+
 
 
     def presave_clean(self):
@@ -597,14 +622,14 @@ class User(object):
         # Restore our master key
         if self.UserSettings['keys'].get('master') is not None:
             if 'encryptedprivkey' in self.UserSettings['keys']['master']:
-                self.Keys['master'] = lockedKey(pub=self.UserSettings['keys']['master']['pubkey'], encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
+                self.Keys['master'] = LockedKey(pub=self.UserSettings['keys']['master']['pubkey'], encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
                 self.Keys['master'].generated =  self.UserSettings['keys']['master']['generated']
                 self.Keys['master'].expires = self.UserSettings['keys']['master']['expires']
                 server.logger.info("Reconstructed with encryptedprivkey")
             else:
                 # If we just have a pubkey string, do the best we can.
                 if self.UserSettings['keys']['master'].get('pubkey'):
-                    self.Keys['master'] = Keys(pub=self.UserSettings['keys']['master']['pubkey'])
+                    self.Keys['master'] = Key(pub=self.UserSettings['keys']['master']['pubkey'])
                     self.Keys['master'].generated = self.UserSettings['keys']['master'].get('generated')
                     self.Keys['master'].expires = self.UserSettings['keys']['master'].get('expires')
                     server.logger.info("reconstructed user without privkey")
@@ -612,14 +637,14 @@ class User(object):
             print("Requested user had no master key.")        
         # Restore any Posted communication keys.
         for key in self.UserSettings['keys'].get('posted',[]):
-            lk = lockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
+            lk = LockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
             lk.generated =  key['generated']
             lk.expires = key['expires']
             self.Keys['posted'].append(lk)
 
         # Restore any oneoff communication keys
         for key in self.UserSettings['keys'].get('secret',[]):
-            lk = lockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
+            lk = LockedKey(pub=key['pubkey'],encryptedprivkey=key['encryptedprivkey'])
             lk.generated =  key['generated']
             lk.expires = key['expires']
             self.Keys['secret'].append(lk)
@@ -660,7 +685,7 @@ class User(object):
         """
 
         # Get Formatted key for searching.
-        tmpkey = Keys(pub = pubkey)
+        tmpkey = Key(pub = pubkey)
         user = server.db.safe.find_one('users',
                                        {"keys.master.pubkey": tmpkey.pubkey})
         if user is not None:

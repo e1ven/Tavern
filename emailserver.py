@@ -13,10 +13,8 @@ import signal
 import pdb
 import os
 import time
-import random
 from Server import server
 from ServerSettings import serversettings
-
 
 class EmailServer(object):
     """

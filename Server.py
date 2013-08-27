@@ -1,7 +1,7 @@
 import json
 import platform
 import time
-from keys import *
+from key import Key
 import collections
 from collections import OrderedDict
 import pymongo
@@ -21,6 +21,9 @@ import tornado.escape
 import html
 import multiprocessing
 from TavernUtils import TavernCache
+import logging
+import os
+import re
 
 class FakeMongo():
 
@@ -275,7 +278,7 @@ class Server(object):
         if not 'pubkey' in serversettings.settings or not 'privkey' in serversettings.settings:
             #Generate New config
             self.logger.info("Generating new Config")
-            self.ServerKeys = Keys()
+            self.ServerKeys = Key()
             self.ServerKeys.generate()
 
             # We can't encrypt this.. We'd need to store the key here on the machine...
@@ -286,7 +289,7 @@ class Server(object):
             serversettings.updateconfig()
             serversettings.saveconfig()
             
-        self.ServerKeys = Keys(pub=serversettings.settings['pubkey'],
+        self.ServerKeys = Key(pub=serversettings.settings['pubkey'],
                                priv=serversettings.settings['privkey'])
 
         self.db =  DBWrapper(name=serversettings.settings['dbname'],dbtype=serversettings.settings['dbtype'],host=serversettings.settings['mongo-hostname'],port=serversettings.settings['mongo-port'])
@@ -338,8 +341,13 @@ class Server(object):
 
         # Start actually logging to file or console
         if self.debug == True:
+            self.logger.setLevel("DEBUG")
             self.logger.addHandler(self.consolehandler)
+      #      logging.getLogger('gnupg').setLevel("DEBUG")
+            logging.getLogger('gnupg').addHandler(self.consolehandler)
+
         self.logger.addHandler(self.handler_file)
+
         print("Logging Server started at level: " +  str(self.logger.getEffectiveLevel()))
 
 
@@ -365,7 +373,7 @@ class Server(object):
         Stop all server procs.
         """
         self.logger.info("Shutting down Server instance")
-        self.usergenerator.stop()
+        self.keygenerator.stop()
 
 
     def prettytext(self):

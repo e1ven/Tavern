@@ -10,10 +10,42 @@ import tempfile
 import shutil
 import time
 import TavernUtils
+import functools
+
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
+class Key(object):
 
-class Keys(object):
+
+    def privatekeyaccess(fn):
+        """
+        privatekeyaccess is an wrapper decorator. It will call the unlock() function in the obj if it has one.
+        This allows us to define a separate unlock for each type of key, and call them from the parent.
+        """
+        @functools.wraps(fn)
+        def wrapper(cls,*args,**kwargs):
+            passkey = None
+            # If our original class has an unlock function, call it.
+            if hasattr(cls, 'unlock'):
+                # If we passed in a passkey parameter, remove it, and pass it to the unlock instead.
+                if 'passkey' in kwargs:
+                    passkey = kwargs.pop('passkey')
+                    cls.unlock(pk)
+                else:
+                    cls.unlock()
+            print("Running Function")
+            result =  fn(cls,*args,**kwargs)
+            print(fn)
+            print(result)
+            print("function complete")
+            # Now, relock it back up.
+            if hasattr(cls, 'lock'):
+                if passkey is not None:
+                    cls.lock(passkey)
+                else:
+                    cls.lock()
+            return result
+        return wrapper
 
     def __init__(self, pub=None, priv=None):
         """
@@ -23,7 +55,7 @@ class Keys(object):
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
         self.privkey = priv
-
+        self.expires = None
         self.gnuhome = tempfile.mkdtemp()
         self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
@@ -149,8 +181,10 @@ class Keys(object):
         """
         if vars(self).get('expires') is not None:
             return time.time() < self.expires
+        else:
+            print("Does not expire")
 
-    def generate(self):
+    def generate(self,autoexpire=False):
         """
         Replaces whatever keys currently might exist with new ones.
         """
@@ -166,7 +200,22 @@ class Keys(object):
         self._format_keys()
         self._setKeyDetails()
         self.generated = int(time.time())
+ 
 
+        if autoexpire:
+            # If this key should expire, we want to do it at the end of NEXT month.
+            # So if it's currently Oct 15, we want the answer Nov31-23:59:59
+            # This makes it harder to pin down keys by when they were generated, since it's not based on current time        
+                 
+            number_of_days_this_month =  calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month)[1]
+            number_of_days_next_month = calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month + 1)[1]
+            two_months = datetime.datetime.now() + datetime.timedelta(days = number_of_days_this_month + number_of_days_next_month)
+            expiresdate = datetime.date(two_months.year, two_months.month, 1) - datetime.timedelta (days = 1)
+            expiresdatetime = datetime.datetime.combine(expiresdate,datetime.time.max)
+            self.expires = calendar.timegm(expiresdatetime.utctimetuple())
+
+
+    @privatekeyaccess
     def signstring(self, signstring):
         """
         Sign a string, and return back the Base64 Signature.
@@ -175,7 +224,10 @@ class Keys(object):
         encoded_hashed_str = base64.b64encode(hashed_str).decode('utf-8')
         signed_data = self.gpg.sign(
             encoded_hashed_str, keyid=self.fingerprint).data.decode('utf-8')
+        if not signed_data:
+            raise Exception("Signing Error!")
         return signed_data
+
 
     def verify_string(self, stringtoverify, signature):
         """
@@ -217,6 +269,7 @@ class Keys(object):
         else:
             return True
 
+    @privatekeyaccess
     def encrypt(self, encryptstring, encrypt_to):
         """
         Encrypt a string, to the gpg key of the specified recipient)
@@ -231,11 +284,13 @@ class Keys(object):
         self.gpg.delete_keys(recipient.fingerprint)
         return encrypted_string
 
+    @privatekeyaccess
     def decrypt(self, decryptstring):
         # self.gpg.
         decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
         return decrypted_string
 
+    @privatekeyaccess
     def encrypt_file(self, newfile):
         """
         Encrypt a string, to the gpg key of the specified recipient)
@@ -254,6 +309,7 @@ class Keys(object):
         self.gpg.delete_keys(recipient.fingerprint)
         return tmpfilename
 
+    @privatekeyaccess
     def decrypt_file(self, tmpfile):
 
         tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
@@ -280,3 +336,6 @@ class Keys(object):
             return True
         else:
             return False
+
+    def unlock(privkey=None):
+        print("Don't run me.")

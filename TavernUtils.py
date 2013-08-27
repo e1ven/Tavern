@@ -11,7 +11,11 @@ import hashlib
 import time
 from io import open
 import hashlib
+import random
 
+# The random that comes with Python does not use /dev/urandom, it uses MT.
+# Wrap random.SystemRandom so we always use expected randomness.
+randrange =  random.SystemRandom().randrange
 
 def proveWork(input,difficulty):
     """
@@ -130,41 +134,6 @@ def chunks(s, n):
     for start in range(0, len(s), n):
         yield s[start:start + n]
 
-
-def randrange(start, stop):
-    """
-    The random that comes with Python is blocking.
-    Re-create the randrange function, using /dev/urandom
-    Only use this for not critical functions, like random header fortunes ;)
-    """
-
-    # os.urandom generates X numbytes of randomness
-    # If it's a small number requested, look up the fewest bits needed.
-    # If it's a larger number, calculate the fewest.
-    # This saves bits on the server ;)
-    diff = abs(stop - start) + 1
-    if diff < 255:
-        numbytes = 1
-    elif diff <= 65535:
-        numbytes = 2
-    elif diff <= 16777215:
-        numbytes = 3
-    elif diff <= 4294967295:
-        numbytes = 4
-    else:
-        # If it's this big, calculate it out.
-        num = 4294967295
-        numbytes = 3
-        while num <= diff:
-            numbytes += 1
-            integerstring = ''
-            for i in range(0, (numbytes * 8)):
-                integerstring += '1'
-            num = int(integerstring, 2)
-
-    randnum = int.from_bytes(os.urandom(numbytes), 'big')
-    rightsize = randnum % diff
-    return start + rightsize
 
 
 def randstr(length, printable=False):

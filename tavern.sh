@@ -226,6 +226,12 @@ function start
         writearg lastrun
     fi
 
+    ./validate.sh
+    if [ "$?" -ne 0 ]
+        then
+        echo "Aborting due to code issue."
+        exit 2
+    fi
 
     echo "Ensuring fontello directory compliance"
 

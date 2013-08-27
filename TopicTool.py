@@ -1,6 +1,6 @@
 import json
 import pymongo
-import Envelope
+from Envelope import Envelope
 import time
 from TavernUtils import memorise
 import TavernUtils
@@ -30,10 +30,14 @@ class TopicTool(object):
         subjects = []
         if topic != "all":
             for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
-                subjects.append(envelope)
+                e = Envelope()
+                e.loaddict(envelope)
+                subjects.append(e)
         else:
             for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
-                subjects.append(envelope)
+                e = Envelope()
+                e.loaddict(envelope)
+                subjects.append(e)
         return subjects
 
     @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])

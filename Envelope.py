@@ -1,7 +1,7 @@
 import json
 import hashlib
 import os
-from keys import Keys
+from key import Key
 import collections
 from collections import *
 json.encoder.c_make_encoder = None
@@ -222,7 +222,7 @@ class Envelope(object):
                     return False
 
             # Retrieve the key, ensure it's valid.
-            stampkey = Keys(pub=stamp['pubkey'])
+            stampkey = Key(pub=stamp['pubkey'])
             if stampkey is None:
                 server.logger.debug("Key is invalid.")
                 return False
@@ -443,7 +443,7 @@ class Envelope(object):
 
 
 
-    @TavernUtils.memorise(ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    @TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'],ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
         print("Looking for childen for :" + self.payload.hash())
         results =  server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
@@ -454,13 +454,9 @@ class Envelope(object):
         Adds a stamp of type `class` to the current envelope
         """
 
-
-        if passkey is None:
-            # Unsigned keys. No passkey needed.
-            signature = keys.signstring(self.payload.text())
-        else:
-            signature = keys.signstring(self.payload.text(), passkey)
-        
+        if passkey is not None:
+            keys.unlock(passkey)
+        signature = keys.signstring(self.payload.text())
 
         # Generate the full stamp obj we will insert.
         fullstamp = {}
@@ -528,6 +524,7 @@ class Envelope(object):
             self.dict['envelope']['local']['citedby'] = []
         if citedby not in self.dict['envelope']['local']['citedby']:
             self.dict['envelope']['local']['citedby'].append(citedby)
+
         self.saveMongo()
 
     def addEdit(self,editid):

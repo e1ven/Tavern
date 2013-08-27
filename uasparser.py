@@ -49,7 +49,6 @@ except:
     import pickle
 from TavernUtils import memorise
 from Envelope import *
-from keys import *
 from ServerSettings import serversettings
 
 

@@ -1,13 +1,12 @@
 {% extends 'tripane.html' %}
 
-
 {% block column3 %}
 
     <div id="allreplies">
-        {% raw handler.render_string('firstMessage.html',edict=envelope) %}
+        {% raw handler.render_string('firstMessage.html',envelope=envelope) %}
 
-        {% if 'citedby' in envelope['envelope']['local'] %}
-            {% for cite in envelope['envelope']['local']['citedby'] %}
+        {% if 'citedby' in envelope.dict['envelope']['local'] %}
+            {% for cite in envelope.dict['envelope']['local']['citedby'] %}
                 {% raw handler.render_string('reply.html',messageid=cite) %}
            {% end %}
         {% end %}  

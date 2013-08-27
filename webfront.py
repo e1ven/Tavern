@@ -1,6 +1,5 @@
 # Copyright 2012 Tavern
 
-
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
@@ -16,7 +15,7 @@ from collections import OrderedDict
 import pymongo
 from Server import server
 import pygeoip
-from keys import *
+from key import Key
 from User import User
 import urllib.parse
 from bs4 import BeautifulSoup
@@ -492,18 +491,19 @@ class MessageHandler(BaseHandler):
                                                     {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is not None:
-            displayenvelope = messagesenvelope
-            topic = displayenvelope['envelope']['payload']['topic']
-            self.canon = "message/" + displayenvelope['envelope']['local']['sorttopic'] + '/' + displayenvelope['envelope']['local']['short_subject'] + "/" + displayenvelope['envelope']['local']['payload_sha512']
-            title = displayenvelope['envelope']['payload']['subject']
+            displayenvelope = Envelope()
+            displayenvelope.loaddict(messagesenvelope)
+            topic = displayenvelope.dict['envelope']['payload']['topic']
+            self.canon = "message/" + displayenvelope.dict['envelope']['local']['sorttopic'] + '/' + displayenvelope.dict['envelope']['local']['short_subject'] + "/" + displayenvelope.dict['envelope']['local']['payload_sha512']
+            title = displayenvelope.dict['envelope']['payload']['subject']
         else:
             # If we didn't find that message, throw an error.
-            displayenvelope = server.error_envelope("The Message you are looking for can not be found.").dict
-            title = displayenvelope['envelope']['payload']['subject']
-            topic = displayenvelope['envelope']['payload']['topic']
+            displayenvelope = server.error_envelope("The Message you are looking for can not be found.")
+            title = displayenvelope.dict['envelope']['payload']['subject']
+            topic = displayenvelope.dict['envelope']['payload']['topic']
 
         # Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
+        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope.dict['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
@@ -546,10 +546,10 @@ class TopicHandler(BaseHandler):
         if len(topicEnvelopes) > 0:
             displayenvelope = topicEnvelopes[0]
         else:
-            displayenvelope = server.error_envelope("That topic does not have any messages in it yet.").dict
+            displayenvelope = server.error_envelope("That topic does not have any messages in it yet.")
             canon = None
-            title = displayenvelope['envelope']['payload']['subject']
-            topic = displayenvelope['envelope']['payload']['topic']
+            title = displayenvelope.dict['envelope']['payload']['subject']
+            topic = displayenvelope.dict['envelope']['payload']['topic']
         # Gather up all the replies to this message, so we can send those to the template as well
         self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope['envelope']['payload']['topic']))
         self.write(self.render_string('showmessage.html',
@@ -697,7 +697,7 @@ class RegisterHandler(BaseHandler):
             self.user.savemongo()
 
             # Save the passkey out to a separate cookie.
-            self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(
+            self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(
                 client_newpass), httponly=True, expires_days=999)
 
             self.setvars()
@@ -752,7 +752,7 @@ class LoginHandler(BaseHandler):
                 self.user = u
 
                 self.clear_cookie('tavern_passkey')
-                self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(client_password), httponly=True, expires_days=999)
+                self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(client_password), httponly=True, expires_days=999)
                 self.user.UserSettings['lastauth'] = int(time.time())
 
                 self.setvars()
@@ -794,14 +794,11 @@ class ChangepasswordHandler(BaseHandler):
             self.write("I'm sorry, your passwords don't match.")
             return
 
-        client_oldpasskey = self.get_secure_cookie("tavern_passkey")
-
         # Encrypt the the privkey with the new password
-        self.user.changepass(
-            oldpasskey=client_oldpasskey, newpassword=client_newpass)
+        self.user.changepass(newpassword=client_newpass)
 
         # Set the Passkey, to be able to unlock the Privkey
-        self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].passkey(
+        self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(
             password=client_newpass), httponly=True, expires_days=999)
 
         self.setvars()
@@ -816,7 +813,7 @@ class UserHandler(BaseHandler):
         #Unquote it, then convert it to a TavernKey object so we can rebuild it.
         #Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
-        pubkey = Keys(pub=pubkey).pubkey
+        pubkey = Key(pub=pubkey).pubkey
 
         # Generate a clean user obj with that pubkey and nothing else.
         u = User()
@@ -991,7 +988,7 @@ class UserTrustHandler(BaseHandler):
 
         trusted_pubkey = urllib.parse.unquote(
             self.get_argument("trusted_pubkey"))
-        trusted_pubkey = Keys(pub=trusted_pubkey).pubkey
+        trusted_pubkey = Key(pub=trusted_pubkey).pubkey
 
         client_trust = self.get_argument("trust")
         client_topic = self.get_argument("topic")
@@ -1277,7 +1274,7 @@ class NewmessageHandler(BaseHandler):
 
         else:
             e.payload.dict['class'] = "privatemessage"
-            touser = Keys(pub=client_to)
+            touser = Key(pub=client_to)
 
             encrypted = OrderedDict()
 
@@ -1297,7 +1294,8 @@ class NewmessageHandler(BaseHandler):
 
             #TODO add encrypted['from'] which includes a HMAC
             encrypted_dictstr = json.dumps(encrypted, separators=(',', ':'))
-            e.payload.dict['encrypted'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_dictstr, passkey=self.user.passkey)
+            self.user.Keys['master'].unlock(passkey = self.user.passkey)
+            e.payload.dict['encrypted'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_dictstr)
 
         if len(envelopebinarylist) > 0:
             e.payload.dict['binaries'] = envelopebinarylist

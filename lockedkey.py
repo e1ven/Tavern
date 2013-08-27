@@ -1,10 +1,12 @@
-from keys import Keys
+import key
 import scrypt
 import base64
 import time
 import TavernUtils
+import functools
 
-class lockedKey(object):
+class LockedKey(key.Key):
+
     """
     A securely locked away key, which uses a secret only stored in the client to unlock.
     If our DB is ever compromised, this will prevent bad guys from easily impersonating users.
@@ -15,48 +17,87 @@ class lockedKey(object):
     We aren't just using gpg passphrases because there is no easy way to progratically change them.
     """
 
+    # access_privatekey is an empty function that is called before every function that requires privatekey access.
+    # We're adding it here so that objects that extend Key can overwrite it, and unlock the privatekey in some way.
+
     def __init__(self, pub=None, priv=None, password=None, encryptedprivkey=None):
         self.maxtime_verify = 5
         self.maxtime_create = 1
-        tempkey = Keys(pub=pub, priv=priv)
-        self.pubkey = tempkey.pubkey
+        self.encryptedprivkey = encryptedprivkey
+        self.passkey = None
 
-        if encryptedprivkey is not None:
-            self.encryptedprivkey = encryptedprivkey
+        super().__init__(pub=pub,priv=priv)
 
-        if encryptedprivkey is None and password is not None and priv is not None:
-            self.encryptedprivkey = self.__encryptprivkey(
-                password=password, privkey=tempkey.privkey)
+    def lock(self,passkey=None):
+        """
+        Remove the private key from Python obj
+        """
 
-        if hasattr(tempkey, 'keydetails'):
-            self.keydetails = tempkey.keydetails
+        if passkey is not None:
+            self.passkey = passkey
 
-    def __encryptprivkey(self, privkey, password=None,passkey=None):
+        if self.passkey is None and self.encryptedprivkey is None:
+            print("Locking empty key...")
+            return False
+
+        if self.privkey is not None and self.passkey is not None:
+            self._encryptprivkey(privkey=self.privkey,passkey=self.passkey)   
+            print("Locked")
+
+        self.privkey = None
+
+    def unlock(self,passkey=None):
+        """
+        Sets self.privkey to be the public key, if possible
+        """
+        print("Trying to unlock")
+        if passkey is not None:
+            self.passkey = passkey
+
+        # If we have everything necessary, become a priv/pub keypair.
+        if self.privkey is None and self.passkey is not None and self.encryptedprivkey is not None:
+            self.privkey = self._decryptprivkey(self.passkey)
+            super().__init__(pub=self.pubkey,priv=self.privkey)
+            return True
+
+        if self.privkey is None:
+            raise Exception('KeyError', 'Could not unlock key')
+
+    def _encryptprivkey(self, privkey=None, password=None,passkey=None):
         """
         Internal-only method to encrypt the private key.
+        This is using the scrypt KDF to encrypt the privatekey.
         """
+
+        if privkey is None and self.privkey is None:
+            raise Exception('KeyError', 'Invalid call to encryptedprivkey - No privkey found.')
 
         if password is None and passkey is None:
-            raise Exception('KeyError', 'Invalid call to encryptedprivkey')
+            raise Exception('KeyError', 'Invalid call to encryptedprivkey - No key or password')
 
-        if password is not None:
-            key = scrypt.encrypt(input=privkey, password=self.passkey(password), maxtime=self.maxtime_create)
-        elif passkey is not None:
-            key = scrypt.encrypt(input=privkey, password=passkey, maxtime=self.maxtime_create)
+        if passkey is None and password is not None:
+            passkey = self.get_passkey(password)
 
-        return base64.b64encode(key).decode('utf-8')
+        key = scrypt.encrypt(input=privkey, password=passkey, maxtime=self.maxtime_create)
 
-    def isValid(self):
+        self.encryptedprivkey = base64.b64encode(key).decode('utf-8')
+        return self.encryptedprivkey
+
+    def _decryptprivkey(self, passkey):
         """
-        Does this key have an 'expires' variable set in the past?
+        Decode and return the private key.
         """
-        if vars(self).get('expires') is not None:
-            print(self.expires)
-            return time.time() < self.expires
-        else:
-            print("Does not expire")
+        if isinstance(passkey,str):
+            passkey = passkey.encode('utf-8')
 
-    def passkey(self, password):
+        byteprivatekey = base64.b64decode(
+            self.encryptedprivkey.encode('utf-8'))
+
+        result =  scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
+        return result
+
+
+    def get_passkey(self, password):
         """
         Returns the hashed version of the password.
         Broken out into a method, so we can swap it if nec.
@@ -73,29 +114,22 @@ class lockedKey(object):
             password=password, salt=self.pubkey, N=16384)).decode('utf-8')
         return pkey
 
-    def privkey(self, passkey):
-        """
-        Decode and return the private key.
-        """
-        byteprivatekey = base64.b64decode(
-            self.encryptedprivkey.encode('utf-8'))
-        result =  scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
-        return result
-
 
     def changepass(self, oldpasskey, newpassword):
-        privkey = self.privkey(oldpasskey)
-        self.encryptedprivkey = self.__encryptprivkey(
-            password=newpassword, privkey=privkey)
+        privkey = self._decryptprivkey(oldpasskey)
+        self.encryptedprivkey = self._encryptprivkey(privkey=privkey,
+            password=newpassword)
+        self.passkey = self.get_passkey(newpassword)
+        return self.encryptedprivkey
 
-    def generate(self, password=None,passkey=None,random=False):
+    def generate(self, password=None,passkey=None,random=False,autoexpire=False):
         """
         Generate a new set of keys.
         Store only the encrypted version
         """
 
         if password is None and passkey is None and random is False:
-            raise Exception('KeyError', 'Invalid call to generate()')
+            raise Exception('KeyError', 'Invalid call to generate() - Must include a password, passkey, or Random')
 
         if random is True:
             numcharacters = 100 + TavernUtils.randrange(1, 100)
@@ -105,46 +139,14 @@ class lockedKey(object):
         else:
             ret = None
 
-        tempkey = Keys()
-        tempkey.generate()
-        self.pubkey = tempkey.pubkey
+        super().generate(autoexpire=autoexpire)
 
-        if password is not None:
-            self.encryptedprivkey = self.__encryptprivkey(password=password, privkey=tempkey.privkey)
+        if self.passkey is None and passkey is not None:
+            self.passkey = passkey
 
-        elif passkey is not None:
-            self.encryptedprivkey = self.__encryptprivkey(passkey=passkey, privkey=tempkey.privkey)
-
-        self.keydetails = tempkey.keydetails
-        self.generated = int(time.time())
+        if self.passkey is None and password is not None:
+            self.passkey = self.get_passkey(password=password)
+        
+        self.lock(passkey = self.passkey)
 
         return ret
-
-    def signstring(self, signstring, passkey):
-        """
-        Sign a given string, unlocking and then using the local private key file.
-        """
-
-        tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return tempkey.signstring(signstring=signstring)
-
-    def verify_string(self, stringtoverify, signature, passkey):
-        """
-        Verify a given string, unlocking and then using the local private key file.
-        """
-        tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return  tempkey.verify_string(stringtoverify=stringtoverify, signature=signature)
-
-    def encrypt(self, encryptstring, encrypt_to, passkey):
-        """
-        Encrypt a given string, after unlocking the local privkey to do so.
-        """
-        tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return tempkey.encrypt(encryptstring=encryptstring, encrypt_to=encrypt_to)
-
-    def decrypt(self, decryptstring, passkey):
-        """
-        Decrypt a given string, after unlocking the local privkey to do so.
-        """
-        tempkey = Keys(pub=self.pubkey, priv=self.privkey(passkey))
-        return tempkey.decrypt(decryptstring=decryptstring)

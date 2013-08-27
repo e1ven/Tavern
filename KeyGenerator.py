@@ -8,11 +8,10 @@ import signal
 import pdb
 import os
 import time
-import random
 from Envelope import Envelope
 from Server import server
 from ServerSettings import serversettings
-from lockedkey import lockedKey
+from lockedkey import LockedKey
 import TavernUtils
 
 
@@ -62,7 +61,7 @@ class KeyGenerator(object):
         """
         Create a LockedKey with a random password.
         """
-        lk = key()
+        lk = LockedKey()
         password = lk.generate(random=True)   
         unusedkey = {'key':lk,'password':password}
         return unusedkey

@@ -21,7 +21,7 @@ from collections import OrderedDict
 import pymongo
 from tornado.options import define, options
 from Server import server
-from keys import *
+from key import Key
 from User import User
 from gridfs import GridFS
 import hashlib

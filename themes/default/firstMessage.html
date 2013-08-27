@@ -1,10 +1,3 @@
-
-{% import Envelope %}
-{% set envelope = Envelope.Envelope() %}
-{% if not envelope.loaddict(edict) %}
-    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded... ") %}
-{% end %}
-
 {% set medialink = None %}
 {% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
