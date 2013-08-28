@@ -11,6 +11,8 @@ import shutil
 import time
 import TavernUtils
 import functools
+import datetime
+import calendar
 
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
@@ -33,11 +35,7 @@ class Key(object):
                     cls.unlock(pk)
                 else:
                     cls.unlock()
-            print("Running Function")
             result =  fn(cls,*args,**kwargs)
-            print(fn)
-            print(result)
-            print("function complete")
             # Now, relock it back up.
             if hasattr(cls, 'lock'):
                 if passkey is not None:

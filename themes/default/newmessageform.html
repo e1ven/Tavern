@@ -1,90 +1,24 @@
-{% extends "dualpane.html" %}
+{% extends "messageform.html" %}
 
-{% block column2 %}
-	
-	{% import TavernUtils %}
+{% block submitblock %}
+<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/newmessage" method="post" class="messageform" id='{{timeid}}'>
+	{% raw xsrf_form_html() %}
+	Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
+	Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
 
-	{# TimeID is set here, so it is consistent everywhere in this msg #}
-	{% set timeid = TavernUtils.longtime() %}
+    <p>
+		What would you like your message to say?<br/> 
+    </p>
 
-	{% set action = '/newmessage' %}
-	{% if edit == True %}
-		{% set action = '/reply/edit' %}
-	{% end %}
+	<textarea name="body" rows=8 cols=80>
+	</textarea>
+	<br/><br/>
 
+	<input class="single_file_upload" type="file" name="attached_file1"/><br/>
 
-	{% if regarding is None %}
-	<h1>Post a new message {% if topic is not None %} to {{ topic }} {% end %}</h1>
-	{% end %}
-	<div id='replywrapper' class="padder">
-		<form data-persist="garlic" enctype="multipart/form-data" action="{{action}}" method="post" class="messageform" id='{{timeid}}'>
-			{% raw xsrf_form_html() %}
-			{% if topic is None %}
-			Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
-			<br/>
-			{% end %}
-			{% if regarding is None %}
-			Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
-			{% end %}
-
-			{% if regarding is not None %}
-			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
-			{% end %}
-			{% if topic is not None %}
-			<input type="hidden" name="topic" value = "{{topic}}"/><br/>
-			{% end %}
-
-
-            <p>
-			{% if regarding is None %}
-				What would you like your message to say?<br/> 
-			{% else %}
-				{% if edit == True %}
-					Feel free to change the text of your post below.<br/>
-					Please note, older versions will remain available.<br/>
-				{% else %}
-					What would you like your reply to say?<br/>
-				{% end %}
-			{% end %}
-            </p>
-
-			<textarea name="body" rows=8 cols=80>
-				{% if oldtext is not None %}
-					{{oldtext}}
-				{% end %}
-			</textarea><br/><br/>
-
-			<input class="single_file_upload" type="file" name="attached_file1"/><br/>
-
-			<div id="filelist">
-			</div>
-			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
-			<input type="submit" value="Submit Message"/>
-		</form>
-		<br/><br/>
-	
-		<form class='uploadfileform hiddenupload' action='/uploadfile/fileonly' references='{{timeid}}' id="fileupload-{{timeid}}" style="position:relative;bottom:5px">
-			<div class='uploadbox'>
-				<i class='icon-up-circle2'></i>
-			</div>
-			{% raw xsrf_form_html() %}
-			<input  class='uploadonly' id="1234" type="file" name="files[]" multiple/>
-			<p class='hiddenupload' id='dragdroptext'></p>
-		</form>
-
-		<div id='spacer'></div>
-
-		<br>
-		<div id='filelist_{{timeid}}' class='uploadfileform hiddenupload'></div>
-		<div id='progress_{{timeid}}' style="display:none"></div>
-
-		</div>
-	
-		<script defer src="/static/scripts/jquery.ui.widget.min.js?revision={{serversettings.settings['static-revision']}}"></script>
-		<script defer src="/static/scripts/jquery.iframe-transport.min.js?revision={{serversettings.settings['static-revision']}}"></script>
-		<script defer src="/static/scripts/jquery.fileupload.min.js?revision={{serversettings.settings['static-revision']}}"></script>
-		<script defer src="/static/scripts/newmessage.min.js?revision={{serversettings.settings['static-revision']}}"></script>
-
-	</div> <!-- padder -->
-
+	<div id="filelist">
+	</div>
+	<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
+	<input type="submit" value="Submit Message"/>
+</form>
 {% end %}

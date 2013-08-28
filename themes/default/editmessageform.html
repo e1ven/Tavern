@@ -1,0 +1,23 @@
+{% extends "messageform.html" %}
+
+{% block submitblock %}
+		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/editmessage" method="post" class="messageform" id='{{timeid}}'>
+			{% raw xsrf_form_html() %}
+			<p>
+				Feel free to change the text of your post below.<br/>
+				Please note, older versions will remain available.<br/>
+            </p>
+
+			<textarea name="body" rows=8 cols=80>
+					{{oldtext}}
+			</textarea>
+			<br/><br/>
+
+			<input class="single_file_upload" type="file" name="attached_file1"/><br/>
+
+			<div id="filelist">
+			</div>
+			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
+			<input type="submit" value="Submit Message"/>
+		</form>
+{% end %}

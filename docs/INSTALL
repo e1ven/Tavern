@@ -124,6 +124,9 @@ python3 setup.py install
     echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
     echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
 
+# Get us some Robots.
+cd /opt/Tavern/libs
+git clone https://github.com/e1ven/Robohash.git
 
 cd /opt/Tavern
 ./start-dev-servers.sh

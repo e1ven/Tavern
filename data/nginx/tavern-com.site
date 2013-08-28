@@ -167,9 +167,9 @@
                 proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
                 }
 
-       location /uploadnewmessage {
+       location /uploadenvelope {
 
-                proxy_pass http://tornados/uploadnewmessage;
+                proxy_pass http://tornados/uploadenvelope;
                 client_max_body_size 2000M;
                 client_body_buffer_size 128k;
 

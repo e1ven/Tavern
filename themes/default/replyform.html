@@ -1,0 +1,23 @@
+{% extends "messageform.html" %}
+
+{% block submitblock %}
+<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/reply" method="post" class="messageform" id='{{timeid}}'>
+	{% raw xsrf_form_html() %}
+	<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
+    
+    <p>
+	What would you like your reply to say?<br/>
+    </p>
+
+	<textarea name="body" rows=8 cols=80>
+	</textarea>
+	<br/><br/>
+
+	<input class="single_file_upload" type="file" name="attached_file1"/><br/>
+
+	<div id="filelist">
+	</div>
+	<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
+	<input type="submit" value="Submit Reply"/>
+</form>
+{% end %}

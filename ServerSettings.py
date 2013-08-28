@@ -1,3 +1,4 @@
+
 from collections import OrderedDict
 import platform
 import json
@@ -32,7 +33,6 @@ class ServerSettings():
 
     def saveconfig(self, filename=None,directory='data/conf/'):
         newsettings = self.settings
-        newsettings['temp'] = {}
 
         if filename is None:
             filename = self.settings['hostname'] + \
@@ -45,14 +45,11 @@ class ServerSettings():
 
     def updateconfig(self):
         
-        if not 'temp' in self.settings:
-            self.settings['temp'] = {}
-
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
 
         if not 'primaryurl' in self.settings:
-            self.settings['primaryurl'] = False
+            self.settings['primaryurl'] = None
 
         if not 'downloadsurl' in self.settings:
             self.settings['downloadsurl'] = '/binaries/'

@@ -32,7 +32,7 @@ class User(object):
         self.Keys['secret'] = []
         self.Keys['master'] = None
 
-    def find_commkey(self,talkingto = None):
+    def find_commkey(self):
         """
         Retrieves the current public communication key.
         This will retrieve the key using only public information.
@@ -44,27 +44,23 @@ class User(object):
         else:
             return None
 
-    def gen_secretkey(self):
+    def get_pmkey(self,talkingto = None):
         """
-        Generate and return a Secret Key used for a private message.
-        Each private message we send should use a -new- secret key.
+        Generate a Private Message to person X.
+        This is create a new Secret Key for the message, and add it to our pool.
         This helps avoid analysis, and helps ensure that if our master key is compromised, 
         our older communications don't leak.
         """
-        # # Either we have no key, or an old one.
-        # if validcommkey == False:
-        #     print("Generating new posted key")
-        #     newkey = LockedKey()
-        #     newkey.generate(passkey = self.passkey) 
-
-
             
-        #     newkey.expires = expirestamp
-        #     self.Keys['posted'].append(newkey)
-        #     anychanges = True
+        if self.passkey is None:
+            raise Exception("Must have a valid passkey to run this method")
 
-
-
+        # Step 1, Create a new Key for this person.
+        newkey = LockedKey()
+        newkey.generate(passkey = self.passkey,autoexpire = True)
+        self.Keys['secret'].append(newkey)
+        self.savemongo()
+        return newkey
 
 
     def get_keys(self,ret='all',excludeMaster=True):

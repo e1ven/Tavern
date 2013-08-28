@@ -7,7 +7,9 @@ socket.setdefaulttimeout(30)
 from Server import server
 from TavernUtils import memorise
 from ServerSettings import serversettings
-
+from libs import Robohash
+import base64
+import io
 
 class embedis:
     """Embedis is a quick class/API for translating embeddable media"""
@@ -98,17 +100,23 @@ class embedis:
         """
         Retrieve the Avatar from Robohash.org, for use in the datauri embed.
         """
+        # If user.datauri is True, generate the image and hand it back.
         if datauri:
-            try:
-                f = urllib.request.urlopen("http://Robohash.org/" + myid + '.datauri?set=any&amp;bgset=any&amp;size=' + str(width) + 'x' + str(height))
-                return f.read()
-            except:
-                # If it fails, return a regular link...
-                return self.getavatar(myid, datauri=False, width=width, height=height)
+
+            format = 'png'
+            robo = Robohash.Robohash(myid)
+            robo.assemble(roboset='any',format=format,bgset='any',sizex=width,sizey=height)
+
+            # Encode the Robot to a DataURI
+            fakefile = io.BytesIO()
+            robo.img.save(fakefile,format=format)
+            fakefile.seek(0)
+            b64ver = base64.b64encode(fakefile.read())
+            b64ver = b64ver.decode('utf-8')
+            return("data:image/png;base64," + str(b64ver))
+
         else:
-            avlink = '/avatar/' + myid + \
-                '.jpg?set=any&amp;bgset=any&amp;size=' + \
-                str(width) + 'x' + str(height)
+            avlink = '/avatar/' + myid + '.png?set=any&bgset=any&size=' + str(width) + 'x' + str(height)
             return avlink
 
 emb = embedis

@@ -36,7 +36,7 @@
     <li>
         <div class="comment rating_{{messagerating}} " rating={{messagerating}}>
 
-            <a class="details commentDetails"user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
+            <a class="details commentDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
                 <img class="floatLeft clear commentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="40" height="40" alt="User Details" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
 
                 <h6>
