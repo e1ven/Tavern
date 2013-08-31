@@ -1,90 +1,46 @@
-{% import pymongo %}
-{% from collections import OrderedDict %}
 {% import datetime %}
 
-{% set medialink = None %}
-
-<div class="single userportrait">
-<h1>{{envelope.dict['envelope']['local']['decrypted']['subject']}}<br></h1>
-
-{% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
+{% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
+{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
 
 
-            <p class="meta">Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}.</time></abbr></p>
-                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}"  href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
-                    
-                        <img id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="avatar" width="40" height="40" alt="User Details - " src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+<div id="firstMessage" class="comment">
+    <ul>
+        <li>
 
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
 
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
-                        <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}<br>
-                        {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
-                        {% if user.UserSettings['display_useragent'] %}
-                            {% if 'name' in envelope.dict['envelope']['local']['author']['useragent'] %}
-                                <br>Posted Using: {{envelope.dict['envelope']['local']['author']['useragent']['name']}} ({{envelope.dict['envelope']['local']['author']['useragent']['version']}})
-                            {% end %}
-                        {% end %}
-                        {% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
-                        {% if note is not None %}
-                            <div class="note"><i>{{note}}</i></div>
-                        {% end %}
-                    </a>
-                    <div class="UserDetails UserDetails_right" id="details_{{envelope.dict['envelope']['local']['payload_sha512']}}">
-                    {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
-                        <abbr title='You {{user.translateTrustToWords(trust)}} this user : {{trust}}'>
-                             {% if trust > 50 %}
-                             This user is allowed to rate comments.
-                             {% elif trust < 50 and trust > 0 %}
-                             This user's ratings have a slight effect on a comment's score.
-                             {% elif trust <= 0 %}
-                             This user's ratings have no effect on a comment's score.
-                             {% end %}
-                        </abbr><br>
-                            {% if trust < 100 %}
-                            <form action="/usertrust" method="post">
-                                {% raw xsrf_form_html() %}
-                                <input type="hidden" name="trust" value="100">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
-                                <input class="textbutton" type="submit" value="Recommended this users to others.">
-                            </form>
-                            <br>
-                            {% end %}
-                            {% if trust > -100 and trust < 100 %}
-                            <form action="/usertrust" method="post">
-                                {% raw xsrf_form_html() %}
-                                <input type="hidden" name="trust" value="-100">
-                                <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
-                                <input class="textbutton" type="submit" value="Warn others about this user.">
-                            </form>
-                            {% end %}
-                            <br>
-                            <form action="/usernote" method="post" class="usernote">
-                                 {% raw xsrf_form_html() %}
-                                <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
-                                <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note to yourself about this user" {% else %} placeholder="{{note}}" {% end %} >
-                            </form>
-                            <br>
-                            <a href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}">Full Details</a>
-                    </div>  
-
-
-            <div class="thread_body">
-                {{ envelope.dict['envelope']['local']['decrypted']['body'] }}
-            </div><!-- .thread_start -->
-            {% if 'attachmentlist' in envelope.dict['envelope']['local'] %}
-                <div class="attachments">
-                    {% if len(envelope.dict['envelope']['local']['attachmentlist']) > 1 %}
-                        Attached Files:<br>
-                    {% elif  len(envelope.dict['envelope']['local']['attachmentlist']) > 0  %}
-                        Attached File: <br>
+                <abbr title="{{envelope.dict['envelope']['payload']['subject']}}"</abbr>
+                    <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
+                </abbr>
+                <h6 class="firstMessageAuthorInfo">
+                    By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
+                    {% if note is not None %}
+                        <div class="note"> ( {{note}} ) </div>
                     {% end %}
-                    {% for attachment in envelope.dict['envelope']['local']['attachmentlist'] %}
+                </h6>
+            </a>
+            {% include 'UserDetails.html' %}
+            <p class="firstMessageDate">
+                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added']))).format() }}</time></abbr>.
+            </p>
+            <br>
+            <div id="firstMessageBody" class="MessageBody">
+                {% raw envelope.dict['envelope']['local']['formattedbody'] %}
+            </div>
 
-                            <a href="{{serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
-                            <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circle'></i></a>
-                            <br>
-                    {% end %}
+            <hr class="clear firstMessageSeparationLine">
+
+            <div id="firstMessageLinks">
+                <div class="buffer reply">
+
                 </div>
-            {% end %}
-
-</div> <!-- .single -->
+            </div>
+            <Br><br>
+            <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
+            {% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}            
+        </li>
+    </ul>     
+</div>

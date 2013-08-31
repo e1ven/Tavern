@@ -1,8 +1,0 @@
-{% import urllib %}
-Your Private Messages:
-<ul>
-{% for message in messages %}
-       <li>
-        <a href="/privatemessage/{{message['envelope']['local']['payload_sha512']}}">{{message['envelope']['local']['decrypted']['subject']}}</a></li>
-{% end %}
-</ul>

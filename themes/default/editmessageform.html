@@ -1,7 +1,7 @@
 {% extends "messageform.html" %}
 
 {% block submitblock %}
-		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/editmessage" method="post" class="messageform" id='{{timeid}}'>
+		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/messagerevision" method="post" class="messageform" id='{{timeid}}'>
 			{% raw xsrf_form_html() %}
 			<p>
 				Feel free to change the text of your post below.<br/>

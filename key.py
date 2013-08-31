@@ -181,6 +181,7 @@ class Key(object):
             return time.time() < self.expires
         else:
             print("Does not expire")
+            return True
 
     def generate(self,autoexpire=False):
         """
@@ -275,7 +276,7 @@ class Key(object):
 
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
-        recipient = Keys(pub=encrypt_to)
+        recipient = Key(pub=encrypt_to)
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
         encrypted_string = str(self.gpg.encrypt(data=encryptstring, recipients=[recipient.fingerprint], always_trust=True, armor=True))
@@ -296,7 +297,7 @@ class Key(object):
 
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
-        recipient = Keys(pub=encrypt_to)
+        recipient = Key(pub=encrypt_to)
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
@@ -324,7 +325,7 @@ class Key(object):
 
     def test_encryption(self):
         self._format_keys()
-        recipient = Keys()
+        recipient = Key()
         recipient.generate()
         test_string = "foo"
         enc = self.encrypt(

@@ -189,8 +189,9 @@ class Envelope(object):
                 foundauthor += 1
                 
         if foundauthor == 0:
-            server.logger.debug("No author stamp.")
-            return False
+            if self.dict['envelope']['payload']['class'] != 'privatemessage':
+                server.logger.debug("No author stamp.")
+                return False
         if foundauthor > 1:
             server.logger.debug("Too Many author stamps")
             return False
@@ -257,8 +258,7 @@ class Envelope(object):
                         "Bad Useragent version must be a float or integer")
                     return False
         else:
-            server.logger.debug("Bad Useragent")
-            return False
+            server.logger.debug("No Useragent")
 
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
@@ -345,7 +345,8 @@ class Envelope(object):
                     self.dict['envelope']['local']['embed'].append(result)
                     foundurls += 1
 
-        self.dict['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
+        if 'author' in self.dict['envelope']['local']:
+            self.dict['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
         if not 'priority' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['priority'] = 0
 

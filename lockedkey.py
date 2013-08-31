@@ -32,6 +32,9 @@ class LockedKey(key.Key):
         """
         Remove the private key from Python obj
         """
+        if self.privkey is None:
+            # Already locked!
+            return True
 
         if passkey is not None:
             self.passkey = passkey
@@ -40,11 +43,12 @@ class LockedKey(key.Key):
             print("Locking empty key...")
             return False
 
-        if self.privkey is not None and self.passkey is not None:
+        if self.privkey is not None and self.passkey is not None and self.encryptedprivkey is not None:
             self._encryptprivkey(privkey=self.privkey,passkey=self.passkey)   
             print("Locked")
 
         self.privkey = None
+        return True
 
     def unlock(self,passkey=None):
         """
@@ -53,6 +57,10 @@ class LockedKey(key.Key):
         print("Trying to unlock")
         if passkey is not None:
             self.passkey = passkey
+
+        if self.privkey is not None:
+            # Already unlocked.
+            return True
 
         # If we have everything necessary, become a priv/pub keypair.
         if self.privkey is None and self.passkey is not None and self.encryptedprivkey is not None:
@@ -78,6 +86,7 @@ class LockedKey(key.Key):
         if passkey is None and password is not None:
             passkey = self.get_passkey(password)
 
+        print("calling encrypt")
         key = scrypt.encrypt(input=privkey, password=passkey, maxtime=self.maxtime_create)
 
         self.encryptedprivkey = base64.b64encode(key).decode('utf-8')
@@ -93,6 +102,7 @@ class LockedKey(key.Key):
         byteprivatekey = base64.b64decode(
             self.encryptedprivkey.encode('utf-8'))
 
+        print("Calling decrypt..")
         result =  scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
         return result
 
@@ -109,7 +119,10 @@ class LockedKey(key.Key):
         # r Memory cost parameter.
         # p Parallelization parameter.
         # r*p should be < 2**30
+        if self.passkey is not None:
+            return self.passkey
 
+        print("Calling scrypt hash...")
         pkey = base64.b64encode(scrypt.hash(
             password=password, salt=self.pubkey, N=16384)).decode('utf-8')
         return pkey
@@ -117,8 +130,10 @@ class LockedKey(key.Key):
 
     def changepass(self, oldpasskey, newpassword):
         privkey = self._decryptprivkey(oldpasskey)
+        self.encryptedprivkey = None
         self.encryptedprivkey = self._encryptprivkey(privkey=privkey,
             password=newpassword)
+        self.passkey = None
         self.passkey = self.get_passkey(newpassword)
         return self.encryptedprivkey
 

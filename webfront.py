@@ -884,81 +884,117 @@ class ReceiveEnvelopeHandler(BaseHandler):
         client_topic = self.get_argument("topic", None)
         client_subject = self.get_argument("subject", None)
 
-        if "to" in self.request.arguments:
-            client_to = self.get_argument("to")
-            if client_to == "":
-                client_to = None
-        else:
-            client_to = None
-        if "regarding" in self.request.arguments:
-            client_regarding = self.get_argument("regarding")
-            if client_regarding == "":
-                client_regarding = None
-        else:
-            client_regarding = None
-
+        client_to = self.get_argument("to",None)
+        client_regarding = self.get_argument("regarding",None)
 
 
         e = Envelope()
         e.payload.dict['formatting'] = "markdown"
 
-        if client_to is None:
-            if flag == "editmessage":
-                e.payload.dict['class'] = "messagerevision"
-            else:
-                e.payload.dict['class'] = "message"
-            e.payload.dict['body'] = client_body
-
+        if flag == 'message':
+            e.payload.dict['class'] = "message"
+            if client_topic is not None:
+                e.payload.dict['topic'] = client_topic
+            if client_subject is not None:
+                e.payload.dict['subject'] = client_subject
+            if client_body is not None:
+                e.payload.dict['body'] = client_body
             if client_regarding is not None:
-                server.logger.debug("Adding Regarding - " + client_regarding)
                 e.payload.dict['regarding'] = client_regarding
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict['topic'] = regardingmsg['envelope'][
-                    'payload']['topic']
-                e.payload.dict['subject'] = regardingmsg[
-                    'envelope']['payload']['subject']
-            else:
-                e.payload.dict['topic'] = client_topic
-                e.payload.dict['subject'] = client_subject
+                e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
+                e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
 
-        else:
+            if envelopebinarylist:
+                e.payload.dict['binaries'] = envelopebinarylist
+
+            e.payload.dict['author'] = OrderedDict()
+            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+            e.payload.dict['author'][
+                'friendlyname'] = self.user.UserSettings['friendlyname']
+            e.payload.dict['author']['useragent'] = {}
+            e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+            e.payload.dict['author']['useragent']['version'] = .1
+
+            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+
+
+        elif flag == 'messagerevision':
+            e.payload.dict['class'] = "messagerevision"
+            if client_body is not None:
+                e.payload.dict['body'] = client_body
+            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+
+        elif flag =='privatemessage':
+            # For encrypted messages we want to actually create a whole sub-envelope inside of it!
+
+            single_use_key = self.user.get_pmkey()
+            single_use_key.unlock(self.user.passkey)
+
+
             e.payload.dict['class'] = "privatemessage"
             touser = Key(pub=client_to)
-
-            encrypted = OrderedDict()
-
             e.payload.dict['to'] = touser.pubkey
-            encrypted['body'] = client_body
+            e.payload.dict['author'] = OrderedDict()
+            e.payload.dict['author']['replyto'] = single_use_key.pubkey
+
+            encrypted_msg = Envelope()
+            encrypted_msg.payload.dict['formatting'] = "markdown"
+            encrypted_msg.payload.dict['body'] = client_body
+            encrypted_msg.payload.dict['class'] = 'privatemessage'
 
             if client_regarding is not None:
-                server.logger.debug("Adding Regarding - " + client_regarding)
                 encrypted['regarding'] = client_regarding
                 regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
 
-                regarding_encrypted_payload = self.user.decrypt(regardingmsg['envelope']['payload']['encrypted'])
-                regarding_unencrypted_payload = json.loads(regarding_encrypted_payload, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
-                encrypted['subject'] = regarding_unencrypted_payload['subject']
+                # The message we're referencing is likey unreadable due to encryption.
+                # Pull in it's subject if possible.
+                decrypted_regarding_dict = self.user.decrypt(regardingmsg['payload']['encrypted'])
+                decrypted_regarding = Envelope()
+                decrypted_regarding.loaddict(decrypted_regarding_dict)
+
+                encrypted_msg.payload.dict['subject'] = decrypted_regarding.payload.dict['subject']
             else:
-                encrypted['subject'] = client_subject
+                encrypted_msg.payload.dict['subject'] = client_subject
 
-            #TODO add encrypted['from'] which includes a HMAC
+            if envelopebinarylist:
+                encrypted_msg.payload.dict['binaries'] = envelopebinarylist
 
 
+            encrypted_msg.payload.dict['author'] = OrderedDict()
+            encrypted_msg.payload.dict['author']['replyto'] = single_use_key.pubkey
+            encrypted_msg.payload.dict['author'][
+                'friendlyname'] = self.user.UserSettings['friendlyname']
+            encrypted_msg.payload.dict['author']['useragent'] = {}
+            encrypted_msg.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
+            encrypted_msg.payload.dict['author']['useragent']['version'] = .01
 
-            encrypted_dictstr = json.dumps(encrypted, separators=(',', ':'))
-            self.user.Keys['master'].unlock(passkey = self.user.passkey)
-            e.payload.dict['encrypted'] = self.user.Keys['master'].encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_dictstr)
+            if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
+                gi = pygeoip.GeoIP('data/GeoIPCity.dat')
+                ip = self.request.remote_ip
 
-        if len(envelopebinarylist) > 0:
-            e.payload.dict['binaries'] = envelopebinarylist
+                #Don't check from home.
+                if ip == "127.0.0.1":
+                    ip = "8.8.8.8"
 
-        e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
-        e.payload.dict['author'][
-            'friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = {}
-        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-        e.payload.dict['author']['useragent']['version'] = .01
+                gir = gi.record_by_name(ip)
+                encrypted_msg.payload.dict['coords'] = str(gir['latitude']) + \
+                    "," + str(gir['longitude'])
+
+
+            # Add stamps to show we're the author (and optionally) we're the origin server
+            encrypted_msg.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+            if serversettings.settings['mark-origin'] == True:
+                    encrypted_msg.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
+
+
+            # Now that we've created the inner message, convert it to text, store it in the outer message.
+            encrypted_pmstr = encrypted_msg.text()
+
+            e.payload.dict['encrypted'] = single_use_key.encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_pmstr)
+
+
+        # For all classses of messages-
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
@@ -973,11 +1009,8 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 "," + str(gir['longitude'])
 
 
-        # Add stamps to show we're the author (and optionally) we're the origin server
-        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
         if serversettings.settings['mark-origin'] == True:
                 e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
-
 
         #Send to the server
         newmsgid = server.receiveEnvelope(e.text())
@@ -995,52 +1028,62 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
 
 class ShowPrivatesHandler(BaseHandler):
-    def get(self):
+    def get(self,messageid=None):
         self.getvars(AllowGuestKey=False)
 
         messages = []
         self.write(self.render_string('header.html',
                    title="Your Private messages", rsshead=None, type=None))
 
-
-        # If we can, open the message up.
+        # Construct a list of all current PMs
         for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in' : self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
-            print(message)
+
             if self.user.decrypt(message['envelope']['payload']['encrypted']):
-                encrypted_payload = self.user.decrypt(message['envelope']['payload']['encrypted'])
-                unencrypted_dict = json.loads(encrypted_payload)
-                message['envelope']['local']['decrypted'] = unencrypted_dict
-                messages.append(message)
-
-        self.write(
-            self.render_string('showprivatemessages.html', messages=messages))
-        self.write(self.render_string('footer.html'))
+                unencrypted_str = self.user.decrypt(message['envelope']['payload']['encrypted'])
+                unencrypted_env = Envelope()
+                unencrypted_env.loadstring(unencrypted_str)
+                unencrypted_env.munge()
+                unencrypted_env.dict['parent'] = message
+                messages.append(unencrypted_env)
 
 
-class PrivateMessageHandler(BaseHandler):
-    def get(self, message):
-        self.getvars(AllowGuestKey=False)
-
-        client_message_id = tornado.escape.xhtml_escape(message)
-
+        # Retrieve a PM to display - Either by id if requested, or top PM if not.
         e = Envelope()
-        if not e.loadmongo(client_message_id):
-            #TODO - Put better error here. Server.Error?
-            return
-        else:
-            if e.dict['envelope']['payload']['to'] not in self.user.get_keys(ret='pubkey'):
+        if messageid is not None:
+            if not e.loadmongo(messageid):
+                self.write("Can't load that..")
                 return
-                #TODO - Put better error here. Server.Error?
+            else:
+                if e.dict['envelope']['payload']['to'] not in self.user.get_keys(ret='pubkey'):
+                    print("This is to--")
+                    print(e.dict['envelope']['payload']['to'])
+                    print("Your Keys-")
+                    print( self.user.get_keys(ret='pubkey'))
+                    self.write("This isn't you.")
+                    return
+                    #TODO - Put better error here. Server.Error?
+            unencrypted_str = self.user.decrypt(e.dict['envelope']['payload']['encrypted'])
+            
+            unencrypted_env = Envelope()
+            unencrypted_env.loadstring(unencrypted_str)
+            unencrypted_env.munge()
+            unencrypted_env.dict['parent'] = e.dict
 
-        if self.user.decrypt(e.dict['envelope']['payload']['encrypted']):
-            encrypted_payload = self.user.decrypt(e.dict['envelope']['payload']['encrypted'])
-            unencrypted_dict = json.loads(encrypted_payload)
-            e.dict['envelope']['local']['decrypted'] = unencrypted_dict
+            displaymessage = unencrypted_env
 
-        self.write(self.render_string('header.html', title="Private Message - " + e.dict['envelope']['local']['decrypted']['subject'], rsshead=None, type=None))
+        elif messages:
+                displaymessage = messages[0]
+        else:
+            displaymessage = server.error_envelope("You don't have any private messages yet. Silly goose!")
+
+
+
+
+        self.write(self.render_string('header.html', title="Private Messages", rsshead=None, type=None))
         self.write(
-            self.render_string('showprivatemessage.html', envelope=e))
+            self.render_string('show_privates.html', messages=messages,envelope=displaymessage))
         self.write(self.render_string('footer.html'))
+
 
 
 class NewPrivateMessageHandler(BaseHandler):
@@ -1140,10 +1183,11 @@ def main():
 
         (r"/showtopics", ShowTopicsHandler),
         (r"/showprivates", ShowPrivatesHandler),
+        (r"/privatemessage/(.*)", ShowPrivatesHandler),
+
         (r"/topicinfo/(.*)", TopicPropertiesHandler),
         (r"/attachment/(.*)", AttachmentHandler),
         
-        (r"/privatemessage/(.*)", PrivateMessageHandler),
 
         (r"/messagehistory/(.*)", MessageHistoryHandler),
         (r"/user/(.*)", UserHandler),

@@ -17,7 +17,9 @@
                                 <form action="/usertrust" method="post">
                                     {% raw xsrf_form_html() %}
                                     <input type="hidden" name="trust" value="100">
-                                    <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                                    {% if 'topic' in envelope.dict['envelope']['payload'] %}
+                                        <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                                    {% end %}
                                     <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                     <input class="textbutton icon-label" type="submit" value="Endorse this user">
                                 </form>
@@ -29,7 +31,9 @@
                             <form action="/usertrust" method="post">
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="-100">
-                                <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                                {% if 'topic' in envelope.dict['envelope']['payload'] %}
+                                    <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
+                                {% end %}
                                 <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                                 <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                             </form>

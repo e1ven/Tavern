@@ -75,19 +75,23 @@ class User(object):
             if excludeMaster is True:
                 if keyclass == 'master':
                     l2 = None
-            if isinstance(l2,(Keys,LockedKey)):
+            if isinstance(l2,(Key,LockedKey)):
                 if l2.isValid():
                     allkeys.append(l2)
+                else:
+                    print("Expired Key")
             elif hasattr(l2,'__iter__'):
                 if not isinstance(l2,(str,bytes)):
                     for key in l2:
                         if key.isValid():
                             allkeys.append(key)
+                        else:
+                            print("Expired Key")
 
         # Allow routines to request only what they need.
         # So, for instance, with ret=pubkey, it'll return an array of pubkeys
 
-
+        print(len(allkeys))
         if ret == 'all':
             return allkeys
         else:
@@ -534,7 +538,7 @@ class User(object):
 
         keys = self.Keys['posted'] + self.Keys['secret']
         for key in keys:
-            if isinstance(key, 'LockedKey'):
+            if isinstance(key, LockedKey):
                 key.unlock(passkey)
             result = key.decrypt(text)
 

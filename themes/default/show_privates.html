@@ -1,0 +1,17 @@
+{% extends 'tripane.html' %}
+
+{% block column2 %}
+	{% include 'column2-PrivateList.html' %}
+{% end %}
+{% block column3 %}
+
+    <div id="allreplies">
+        {% raw handler.render_string('showprivatemessage.html',envelope=envelope) %}
+        {% if 'citedby' in envelope.dict['envelope']['local'] %}
+            {% for cite in envelope.dict['envelope']['local']['citedby'] %}
+                {% raw handler.render_string('reply.html',messageid=cite) %}
+           {% end %}
+        {% end %}  
+    </div>
+
+{% end %}
