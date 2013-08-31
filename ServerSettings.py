@@ -48,12 +48,16 @@ class ServerSettings():
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
 
-        if not 'primaryurl' in self.settings:
-            self.settings['primaryurl'] = None
+        if not 'web_url' in self.settings:
+            self.settings['web_url'] = None
 
         if not 'downloadsurl' in self.settings:
             self.settings['downloadsurl'] = '/binaries/'
-     
+
+        # The Canonical URL is specified so that Google won't detect duplicate content for every Tavern server, and penalize.
+        if not 'canonical_url' in self.settings:
+            self.settings['canonical_url'] = "https://tavern.is"
+
                     
         if not 'logfile' in self.settings:
             self.settings[

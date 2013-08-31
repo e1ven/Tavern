@@ -89,6 +89,11 @@ class Key(object):
 
         self.keydetails = {}
         self.keydetails['format'] = 'gpg'
+        self.keydetails['uids'] = []
+
+        if len( self.gpg.list_keys()) > 1:
+            raise Exception("Too many Keys!","There are too many keys in this keyring - I'm not sure what's going on anymore.")
+
         details = self.gpg.list_keys()[0]
 
         if self.fingerprint != details['fingerprint']:
@@ -96,6 +101,9 @@ class Key(object):
 
         self.keydetails['length'] = details['length']
         self.keydetails['expires'] = details['expires']
+
+        for uid in self.gpg.list_keys()[0]['uids']:
+            self.keydetails['uids'].append(uid)
 
         if details['algo'] is '1' or 'R':
             self.keydetails['algorithm'] = 'RSA'

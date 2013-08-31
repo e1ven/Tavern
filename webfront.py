@@ -178,6 +178,7 @@ class TopicHandler(BaseHandler):
             title = topic
         else:
             title = "Discuss what matters"
+
         topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
         if len(topicEnvelopes) > 0:
             displayenvelope = topicEnvelopes[0]
@@ -711,7 +712,7 @@ class ReplyHandler(BaseHandler):
 
 class NewmessageHandler(BaseHandler):
 
-    def get(self, topic=None, regarding=None):
+    def get(self, topic=None):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Post a new message", rsshead=None, type=None))
@@ -1191,8 +1192,10 @@ def main():
 
         (r"/messagehistory/(.*)", MessageHistoryHandler),
         (r"/user/(.*)", UserHandler),
-        
-        (r"/newmessage", NewmessageHandler),
+
+        (r"/newmessage/(.*)", NewmessageHandler),        
+        (r"/newmessage", NewmessageHandler),        
+
         (r"/edit/(.*)", EditMessageHandler),
         (r"/reply/(.*)/(.*)", ReplyHandler),
         (r"/reply/(.*)", ReplyHandler),

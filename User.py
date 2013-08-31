@@ -32,6 +32,7 @@ class User(object):
         self.Keys['secret'] = []
         self.Keys['master'] = None
 
+
     def find_commkey(self):
         """
         Retrieves the current public communication key.

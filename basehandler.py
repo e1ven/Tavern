@@ -36,8 +36,8 @@ class BaseHandler(tornado.web.RequestHandler):
         self.redirected = self.get_argument('redirected',False)
 
         # Is this necessary EVERY time? It's quick, I suppose...
-        if serversettings.settings['primaryurl'] == None:
-            serversettings.settings['primaryurl'] = self.request.protocol + "://" + (self.request.host or socket.gethostbyaddr(socket.gethostbyname(socket.gethostname())) )
+        if serversettings.settings['web_url'] == None:
+            serversettings.settings['web_url'] = self.request.protocol + "://" + (self.request.host or socket.gethostbyaddr(socket.gethostbyname(socket.gethostname())) )
             serversettings.saveconfig()
 
         # Add in a random fortune

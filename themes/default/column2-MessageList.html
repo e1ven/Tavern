@@ -1,11 +1,14 @@
     {# Get the messages for the middle column #}
-                        {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
 
+                        {% if topic != 'all-subscribed' %}
+                            {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
+                        {% else %}
+                            {% set subjects = topictool.messages(before=before,topic=user.UserSettings['followedTopics'],maxposts=user.UserSettings['maxposts']) %}
+                        {% end %}
 
                         {% set beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}
                         {% set aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}  
                         {% set newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
-
 
 
                         {% if topic is not None %}
@@ -44,7 +47,7 @@
                                         </a>
             			        	</td>
             			        	<td>
-                                      <a href="/reply/{{server.sorttopic(topic)}}" class="internal">
+                                      <a href="/newmessage/{{server.sorttopic(topic)}}" class="internal">
                                            <button id="column2ButtonRight" class="column2Buttons" type="button">
                                             New Message
                                             <span class="icon-tools navIcon"></span>

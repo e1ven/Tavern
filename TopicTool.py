@@ -21,23 +21,34 @@ class TopicTool(object):
         """
         Get all messages in a topic, no later than `before`
         """
-        sorttopic = server.sorttopic(topic)
+
+        if topic is not 'all':
+            if isinstance(topic,str):
+                topics = []
+                topics.append(server.sorttopic(topic))
+
+            elif isinstance(topic,list):
+                topics = []
+                for t in topic:
+                    topics.append(server.sorttopic(t))
+
+            sorttopic = {'envelope.local.sorttopic':{'$in':topics}}
+        else:
+            sorttopic = {'envelope.local.sorttopic':{'$exists':True}}
 
         # Don't do this in the def, so that our cache is respected.
         if before == None:
             before=TavernUtils.inttime()
 
+        # Append our search topic query.
         subjects = []
-        if topic != "all":
-            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
-                e = Envelope()
-                e.loaddict(envelope)
-                subjects.append(e)
-        else:
-            for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
-                e = Envelope()
-                e.loaddict(envelope)
-                subjects.append(e)
+        search =  {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}
+        search.update(sorttopic)
+        for envelope in server.db.unsafe.find('envelopes', search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+            e = Envelope()
+            e.loaddict(envelope)
+            subjects.append(e)
+
         return subjects
 
     @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])

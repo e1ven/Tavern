@@ -3,7 +3,9 @@
 {% block submitblock %}
 <form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/message" method="post" class="messageform" id='{{timeid}}'>
 	{% raw xsrf_form_html() %}
+	{% if topic is None %}
 	Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
+	{% end %}
 	Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
 
     <p>

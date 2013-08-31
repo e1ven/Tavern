@@ -12,8 +12,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	{% if 'canon' in globals() and canon is not None %}
-		<link rel=canonical href="{{serversettings.settings['primaryurl']}}/{{canon}}"/>
-		<meta property="og:url" content="{{serversettings.settings['primaryurl']}}/{{canon}}"/>
+		<link rel=canonical href="{{serversettings.settings['canonical_url']}}/{{canon}}"/>
+		<meta property="og:url" content="{{serversettings.settings['canonical_url']}}/{{canon}}"/>
 		<meta property="og:blog" content="article"/>
 	{% end %}
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">

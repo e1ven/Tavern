@@ -85,7 +85,6 @@ class Envelope(object):
 
     class Message(Payload):
 
-
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 server.logger.debug("Super does not Validate")
@@ -109,6 +108,12 @@ class Envelope(object):
                 if len(self.dict['topic']) > 200:
                     server.logger.debug("Topic too long")
                     return False
+
+            if server.sorttopic(self.dict['topic']) in ['all','all-subscribed']:
+                server.logger.debug("Topic in reserved topic list. Sorry. ")
+                return False
+
+
             if 'subject' in self.dict:
                 if len(self.dict['subject']) > 200:
                     server.logger.debug("Subject too long")
@@ -200,27 +205,13 @@ class Envelope(object):
         stamps = self.dict['envelope']['stamps']
         for stamp in stamps:
 
-            if 'keydetails' not in stamp:
-                server.logger.debug("Key information is unavailable.")
+            if 'keyformat' not in stamp:
+                server.logger.debug("Key format is not specififed.")
                 return False
                 
-            if stamp['keydetails']['format'] != 'gpg':
+            if stamp['keyformat'] != 'gpg':
                 server.logger.debug("Key not in acceptable container format.")
                 return False
-
-            if stamp['keydetails']['algorithm'] not in ['ElGamal','RSA','DSA']:
-                server.logger.debug(
-                    "Key does not use an acceptable algorithm.")
-                return False
-            
-            if stamp['keydetails']['algorithm'] in ['ElGamal','RSA','DSA']:
-                if int(stamp['keydetails']['length']) < 2048:
-                    server.logger.debug("Key is too small.")
-                    return False
-            elif stamp['keydetails']['algorithm'] is 'ECDSA':
-                if int(stamp['keydetails']['length']) < 233:
-                    server.logger.debug("Key is too small.")
-                    return False
 
             # Retrieve the key, ensure it's valid.
             stampkey = Key(pub=stamp['pubkey'])
@@ -228,11 +219,32 @@ class Envelope(object):
                 server.logger.debug("Key is invalid.")
                 return False
 
+            if stampkey.keydetails['algorithm'] not in ['ElGamal','RSA','DSA']:
+                server.logger.debug(
+                    "Key does not use an acceptable algorithm.")
+                return False
+            
+            if stampkey.keydetails['algorithm'] in ['ElGamal','RSA','DSA']:
+                if int(stampkey.keydetails['length']) < 2048:
+                    server.logger.debug("Key is too small.")
+                    return False
+
+            elif stampkey.keydetails['algorithm'] is 'ECDSA':
+                if int(stampkey.keydetails['length']) < 233:
+                    server.logger.debug("Key is too small.")
+                    return False
+
+            for uid in stampkey.keydetails['uids']:
+                if uid not in [None,'TAVERN','']:
+                    server.logger.debug("Key UID is potentially leaking information.")
+                    return False
+
             # Ensure it matches the signature.
             if stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']) != True:
                 server.logger.debug("Signature Failed to verify for stamp :: " +
                                    stamp['class'] + " :: " + stamp['pubkey'])
                 return False
+
 
 
             # If they specify a proof-of-work in the stamp, make sure it's valid.
@@ -462,7 +474,7 @@ class Envelope(object):
         # Generate the full stamp obj we will insert.
         fullstamp = {}
         fullstamp['class'] = stampclass
-        fullstamp['keydetails'] = keys.keydetails
+        fullstamp['keyformat'] = keys.keydetails['format']
         fullstamp['pubkey'] = keys.pubkey
         fullstamp['signature'] = signature
         fullstamp['time_added'] = TavernUtils.inttime()
