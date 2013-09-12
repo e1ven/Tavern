@@ -7,7 +7,6 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import pylzma
-from ServerSettings import serversettings
 import TavernUtils
 from operator import itemgetter
 import magic
@@ -16,12 +15,15 @@ import Image
 import gridfs
 from bs4 import BeautifulSoup
 
-
 class Envelope(object):
 
     class Payload(object):
-        def __init__(self, initialdict):
+        def __init__(self, initialdict,srv=None):
             self.dict = OrderedDict(initialdict)
+            if srv is None:
+                self.server = Server.Server()
+            else:
+                self.server = srv
 
         def alphabetizeAllItems(self, oldobj):
             """
@@ -68,10 +70,10 @@ class Envelope(object):
     class MessageRevision(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.debug("Super does not Validate")
+                self.server.logger.debug("Super does not Validate")
                 return False
             if not 'regarding' in self.dict:
-                server.logger.debug("Message Revisions must refer to an original message.")
+                self.server.logger.debug("Message Revisions must refer to an original message.")
                 return False
 
             # See if we have the original. If so, is the right type?
@@ -87,36 +89,36 @@ class Envelope(object):
 
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.debug("Super does not Validate")
+                self.server.logger.debug("Super does not Validate")
                 return False
             if 'subject' not in self.dict:
-                server.logger.debug("No subject")
+                self.server.logger.debug("No subject")
                 return False
             if 'body' not in self.dict:
-                server.logger.debug("No Body")
+                self.server.logger.debug("No Body")
                 return False
             if 'topic' not in self.dict:
-                server.logger.debug("No Topic")
+                self.server.logger.debug("No Topic")
                 return False
             if 'formatting' not in self.dict:
-                server.logger.debug("No Formatting")
+                self.server.logger.debug("No Formatting")
                 return False
             if self.dict['formatting'] not in ['markdown', 'plaintext']:
-                server.logger.debug("Formatting not in pre-approved list")
+                self.server.logger.debug("Formatting not in pre-approved list")
                 return False
             if 'topic' in self.dict:
                 if len(self.dict['topic']) > 200:
-                    server.logger.debug("Topic too long")
+                    self.server.logger.debug("Topic too long")
                     return False
 
-            if server.sorttopic(self.dict['topic']) in ['all','all-subscribed']:
-                server.logger.debug("Topic in reserved topic list. Sorry. ")
+            if self.server.sorttopic(self.dict['topic']) in ['all','all-subscribed']:
+                self.server.logger.debug("Topic in reserved topic list. Sorry. ")
                 return False
 
 
             if 'subject' in self.dict:
                 if len(self.dict['subject']) > 200:
-                    server.logger.debug("Subject too long")
+                    self.server.logger.debug("Subject too long")
                     return False
 
 
@@ -134,26 +136,26 @@ class Envelope(object):
     class PrivateMessage(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.debug("Super does not Validate")
+                self.server.logger.debug("Super does not Validate")
                 return False
             if 'to' not in self.dict:
-                server.logger.debug("No 'to' field")
+                self.server.logger.debug("No 'to' field")
                 return False
             # if 'topic' in self.dict:
-            #     server.logger.debug("Topic not allowed in privmessage.")
+            #     self.server.logger.debug("Topic not allowed in privmessage.")
             #     return False
             return True
 
     class Rating(Payload):
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
-                server.logger.debug("Super fails")
+                self.server.logger.debug("Super fails")
                 return False
             if 'rating' not in self.dict:
-                server.logger.debug("No rating number")
+                self.server.logger.debug("No rating number")
                 return False
             if self.dict['rating'] not in [-1, 0, 1]:
-                server.logger.debug(
+                self.server.logger.debug(
                     "Evelope ratings must be either -1, 1, or 0.")
                 return False
 
@@ -164,14 +166,14 @@ class Envelope(object):
             if not Envelope.Payload(self.dict).validate():
                 return False
             if 'trusted_pubkey' not in self.dict:
-                server.logger.debug("No trusted_pubkey to set trust for.")
+                self.server.logger.debug("No trusted_pubkey to set trust for.")
                 return False
             if self.dict['trust'] not in [-100, 0, 100]:
-                server.logger.debug(
+                self.server.logger.debug(
                     "Message ratings must be either -100, 0, or 100")
                 return False
             if 'topic' not in self.dict:
-                server.logger.debug(
+                self.server.logger.debug(
                     "User trust must be per topic. Please include a topic.")
                 return False
             return True
@@ -183,7 +185,7 @@ class Envelope(object):
         self.registerpayload()
         #Check headers
         if 'envelope' not in self.dict:
-            server.logger.debug("Invalid Envelope. No Header")
+            self.server.logger.debug("Invalid Envelope. No Header")
             return False
 
         # Ensure we have 1 and only 1 author signature stamp
@@ -195,10 +197,10 @@ class Envelope(object):
                 
         if foundauthor == 0:
             if self.dict['envelope']['payload']['class'] != 'privatemessage':
-                server.logger.debug("No author stamp.")
+                self.server.logger.debug("No author stamp.")
                 return False
         if foundauthor > 1:
-            server.logger.debug("Too Many author stamps")
+            self.server.logger.debug("Too Many author stamps")
             return False
 
         # Ensure Every stamp validates.
@@ -206,42 +208,42 @@ class Envelope(object):
         for stamp in stamps:
 
             if 'keyformat' not in stamp:
-                server.logger.debug("Key format is not specififed.")
+                self.server.logger.debug("Key format is not specififed.")
                 return False
                 
             if stamp['keyformat'] != 'gpg':
-                server.logger.debug("Key not in acceptable container format.")
+                self.server.logger.debug("Key not in acceptable container format.")
                 return False
 
             # Retrieve the key, ensure it's valid.
             stampkey = Key(pub=stamp['pubkey'])
             if stampkey is None:
-                server.logger.debug("Key is invalid.")
+                self.server.logger.debug("Key is invalid.")
                 return False
 
             if stampkey.keydetails['algorithm'] not in ['ElGamal','RSA','DSA']:
-                server.logger.debug(
+                self.server.logger.debug(
                     "Key does not use an acceptable algorithm.")
                 return False
             
             if stampkey.keydetails['algorithm'] in ['ElGamal','RSA','DSA']:
                 if int(stampkey.keydetails['length']) < 2048:
-                    server.logger.debug("Key is too small.")
+                    self.server.logger.debug("Key is too small.")
                     return False
 
             elif stampkey.keydetails['algorithm'] is 'ECDSA':
                 if int(stampkey.keydetails['length']) < 233:
-                    server.logger.debug("Key is too small.")
+                    self.server.logger.debug("Key is too small.")
                     return False
 
             for uid in stampkey.keydetails['uids']:
                 if uid not in [None,'TAVERN','']:
-                    server.logger.debug("Key UID is potentially leaking information.")
+                    self.server.logger.debug("Key UID is potentially leaking information.")
                     return False
 
             # Ensure it matches the signature.
             if stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']) != True:
-                server.logger.debug("Signature Failed to verify for stamp :: " +
+                self.server.logger.debug("Signature Failed to verify for stamp :: " +
                                    stamp['class'] + " :: " + stamp['pubkey'])
                 return False
 
@@ -254,27 +256,25 @@ class Envelope(object):
                     if stamp['proof-of-work']['class'] == 'sha256':
                         result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
                         if result == False:
-                            server.logger.debug("Proof of work cannot be verified.")
+                            self.server.logger.debug("Proof of work cannot be verified.")
                             return False
                     else:
-                        server.logger.debug("Proof of work in unrecognized format. Ignoring.")
+                        self.server.logger.debug("Proof of work in unrecognized format. Ignoring.")
         
 
         # It's OK if they don't include a user-agent, but not if they include a bad one.
         if 'useragent' in self.dict['envelope']['payload']['author']:
             if not 'name' in  self.dict['envelope']['payload']['author']['useragent']:
-                server.logger.debug("If you supply a user agent, it must have a valid name")
+                self.server.logger.debug("If you supply a user agent, it must have a valid name")
                 return False
             if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) and not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
-                    server.logger.debug(
+                    self.server.logger.debug(
                         "Bad Useragent version must be a float or integer")
                     return False
-        else:
-            server.logger.debug("No Useragent")
 
         #Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
-            server.logger.info("Payload does not validate.")
+            self.server.logger.info("Payload does not validate.")
             return False
 
         return True
@@ -313,7 +313,7 @@ class Envelope(object):
 
         # Copy a lowercase/simplified version of the topic into 'local', so StarTrek and startrek show up together.
         if 'topic' in self.dict['envelope']['payload']:
-            self.dict['envelope']['local']['sorttopic'] = server.sorttopic(
+            self.dict['envelope']['local']['sorttopic'] = self.server.sorttopic(
                 self.dict['envelope']['payload']['topic'])
 
 
@@ -321,7 +321,7 @@ class Envelope(object):
         if 'subject' in self.dict['envelope']['payload']:
             temp_short = self.dict['envelope']['payload'][
                 'subject'][:50].rstrip()
-            self.dict['envelope']['local']['short_subject'] = server.urlize(temp_short)
+            self.dict['envelope']['local']['short_subject'] = self.server.urlize(temp_short)
         # Get a short version of the body, to use as a preview.
         # First line only.
         if 'body' in self.dict['envelope']['payload']:
@@ -336,7 +336,7 @@ class Envelope(object):
             self.mungebins()
 
         if 'body' in self.dict['envelope']['payload']:
-            formattedbody = server.formatText(text=self.dict['envelope']['payload']['body'], formatting=self.dict['envelope']['payload']['formatting'])
+            formattedbody = self.server.formatText(text=self.dict['envelope']['payload']['body'], formatting=self.dict['envelope']['payload']['formatting'])
             self.dict['envelope']['local']['formattedbody'] = formattedbody
 
 
@@ -352,13 +352,13 @@ class Envelope(object):
 
             soup = BeautifulSoup(formattedbody,"html.parser")
             for href in soup.findAll('a'):
-                result = server.external.lookup(href.get('href'))
-                if result is not None and foundurls < serversettings.settings['maxembeddedurls']:
+                result = self.server.external.lookup(href.get('href'))
+                if result is not None and foundurls < self.server.serversettings.settings['maxembeddedurls']:
                     self.dict['envelope']['local']['embed'].append(result)
                     foundurls += 1
 
         if 'author' in self.dict['envelope']['local']:
-            self.dict['envelope']['local']['author_wordhash'] = server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
+            self.dict['envelope']['local']['author_wordhash'] = self.server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
         if not 'priority' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['priority'] = 0
 
@@ -375,7 +375,7 @@ class Envelope(object):
             if 'sha_512' in binary:
                 fname = binary['sha_512']
                 try:
-                    attachment = server.bin_GridFS.get_last_version(
+                    attachment = self.server.bin_GridFS.get_last_version(
                         filename=fname)
                     if 'filename' not in binary:
                         binary['filename'] = "unknown_file"
@@ -383,9 +383,9 @@ class Envelope(object):
                     #Python and be a valid image.
                     attachment.seek(0)
                     detected_mime = magic.from_buffer(
-                        attachment.read(serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
+                        attachment.read(self.server.serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
                     displayable = False
-                    if attachment.length < serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                    if attachment.length < self.server.serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
                         if 'content_type' in binary:
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 attachment.seek(0)
@@ -397,7 +397,7 @@ class Envelope(object):
                                     #If we pass -all- the tests, create a thumb once.
                                     displayable = binary[
                                         'sha_512'] + "-thumb"
-                                    if not server.bin_GridFS.exists(filename=displayable):
+                                    if not self.server.bin_GridFS.exists(filename=displayable):
                                         attachment.seek(0)
                                         im = Image.open(attachment)
 
@@ -431,7 +431,7 @@ class Envelope(object):
                                             newx = int(480 * imAspect)
                                             im = im.resize((newx, newy), Image.ANTIALIAS)
 
-                                        thumbnail = server.bin_GridFS.new_file(filename=displayable)
+                                        thumbnail = self.server.bin_GridFS.new_file(filename=displayable)
                                         im.save(thumbnail, format='png')
                                         thumbnail.close()
                     
@@ -456,10 +456,10 @@ class Envelope(object):
 
 
 
-    @TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'],ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+   # @TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'],ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
         print("Looking for childen for :" + self.payload.hash())
-        results =  server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
+        results =  self.server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
         return results
 
     def addStamp(self,stampclass,keys,passkey=None,**kwargs):
@@ -487,7 +487,7 @@ class Envelope(object):
 
         proof = {}
         proof['class'] = 'sha256'
-        proof['difficulty'] = serversettings.settings['proof-of-work-difficulty']
+        proof['difficulty'] = self.server.serversettings.settings['proof-of-work-difficulty']
         proof['proof'] = TavernUtils.proveWork(self.payload.hash(),proof['difficulty'])
         fullstamp['proof-of-work'] = proof
 
@@ -578,7 +578,7 @@ class Envelope(object):
             self.dict = OrderedDict()
             self.dict['sha_512'] = sha512
 
-    def __init__(self):
+    def __init__(self,srv=None):
         self.dict = OrderedDict()
         self.dict['envelope'] = OrderedDict()
         self.dict['envelope']['payload'] = OrderedDict()
@@ -587,6 +587,10 @@ class Envelope(object):
         self.dict['envelope']['stamps'] = []
 
         self.payload = Envelope.Payload(self.dict['envelope']['payload'])
+        if srv is None:
+            self.server = Server.Server()
+        else:
+            self.server = srv
 
     def registerpayload(self):
         if 'payload' in self.dict['envelope']:
@@ -607,7 +611,7 @@ class Envelope(object):
                     self.payload = Envelope.MessageRevision(
                         self.dict['envelope']['payload'])
                 else:
-                    server.logger.info("Rejecting message of class " + self.dict['envelope']['payload']['class'])
+                    self.server.logger.info("Rejecting message of class " + self.dict['envelope']['payload']['class'])
                     return False
             return True
     
@@ -633,8 +637,7 @@ class Envelope(object):
         self.loadstring(filecontents)
 
     def loadmongo(self, mongo_id):
-        from Server import server
-        env = server.db.unsafe.find_one('envelopes',{'_id': mongo_id})
+        env = self.server.db.unsafe.find_one('envelopes',{'_id': mongo_id})
         if env is None:
             return False
         else:
@@ -646,37 +649,35 @@ class Envelope(object):
     def reloadfile(self):
         return self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
 
-    def text(self,striplocal=False):
+    def flatten(self,striplocal=False):
         self.payload.format()
         if striplocal==True:
             if 'local' in self.dict['envelope']:
                 del self.dict['envelope']['local']
-
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
+        return self
+
+    def text(self,striplocal=False):
+        self.payload.format()
+        self.flatten()
         newstr = json.dumps(self.dict, separators=(',', ':'))
         return newstr
 
     def prettytext(self,striplocal=False):
         self.payload.format()
-        if striplocal==True:
-            if 'local' in self.dict['envelope']:
-                del self.dict['envelope']['local']
-                
-        self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
+        self.flatten()
         newstr = json.dumps(self.dict, indent=2, separators=(', ', ': '))
         return newstr
 
     def savefile(self, directory='.'):
         self.payload.format()
-        self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
-
+        self.flatten()
+      
         #Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(), dictionary=10, fastBytes=255)
-        # server.logger.info "Compressed size " + str(sys.getsizeof(compressed))
-        # server.logger.info "Full Size " + str(sys.getsizeof(self.dict))
+        # self.server.logger.info "Compressed size " + str(sys.getsizeof(compressed))
+        # self.server.logger.info "Full Size " + str(sys.getsizeof(self.dict))
 
         #We want to name this file to the SHA512 of the payload contents, so it is consistant across servers.
         filehandle = open(
@@ -686,11 +687,9 @@ class Envelope(object):
 
     def saveMongo(self):
         self.payload.format()
-        self.dict['envelope']['payload'] = self.payload.dict
-        self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
+        self.flatten()
 
-        from Server import server
         self.dict['_id'] = self.payload.hash()
-        server.db.unsafe.save('envelopes', self.dict)
+        self.server.db.unsafe.save('envelopes', self.dict)
+import Server
 
-from Server import server

@@ -38,4 +38,65 @@ jQuery(document).ready(function () {
         });
 
     });
+
+
+    // Set up our editor options-
+    // First, the marked parser
+
+    marked.setOptions({
+      gfm: true,
+      tables: false,
+      breaks: true,
+      pedantic: false,
+      sanitize: true,
+      smartLists: false,
+      smartypants: false,
+      langPrefix: 'lang-'
+    });
+
+    // Now, create an instance of the Epic Editor, sync it up with the Body textarea.
+    var opts = {
+      container: 'contenteditable',
+      textarea: 'textareabody',
+      basePath: '',
+      clientSideStorage: false,
+      useNativeFullscreen: true,
+      parser: marked,
+      theme: {
+        base: '/static/css/editor-base.css',
+        preview: '/static/css/editor-preview.css',
+        editor: '/static/css/editor-edit.css'
+      },
+      button: {
+        preview: true,
+        fullscreen: true,
+        bar: "auto"
+      },
+      autogrow: {
+        minHeight: jQuery('#textareabody').height()
+      },
+      focusOnLoad: true,
+      string: {
+        togglePreview: 'Preview your message',
+        toggleEdit: 'Return to editing your message',
+        toggleFullscreen: 'Enter Fullscreen editing mode'
+      }    
+    }
+    var editor = new EpicEditor(opts).load(
+        function () {
+
+            // Set the ContentEditable div to be the size/shape of our text-area above.
+            textarea = jQuery('#textareabody');
+            contenteditable = jQuery('#contenteditable');
+            contenteditable.show();
+
+            contenteditable.css({
+              'width':textarea.width(),
+              'height':textarea.height()
+            });
+            
+            // Once the EpicEditor is loaded, hide the text area.
+            // Do it here so that the textarea isn't hidden if we DON'T load successfully.
+            textarea.hide();
+        });
 });

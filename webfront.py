@@ -23,7 +23,6 @@ import urllib.parse
 from Envelope import Envelope
 from collections import OrderedDict
 import lockedkey
-from Server import server
 from key import Key
 from User import User
 
@@ -31,12 +30,13 @@ from TopicTool import topictool
 from TavernUtils import memorise
 from TavernUtils import TavernCache
 import TavernUtils
-from ServerSettings import serversettings
 from basehandler import BaseHandler
 
 from libs import rss
 from libs import Robohash
 
+import Server
+server = Server.Server()
 
 # What happens when people request the root level?
 # for now, send them to that Welcome message ;)
@@ -92,7 +92,7 @@ class MessageHandler(BaseHandler):
     The Message Handler displays a message, when given by message id.
     It's intentionally a bit forgiving in the syntax, to make it easy to retrieve messages.
     """
-    # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['message-page']['seconds'], maxsize=serversettings.settings['cache']['message-page']['size'])
+    # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['message-page']['seconds'], maxsize=server.serversettings.settings['cache']['message-page']['size'])
     def get(self, *args):
     
         self.getvars()
@@ -152,7 +152,7 @@ class TopicHandler(BaseHandler):
     The Topic Handler displays a topic, and the messages that are in it.
     """
 
-    #@memorise(parent_keys=['fullcookies','request.arguments'], ttl=serversettings.settings['cache']['topic-page']['seconds'], maxsize=serversettings.settings['cache']['topic-page']['size'])
+    #@memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=server.serversettings.settings['cache']['topic-page']['size'])
     def get(self, topic='all'):
     
         self.getvars()
@@ -566,14 +566,11 @@ class RatingHandler(BaseHandler):
 
         #Instantiate the user who's currently logged in
 
-        #TODO - set comm key
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = {}
-        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-        e.payload.dict['author']['useragent']['version'] = .01
+
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
@@ -589,12 +586,12 @@ class RatingHandler(BaseHandler):
 
         # Add stamps to show we're the author (and optionally) we're the origin server
         e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-        if serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
+        if server.serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
 
         #Send to the server
-        server.receiveEnvelope(e.text())
+        server.receiveEnvelope(env=e)
 
         self.write("Your vote has been recorded. Thanks!")
 
@@ -647,9 +644,7 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
-        e.payload.dict['author']['useragent'] = {}
-        e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-        e.payload.dict['author']['useragent']['version'] = .01
+
 
         if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
@@ -666,13 +661,13 @@ class UserTrustHandler(BaseHandler):
 
         # Add stamps to show we're the author (and optionally) we're the origin server
         e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-        if serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
+        if server.serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
 
         #Send to the server
 
-        server.receiveEnvelope(e.text())
+        server.receiveEnvelope(env=e)
         server.logger.debug("Trust Submitted.")
 
 class EditMessageHandler(BaseHandler):
@@ -755,7 +750,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                     individual_file['basename'] + ".size")
 
                 fs_basename = os.path.basename(individual_file['path'])
-                individual_file['fullpath'] = serversettings.settings[
+                individual_file['fullpath'] = server.serversettings.settings[
                     'upload-dir'] + "/" + fs_basename
 
                 individual_file['filehandle'] = open(
@@ -850,7 +845,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 detail['size'] = attached_file['size']
                 detail['content_type'] = attached_file['content_type']
 
-                detail['url'] = serversettings.settings[
+                detail['url'] = server.serversettings.settings[
                     'downloadsurl'] + attached_file['hash']
                 details.append(detail)
             details_json = json.dumps(details, separators=(',', ':'))
@@ -900,11 +895,6 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 e.payload.dict['subject'] = client_subject
             if client_body is not None:
                 e.payload.dict['body'] = client_body
-            if client_regarding is not None:
-                e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
-                e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
 
             if envelopebinarylist:
                 e.payload.dict['binaries'] = envelopebinarylist
@@ -913,11 +903,30 @@ class ReceiveEnvelopeHandler(BaseHandler):
             e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
             e.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
-            e.payload.dict['author']['useragent'] = {}
-            e.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-            e.payload.dict['author']['useragent']['version'] = .1
+
 
             e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+
+        elif flag == 'reply':
+            e.payload.dict['class'] = "message"
+            if client_regarding is not None:
+                e.payload.dict['regarding'] = client_regarding
+                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
+                e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
+                e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
+            if client_body is not None:
+                e.payload.dict['body'] = client_body
+            if envelopebinarylist:
+                e.payload.dict['binaries'] = envelopebinarylist
+ 
+            e.payload.dict['author'] = OrderedDict()
+            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+            e.payload.dict['author'][
+                'friendlyname'] = self.user.UserSettings['friendlyname']
+
+
+            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+
 
 
         elif flag == 'messagerevision':
@@ -966,9 +975,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
             encrypted_msg.payload.dict['author']['replyto'] = single_use_key.pubkey
             encrypted_msg.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
-            encrypted_msg.payload.dict['author']['useragent'] = {}
-            encrypted_msg.payload.dict['author']['useragent']['name'] = 'Tavern Web Frontend'
-            encrypted_msg.payload.dict['author']['useragent']['version'] = .01
+
 
             if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
                 gi = pygeoip.GeoIP('data/GeoIPCity.dat')
@@ -985,8 +992,8 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
             # Add stamps to show we're the author (and optionally) we're the origin server
             encrypted_msg.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-            if serversettings.settings['mark-origin'] == True:
-                    encrypted_msg.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
+            if server.serversettings.settings['mark-origin'] == True:
+                    encrypted_msg.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
 
             # Now that we've created the inner message, convert it to text, store it in the outer message.
@@ -1010,11 +1017,11 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 "," + str(gir['longitude'])
 
 
-        if serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=serversettings.settings['hostname'])
+        if server.serversettings.settings['mark-origin'] == True:
+                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
         #Send to the server
-        newmsgid = server.receiveEnvelope(e.text())
+        newmsgid = server.receiveEnvelope(env=e)
         if newmsgid != False:
             if client_to is None:
                 if client_regarding is not None:
@@ -1152,7 +1159,7 @@ def main():
     timeout = 10
     socket.setdefaulttimeout(timeout)
     server.logger.info(
-        "Starting Web Frontend for " + serversettings.settings['hostname'])
+        "Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
     server.debug = options.debug
     # Tell the server process to fire up and run for a while.
@@ -1161,7 +1168,7 @@ def main():
 
     settings = {
         "static_path": os.path.join(os.path.dirname(__file__), "static"),
-        "cookie_secret": serversettings.settings['cookie-encryption'],
+        "cookie_secret": server.serversettings.settings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path": "themes",
@@ -1232,7 +1239,7 @@ def main():
     http_server.listen(options.port)
 
     server.logger.info(
-        serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
+        server.serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
     if options.initonly is False:
         tornado.ioloop.IOLoop.instance().start()
     else:

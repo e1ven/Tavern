@@ -307,8 +307,9 @@ function start
     # It's faster to combine them, then to hash to see if we need to.
     for i in `ls static/css/style-*.min.css`
     do  
+        STYLE=`echo style-default.min.css | awk -F- {'print $2'} |  awk -F. {'print $1'}`
         echo $i
-        cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css > static/css/unified-default.min.css
+        cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css static/css/fonts.min.css  > static/css/unified-$STYLE.min.css
     done
 
 

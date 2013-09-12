@@ -2,7 +2,8 @@
 import pymongo
 from datetime import datetime, timedelta
 import Envelope
-from Server import server
+import Server
+server = Server.Server()
 import bson
 
 

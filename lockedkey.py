@@ -32,29 +32,28 @@ class LockedKey(key.Key):
         """
         Remove the private key from Python obj
         """
-        if self.privkey is None:
+        if self.privkey is None and self.encryptedprivkey is not None:
             # Already locked!
+            print("Already locked.")
             return True
 
         if passkey is not None:
             self.passkey = passkey
 
-        if self.passkey is None and self.encryptedprivkey is None:
-            print("Locking empty key...")
-            return False
+        if self.privkey is None and self.encryptedprivkey is None:
+            raise Exception('KeyError',"Asked to lock an empty key")
 
-        if self.privkey is not None and self.passkey is not None and self.encryptedprivkey is not None:
+        if self.privkey is not None and self.passkey is not None:
             self._encryptprivkey(privkey=self.privkey,passkey=self.passkey)   
-            print("Locked")
+            self.privkey = None
+            return True
 
-        self.privkey = None
-        return True
+        raise Exception('KeyError',"Asked to lock a key, but unable to do so.")
 
     def unlock(self,passkey=None):
         """
         Sets self.privkey to be the public key, if possible
         """
-        print("Trying to unlock")
         if passkey is not None:
             self.passkey = passkey
 
@@ -86,7 +85,6 @@ class LockedKey(key.Key):
         if passkey is None and password is not None:
             passkey = self.get_passkey(password)
 
-        print("calling encrypt")
         key = scrypt.encrypt(input=privkey, password=passkey, maxtime=self.maxtime_create)
 
         self.encryptedprivkey = base64.b64encode(key).decode('utf-8')
@@ -102,7 +100,6 @@ class LockedKey(key.Key):
         byteprivatekey = base64.b64decode(
             self.encryptedprivkey.encode('utf-8'))
 
-        print("Calling decrypt..")
         result =  scrypt.decrypt(input=byteprivatekey, password=passkey, maxtime=self.maxtime_verify)
         return result
 
@@ -119,12 +116,18 @@ class LockedKey(key.Key):
         # r Memory cost parameter.
         # p Parallelization parameter.
         # r*p should be < 2**30
+        # Defaults to N=16384, r=8, p=1, buflen=64
+
+        # Per http://www.tarsnap.com/scrypt/scrypt-slides.pdf
+        # (N = 2^14, r = 8, p = 1) for < 100ms (interactive use), and
+        # (N = 2^20, r = 8, p = 1) for < 5s (sensitive storage).
+
         if self.passkey is not None:
             return self.passkey
 
         print("Calling scrypt hash...")
         pkey = base64.b64encode(scrypt.hash(
-            password=password, salt=self.pubkey, N=16384)).decode('utf-8')
+            password=password, salt=self.pubkey, N=16384,r=8,p=1)).decode('utf-8')
         return pkey
 
 
@@ -147,15 +150,13 @@ class LockedKey(key.Key):
             raise Exception('KeyError', 'Invalid call to generate() - Must include a password, passkey, or Random')
 
         if random is True:
-            numcharacters = 100 + TavernUtils.randrange(1, 100)
-            password = TavernUtils.randstr(numcharacters)
+            password = TavernUtils.randstr(100)
             print("Generating a lockedkey with a random password")
             ret = password
         else:
             ret = None
 
         super().generate(autoexpire=autoexpire)
-
         if self.passkey is None and passkey is not None:
             self.passkey = passkey
 
@@ -163,5 +164,4 @@ class LockedKey(key.Key):
             self.passkey = self.get_passkey(password=password)
         
         self.lock(passkey = self.passkey)
-
         return ret

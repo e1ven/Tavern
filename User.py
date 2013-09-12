@@ -5,17 +5,16 @@ import time
 from key import Key
 from collections import OrderedDict
 import pymongo
-from Server import server
 import scrypt
 import base64
 from lockedkey import LockedKey
 from TavernUtils import memorise
-from ServerSettings import serversettings
 import time
 import datetime
 import calendar
 import hashlib
 import math
+import Server
 
 class User(object):
 
@@ -31,7 +30,7 @@ class User(object):
         self.Keys['posted'] = []
         self.Keys['secret'] = []
         self.Keys['master'] = None
-
+        self.server = Server.Server()
 
     def find_commkey(self):
         """
@@ -39,7 +38,7 @@ class User(object):
         This will retrieve the key using only public information.
         """
 
-        posts = server.getUsersPosts(self.Keys['master'].pubkey)
+        posts = self.server.getUsersPosts(self.Keys['master'].pubkey)
         if len(posts) > 0:
             return posts[0].dict['envelope']['payload']['author']['replyto']
         else:
@@ -114,7 +113,7 @@ class User(object):
             return False
 
 
-    @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=serversettings.settings['cache']['user-note']['size'])
+    ##@memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=self.server.serversettings.settings['cache']['user-note']['size'])
     def getNote(self, noteabout):
         """
         Retrieve any note by user A about user B
@@ -125,7 +124,7 @@ class User(object):
         key = Key(pub=noteabout)
         noteabout = key.pubkey
         # Retrieve the note from mongo
-        note = server.db.unsafe.find_one(
+        note = self.server.db.unsafe.find_one(
             'notes', {"user": self.Keys['master'].pubkey, "noteabout": noteabout})
         if note is not None:
             return note['note']
@@ -145,16 +144,16 @@ class User(object):
                    noteabout, "note": note}
 
         # Retrieve any existing note, so that the _id is the same. Then, we'll gut it, and put in our own values.
-        newnote = server.db.unsafe.find_one(
+        newnote = self.server.db.unsafe.find_one(
             'notes', {"user": self.Keys['master'].pubkey, "noteabout": noteabout})
         if newnote is None:
                 newnote = {"user": self.Keys['master'].pubkey,
                            "noteabout": noteabout, "note": note}
         newnote['note'] = note
-        server.db.unsafe.save('notes', newnote)
+        self.server.db.unsafe.save('notes', newnote)
         self.getNote(noteabout=noteabout, forcerecache=True)
 
-    @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-trust']['seconds'], maxsize=serversettings.settings['cache']['user-trust']['size'])
+   ## @memorise(parent_keys=['Keys.master.pubkey'], ttl=self.server.serversettings.settings['cache']['user-trust']['seconds'], maxsize=self.server.serversettings.settings['cache']['user-trust']['size'])
     def gatherTrust(self, askingabout, incomingtrust=250):
         """
         Return how much I trust a given ID, rather than a given post.
@@ -178,7 +177,7 @@ class User(object):
 
         # We trust ourselves implicitly
         if askingabout == self.Keys['master'].pubkey:
-            server.logger.info("I trust me.")
+            self.server.logger.info("I trust me.")
             return round(incomingtrust)
 
         # Don't recurse forever, please.
@@ -187,18 +186,18 @@ class User(object):
             return 0
 
         # Query mongo to retrieve the most recent rating for a specific user.
-        myvote = server.db.unsafe.find_one(collection='envelopes', query={"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.local.author.pubkey": str(self.Keys['master'].pubkey)}, sortkey="envelope.local.time_added", sortdirection='descending')
+        myvote = self.server.db.unsafe.find_one(collection='envelopes', query={"envelope.payload.class": "usertrust", "envelope.payload.trusted_pubkey": str(askingabout), "envelope.payload.trust": {"$exists": "true"}, "envelope.local.author.pubkey": str(self.Keys['master'].pubkey)}, sortkey="envelope.local.time_added", sortdirection='descending')
 
         if myvote:
             # If I directly rated this user, Mazel tov, that was easy.
-            server.logger.info("I rated this user directly.")
+            self.server.logger.info("I rated this user directly.")
             trust = int(myvote['envelope']['payload']['trust'])
 
         else:
             # If we didn't directly rate the user, let's see if any of our friends have rated him.
 
             # First, let's get a list of the friends we trust
-            alltrusted = server.db.unsafe.find('envelopes', {"envelope.payload.class": "usertrust", "envelope.payload.trust": {"$gt": 0}, "envelope.local.author.pubkey": self.Keys['master'].pubkey})
+            alltrusted = self.server.db.unsafe.find('envelopes', {"envelope.payload.class": "usertrust", "envelope.payload.trust": {"$gt": 0}, "envelope.local.author.pubkey": self.Keys['master'].pubkey})
             combinedFriendTrust = 0
             friendcount = 0
 
@@ -228,7 +227,7 @@ class User(object):
 
             if friendcount > 0:
                 trust = combinedFriendTrust / friendcount
-            server.logger.info("total friend average" + str(trust))
+            self.server.logger.info("total friend average" + str(trust))
 
         # Ensure that this element of the trust doesn't go out of range, and unduly effect others.
         if trust > maxtrust:
@@ -245,7 +244,7 @@ class User(object):
         # For instance, If we've upvoted this guy, that should weigh in, somewhat.
         # We'll weigh the vote by log2, to discourage vote-farming.
         ratingtally = 0
-        allratings = server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.local.regardingAuthor": askingabout})
+        allratings = self.server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.local.regardingAuthor": askingabout})
         for rating in allratings:
             ratingtally += rating['envelope']['payload']['rating']
         
@@ -299,13 +298,13 @@ class User(object):
         else:
             return "strongly distrust"
 
-    @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['message-ratings']['seconds'], maxsize=serversettings.settings['cache']['message-ratings']['size'])
+    ##@memorise(parent_keys=['Keys.master.pubkey'], ttl=self.server.serversettings.settings['cache']['message-ratings']['seconds'], maxsize=self.server.serversettings.settings['cache']['message-ratings']['size'])
     def getRatings(self, postInQuestion):
         """
         Get the ratings of a specific message
         """
         #Move this. Maybe to Server??
-        allvotes = server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.payload.regarding": postInQuestion})
+        allvotes = self.server.db.unsafe.find('envelopes', {"envelope.payload.class": "messagerating", "envelope.payload.rating": {"$exists": "true"}, "envelope.payload.regarding": postInQuestion})
         combinedrating = 0
         for vote in allvotes:
             author = vote['envelope']['local']['author']['pubkey']
@@ -318,7 +317,7 @@ class User(object):
                 combinedrating += rating *  authorPCT
 
         # Stamp based ratings give a baseline, like SpamAssassin.
-        e = server.db.unsafe.find_one('envelopes',
+        e = self.server.db.unsafe.find_one('envelopes',
                                       {"envelope.local.payload_sha512": postInQuestion})
 
         if e is not None:
@@ -327,7 +326,7 @@ class User(object):
                 for stamp in stamps:
                     # if it was posted directly to OUR server, we can ip limit it, give it a +1
                     if stamp['class'] == "origin":
-                        if stamp['pubkey'] == server.ServerKeys.pubkey:
+                        if stamp['pubkey'] == self.server.ServerKeys.pubkey:
                             combinedrating += 1
 
         return combinedrating
@@ -339,7 +338,7 @@ class User(object):
     def unFollowTopic(self, topic):
         # Compare the lowercase/sorted values
         for followedtopic in self.UserSettings['followedTopics']:
-            if server.sorttopic(followedtopic) == server.sorttopic(topic):
+            if self.server.sorttopic(followedtopic) == self.server.sorttopic(topic):
                 self.UserSettings['followedTopics'].remove(followedtopic)
 
 
@@ -353,44 +352,39 @@ class User(object):
         # Ensure that these values are filled in.
         # Either by Saved values, Passed-in values, or by Null objects.
 
-        # Keep track of if anything changed.
-        anychanges = False
-
+        # Create a string/immutable version of UserSettings that we can compare against later to see if anything changed.
+        tmpsettings =   str(self.UserSettings) + str(self.Keys)
+        
         if self.UserSettings.get('username') is None:
             if username is not None:
                 self.UserSettings['username'] = username
             else:
                 self.UserSettings['username'] = "Anonymous"
-            anychanges = True
 
         if self.UserSettings.get('email') is None:
             if email is not None:
                 self.UserSettings['email'] = email
             else:
                 self.UserSettings['email'] = "email@example.org"
-            anychanges = True
 
         if self.UserSettings['status'].get('guest') is None:
             self.UserSettings['status']['guest'] = True
-            anychanges = True
 
         if not 'setpassword' in self.UserSettings['status']:
             self.UserSettings['status']['setpassword'] = None
-            anychanges = True
 
         # If we've been told not to use a GuestKey, make sure we don't have one.
-        if AllowGuestKey == False:
-            if server.guestacct.Keys.get('master') is not None and self.Keys.get('master') is not None:
-                if self.Keys['master'].pubkey == server.guestacct.Keys['master'].pubkey:
-                    print("Getting rid of a GuestKey.")
-                    self.UserSettings['keys'] = {}
-                    self.UserSettings['keys']['master'] = {}
-                    self.passkey = None
-                    self.Keys = {}
-                    self.Keys['posted'] = []
-                    self.Keys['secret'] = []
-                    self.Keys['master'] = None
-                    anychanges = True
+        if AllowGuestKey == False and self.server.guestacct is not None:
+            if self.server.guestacct.Keys.get('master') is not None and self.Keys.get('master') is not None:
+                    if self.Keys['master'].pubkey == self.server.guestacct.Keys['master'].pubkey:
+                        print("Getting rid of a GuestKey.")
+                        self.UserSettings['keys'] = {}
+                        self.UserSettings['keys']['master'] = {}
+                        self.passkey = None
+                        self.Keys = {}
+                        self.Keys['posted'] = []
+                        self.Keys['secret'] = []
+                        self.Keys['master'] = None
 
         # Ensure we don't somehow end up as an empty, but keyed user..
         if isinstance(self.Keys['master'],LockedKey):
@@ -405,7 +399,7 @@ class User(object):
         if self.Keys.get('master') is None:
             # Save if we're using the GuestKey or not.
             if AllowGuestKey == True:
-                    self.Keys = server.guestacct.Keys   
+                    self.Keys = self.server.guestacct.Keys   
                     self.UserSettings['status']['guest']  = True
             else:
                 print("Generating a LockedKeys")
@@ -415,7 +409,6 @@ class User(object):
          
                 self.UserSettings['status']['guest']  = False
                 self.passkey = self.Keys['master'].get_passkey(password)
-            anychanges = True
 
         # Ensure we have a valid/current public posted key.
         if self.UserSettings['status']['guest'] is not True:
@@ -452,7 +445,6 @@ class User(object):
                 
                 newkey.expires = expirestamp
                 self.Keys['posted'].append(newkey)
-                anychanges = True
 
 
         if password is not None and self.passkey is None:
@@ -460,23 +452,18 @@ class User(object):
 
         if self.UserSettings.get('time_created') is None:
             self.UserSettings['time_created'] = int(time.time())
-            anychanges = True
 
         if self.UserSettings.get('display_useragent') is None:
             self.UserSettings['display_useragent'] = False
-            anychanges = True
 
         if self.UserSettings.get('theme') is None:
             self.UserSettings['theme'] = 'default'
-            anychanges = True
 
         if self.UserSettings.get('followedTopics') is None:
             self.UserSettings['followedTopics'] = []
-            anychanges = True
 
         if self.UserSettings.get('allowembed') is None:
             self.UserSettings['allowembed'] = 0
-            anychanges = True
 
 
         if self.UserSettings['followedTopics'] == []:
@@ -484,48 +471,44 @@ class User(object):
             self.followTopic("Python")
             self.followTopic("Egypt")
             self.followTopic("Funny")
-            anychanges = True
 
         if self.UserSettings.get('maxposts') is None:
             self.UserSettings['maxposts'] = 100
-            anychanges = True
 
         if self.UserSettings.get('maxreplies') is None:
             self.UserSettings['maxreplies'] = 100
-            anychanges = True
 
         # Set Friendlyname to most recent post, or Anonymous for lurkers
         if self.UserSettings.get('friendlyname') is None:
             if self.UserSettings['status']['guest'] == False:
                 # They're registered, they may have posted.
-                posts = server.getUsersPosts(self.Keys['master'].pubkey)
+                posts = self.server.getUsersPosts(self.Keys['master'].pubkey)
                 if len(posts) > 0:
                     self.UserSettings['friendlyname'] = posts[0].dict['envelope']['local']['author']['friendlyname']
-                    anychanges = True
             if self.UserSettings.get('friendlyname') is None:
                 self.UserSettings['friendlyname'] = 'Anonymous'
-                anychanges = True
 
         if self.UserSettings.get('include_location') is None:
             self.UserSettings['include_location'] = False
-            anychanges = True
 
         if self.UserSettings.get('ignoreedits') is None:
             self.UserSettings['ignoreedits'] = False
-            anychanges = True
 
         if self.UserSettings.get('author_wordhash') is None:
-            self.UserSettings['author_wordhash'] = server.wordlist.wordhash(self.Keys['master'].pubkey)
-            anychanges = True
+            self.UserSettings['author_wordhash'] = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
 
         if self.UserSettings.get('author_sha512') is None:
             if self.UserSettings['status']['guest'] is False:
                 self.UserSettings['author_sha512'] = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
-                anychanges = True
             else:
                 self.UserSettings['author_sha512'] = None
 
-        return anychanges
+
+        # Determine if we changed anything without an explicit dirty flag.
+        if tmpsettings == str(self.UserSettings) + str(self.Keys):
+            return False
+        else:
+            return True
 
     def decrypt(self,text,passkey=None):
         """
@@ -626,14 +609,14 @@ class User(object):
                 self.Keys['master'] = LockedKey(pub=self.UserSettings['keys']['master']['pubkey'], encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
                 self.Keys['master'].generated =  self.UserSettings['keys']['master']['generated']
                 self.Keys['master'].expires = self.UserSettings['keys']['master']['expires']
-                server.logger.info("Reconstructed with encryptedprivkey")
+                self.server.logger.info("Reconstructed with encryptedprivkey")
             else:
                 # If we just have a pubkey string, do the best we can.
                 if self.UserSettings['keys']['master'].get('pubkey'):
                     self.Keys['master'] = Key(pub=self.UserSettings['keys']['master']['pubkey'])
                     self.Keys['master'].generated = self.UserSettings['keys']['master'].get('generated')
                     self.Keys['master'].expires = self.UserSettings['keys']['master'].get('expires')
-                    server.logger.info("reconstructed user without privkey")
+                    self.server.logger.info("reconstructed user without privkey")
         else:
             print("Requested user had no master key.")        
         # Restore any Posted communication keys.
@@ -666,6 +649,7 @@ class User(object):
         filehandle = open(filename, 'r')
         filecontents = filehandle.read()
         self.load_string(filecontents)
+        filehandle.close()
 
     def load_dict(self,userdict):
         self.UserSettings = userdict
@@ -687,7 +671,7 @@ class User(object):
 
         # Get Formatted key for searching.
         tmpkey = Key(pub = pubkey)
-        user = server.db.safe.find_one('users',
+        user = self.server.db.safe.find_one('users',
                                        {"keys.master.pubkey": tmpkey.pubkey})
         if user is not None:
             # If we find a local user, load in their priv and pub keys.
@@ -705,7 +689,7 @@ class User(object):
         Returns a user object for a given sha512
         """
         print("Trying to load : " + str(sha))
-        user = server.db.unsafe.find_one('users',{'author_sha512':sha})
+        user = self.server.db.unsafe.find_one('users',{'author_sha512':sha})
         if user is not None:
              self.load_string(json.dumps(user))
              print("Got it.")
@@ -715,7 +699,7 @@ class User(object):
 
     def load_mongo_by_username(self, username):
         #Local server Only
-        user = server.db.safe.find_one('users',
+        user = self.server.db.safe.find_one('users',
                                        {"username": username})
         # If we're loading by username, it means you logged in.  
         # Ensure settings are up to date
@@ -728,4 +712,4 @@ class User(object):
     def savemongo(self):
         self.presave_clean()
         print("Saving User to mongo " +  str(self.UserSettings['author_sha512']) )
-        server.db.safe.save('users', self.UserSettings)
+        self.server.db.safe.save('users', self.UserSettings)

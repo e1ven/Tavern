@@ -3,7 +3,7 @@
 
 html {
     height: 100%;
-    font-family:'Source Sans Pro', "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
+    font-family:'GeosansLightRegular', "HelveticaNeue", "Helvetica Neue", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
 }
 body {
     height: 100%;
@@ -231,7 +231,7 @@ a.commentDetails
                 position: relative;
                 min-width: 110px;
              
-                font: 12px/32px Arial, sans-serif;
+                font: 12px;
                 text-decoration: none;
                 text-shadow: 0px 1px 0px rgba(0,0,0, .35);
              
@@ -250,7 +250,7 @@ a.commentDetails
                 padding: 0 10px;
                 margin-right: 10px;
              
-                font: normal bold 12px/18px Arial, sans-serif !important;
+                font: normal bold 12px;
                 background: lighten(mix($gradient1, $gradient2),10%);
 
                 @include border-radius(15px);
@@ -272,7 +272,7 @@ a.commentDetails
                 background-color: $bluegrey;
                 font-weight: 600 !important;
 
-                font: bold 14px/32px Arial, sans-serif;
+                font: bold 14px;
                 text-decoration: none;
                 text-shadow: 0px 1px 0px rgba(0,0,0, .35);
                 text-align: left;
@@ -286,7 +286,7 @@ a.commentDetails
 
                 li {
                     @include box-shadow(inset 0px 1px 0px 0px rgba(255,255,255, .1), 0px 1px 0px 0px rgba(0,0,0, .1));
-                    font: 12px/32px Arial, sans-serif;
+                    font: 12px;
                     text-decoration: none;
                     text-shadow: 0px 1px 0px rgba(0,0,0, .35);
                  
@@ -324,7 +324,7 @@ a.commentDetails
                         margin-right: 10px;
                         background-color: lighten($bluegrey,10%);
 
-                        font: normal bold 12px/18px Arial, sans-serif !important;
+                        font: normal bold 12px;
 
                         @include border-radius(15px);
                         @include box-shadow(inset 1px 1px 1px rgba(0,0,0, .2), 1px 1px 1px rgba(255,255,255, .1));
@@ -363,6 +363,24 @@ a.commentDetails
     } // accordian
  } // column1
       
+#column2solo{
+
+    #scrollablediv2
+    {
+        margin-left:10px;
+    }
+
+    #column2HR {
+        height: 5px;
+        width: 100%;
+        margin-left: 10px;
+        margin-top: 17px;
+        margin-bottom: 17px;
+        background-color: $grey;
+        border: none;
+        float: left;
+    }
+}
  
 #column2in3col {
     min-width: 80px;
@@ -618,7 +636,7 @@ a.commentDetails
         
     }
         
-    #rightColumnTopHR {
+    #TopHR {
         height: 5px;
         width: 100%;
         border: none;
@@ -1007,8 +1025,19 @@ a.commentDetails
     }  
 } 
 
-
-
+/* Style the element like a textarea */
+#contenteditable 
+{
+    display:none;
+    -moz-appearance: textfield-multiline;
+    -webkit-appearance: textarea;
+    font: medium -moz-fixed;
+    font: -webkit-small-control;
+    background:#ddd;
+    line-height:1.35em;
+    overflow:hidden;
+    border: 1px solid black;
+}
 /* for the spinner */
 
 @-webkit-keyframes rotation {

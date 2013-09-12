@@ -2,7 +2,8 @@
 from datetime import datetime, timedelta
 import bson
 import Envelope
-from Server import server
+import Server
+server = Server.Server()
 import logging
 
 def main():

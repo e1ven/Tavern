@@ -7,7 +7,7 @@
     {% set envelope = stack[0] %}
     {% import datetime %}
     {% set medialink = None %}
-    {% set permalink = serversettings.settings['primaryurl'] + '/attachment/' + attachment  %}
+    {% set permalink = serversettings.settings['web_url'] + '/attachment/' + attachment  %}
 
     {{preview}}
     <h1> General information regarding {{attachment}} </h1>

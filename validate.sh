@@ -13,4 +13,9 @@ LEN=`awk '/random\./ && !/random.SystemRandom/' *.py themes/default/*.html | wc 
 	exit 2
 fi
 
-
+LEN=`cat Server.py | grep serversettings | grep -v self | grep -v memor | grep -v 'default.TavernSettings' | grep -v 'server.serversett' | wc -l`
+ if [ $LEN -gt 0 ] 
+	then
+	echo "Server should use self.serversettings, not the root module."
+	exit 2
+fi

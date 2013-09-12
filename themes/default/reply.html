@@ -6,7 +6,7 @@
 {% end %}
 
 
-{% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
+{% set permalink = serversettings.settings['web_url'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 
 {% if 'medialink' in envelope.dict['envelope']['local'] %}
     {% set medialink = str(serversettings.settings['downloadsurl']) + str(envelope.dict['envelope']['local']['medialink']) %}

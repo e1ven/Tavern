@@ -8,9 +8,10 @@
 				Please note, older versions will remain available.<br/>
             </p>
 
-			<textarea name="body" rows=8 cols=80>
-					{{oldtext}}
-			</textarea>
+		    <div id="contenteditable">
+		    </div>
+		    <textarea name="body" rows=8 cols=80 id='textareabody'>{{oldtext}}</textarea>
+					
 			<br/><br/>
 
 			<input class="single_file_upload" type="file" name="attached_file1"/><br/>
@@ -18,6 +19,6 @@
 			<div id="filelist">
 			</div>
 			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
-			<input type="submit" value="Submit Message"/>
+			<input type="submit" value="Submit Edit"/>
 		</form>
 {% end %}

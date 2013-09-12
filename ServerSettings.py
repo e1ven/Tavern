@@ -10,14 +10,29 @@ import getpass
 
 class ServerSettings():
 
-    def __init__(self):
+    def __init__(self,settingsfile=None,settingsdir=None):
         self.settings = OrderedDict()
-        self.loadconfig()
-        
-    def loadconfig(self, filename=None,directory='data/conf/'):
+
+        if settingsfile is not None:
+            self.settingsfile = settingsfile
+        else:
+            self.settingsfile = platform.node() + ".TavernServerSettings"
+
+        if settingsdir is not None:
+            self.settingsdir = settingsdir
+        else:
+            self.settingsdir = 'data/conf/'
+
+        self.loadconfig(filename=settingsfile)
+
+    def loadconfig(self, filename=None,directory=None):
 
         if filename is None:
-            filename = platform.node() + ".TavernServerSettings"
+            filename = self.settingsfile
+        if directory is None:
+            directory = self.settingsdir
+
+        print("Loading from " + directory + filename )
 
         try:
             filehandle = open(directory + filename, 'r')
@@ -25,18 +40,27 @@ class ServerSettings():
             self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
             filehandle.close()
         except:
-            print("Error opening config file. Making New one.")
+            print("Error opening config file - " + directory + filename + " - Making new one for that filename")
+            self.updateconfig()
+            self.saveconfig()
             pass
 
-        self.updateconfig()
-        self.saveconfig()
+        
 
-    def saveconfig(self, filename=None,directory='data/conf/'):
-        newsettings = self.settings
+    def saveconfig(self, filename=None,directory=None):
+
+        if filename is None:
+            filename = self.settingsfile
+        if directory is None:
+            directory = self.settingsdir
 
         if filename is None:
             filename = self.settings['hostname'] + \
                 ".TavernServerSettings"
+
+        print("Writing to " + directory + filename )
+        newsettings = self.settings
+        print(newsettings['dbname'])
 
         filehandle = open(directory + filename, 'w')
         filehandle.write(
@@ -44,7 +68,10 @@ class ServerSettings():
         filehandle.close()
 
     def updateconfig(self):
-        
+
+        # Create a string/immutable version of ServerSettings that we can compare against later to see if anything changed.
+        tmpsettings = str(self.settings)
+
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
 
@@ -217,6 +244,11 @@ class ServerSettings():
         if not 'sleep' in self.settings['KeyGenerator']:
             self.settings['KeyGenerator']['sleep'] = 5
 
+        if not 'keys' in self.settings:
+            self.settings['keys'] = {}
+        if not 'keysize' in self.settings['keys']:
+            self.settings['keys']['keysize'] = 3072
+
 
         if not 'upload-dir' in self.settings:
             self.settings['upload-dir'] = '/opt/uploads'
@@ -250,6 +282,10 @@ class ServerSettings():
         if not 'proof-of-work-difficulty' in self.settings:
             self.settings['proof-of-work-difficulty'] = 19
 
-
-
+        # Report back on if there were any changes.
+        if str(self.settings) == tmpsettings:
+            return False
+        else:
+            return True
+            
 serversettings = ServerSettings()

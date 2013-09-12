@@ -2,13 +2,13 @@
 import pymongo
 from datetime import datetime, timedelta
 from Envelope import Envelope
-from Server import server
+import Server
+server = Server.Server()
 from collections import OrderedDict
 import json
 import sys
 import os
 import argparse
-from ServerSettings import serversettings
 import tempfile
 import shutil
 
@@ -91,7 +91,7 @@ def loaddir(directory=None,topic='sitecontent'):
         if args.verbose:
             print(e.text())
         # Send to the server. Don't bother to validate it first, the server will do it.
-        server.receiveEnvelope(e.text())
+        server.receiveEnvelope(env=e)
 
 
 def main():

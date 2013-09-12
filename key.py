@@ -55,12 +55,11 @@ class Key(object):
         self.privkey = priv
         self.expires = None
         self.gnuhome = tempfile.mkdtemp()
-        self.gpg = gnupg.GPG(gnupghome=self.gnuhome,
+        self.gpg = gnupg.GPG(verbose=False,gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'
 
         self._format_keys()
-
         keyimport = None
         if self.privkey is not None:
             keyimport = self.gpg.import_keys(self.privkey)
@@ -151,18 +150,19 @@ class Key(object):
         #Strip out the linebreaks
         #Re-Add the Linebreaks
         #Re-add the headers
-
         #Check for compressed versions-
         if self.privkey is not None:
             self.privkey = self.privkey.replace("-----BEGINPGPPRIVATEKEYBLOCK-----", "-----BEGIN PGP PRIVATE KEY BLOCK-----")
             self.privkey = self.privkey.replace("-----ENDPGPPRIVATEKEYBLOCK-----", "-----END PGP PRIVATE KEY BLOCK-----")
 
             if "-----BEGIN PGP PRIVATE KEY BLOCK-----" in self.privkey:
-                noHeaders = self.privkey[self.privkey.find("-----BEGIN PGP PRIVATE KEY BLOCK-----") + 36:self.privkey.find("-----END PGP PRIVATE KEY BLOCK-----")]
+                noheaders = self.privkey.replace('-----BEGIN PGP PRIVATE KEY BLOCK-----','').lstrip()
+                noheaders = noheaders.replace('-----END PGP PRIVATE KEY BLOCK-----','').rstrip()
             else:
                 self.logger.debug("USING NO HEADER VERSION OF PRIVKEY")
-                noHeaders = self.privkey
-            noBreaks = "".join(noHeaders.split())
+                noheaders = self.privkey
+
+            noBreaks = "".join(noheaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.privkey = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PRIVATE KEY BLOCK-----"
@@ -172,11 +172,12 @@ class Key(object):
             self.pubkey = self.pubkey.replace("-----ENDPGPPUBLICKEYBLOCK-----", "-----END PGP PUBLIC KEY BLOCK-----")
 
             if "-----BEGIN PGP PUBLIC KEY BLOCK-----" in self.pubkey:
-                noHeaders = self.pubkey[self.pubkey.find("-----BEGIN PGP PUBLIC KEY BLOCK-----") + 36:self.pubkey.find("-----END PGP PUBLIC KEY BLOCK-----")]
+                noheaders = self.pubkey.replace("-----BEGIN PGP PUBLIC KEY BLOCK-----",'').lstrip()
+                noheaders = noheaders.replace("-----END PGP PUBLIC KEY BLOCK-----",'').rstrip()
             else:
                 self.logger.debug("USING NO HEADER VERSION OF PUBKEY")
-                noHeaders = self.pubkey
-            noBreaks = "".join(noHeaders.split())
+                noheaders = self.pubkey
+            noBreaks = "".join(noheaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
@@ -199,7 +200,9 @@ class Key(object):
         # We don't want to use gen_key_input here because it insists on having an email, when it's not needed.
         # GPG doesn't require one, but many email programs do, so for general-use it's usually best practice.
         # Instead, we'll manually specify the string that it would otherwise generate.
-        keystr = 'Key-Type: RSA\nKey-Length: 2048\nName-Real: TAVERN\n\n\n%commit\n'
+        #keystr = 'Key-Type: RSA\nKey-Length: ' + server.settings['keys']['keysize'] + '\nName-Real: TAVERN\n\n\n%commit\n'
+        keystr = 'Key-Type: RSA\nKey-Length: 3072\nName-Real: TAVERN\n\n\n%commit\n'
+
         key = self.gpg.gen_key(keystr)
         self.pubkey = self.gpg.export_keys(key.fingerprint)
         self.privkey = self.gpg.export_keys(key.fingerprint, True)
@@ -231,8 +234,9 @@ class Key(object):
         encoded_hashed_str = base64.b64encode(hashed_str).decode('utf-8')
         signed_data = self.gpg.sign(
             encoded_hashed_str, keyid=self.fingerprint).data.decode('utf-8')
+
         if not signed_data:
-            raise Exception("Signing Error!")
+            raise Exception("Signing Error")
         return signed_data
 
 

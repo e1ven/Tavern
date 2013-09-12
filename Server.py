@@ -15,9 +15,9 @@ from libs import bbcodepy
 from bs4 import BeautifulSoup
 import psycopg2
 from psycopg2.extras import RealDictConnection
-from ServerSettings import serversettings
-import TavernUtils
-from TavernUtils import memorise
+
+import ServerSettings
+
 import tornado.escape
 import html
 import multiprocessing
@@ -25,13 +25,17 @@ from TavernUtils import TavernCache
 import logging
 import os
 import re
+from TavernUtils import memorise
+import TavernUtils
+
+defaultsettings = ServerSettings.ServerSettings('cache.TavernSettings')
 
 class FakeMongo():
 
     def __init__(self,host,port,name):
 
         # Create a connection to Postgres.
-        self.conn = psycopg2.connect(dbname=name,user=serversettings.settings['postgres-user'], host=host,port=port,connection_factory=psycopg2.extras.RealDictConnection)
+        self.conn = psycopg2.connect(dbname=name,user=server.serversettings.settings['postgres-user'], host=host,port=port,connection_factory=psycopg2.extras.RealDictConnection)
         self.conn.autocommit = True
 
     def find(self, collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection="ascending"):
@@ -118,11 +122,11 @@ class MongoWrapper():
 
         if safe == True:
             # Slower, more reliable mongo connection.
-            self.safeconn = pymongo.MongoClient(host,port, safe=True, journal=True, max_pool_size=serversettings.settings['mongo-connections'])
+            self.safeconn = pymongo.MongoClient(host,port, safe=True, journal=True, max_pool_size=defaultsettings.settings['mongo-connections'])
             self.mongo = self.safeconn[name]
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
-            self.unsafeconn = pymongo.MongoClient(host, port, read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=serversettings.settings['mongo-connections'])
+            self.unsafeconn = pymongo.MongoClient(host, port, read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED, max_pool_size=defaultsettings.settings['mongo-connections'])
             self.mongo = self.unsafeconn[name]
 
     def drop_collection(self,collection):
@@ -186,18 +190,17 @@ class DBWrapper():
 
         if dbtype == "mongo":
             if host == None:
-                host = serversettings.settings['mongo-hostname']
+                host = server.serversettings.settings['mongo-hostname']
             if port == None:
-                port = serversettings.settings['mongo-port']
+                port = server.serversettings.settings['mongo-port']
 
             self.safe = MongoWrapper(safe=True,host=host,port=port,name=name)
             self.unsafe = MongoWrapper(safe=False,host=host,port=port,name=name)
-
         elif dbtype == "postgres":
             if host == None:
-                host=serversettings.settings['postgres-hostname']
+                host=server.serversettings.settings['postgres-hostname']
             if port == None:
-                port=serversettings.settings['postgres-port']          
+                port=server.serversettings.settings['postgres-port']          
 
             self.safe = FakeMongo(host=host,port=port,name=name)
             self.unsafe = FakeMongo(host=host,port=port,name=name)
@@ -215,7 +218,13 @@ def print_timing(func):
     return wrapper
 
 
-class Server(object):
+class Server(TavernUtils.instancer):
+
+    # We want to share state across all Server instances.
+    # This way we can create a new instance, anywhere, in any subclass, and get the same settings/etc
+
+
+
 
     class FancyDateTimeDelta(object):
         """
@@ -252,31 +261,41 @@ class Server(object):
             return fmt + " ago"
 
     def getnextint(self, queuename, forcewrite=False):
-        if not 'queues' in serversettings.settings:
-            serversettings.settings['queues'] = {}
+        if not 'queues' in self.serversettings.settings:
+            self.serversettings.settings['queues'] = {}
 
-        if not queuename in serversettings.settings['queues']:
-            serversettings.settings['queues'][queuename] = 0
+        if not queuename in self.serversettings.settings['queues']:
+            self.serversettings.settings['queues'][queuename] = 0
 
-        serversettings.settings['queues'][queuename] += 1
+        self.serversettings.settings['queues'][queuename] += 1
 
         if forcewrite == True:
-            serversettings.saveconfig()
+            self.serversettings.saveconfig()
 
-        return serversettings.settings['queues'][queuename]
+        return self.serversettings.settings['queues'][queuename]
 
-    def __init__(self, settingsfile=None):
+    def __init__(self, settingsfile=None,workingdir=None,slot='default'):
+        
+        super().__init__(slot)
+
+
+        # Don't run this more than once.
+        if self.__dict__.get('set') is True:
+            return
+        else:
+            self.set = True
+
         self.logger = logging.getLogger('Tavern')
 
         # Should the server run in debug mode
         self.debug = False
 
-        self.mc = OrderedDict
-        self.unusedkeycache = multiprocessing.Queue(serversettings.settings['KeyGenerator']['num_pregens'])
-        # Break out the settings into it's own file, so we can include it without including all of server
-        # This does cause a few shenanigans while loading here, but hopefully it's minimal
 
-        if not 'pubkey' in serversettings.settings or not 'privkey' in serversettings.settings:
+        self.serversettings = ServerSettings.ServerSettings(settingsfile)
+        if self.serversettings.updateconfig():
+            self.serversettings.saveconfig()
+
+        if not 'pubkey' in self.serversettings.settings or not 'privkey' in self.serversettings.settings:
             #Generate New config
             self.logger.info("Generating new Config")
             self.ServerKeys = Key()
@@ -284,21 +303,26 @@ class Server(object):
 
             # We can't encrypt this.. We'd need to store the key here on the machine...
             # If you're worried about it, encrypt the disk, or use a loopback.
-            serversettings.settings['pubkey'] = self.ServerKeys.pubkey
-            serversettings.settings['privkey'] = self.ServerKeys.privkey
+            self.serversettings.settings['pubkey'] = self.ServerKeys.pubkey
+            self.serversettings.settings['privkey'] = self.ServerKeys.privkey
 
-            serversettings.updateconfig()
-            serversettings.saveconfig()
+            self.serversettings.updateconfig()
+            self.serversettings.saveconfig()
             
-        self.ServerKeys = Key(pub=serversettings.settings['pubkey'],
-                               priv=serversettings.settings['privkey'])
 
-        self.db =  DBWrapper(name=serversettings.settings['dbname'],dbtype=serversettings.settings['dbtype'],host=serversettings.settings['mongo-hostname'],port=serversettings.settings['mongo-port'])
-        self.sessions = DBWrapper(name=serversettings.settings['sessions-db-name'],dbtype=serversettings.settings['dbtype'],host=serversettings.settings['sessions-db-hostname'],port=serversettings.settings['sessions-db-port'])
-        self.binaries = DBWrapper(name=serversettings.settings['bin-mongo-db'],dbtype='mongo',host=serversettings.settings['bin-mongo-hostname'],port=serversettings.settings['bin-mongo-port'])
+        self.mc = OrderedDict
+        self.unusedkeycache = multiprocessing.Queue(self.serversettings.settings['KeyGenerator']['num_pregens'])
+        # Break out the settings into it's own file, so we can include it without including all of server
+        # This does cause a few shenanigans while loading here, but hopefully it's minimal
+
+
+        self.ServerKeys = Key(pub=self.serversettings.settings['pubkey'],
+                               priv=self.serversettings.settings['privkey'])
+
+        self.db =  DBWrapper(name=self.serversettings.settings['dbname'],dbtype=self.serversettings.settings['dbtype'],host=self.serversettings.settings['mongo-hostname'],port=self.serversettings.settings['mongo-port'])
+        self.sessions = DBWrapper(name=self.serversettings.settings['sessions-db-name'],dbtype=self.serversettings.settings['dbtype'],host=self.serversettings.settings['sessions-db-hostname'],port=self.serversettings.settings['sessions-db-port'])
+        self.binaries = DBWrapper(name=self.serversettings.settings['bin-mongo-db'],dbtype='mongo',host=self.serversettings.settings['bin-mongo-hostname'],port=self.serversettings.settings['bin-mongo-port'])
         self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
-
-        serversettings.saveconfig()
 
         # Get a list of all the valid templates that can be used, to compare against later on.
         self.availablethemes = []
@@ -307,7 +331,7 @@ class Server(object):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
-        serversettings.settings['static-revision'] = int(time.time())
+        self.serversettings.settings['static-revision'] = int(time.time())
 
         self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
         self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
@@ -317,11 +341,11 @@ class Server(object):
         formatter = logging.Formatter('[%(levelname)s] %(message)s')
         self.consolehandler = logging.StreamHandler()
         self.consolehandler.setFormatter(formatter)
-        self.handler_file = logging.FileHandler(filename=serversettings.settings['logfile'])
+        self.handler_file = logging.FileHandler(filename=self.serversettings.settings['logfile'])
         self.handler_file.setFormatter(formatter)
 
-        self.logger.setLevel(serversettings.settings['loglevel'])
-        level = serversettings.settings['loglevel']
+        self.logger.setLevel(self.serversettings.settings['loglevel'])
+        level = self.serversettings.settings['loglevel']
 
 
         # Cache our JS, so we can include it later.
@@ -329,6 +353,7 @@ class Server(object):
         self.logger.info("Cached JS")
         TavernCache.cache['instance.js'] = file.read()
         file.close()
+        self.guestacct = None
 
     def start(self):
         """
@@ -352,20 +377,18 @@ class Server(object):
         print("Logging Server started at level: " +  str(self.logger.getEffectiveLevel()))
 
 
-        if not 'guestacct' in serversettings.settings:
+        if not 'guestacct' in self.serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
             self.guestacct = User()
             self.guestacct.generate(AllowGuestKey=False)
-            serversettings.settings['guestacct'] = {}
-            serversettings.settings['guestacct']['pubkey'] = self.guestacct.Keys['master'].pubkey
-            serversettings.saveconfig()
+            self.serversettings.settings['guestacct'] = {}
+            self.serversettings.settings['guestacct']['pubkey'] = self.guestacct.Keys['master'].pubkey
+            self.serversettings.saveconfig()
             self.guestacct.savemongo()
         else:
             self.logger.info("Loading the Guest user acct.")
             self.guestacct = User()
-            self.guestacct.load_mongo_by_pubkey(serversettings.settings['guestacct']['pubkey'])
-
-                    
+            self.guestacct.load_mongo_by_pubkey(self.serversettings.settings['guestacct']['pubkey'])
         # Pregenerate some users in the background.
         #self.keygenerator.start()
 
@@ -379,10 +402,10 @@ class Server(object):
 
     def prettytext(self):
         newstr = json.dumps(
-            serversettings.settings, indent=2, separators=(', ', ': '))
+            self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    @memorise(ttl=serversettings.settings['cache']['sorttopic']['seconds'], maxsize=serversettings.settings['cache']['sorttopic']['size'])
+    @memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -391,7 +414,7 @@ class Server(object):
             topic = None
         return topic
 
-    @memorise(ttl=serversettings.settings['cache']['error_envelope']['seconds'], maxsize=serversettings.settings['cache']['error_envelope']['size'])
+    @memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, error="Error"):
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
@@ -411,16 +434,28 @@ class Server(object):
         e.dict['envelope']['local']['sorttopic'] = "error"
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
 
-        e.addStamp(stampclass='author',keys=self.ServerKeys,friendlyname=serversettings.settings['hostname'])
+        e.addStamp(stampclass='author',keys=self.ServerKeys,friendlyname=defaultsettings.settings['hostname'])
         e.munge()
         return e
 
 
     # Cache to failfast on receiving dups
-    @memorise(ttl=serversettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=serversettings.settings['cache']['receiveEnvelope']['size'])
-    def receiveEnvelope(self, envelope):
-        c = Envelope()
-        c.loadstring(importstring=envelope)
+    @memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
+    def receiveEnvelope(self, envstr=None,env=None):
+        """
+        Receive an envelope for processing in the server.
+        Can take either a string, or an envelope obj.
+        """
+        if envstr is None and env is None:
+            raise Exception('receiveEnvelope MUST receive an envelope. Really! ;)')
+
+        if env is not None:
+            # If we get an envelope, flatten it - The caller may not have.
+            c = env.flatten()
+        else:
+            c = Envelope()
+            c.loadstring(importstring=envstr)
+
 
         # Fill-out the message's local fields. 
         c.munge()
@@ -441,13 +476,12 @@ class Server(object):
 
 
         # Sign the message to saw we saw it.
-        if serversettings.settings['mark-seen'] == True:
-            c.addStamp(stampclass='server',keys=self.ServerKeys,hostname=serversettings.settings['hostname'])
+        if self.serversettings.settings['mark-seen'] == True:
+            c.addStamp(stampclass='server',keys=self.ServerKeys,hostname=defaultsettings.settings['hostname'])
 
 
         # Store the time, in full UTC (with precision). This is used to skip pages in the viewer later.
         c.dict['envelope']['local']['time_added'] = utctime
-
 
         if c.dict['envelope']['payload']['class'] == "message":
 
@@ -525,9 +559,10 @@ class Server(object):
 
         #Store our Envelope
         c.saveMongo()
+
         return  c.dict['envelope']['local']['payload_sha512']
 
-    @memorise(ttl=serversettings.settings['cache']['formatText']['seconds'], maxsize=serversettings.settings['cache']['formatText']['size'])
+    @memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
         
         # Run the text through Tornado's escape to ensure you're not a badguy.
@@ -545,7 +580,7 @@ class Server(object):
         return formatted
 
 
-    @memorise(ttl=serversettings.settings['cache']['getUsersPosts']['seconds'], maxsize=serversettings.settings['cache']['getUsersPosts']['size'])
+    @memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
     def getUsersPosts(self,pubkey,limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey,'envelope.payload.class': 'message'}, limit=limit,sortkey='envelope.local.time_added', sortdirection='descending'):
@@ -640,3 +675,4 @@ from User import User
 from Envelope import Envelope
 import embedis
 import KeyGenerator
+

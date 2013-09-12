@@ -12,7 +12,11 @@ import time
 from io import open
 import hashlib
 import random
-
+try:
+    import Server
+    server = Server.Server()
+except ImportError:
+    print("server already loaded.")
 # The random that comes with Python does not use /dev/urandom, it uses MT.
 # Wrap random.SystemRandom so we always use expected randomness.
 randrange =  random.SystemRandom().randrange
@@ -91,7 +95,8 @@ class randomWords():
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
         print(str(lines) + " fortunes loaded.")
-
+        fortunes.close()
+        
     def random(self):
         """
         Return a Random Fortune from the stack
@@ -170,6 +175,22 @@ def objresolve(obj, attrspec):
             obj = getattr(obj, attr)
     return obj
 
+
+
+class instancer(object):
+    _shared_state = {}
+
+    def __init__(self,slot='default'):
+        cn = type(self).__name__
+        if not cn in self._shared_state:
+            self._shared_state[cn] = {}
+ 
+        if not slot in self._shared_state[cn]:
+            self._shared_state[cn][slot] = {}
+        
+        self.__dict__ = self._shared_state[cn][slot]
+ 
+
 class memorise(object):
         """Decorate any function or class method/staticmethod with a memcace
         enabled caching wrapper. Similar to the memoise pattern, this will push
@@ -198,7 +219,6 @@ class memorise(object):
         def __init__(self, parent_keys=[], set=None, ttl=60, maxsize=None):
                 # Instance some default values, and customisations
                 self.parent_keys = parent_keys
-
                 self.set = set
                 self.ttl = ttl
                 self.maxsize = maxsize

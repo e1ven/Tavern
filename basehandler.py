@@ -1,7 +1,7 @@
 import tornado.web
 import tornado.escape
-from ServerSettings import serversettings
-from Server import server
+import Server
+server = Server.Server()
 from User import User
 from TavernUtils import memorise
 from TavernUtils import TavernCache
@@ -36,9 +36,9 @@ class BaseHandler(tornado.web.RequestHandler):
         self.redirected = self.get_argument('redirected',False)
 
         # Is this necessary EVERY time? It's quick, I suppose...
-        if serversettings.settings['web_url'] == None:
-            serversettings.settings['web_url'] = self.request.protocol + "://" + (self.request.host or socket.gethostbyaddr(socket.gethostbyname(socket.gethostname())) )
-            serversettings.saveconfig()
+        if server.serversettings.settings['web_url'] == None:
+            server.serversettings.settings['web_url'] = self.request.protocol + "://" + (self.request.host or socket.gethostbyaddr(socket.gethostbyname(socket.gethostname())) )
+            server.serversettings.saveconfig()
 
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
@@ -50,7 +50,7 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("X-Content-Type-Options", "nosniff")
         
         # http://cspisawesome.com/content_security_policies
-        self.set_header("Content-Security-Policy-Report-Only","default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " + serversettings.settings['embedserver'] + " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+        self.set_header("Content-Security-Policy-Report-Only","default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " + server.serversettings.settings['embedserver'] + " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
         
         self.fullcookies = {}
         for cookie in self.request.cookies:
@@ -63,7 +63,7 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             self.browser = server.browserdetector.parse("Unknown") 
 
-    # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=server.serversettings.settings['cache']['templates']['seconds'], maxsize=server.serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name,**kwargs):
         """
         Overwrite the default render_string to ensure the "server" variable is always available to templates
@@ -73,7 +73,7 @@ class BaseHandler(tornado.web.RequestHandler):
             browser=self.browser,
             request=self.request,
             user=self.user,
-            serversettings=serversettings
+            serversettings=server.serversettings
         )
         arguments.update(kwargs)
         theme = 'default'
@@ -124,7 +124,7 @@ class BaseHandler(tornado.web.RequestHandler):
             if self.request.method == "GET":
                 if (self.canon != None):
                     # Break apart current and canonical URLs to check to see if they match.
-                    canon_scheme, canon_netloc, canon_path, canon_query_string, canon_fragment = urllib.parse.urlsplit(serversettings.settings['primaryurl'] + '/' + self.canon)
+                    canon_scheme, canon_netloc, canon_path, canon_query_string, canon_fragment = urllib.parse.urlsplit(server.serversettings.settings['web_url'] + '/' + self.canon)
                     orig_scheme, orig_netloc, orig_path, orig_query_string, orig_fragment = urllib.parse.urlsplit(self.request.full_url())
                     if (orig_path != canon_path) or (orig_scheme != canon_scheme) or (orig_netloc != canon_netloc):
                         # This is not the canonical URL, bounce us.    
@@ -173,7 +173,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return super().finish(message)
 
-    @memorise(parent_keys=['html'], ttl=serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=serversettings.settings['cache']['getpagelemenent']['size'])
+    @memorise(parent_keys=['html'], ttl=server.serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=server.serversettings.settings['cache']['getpagelemenent']['size'])
     def getdiv(self, element):
         print("getting" + element)
         soup = BeautifulSoup(self.html,"html.parser")
@@ -185,7 +185,7 @@ class BaseHandler(tornado.web.RequestHandler):
         return soupytxt
 
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['templates']['seconds'], maxsize=serversettings.settings['cache']['templates']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=server.serversettings.settings['cache']['templates']['seconds'], maxsize=server.serversettings.settings['cache']['templates']['size'])
     def getjssetup(self):
         # Strip out GET params we don't need to display to the user.
         urlargs = urllib.parse.parse_qs(self.request.query,keep_blank_values=True)
@@ -230,7 +230,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return (ret)
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=serversettings.settings['cache']['getpagelemenent']['size'])
+    @memorise(parent_keys=['request.uri', 'html'], ttl=server.serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=server.serversettings.settings['cache']['getpagelemenent']['size'])
     def getjselement(self, element):
         """
         Get the element text, remove all linebreaks, and escape it up.
@@ -303,16 +303,21 @@ class BaseHandler(tornado.web.RequestHandler):
             secure = True
         else:
             secure = False
-
+        print("In Setvars!")
         # Save our out passkey
         if self.user.UserSettings['status']['guest'] is False:
             if self.user.passkey is not None:
                 self.set_secure_cookie("tavern_passkey",self.user.passkey, httponly=True, expires_days=999)
-
+                print("set passkey")
+        else:
+            print(self.user.UserSettings['status']['guest'])
         if self.user.UserSettings['author_sha512'] is not None:
             # Delete our sensetive data before saving out.
             self.user.savemongo()
             self.set_secure_cookie("tavern_settings",self.user.UserSettings['author_sha512'], httponly=True, expires_days=999)
+            print("set settings")
+        else:
+            print(self.user.UserSettings['author_sha512'])
 
     def getvars(self, AllowGuestKey=True):
         """

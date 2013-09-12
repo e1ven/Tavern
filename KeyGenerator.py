@@ -9,8 +9,8 @@ import pdb
 import os
 import time
 from Envelope import Envelope
-from Server import server
-from ServerSettings import serversettings
+import Server
+server = Server.Server()
 from lockedkey import LockedKey
 import TavernUtils
 
@@ -35,7 +35,7 @@ class KeyGenerator(object):
 
         self.stop()
         self.procs = []
-        for proc in range(0, serversettings.settings['KeyGenerator']['workers']):
+        for proc in range(0, server.serversettings.settings['KeyGenerator']['workers']):
             newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
             self.procs.append(newproc)
             server.logger.info(" Created KeyGenerator - " + str(proc))
@@ -85,5 +85,5 @@ class KeyGenerator(object):
         # Grab some emails from the stack
         while True:
             self.PopulateUnusedKeyCache();
-            sleeptime = serversettings.settings['KeyGenerator']['sleep']
+            sleeptime = server.serversettings.settings['KeyGenerator']['sleep']
             time.sleep(sleeptime)

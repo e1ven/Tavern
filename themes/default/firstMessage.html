@@ -1,5 +1,5 @@
 {% set medialink = None %}
-{% set permalink = serversettings.settings['primaryurl'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
+{% set permalink = serversettings.settings['web_url'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 {% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}

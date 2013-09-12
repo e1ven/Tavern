@@ -4,10 +4,10 @@ from Envelope import Envelope
 import time
 from TavernUtils import memorise
 import TavernUtils
-from Server import server
+import Server
+server = Server.Server()
 from collections import OrderedDict
 import sys
-from ServerSettings import serversettings
 
 
 class TopicTool(object):
@@ -16,7 +16,7 @@ class TopicTool(object):
     Shouldn't be instantiated directly.
     """
 
-    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
+    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def messages(self,topic, maxposts,before=None):
         """
         Get all messages in a topic, no later than `before`
@@ -51,7 +51,7 @@ class TopicTool(object):
 
         return subjects
 
-    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
+    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def getbackdate(self,topic,maxposts,after):
         """
         Get the earliest dated message, before `after`
@@ -78,7 +78,7 @@ class TopicTool(object):
 
         return ret
 
-    @memorise(ttl=serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=serversettings.settings['cache']['subjects-in-topic']['size'])
+    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def moreafter(self,before,topic,maxposts):
         sorttopic = server.sorttopic(topic)
         if topic != "all":
@@ -87,14 +87,14 @@ class TopicTool(object):
             count = len(server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$lt': before}}))
         return count
 
-    @memorise(ttl=serversettings.settings['cache']['toptopics']['seconds'], maxsize=serversettings.settings['cache']['toptopics']['size'])
+    @memorise(ttl=server.serversettings.settings['cache']['toptopics']['seconds'], maxsize=server.serversettings.settings['cache']['toptopics']['size'])
     def toptopics(self,limit=10,skip=0):
         toptopics = []
         for quicktopic in server.db.unsafe.find('topiclist', skip=skip,sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic['_id'])
         return toptopics
 
-    @memorise(ttl=serversettings.settings['cache']['topiccount']['seconds'], maxsize=serversettings.settings['cache']['topiccount']['size'])
+    @memorise(ttl=server.serversettings.settings['cache']['topiccount']['seconds'], maxsize=server.serversettings.settings['cache']['topiccount']['size'])
     def topicCount(self,topic,after=0,before=None,toponly=True):
         
         # Don't do this in the def, so that our cache is respected.
