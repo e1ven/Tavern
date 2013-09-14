@@ -33,7 +33,12 @@ import TavernUtils
 from basehandler import BaseHandler
 
 from libs import rss
-from libs import Robohash
+
+# Import the Ramdisk vers if possible
+try:
+    from tmp import Robohash
+except ImportError:
+    from libs import Robohash
 
 import Server
 server = Server.Server()
@@ -1167,13 +1172,20 @@ def main():
 
 
     settings = {
-        "static_path": os.path.join(os.path.dirname(__file__), "static"),
         "cookie_secret": server.serversettings.settings['cookie-encryption'],
         "login_url": "/login",
         "xsrf_cookies": True,
         "template_path": "themes",
         "autoescape": "xhtml_escape"
     }
+
+    # Detect if we have the ramdisk setup for static files
+    staticopts = {}
+    if os.path.isfile('tmp/static/scripts/default.js'):
+        staticopts['path'] = os.path.join(os.path.dirname(__file__), "tmp/static/")
+    else:
+        staticopts['path'] = os.path.join(os.path.dirname(__file__), "static/")
+
     application = tornado.web.Application([
         (r"/", EntryHandler),
 
@@ -1231,8 +1243,7 @@ def main():
         (r"/avatar/(.*)", AvatarHandler),
         (r"/binaries/(.*)/(.*)", BinariesHandler),
         (r"/binaries/(.*)", BinariesHandler),
-        (r"/static/(.*)", tornado.web.StaticFileHandler, {"path":
-         os.path.join(os.path.dirname(__file__), "static/")})
+        (r"/static/(.*)", tornado.web.StaticFileHandler, staticopts)
     ], **settings)
 
     http_server = tornado.httpserver.HTTPServer(application)

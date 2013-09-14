@@ -47,9 +47,9 @@
 	{% if browser['ua_family'] != 'Netscape Navigator' and browser['ua_versions'][0] > 4 %}
 	
 		{% if 'theme' in user.UserSettings %}
-			<link href="/static/css/unified-{{user.UserSettings['theme']}}.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/unified-{{user.UserSettings['theme']}}.min.css?v={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 			{% else %}
-			<link href="/static/css/unified-default.min.css?revision={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/unified-default.min.css?v={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		{% end %}
 		    <!--[if IE 7]>
     			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
@@ -58,14 +58,14 @@
 	{% end %}
 	
 
-    <link rel="icon" href="/static/icons/32x32Icon.png?revision={{serversettings.settings['static-revision']}}" type="image/png" />
-	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?revision={{serversettings.settings['static-revision']}}" />
-	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?revision={{serversettings.settings['static-revision']}}" />
-	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?revision={{serversettings.settings['static-revision']}}" />
-	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?revision={{serversettings.settings['static-revision']}}" />
+    <link rel="icon" href="/static/icons/32x32Icon.png?v={{serversettings.settings['static-revision']}}" type="image/png" />
+	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?v={{serversettings.settings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?v={{serversettings.settings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{serversettings.settings['static-revision']}}" />
+	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?v={{serversettings.settings['static-revision']}}" />
 
 {% if browser['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
-  <script src="/static/scripts/IE9.min.js?revision={{serversettings.settings['static-revision']}}"></script>  
+  <script src="/static/scripts/IE9.min.js?v={{serversettings.settings['static-revision']}}"></script>  
 {% end %}
 
 
@@ -74,7 +74,7 @@
 	{% include 'header-debug-JS.html' %}
 {% else %}
 	{% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
-	  <script defer src="/static/scripts/unified.min.js?revision={{serversettings.settings['static-revision']}}"></script>
+	  <script defer src="/static/scripts/unified.min.js?v={{serversettings.settings['static-revision']}}"></script>
 	{% end %}
 {% end %}
 

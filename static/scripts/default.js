@@ -4,7 +4,6 @@ jQuery.ajaxSetup({
   cache: true
 });
 
-
 // Strip a trailing slash from a URL if there is one.
 function stripTrailingSlash(str) {
     if(str.substr(-1) == '/') {

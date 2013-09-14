@@ -63,6 +63,77 @@ function writearg
     fi
 }
 
+function ramdisk
+{
+ # [start/stop] [dir] [size in mb]   
+
+control=$1
+mntpt=$2
+size=$3
+
+if [ "$control" == 'start' ]
+then
+    if [ -z "$3" ]
+    then
+        echo "Bad call to ramdisk"
+        exit
+        # Using exit, not return here, since this should abort the script.
+    fi
+    # Determine if we should use OSX or Linux style ramdisks
+    which diskutil > /dev/null
+    if [ $? -eq 0 ]
+    then #OSX
+
+        # Make sure it's not ALREADY a ramdisk
+        diskutil info $mntpt | grep "Volume Name" | grep TavernRamDisk
+        if [ "$?" -eq 0 ]
+        then
+            echo "Ramdisk already exists!"
+            return
+        fi
+        # Calculate the size, in blocks
+        disksize=$(($size*1024*1024/512))
+        # Create the ramdisk
+        virt_disk=`hdiutil attach -nomount ram://$disksize`
+        # Verify the Ramdisk. Make extra damn sure.
+        actual_size=`diskutil info $virt_disk | grep Total | awk -F'exactly ' {'print $2'} | awk {'print $1'}`
+        if [ "$actual_size" != "$disksize" ]
+        then
+            echo "Error creating Ramdisk! - $actual_size + $disksize"
+
+            exit
+        else
+            diskutil erasevolume HFS+ "TavernRamDisk-$mntpt" $virt_disk
+            umount $virt_disk
+            mkdir -p $mntpt
+            mount -t hfs -o union -o nobrowse $virt_disk $mntpt
+            if [ $? -eq 0 ]
+                then
+                echo $mntpt >> mounted
+            fi
+        fi
+    else
+        # Linux
+        mount -t tmpfs -o size=$2M tmpfs $mntpt
+        echo $mntpt >> mounted
+    fi
+elif [ "$control" == "stop" ]
+then
+    echo "stopping disk images"
+    which diskutil > /dev/null
+    if [ $? -eq 0 ]
+    then #OSX
+        for i in `cat tmp/mounted`
+        do
+            echo $i
+            hdiutil detach tmp/$i -force
+        done
+        # We're done here.
+        mv tmp/mounted tmp/mounted-old
+    fi
+fi
+}
+
 
 
 function stop 
@@ -79,6 +150,9 @@ function stop
     do
         kill $i
     done
+
+    # Remove ramdisks
+    ramdisk stop
 }
 
 function findcommands
@@ -171,9 +245,6 @@ function findcommands
 }
 
 
-
-
-
 function start 
 {
 # Start up Tavern.
@@ -211,6 +282,23 @@ function start
     loadargs
     findcommands
 
+    # Create necessary RamDisks
+    cd tmp
+    ramdisk start gpgfiles 5
+    ramdisk start Robohash 20
+    ramdisk start static 15
+
+    cd ..
+    robohashfiles=`ls -l tmp/robohash/ | wc -l`
+    if [ $robohashfiles -lt 10 ]
+    then
+        cp -pr libs/Robohash/* tmp/robohash
+    fi
+    
+    # Copy static files into the Ramdisk
+    cp -pr static/* tmp/static
+    STATIC='tmp/static'
+
 
     if [ $(since lastrun) -gt 3600 ]
     then
@@ -236,25 +324,25 @@ function start
     echo "Ensuring fontello directory compliance"
 
 
-    "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' static/css/fontello*.css
-    "$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
+    "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' $STATIC/css/fontello*.css
+    "$sed" -i 's/margin-right: 0.2em;//g' $STATIC/css/fontello.css
 
 
     # Convert from SCSS to CSS.
     echo "Converting from SASS to CSS"
 
     # Remove any old and no longer used generated css files
-    for i in `ls static/sass/css/`
+    for i in `ls $STATIC/sass/css/`
     do
         base=`basename $i .css`
-        if [ ! -f static/sass/scss/$base.scss ]
+        if [ ! -f $STATIC/sass/scss/$base.scss ]
             then
-            rm static/sass/css/$i
+            rm $STATIC/sass/css/$i
         fi
     done
     # Convert the SCSS to CSS and put in production folder
-    compass compile static/sass/ -e production
-    cp static/sass/css/* static/css/
+    compass compile $STATIC/sass/ -e production
+    cp $STATIC/sass/css/* $STATIC/css/
 
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
@@ -264,14 +352,14 @@ function start
     mv tmp/gzipchk/* tmp/unchecked-gzipchk > /dev/null 2>&1 
 
     result=255
-    for i in `find static/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
+    for i in `find $STATIC/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
     do
         filehash=`cat $i | $hash | cut -d" " -f 1`
         basename=`basename $i ".js"`
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
             # No pre-hashed version available
-            $yui $i > static/scripts/$basename.min.js $flags
+            $yui $i > $STATIC/scripts/$basename.min.js $flags
             result=$?
             echo -e "\t $basename"
             # Reformatted
@@ -287,13 +375,13 @@ function start
     done
 
     echo "Minimizing CSS"
-    for i in `find static/css/ -name "*.css"| grep -v '.min.css'`
+    for i in `find $STATIC/css/ -name "*.css"| grep -v '.min.css'`
     do
         filehash=`cat $i | $hash | cut -d" " -f 1`
         basename=`basename $i ".css"`
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
-            $yui $i > static/css/$basename.min.css
+            $yui $i > $STATIC/css/$basename.min.css
             echo -e "\t $basename"
             # Reformatted
         else
@@ -305,26 +393,26 @@ function start
     echo "Combining CSS.."
     # No need to re-minimize the CSS, it's already OK.
     # It's faster to combine them, then to hash to see if we need to.
-    for i in `ls static/css/style-*.min.css`
+    for i in `ls $STATIC/css/style-*.min.css`
     do  
         STYLE=`echo style-default.min.css | awk -F- {'print $2'} |  awk -F. {'print $1'}`
         echo $i
-        cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css static/css/fonts.min.css  > static/css/unified-$STYLE.min.css
+        cat $i $STATIC/css/fontello.min.css $STATIC/css/video-js.min.css $STATIC/css/animation.min.css $STATIC/css/fonts.min.css  > $STATIC/css/unified-$STYLE.min.css
     done
 
 
 
         echo "Combining and further minimizing JS.."
-        JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js"
+        JSFILES="$STATIC/scripts/json3.min.js $STATIC/scripts/jquery.min.js $STATIC/scripts/mousetrap.min.js $STATIC/scripts/jstorage.min.js $STATIC/scripts/jquery.json.min.js $STATIC/scripts/colresizable.min.js $STATIC/scripts/jquery-throttle.min.js $STATIC/scripts/default.min.js $STATIC/scripts/garlic.min.js $STATIC/scripts/video.min.js $STATIC/scripts/audio.min.js $STATIC/scripts/retina.min.js"
         if [ $DEBUG -eq 0 ]
         then
-            cat $JSFILES > static/scripts/unified.js
+            cat $JSFILES > $STATIC/scripts/unified.js
 
             # It's smaller if we re-minimize afterwords. 
-            filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
+            filehash=`cat $STATIC/scripts/unified.js | $hash | cut -d" " -f 1`
             if [ ! -f tmp/unchecked/$filehash.exists ]
             then
-                $yui static/scripts/unified.js > static/scripts/unified.min.js
+                $yui $STATIC/scripts/unified.js > $STATIC/scripts/unified.min.js
             else
                 : # No Reformatting needed 
             fi
@@ -356,7 +444,7 @@ function start
 
     echo "Gzipping individual files"
     # Compress the files with gzip
-    for file in `find static -not -name "*.gz" -and -not -path "static/scripts/*" -and -not -path "static/css/*" -and -not -path "static/sass/*" -type f`
+    for file in `find static -not -name "*.gz" -and -not -path "$STATIC/scripts/*" -and -not -path "$STATIC/css/*" -and -not -path "$STATIC/sass/*" -type f`
     do 
         filehash=`cat $file | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
@@ -373,7 +461,7 @@ function start
 
     echo "Gzipping Unified files"
     # Compress the files with gzip
-    for file in `echo 'static/css/unified-*.min.css static/scripts/unified.min.js' `
+    for file in `echo "$STATIC/css/unified-*.min.css $STATIC/scripts/unified.min.js" `
     do 
         filehash=`cat $file | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]

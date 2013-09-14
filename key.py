@@ -13,7 +13,7 @@ import TavernUtils
 import functools
 import datetime
 import calendar
-
+import time
 # We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
 
 class Key(object):
@@ -54,7 +54,7 @@ class Key(object):
         self.pubkey = pub
         self.privkey = priv
         self.expires = None
-        self.gnuhome = tempfile.mkdtemp()
+        self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
         self.gpg = gnupg.GPG(verbose=False,gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'
