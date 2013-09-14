@@ -260,15 +260,6 @@ class BaseHandler(tornado.web.RequestHandler):
         return(ret)
 
 
-    def chunks(self, s, n):
-        """
-        Produce `n`-character chunks from `s`.
-        """
-        for start in range(0, len(s), n):
-            yield s[start:start + n]
-
-
-
     def recentauth(self, seconds=300):
         """
         Ensure the user has authenticated recently.

@@ -83,7 +83,7 @@ class KeyGenerator(object):
 
         count = 0
         # Grab some emails from the stack
-        while True:
+        while 1:
             self.PopulateUnusedKeyCache();
             sleeptime = server.serversettings.settings['KeyGenerator']['sleep']
             time.sleep(sleeptime)

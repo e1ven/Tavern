@@ -770,7 +770,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
                     SHA512 = hashlib.sha512()
-                    while True:
+                    while 1:
                         buf = individual_file['filehandle'].read(0x100000)
                         if not buf:
                             break
@@ -792,7 +792,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 individual_file['filehandle'].write(individual_file['body'])
                 individual_file['size'] = len(individual_file['body'])
                 SHA512 = hashlib.sha512()
-                while True:
+                while 1:
                     buf = individual_file['filehandle'].read(0x100000)
                     if not buf:
                         break

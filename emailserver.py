@@ -106,7 +106,7 @@ class EmailServer(object):
 
         count = 0
         # Grab some emails from the stack
-        while True:
+        while 1:
             if not self.emails.empty():
                 currentemail = self.emails.get(False)
                 msg = MIMEMultipart('alternative')
