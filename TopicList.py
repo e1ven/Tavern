@@ -6,6 +6,7 @@ import Server
 server = Server.Server()
 import logging
 
+
 def main():
 
     MAP_FUNCTION = """
@@ -41,12 +42,11 @@ def main():
 
             """
 
-
     server.db.safe.drop_collection('topiclist')
     server.db.safe.map_reduce('envelopes',
-                          map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
+                              map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 
-    a = server.db.safe.find('topiclist',{})
+    a = server.db.safe.find('topiclist', {})
 
 # Run the main() function.
 if __name__ == "__main__":

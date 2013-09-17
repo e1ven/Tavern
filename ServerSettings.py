@@ -8,9 +8,10 @@ import TavernUtils
 import socket
 import getpass
 
+
 class ServerSettings():
 
-    def __init__(self,settingsfile=None,settingsdir=None):
+    def __init__(self, settingsfile=None, settingsdir=None):
         self.settings = OrderedDict()
 
         if settingsfile is not None:
@@ -25,29 +26,34 @@ class ServerSettings():
 
         self.loadconfig(filename=settingsfile)
 
-    def loadconfig(self, filename=None,directory=None):
+    def loadconfig(self, filename=None, directory=None):
 
         if filename is None:
             filename = self.settingsfile
         if directory is None:
             directory = self.settingsdir
 
-        print("Loading from " + directory + filename )
+        print("Loading from " + directory + filename)
 
         try:
             filehandle = open(directory + filename, 'r')
             filecontents = filehandle.read()
-            self.settings = json.loads(filecontents, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+            self.settings = json.loads(
+                filecontents,
+                object_pairs_hook=collections.OrderedDict,
+                object_hook=collections.OrderedDict)
             filehandle.close()
         except:
-            print("Error opening config file - " + directory + filename + " - Making new one for that filename")
+            print(
+                "Error opening config file - " +
+                directory +
+                filename +
+                " - Making new one for that filename")
             self.updateconfig()
             self.saveconfig()
             pass
 
-        
-
-    def saveconfig(self, filename=None,directory=None):
+    def saveconfig(self, filename=None, directory=None):
 
         if filename is None:
             filename = self.settingsfile
@@ -58,7 +64,7 @@ class ServerSettings():
             filename = self.settings['hostname'] + \
                 ".TavernServerSettings"
 
-        print("Writing to " + directory + filename )
+        print("Writing to " + directory + filename)
         newsettings = self.settings
         print(newsettings['dbname'])
 
@@ -69,7 +75,8 @@ class ServerSettings():
 
     def updateconfig(self):
 
-        # Create a string/immutable version of ServerSettings that we can compare against later to see if anything changed.
+        # Create a string/immutable version of ServerSettings that we can
+        # compare against later to see if anything changed.
         tmpsettings = str(self.settings)
 
         if not 'hostname' in self.settings:
@@ -81,11 +88,11 @@ class ServerSettings():
         if not 'downloadsurl' in self.settings:
             self.settings['downloadsurl'] = '/binaries/'
 
-        # The Canonical URL is specified so that Google won't detect duplicate content for every Tavern server, and penalize.
+        # The Canonical URL is specified so that Google won't detect duplicate
+        # content for every Tavern server, and penalize.
         if not 'canonical_url' in self.settings:
             self.settings['canonical_url'] = "https://tavern.is"
 
-                    
         if not 'logfile' in self.settings:
             self.settings[
                 'logfile'] = "logs/" + self.settings['hostname'] + '.log'
@@ -94,12 +101,10 @@ class ServerSettings():
             self.settings[
                 'loglevel'] = "INFO"
 
-
         if not 'mongo-hostname' in self.settings:
             self.settings['mongo-hostname'] = 'localhost'
         if not 'mongo-port' in self.settings:
             self.settings['mongo-port'] = 27017
-
 
         if not 'postgres-hostname' in self.settings:
             self.settings['postgres-hostname'] = 'localhost'
@@ -109,12 +114,9 @@ class ServerSettings():
             self.settings['postgres-hostname'] = "localhost"
         if not 'postgres-port' in self.settings:
             self.settings['postgres-port'] = 5432
-            
-   
 
         if not 'dbname' in self.settings:
             self.settings['dbname'] = 'Tavern'
-
 
         if not 'bin-mongo-hostname' in self.settings:
             self.settings['bin-mongo-hostname'] = 'localhost'
@@ -168,13 +170,11 @@ class ServerSettings():
             self.settings['cache']['toptopics']['size'] = 1
             self.settings['cache']['toptopics']['seconds'] = 3602
 
-
-        ##### Settings related to the Web View
+        # Settings related to the Web View
         if not 'templates' in self.settings['cache']:
             self.settings['cache']['templates'] = {}
             self.settings['cache']['templates']['size'] = 1000
             self.settings['cache']['templates']['seconds'] = 5
-
 
         if not 'getpagelemenent' in self.settings['cache']:
             self.settings['cache']['getpagelemenent'] = {}
@@ -185,17 +185,11 @@ class ServerSettings():
             self.settings['cache']['message-page'] = {}
             self.settings['cache']['message-page']['size'] = 1000
             self.settings['cache']['message-page']['seconds'] = 1
-        
+
         if not 'topic-page' in self.settings['cache']:
             self.settings['cache']['topic-page'] = {}
             self.settings['cache']['topic-page']['size'] = 1000
             self.settings['cache']['topic-page']['seconds'] = 1
-
-
-
-
-
-
 
         if not 'uasparser' in self.settings['cache']:
             self.settings['cache']['uasparser'] = {}
@@ -232,9 +226,6 @@ class ServerSettings():
             self.settings['cache']['error_envelope']['size'] = 20
             self.settings['cache']['error_envelope']['seconds'] = 10000000000
 
-
-
-
         if not 'KeyGenerator' in self.settings:
             self.settings['KeyGenerator'] = {}
         if not 'num_pregens' in self.settings['KeyGenerator']:
@@ -248,7 +239,6 @@ class ServerSettings():
             self.settings['keys'] = {}
         if not 'keysize' in self.settings['keys']:
             self.settings['keys']['keysize'] = 3072
-
 
         if not 'upload-dir' in self.settings:
             self.settings['upload-dir'] = '/opt/uploads'
@@ -287,5 +277,5 @@ class ServerSettings():
             return False
         else:
             return True
-            
+
 serversettings = ServerSettings()

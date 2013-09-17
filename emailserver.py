@@ -16,7 +16,9 @@ import time
 import Server
 server = Server.Server()
 
+
 class EmailServer(object):
+
     """
     Sends email from the mongo queue of emails.
     """
@@ -41,7 +43,9 @@ class EmailServer(object):
             'sender'] = "noreply <noreply@example.com>"
         server.serversettings.settings['email'][
             'smtpserver'] = 'smtp.example.com'
-        server.serversettings.settings['email']['username'] = "user@example.com"
+        server.serversettings.settings[
+            'email'][
+            'username'] = "user@example.com"
         server.serversettings.settings['email']['password'] = "password"
         server.serversettings.settings['email'][
             'workers'] = multiprocessing.cpu_count() - 1
@@ -63,7 +67,8 @@ class EmailServer(object):
         for email in server.db.safe.find('output-emails', {}):
             self.optouts.append(email['address'])
 
-        # Move messages to an in-memory queue which can go to multiple processes
+        # Move messages to an in-memory queue which can go to multiple
+        # processes
         for email in server.db.unsafe.find('notifications_queue', {'type': 'email'}):
             if email['address'] not in self.optouts:
                 self.emails.put(email)
@@ -106,7 +111,7 @@ class EmailServer(object):
 
         count = 0
         # Grab some emails from the stack
-        while 1:
+        while True:
             if not self.emails.empty():
                 currentemail = self.emails.get(False)
                 msg = MIMEMultipart('alternative')
@@ -118,7 +123,8 @@ class EmailServer(object):
                 newmailevery = server.serversettings.settings[
                     'email']['newmailevery']
 
-                # Record the MIME types of both parts - text/plain and text/html.
+                # Record the MIME types of both parts - text/plain and
+                # text/html.
                 part1 = MIMEText(currentemail['text'], 'plain')
                 part2 = MIMEText(currentemail['html'], 'html')
 
@@ -131,15 +137,26 @@ class EmailServer(object):
                 if count % newmailevery == 0:
                     if count > 0:
                         conn.close()
-                    server.logger.info("Establishing Connection to emailserver " + server.serversettings.settings['email']['smtpserver'])
-                    if server.serversettings.settings['email']['SSL'] == True:
-                        conn = smtplib.SMTP_SSL(host=server.serversettings.settings['email']['smtpserver'], port=server.serversettings.settings['email']['port'])
+                    server.logger.info(
+                        "Establishing Connection to emailserver " +
+                        server.serversettings.settings[
+                            'email'][
+                            'smtpserver'])
+                    if server.serversettings.settings['email']['SSL']:
+                        conn = smtplib.SMTP_SSL(
+                            host=server.serversettings.settings[
+                                'email']['smtpserver'],
+                            port=server.serversettings.settings['email']['port'])
                     else:
-                        conn = smtplib.SMTP(host=server.serversettings.settings['email']['smtpserver'], port=server.serversettings.settings['email']['port'])
+                        conn = smtplib.SMTP(
+                            host=server.serversettings.settings[
+                                'email']['smtpserver'],
+                            port=server.serversettings.settings['email']['port'])
 
-                    if server.serversettings.settings['email']['authrequired'] == True:
+                    if server.serversettings.settings['email']['authrequired']:
                         conn.login(
-                            server.serversettings.settings['email']['username'],
+                            server.serversettings.settings[
+                                'email']['username'],
                             server.serversettings.settings['email']['password'])
 
                 try:
@@ -150,7 +167,8 @@ class EmailServer(object):
                     count += 1
                     server.logger.info("This thread has sent " + str(count))
             else:
-                sleeptime = server.serversettings.settings['email']['sleeptime']
+                sleeptime = server.serversettings.settings[
+                    'email']['sleeptime']
                 server.logger.info("Sleeping - " + str(sleeptime) + " seconds")
                 time.sleep(sleeptime)
         conn.close()

@@ -44,10 +44,9 @@ define("port", default=8090, help="run on the given port", type=int)
 
 
 class BaseHandler(tornado.web.RequestHandler):
+
     def __init__(self, *args, **kwargs):
-        """
-        Wrap the default RequestHandler with extra methods
-        """
+        """Wrap the default RequestHandler with extra methods."""
         super(BaseHandler, self).__init__(*args, **kwargs)
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))
@@ -68,17 +67,20 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 class NotFoundHandler(BaseHandler):
+
     def get(self, whatever):
         self.error("API endpoint Not found.")
 
 
 class ListActiveTopics(BaseHandler):
+
     def get(self):
         self.write(json.dumps(topictool.toptopics(), separators=(',', ':')))
         self.finish()
 
 
 class MessageHandler(BaseHandler):
+
     def get(self, message, persp=None):
 
         client_message_id = tornado.escape.xhtml_escape(message)
@@ -89,7 +91,7 @@ class MessageHandler(BaseHandler):
 
         envelope = server.db.unsafe.find_one(
             'envelopes', {'envelope.local.payload_sha512': client_message_id})
-        
+
         if client_perspective is not None:
             u = User()
             u.load_mongo_by_pubkey(pubkey=client_perspective)
@@ -106,7 +108,9 @@ class MessageHandler(BaseHandler):
 
 
 class TopicHandler(BaseHandler):
-    def get(self, topic, since='1319113800', include=100, offset=0, persp=None,):
+
+    def get(self, topic, since='1319113800',
+            include=100, offset=0, persp=None,):
         if persp is not None:
             client_perspective = tornado.escape.xhtml_escape(persp)
         else:
@@ -133,13 +137,16 @@ class TopicHandler(BaseHandler):
 
 
 class PrivateMessagesHandler(BaseHandler):
+
     def get(self, pubkey):
 
         client_pubkey = tornado.escape.xhtml_escape(pubkey)
         envelopes = []
 
         for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.to': client_pubkey}):
-            formattedtext = server.formatText(envelope, formatting=envelope['envelope']['payload']['formatting'])
+            formattedtext = server.formatText(
+                envelope,
+                formatting=envelope['envelope']['payload']['formatting'])
             envelope['envelope']['local']['formattedbody'] = formattedbody
             envelopes.append(message)
 
@@ -147,6 +154,7 @@ class PrivateMessagesHandler(BaseHandler):
 
 
 class SubmitEnvelopeHandler(BaseHandler):
+
     def post(self):
 
         client_message = tornado.escape.to_unicode(
@@ -156,6 +164,7 @@ class SubmitEnvelopeHandler(BaseHandler):
 
 
 class ServerStatus(BaseHandler):
+
     def get(self):
         status = OrderedDict()
         status['timestamp'] = int(time.time())

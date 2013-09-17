@@ -5,13 +5,8 @@
 from binascii import hexlify
 import hashlib
 
-# If a secure random number generator is unavailable, exit with an error.
-try:
-    import Crypto.Random.random
-    secure_random = Crypto.Random.random.getrandbits
-except ImportError:
-    import OpenSSL
-    secure_random = lambda x: long(hexlify(OpenSSL.rand.bytes(x>>3)), 16)
+import random
+secure_random = random.SystemRandom().getrandbits
 
 class DiffieHellman(object):
     """
@@ -21,7 +16,7 @@ class DiffieHellman(object):
     exponent.
     """
 
-    prime = 1251427958389355302627549160611  
+    prime = 233172704936600506538617975596170741822594089451305598516045006493456811551614505396001416287572251861674561594546676573151898301121211776952494783127435615365133303790300324634262013876208239501607408501267045874718688091007473950238765006824045294927228005944955637615349030182378815934432307311010873986067  
     generator = 2
 
     def __init__(self):
@@ -48,11 +43,14 @@ class DiffieHellman(object):
         Check the other party's public key to make sure it's valid.
         Since a safe prime is used, verify that the Legendre symbol is equal to one.
         """
-        print(self.prime)
+        print((self.prime))
         if(otherKey > 2 and otherKey < self.prime - 1):
             print("In if")
-            print(pow(otherKey, (self.prime - 1)/2, self.prime))
-            if(pow(otherKey, (self.prime - 1)/2, self.prime) == 1):
+            print(otherKey)
+            print("----")
+            print((pow(otherKey, (self.prime - 1)//2, self.prime)))
+            print("####")
+            if(pow(otherKey, (self.prime - 1)//2, self.prime) == 1):
                 return True
         return False
 
@@ -73,7 +71,7 @@ class DiffieHellman(object):
         """
         self.sharedSecret = self.genSecret(self.privateKey, otherKey)
         s = hashlib.sha256()
-        s.update(bytes(self.sharedSecret))
+        s.update(str(self.sharedSecret).encode('utf-8'))
         self.key = s.digest()
 
     def getKey(self):
@@ -86,23 +84,23 @@ class DiffieHellman(object):
         """
         Show the parameters of the Diffie Hellman agreement.
         """
-        print "Parameters:"
-        print
-        print "Prime: ", self.prime
-        print "Generator: ", self.generator
-        print "Private key: ", self.privateKey
-        print "Public key: ", self.publicKey
-        print
+        print("Parameters:")
+        print()
+        print("Prime: ", self.prime)
+        print("Generator: ", self.generator)
+        print("Private key: ", self.privateKey)
+        print("Public key: ", self.publicKey)
+        print()
 
     def showResults(self):
         """
         Show the results of a Diffie-Hellman exchange.
         """
-        print "Results:"
-        print
-        print "Shared secret: ", self.sharedSecret
-        print "Shared key: ", hexlify(self.key)
-        print
+        print("Results:")
+        print()
+        print("Shared secret: ", self.sharedSecret)
+        print("Shared key: ", hexlify(self.key))
+        print()
 
 if __name__=="__main__":
     """
@@ -116,9 +114,9 @@ if __name__=="__main__":
     b.genKey(a.publicKey)
 
     if(a.getKey() == b.getKey()):
-        print "Shared keys match."
-        print "Key:", hexlify(a.key)
+        print("Shared keys match.")
+        print("Key:", hexlify(a.key))
     else:
-        print "Shared secrets didn't match!"
-        print "Shared secret: ", a.genSecret(b.publicKey)
-        print "Shared secret: ", b.genSecret(a.publicKey)
+        print("Shared secrets didn't match!")
+        print("Shared secret: ", a.genSecret(b.publicKey))
+        print("Shared secret: ", b.genSecret(a.publicKey))

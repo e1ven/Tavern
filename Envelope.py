@@ -15,10 +15,12 @@ import Image
 import gridfs
 from bs4 import BeautifulSoup
 
+
 class Envelope(object):
 
     class Payload(object):
-        def __init__(self, initialdict,srv=None):
+
+        def __init__(self, initialdict, srv=None):
             self.dict = OrderedDict(initialdict)
             if srv is None:
                 self.server = Server.Server()
@@ -68,12 +70,14 @@ class Envelope(object):
             return True
 
     class MessageRevision(Payload):
+
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 self.server.logger.debug("Super does not Validate")
                 return False
             if not 'regarding' in self.dict:
-                self.server.logger.debug("Message Revisions must refer to an original message.")
+                self.server.logger.debug(
+                    "Message Revisions must refer to an original message.")
                 return False
 
             # See if we have the original. If so, is the right type?
@@ -111,22 +115,22 @@ class Envelope(object):
                     self.server.logger.debug("Topic too long")
                     return False
 
-            if self.server.sorttopic(self.dict['topic']) in ['all','all-subscribed']:
-                self.server.logger.debug("Topic in reserved topic list. Sorry. ")
+            if self.server.sorttopic(self.dict['topic']) in ['all', 'all-subscribed']:
+                self.server.logger.debug(
+                    "Topic in reserved topic list. Sorry. ")
                 return False
-
 
             if 'subject' in self.dict:
                 if len(self.dict['subject']) > 200:
                     self.server.logger.debug("Subject too long")
                     return False
 
-
             # See if we have the original. If so, is the right type?
             if 'regarding' in self.dict:
                 e = Envelope()
                 if e.loadmongo(self.dict['regarding']):
-                    print("We have the original message this revision refers to")
+                    print(
+                        "We have the original message this revision refers to")
                     if e.dict['envelope']['payload']['class'] != 'message':
                         print("Message can only reply to other messages.")
                         return False
@@ -134,6 +138,7 @@ class Envelope(object):
             return True
 
     class PrivateMessage(Payload):
+
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 self.server.logger.debug("Super does not Validate")
@@ -147,6 +152,7 @@ class Envelope(object):
             return True
 
     class Rating(Payload):
+
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 self.server.logger.debug("Super fails")
@@ -162,6 +168,7 @@ class Envelope(object):
             return True
 
     class UserTrust(Payload):
+
         def validate(self):
             if not Envelope.Payload(self.dict).validate():
                 return False
@@ -183,7 +190,7 @@ class Envelope(object):
         Ensures an envelope is valid, legal, and according to spec.
         """
         self.registerpayload()
-        #Check headers
+        # Check headers
         if 'envelope' not in self.dict:
             self.server.logger.debug("Invalid Envelope. No Header")
             return False
@@ -194,7 +201,7 @@ class Envelope(object):
         for stamp in stamps:
             if stamp['class'] == "author":
                 foundauthor += 1
-                
+
         if foundauthor == 0:
             if self.dict['envelope']['payload']['class'] != 'privatemessage':
                 self.server.logger.debug("No author stamp.")
@@ -210,9 +217,10 @@ class Envelope(object):
             if 'keyformat' not in stamp:
                 self.server.logger.debug("Key format is not specififed.")
                 return False
-                
+
             if stamp['keyformat'] != 'gpg':
-                self.server.logger.debug("Key not in acceptable container format.")
+                self.server.logger.debug(
+                    "Key not in acceptable container format.")
                 return False
 
             # Retrieve the key, ensure it's valid.
@@ -221,12 +229,12 @@ class Envelope(object):
                 self.server.logger.debug("Key is invalid.")
                 return False
 
-            if stampkey.keydetails['algorithm'] not in ['ElGamal','RSA','DSA']:
+            if stampkey.keydetails['algorithm'] not in ['ElGamal', 'RSA', 'DSA']:
                 self.server.logger.debug(
                     "Key does not use an acceptable algorithm.")
                 return False
-            
-            if stampkey.keydetails['algorithm'] in ['ElGamal','RSA','DSA']:
+
+            if stampkey.keydetails['algorithm'] in ['ElGamal', 'RSA', 'DSA']:
                 if int(stampkey.keydetails['length']) < 2048:
                     self.server.logger.debug("Key is too small.")
                     return False
@@ -237,42 +245,48 @@ class Envelope(object):
                     return False
 
             for uid in stampkey.keydetails['uids']:
-                if uid not in [None,'TAVERN','']:
-                    self.server.logger.debug("Key UID is potentially leaking information.")
+                if uid not in [None, 'TAVERN', '']:
+                    self.server.logger.debug(
+                        "Key UID is potentially leaking information.")
                     return False
 
             # Ensure it matches the signature.
-            if stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']) != True:
+            if not stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']):
                 self.server.logger.debug("Signature Failed to verify for stamp :: " +
-                                   stamp['class'] + " :: " + stamp['pubkey'])
+                                         stamp['class'] + " :: " + stamp['pubkey'])
                 return False
 
-
-
-            # If they specify a proof-of-work in the stamp, make sure it's valid.
+            # If they specify a proof-of-work in the stamp, make sure it's
+            # valid.
             if 'proof-of-work' in stamp:
                     proof = stamp['proof-of-work']['proof']
                     difficulty = stamp['proof-of-work']['difficulty']
                     if stamp['proof-of-work']['class'] == 'sha256':
-                        result = TavernUtils.checkWork(self.payload.hash(),proof,difficulty)
-                        if result == False:
-                            self.server.logger.debug("Proof of work cannot be verified.")
+                        result = TavernUtils.checkWork(
+                            self.payload.hash(),
+                            proof,
+                            difficulty)
+                        if result is False:
+                            self.server.logger.debug(
+                                "Proof of work cannot be verified.")
                             return False
                     else:
-                        self.server.logger.debug("Proof of work in unrecognized format. Ignoring.")
-        
+                        self.server.logger.debug(
+                            "Proof of work in unrecognized format. Ignoring.")
 
-        # It's OK if they don't include a user-agent, but not if they include a bad one.
+        # It's OK if they don't include a user-agent, but not if they include a
+        # bad one.
         if 'useragent' in self.dict['envelope']['payload']['author']:
-            if not 'name' in  self.dict['envelope']['payload']['author']['useragent']:
-                self.server.logger.debug("If you supply a user agent, it must have a valid name")
+            if not 'name' in self.dict['envelope']['payload']['author']['useragent']:
+                self.server.logger.debug(
+                    "If you supply a user agent, it must have a valid name")
                 return False
             if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) and not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
                     self.server.logger.debug(
                         "Bad Useragent version must be a float or integer")
                     return False
 
-        #Do this last, so we don't waste time if the stamps are bad.
+        # Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
             self.server.logger.info("Payload does not validate.")
             return False
@@ -284,21 +298,23 @@ class Envelope(object):
         Set things in the local block of the message.
         """
 
-        #If we don't have a local section, add one.
-        #This isn't inside of validation since it's legal not to have one.
-        #if 'local' not in c.dict['envelope']:
+        # If we don't have a local section, add one.
+        # This isn't inside of validation since it's legal not to have one.
+        # if 'local' not in c.dict['envelope']:
         self.dict['envelope']['local'] = OrderedDict()
 
-        # Don't caclulate the SHA_512 each time. Store it in local, so we can reference it going forward.
+        # Don't caclulate the SHA_512 each time. Store it in local, so we can
+        # reference it going forward.
         self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
 
-        #Pull out serverstamps.
+        # Pull out serverstamps.
         stamps = self.dict['envelope']['stamps']
 
         highestPOW = 0
         for stamp in stamps:
 
-            # Find the author of the message, save it where it's easy to find later.
+            # Find the author of the message, save it where it's easy to find
+            # later.
             if stamp['class'] == "author":
                 self.dict['envelope']['local']['author'] = stamp
 
@@ -306,22 +322,23 @@ class Envelope(object):
             # Only use proof-of-work class sha256 for now.
             if 'proof-of-work' in stamp:
                 if stamp['proof-of-work']['class'] == 'sha256':
-                    if stamp['proof-of-work']['difficulty'] >  highestPOW:
+                    if stamp['proof-of-work']['difficulty'] > highestPOW:
                         highestPOW = stamp['proof-of-work']['difficulty']
-            
+
         self.dict['envelope']['local']['highestPOW'] = highestPOW
 
-        # Copy a lowercase/simplified version of the topic into 'local', so StarTrek and startrek show up together.
+        # Copy a lowercase/simplified version of the topic into 'local', so
+        # StarTrek and startrek show up together.
         if 'topic' in self.dict['envelope']['payload']:
             self.dict['envelope']['local']['sorttopic'] = self.server.sorttopic(
                 self.dict['envelope']['payload']['topic'])
-
 
         # Get a short version of the subject, for display.
         if 'subject' in self.dict['envelope']['payload']:
             temp_short = self.dict['envelope']['payload'][
                 'subject'][:50].rstrip()
-            self.dict['envelope']['local']['short_subject'] = self.server.urlize(temp_short)
+            self.dict['envelope']['local'][
+                'short_subject'] = self.server.urlize(temp_short)
         # Get a short version of the body, to use as a preview.
         # First line only.
         if 'body' in self.dict['envelope']['payload']:
@@ -330,27 +347,25 @@ class Envelope(object):
             self.dict['envelope']['local'][
                 'short_body'] = short_body
 
-
         # Process any binaries which are listed in the envelope
         if 'binaries' in self.dict['envelope']['payload']:
             self.mungebins()
 
         if 'body' in self.dict['envelope']['payload']:
-            formattedbody = self.server.formatText(text=self.dict['envelope']['payload']['body'], formatting=self.dict['envelope']['payload']['formatting'])
+            formattedbody = self.server.formatText(
+                text=self.dict['envelope']['payload']['body'],
+                formatting=self.dict['envelope']['payload']['formatting'])
             self.dict['envelope']['local']['formattedbody'] = formattedbody
-
 
             # Check for any Embeddable (Youtube, Vimeo, etc) Links.
             # Don't check a given message more than once.
             # Iterate through the list of possible embeddables.
-
             # cap the number of URLs we can embed.
-            foundurls = 0                    
+            foundurls = 0
             if not 'embed' in self.dict['envelope']['local']:
                 self.dict['envelope']['local']['embed'] = []
 
-
-            soup = BeautifulSoup(formattedbody,"html.parser")
+            soup = BeautifulSoup(formattedbody, "html.parser")
             for href in soup.findAll('a'):
                 result = self.server.external.lookup(href.get('href'))
                 if result is not None and foundurls < self.server.serversettings.settings['maxembeddedurls']:
@@ -358,7 +373,8 @@ class Envelope(object):
                     foundurls += 1
 
         if 'author' in self.dict['envelope']['local']:
-            self.dict['envelope']['local']['author_wordhash'] = self.server.wordlist.wordhash(self.dict['envelope']['local']['author']['pubkey'])
+            self.dict['envelope']['local']['author_wordhash'] = self.server.wordlist.wordhash(
+                self.dict['envelope']['local']['author']['pubkey'])
         if not 'priority' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['priority'] = 0
 
@@ -379,13 +395,14 @@ class Envelope(object):
                         filename=fname)
                     if 'filename' not in binary:
                         binary['filename'] = "unknown_file"
-                    #In order to display an image, it must be of the right MIME type, the right size, it must open in
-                    #Python and be a valid image.
+                    # In order to display an image, it must be of the right MIME type, the right size, it must open in
+                    # Python and be a valid image.
                     attachment.seek(0)
                     detected_mime = magic.from_buffer(
                         attachment.read(self.server.serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
                     displayable = False
-                    if attachment.length < self.server.serversettings.settings['max-upload-preview-size']:  # Don't try to make a preview if it's > 10M
+                    # Don't try to make a preview if it's > 10M
+                    if attachment.length < self.server.serversettings.settings['max-upload-preview-size']:
                         if 'content_type' in binary:
                             if binary['content_type'].rsplit('/')[0].lower() == "image":
                                 attachment.seek(0)
@@ -394,7 +411,8 @@ class Envelope(object):
                                 acceptable_images = [
                                     'gif', 'jpeg', 'jpg', 'png', 'bmp']
                                 if imagetype in acceptable_images:
-                                    #If we pass -all- the tests, create a thumb once.
+                                    # If we pass -all- the tests, create a
+                                    # thumb once.
                                     displayable = binary[
                                         'sha_512'] + "-thumb"
                                     if not self.server.bin_GridFS.exists(filename=displayable):
@@ -402,10 +420,13 @@ class Envelope(object):
                                         im = Image.open(attachment)
 
                                         # Check to see if we need to rotate the image
-                                        # This is caused by iPhones saving the orientation
+                                        # This is caused by iPhones saving the
+                                        # orientation
 
-                                        if hasattr(im, '_getexif'):  # only present in JPEGs
-                                                e = im._getexif()       # returns None if no EXIF data
+                                        # only present in JPEGs
+                                        if hasattr(im, '_getexif'):
+                                                # returns None if no EXIF data
+                                                e = im._getexif()
                                                 if e is not None:
                                                     exif = dict(e.items())
                                                     if 'Orientation' in exif:
@@ -413,36 +434,51 @@ class Envelope(object):
                                                             'Orientation']
 
                                                         if orientation == 3:
-                                                            image = im.transpose(Image.ROTATE_180)
+                                                            image = im.transpose(
+                                                                Image.ROTATE_180)
                                                         elif orientation == 6:
-                                                            image = im.transpose(Image.ROTATE_270)
+                                                            image = im.transpose(
+                                                                Image.ROTATE_270)
                                                         elif orientation == 8:
-                                                            image = im.transpose(Image.ROTATE_90)
+                                                            image = im.transpose(
+                                                                Image.ROTATE_90)
 
                                         # resize if nec.
                                         if im.size[0] > 640:
-                                            imAspect = float(im.size[1]) / float(im.size[0])
+                                            imAspect = float(
+                                                im.size[1]) / float(im.size[0])
                                             newx = 640
                                             newy = int(640 * imAspect)
-                                            im = im.resize((newx, newy), Image.ANTIALIAS)
+                                            im = im.resize(
+                                                (newx, newy), Image.ANTIALIAS)
                                         if im.size[1] > 480:
-                                            imAspect = float(im.size[0]) / float(im.size[1])
+                                            imAspect = float(
+                                                im.size[0]) / float(im.size[1])
                                             newy = 480
                                             newx = int(480 * imAspect)
-                                            im = im.resize((newx, newy), Image.ANTIALIAS)
+                                            im = im.resize(
+                                                (newx, newy), Image.ANTIALIAS)
 
-                                        thumbnail = self.server.bin_GridFS.new_file(filename=displayable)
+                                        thumbnail = self.server.bin_GridFS.new_file(
+                                            filename=displayable)
                                         im.save(thumbnail, format='png')
                                         thumbnail.close()
-                    
-                    attachmentdesc = {'sha_512': binary['sha_512'], 'filename': binary['filename'], 'filesize': attachment.length, 'displayable': displayable, 'detected_mime': detected_mime}
+
+                    attachmentdesc = {
+                        'sha_512': binary[
+                            'sha_512'],
+                        'filename': binary[
+                            'filename'],
+                        'filesize': attachment.length,
+                        'displayable': displayable,
+                        'detected_mime': detected_mime}
                     attachmentList.append(attachmentdesc)
                 except gridfs.errors.NoFile:
                     self.logger.debug("Error, attachment gone ;(")
 
-
         # Create an attachment list - Store the calculated filesize in it.
-        # We can't trust the one the client gives us, but since it's in the payload, we can't modify it.
+        # We can't trust the one the client gives us, but since it's in the
+        # payload, we can't modify it.
         self.dict['envelope']['local']['attachmentlist'] = attachmentList
 
         # Check for a medialink for FBOG, Pinterest, etc.
@@ -454,15 +490,15 @@ class Envelope(object):
                     self.dict['envelope']['local']['medialink'] = medialink
                     break
 
-
-
    # @TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'],ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
         print("Looking for childen for :" + self.payload.hash())
-        results =  self.server.db.unsafe.count('envelopes',{"envelope.local.ancestors":self.payload.hash()})
+        results = self.server.db.unsafe.count(
+            'envelopes',
+            {"envelope.local.ancestors": self.payload.hash()})
         return results
 
-    def addStamp(self,stampclass,keys,passkey=None,**kwargs):
+    def addStamp(self, stampclass, keys, passkey=None, **kwargs):
         """
         Adds a stamp of type `class` to the current envelope
         """
@@ -482,27 +518,28 @@ class Envelope(object):
         # Copy in any passed values
         for key in kwargs.keys():
             # Remove the kwargs we know we already added
-            if key not in ["stampclass","keys","passkey"]:
+            if key not in ["stampclass", "keys", "passkey"]:
                 fullstamp[key] = kwargs[key]
 
         proof = {}
         proof['class'] = 'sha256'
-        proof['difficulty'] = self.server.serversettings.settings['proof-of-work-difficulty']
-        proof['proof'] = TavernUtils.proveWork(self.payload.hash(),proof['difficulty'])
+        proof[
+            'difficulty'] = self.server.serversettings.settings[
+            'proof-of-work-difficulty']
+        proof['proof'] = TavernUtils.proveWork(
+            self.payload.hash(),
+            proof['difficulty'])
         fullstamp['proof-of-work'] = proof
 
         self.dict['envelope']['stamps'].append(fullstamp)
 
-
-
-    def addAncestor(self,ancestorid):
+    def addAncestor(self, ancestorid):
         """
         A new Ancestor has been found (parent, parent's parent, etc) for this message.
         Set it locally, and tell all my children, if I have any
         """
         ancestor = Envelope()
         if ancestor.loadmongo(mongo_id=ancestorid):
-            
 
             if not 'ancestors' in self.dict['envelope']['local']:
                 self.dict['envelope']['local']['ancestors'] = []
@@ -517,7 +554,8 @@ class Envelope(object):
 
             for listedancestor in ancestorlist:
                 if listedancestor not in self.dict['envelope']['local']['ancestors']:
-                    self.dict['envelope']['local']['ancestors'].append(listedancestor)
+                    self.dict['envelope']['local'][
+                        'ancestors'].append(listedancestor)
 
             # Now, tell our children, if we have any
             if 'citedby' in self.dict['envelope']['local']:
@@ -540,7 +578,7 @@ class Envelope(object):
 
         self.saveMongo()
 
-    def addEdit(self,editid):
+    def addEdit(self, editid):
         """
         Another message has come in that says it's an edit of this one.
         Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.
@@ -560,25 +598,31 @@ class Envelope(object):
         if newmessage.loadmongo(mongo_id=editid):
 
             # Ensure the two messages have the same author. If not, abort.
-            # Do this here, rather in validate, so we can receive them in either order.
+            # Do this here, rather in validate, so we can receive them in
+            # either order.
             if self.dict['envelope']['local']['author']['pubkey'] != newmessage.dict['envelope']['local']['author']['pubkey']:
-                print("Invalid Revision. Author pubkey must match original message.")
-                return False  
+                print(
+                    "Invalid Revision. Author pubkey must match original message.")
+                return False
 
             self.dict['envelope']['local']['edits'].append(newmessage.dict)
-            
+
             # Order by Priority, then date if they match
-            # This will ensure that ['edits'][-1] is the one we want to display.
-            self.dict['envelope']['local']['edits'].sort(key=lambda e: (e['envelope']['local']['priority'], (e['envelope']['local']['time_added'])))
+            # This will ensure that ['edits'][-1] is the one we want to
+            # display.
+            self.dict['envelope']['local']['edits'].sort(
+                key=lambda e: (e['envelope']['local']['priority'],
+                               (e['envelope']['local']['time_added'])))
             self.saveMongo()
             return True
 
     class binary(object):
+
         def __init__(self, sha512):
             self.dict = OrderedDict()
             self.dict['sha_512'] = sha512
 
-    def __init__(self,srv=None):
+    def __init__(self, srv=None):
         self.dict = OrderedDict()
         self.dict['envelope'] = OrderedDict()
         self.dict['envelope']['payload'] = OrderedDict()
@@ -611,33 +655,41 @@ class Envelope(object):
                     self.payload = Envelope.MessageRevision(
                         self.dict['envelope']['payload'])
                 else:
-                    self.server.logger.info("Rejecting message of class " + self.dict['envelope']['payload']['class'])
+                    self.server.logger.info(
+                        "Rejecting message of class " +
+                        self.dict[
+                            'envelope'][
+                            'payload'][
+                            'class'])
                     return False
             return True
-    
-    def loaddict(self,importdict):
+
+    def loaddict(self, importdict):
         newstr = json.dumps(importdict, separators=(',', ':'))
-        return self.loadstring(newstr) 
+        return self.loadstring(newstr)
 
     def loadstring(self, importstring):
-        self.dict = json.loads(importstring, object_pairs_hook=collections.OrderedDict, object_hook=collections.OrderedDict)
+        self.dict = json.loads(
+            importstring,
+            object_pairs_hook=collections.OrderedDict,
+            object_hook=collections.OrderedDict)
         return self.registerpayload()
 
     def loadfile(self, filename):
 
-        #Determine the file extension to see how to parse it.
+        # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
         filehandle = open(filename, 'rb')
         filecontents = filehandle.read()
         if (ext == '.7zTavernEnvelope'):
-            #7zip'd JSON
+            # 7zip'd JSON
             filecontents = pylzma.decompress(filecontents)
             filecontents = filecontents.decode('utf-8')
         filehandle.close()
         self.loadstring(filecontents)
 
     def loadmongo(self, mongo_id):
-        env = self.server.db.unsafe.find_one('envelopes',{'_id': mongo_id})
+        env = self.server.db.unsafe.find_one('envelopes', {'_id': mongo_id})
         if env is None:
             return False
         else:
@@ -649,22 +701,22 @@ class Envelope(object):
     def reloadfile(self):
         return self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
 
-    def flatten(self,striplocal=False):
+    def flatten(self, striplocal=False):
         self.payload.format()
-        if striplocal==True:
+        if striplocal:
             if 'local' in self.dict['envelope']:
                 del self.dict['envelope']['local']
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
         return self
 
-    def text(self,striplocal=False):
+    def text(self, striplocal=False):
         self.payload.format()
         self.flatten()
         newstr = json.dumps(self.dict, separators=(',', ':'))
         return newstr
 
-    def prettytext(self,striplocal=False):
+    def prettytext(self, striplocal=False):
         self.payload.format()
         self.flatten()
         newstr = json.dumps(self.dict, indent=2, separators=(', ', ': '))
@@ -673,13 +725,14 @@ class Envelope(object):
     def savefile(self, directory='.'):
         self.payload.format()
         self.flatten()
-      
-        #Compress the whole internal Envelope for saving.
+
+        # Compress the whole internal Envelope for saving.
         compressed = pylzma.compress(self.text(), dictionary=10, fastBytes=255)
         # self.server.logger.info "Compressed size " + str(sys.getsizeof(compressed))
         # self.server.logger.info "Full Size " + str(sys.getsizeof(self.dict))
 
-        #We want to name this file to the SHA512 of the payload contents, so it is consistant across servers.
+        # We want to name this file to the SHA512 of the payload contents, so
+        # it is consistant across servers.
         filehandle = open(
             directory + "/" + self.payload.hash() + ".7zTavernEnvelope", 'wb')
         filehandle.write(compressed)
@@ -692,4 +745,3 @@ class Envelope(object):
         self.dict['_id'] = self.payload.hash()
         self.server.db.unsafe.save('envelopes', self.dict)
 import Server
-

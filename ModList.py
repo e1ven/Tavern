@@ -8,6 +8,7 @@ import bson
 
 
 class ModList(object):
+
     def __init__(self):
         MAP_FUNCTION = bson.code.Code("""
                 function(){

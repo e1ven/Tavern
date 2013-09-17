@@ -313,14 +313,12 @@ function start
         echo "It's only been $(($(since lastrun)/60)) minutes.. Not running onStart functions again until the hour mark."
         writearg lastrun
     fi
-
     ./validate.sh
     if [ "$?" -ne 0 ]
         then
         echo "Aborting due to code issue."
         exit 2
     fi
-
     echo "Ensuring fontello directory compliance"
 
 
@@ -433,7 +431,8 @@ function start
         basename=`basename $i ".css"`
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
-            autopep8 $i > /dev/null 2>&1
+            autopep8  --in-place  --aggressive $i 
+            docformatter --in-place $i 
             echo -e "\t $basename"
             # Reformatted
         else
@@ -441,6 +440,13 @@ function start
         fi
         touch tmp/checked/$filehash.exists
     done
+
+    ./validate.sh
+    if [ "$?" -ne 0 ]
+        then
+        echo "Aborting due to code issue."
+        exit 2
+    fi
 
     echo "Gzipping individual files"
     # Compress the files with gzip

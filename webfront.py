@@ -45,11 +45,16 @@ server = Server.Server()
 
 # What happens when people request the root level?
 # for now, send them to that Welcome message ;)
+
+
 class EntryHandler(tornado.web.RequestHandler):
+
     def get(self):
         self.redirect('/topic/sitecontent')
 
+
 class RSSHandler(BaseHandler):
+
     def get(self, action, param):
         if action == "topic":
             channel = rss.Channel('Tavern - ' + param,
@@ -60,20 +65,31 @@ class RSSHandler(BaseHandler):
             for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
                 item = rss.Item(channel,
                                 envelope['envelope']['payload']['subject'],
-                                "http://GetTavern.com/message/" + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['local']['payload_sha512'],
+                                "http://GetTavern.com/message/" + envelope[
+                                    'envelope'][
+                                    'local'][
+                                    'sorttopic'] + '/' + envelope[
+                                    'envelope'][
+                                    'local'][
+                                    'short_subject'] + "/" + envelope[
+                                    'envelope'][
+                                    'local'][
+                                    'payload_sha512'],
                                 envelope['envelope']['local']['formattedbody'])
                 channel.additem(item)
             self.write(channel.toprettyxml())
 
 
 class MessageHistoryHandler(BaseHandler):
+
     """
     Display the various edits to a message.
     """
+
     def get(self, messageid):
         self.getvars()
         origid = server.getOriginalMessage(messageid)
-        
+
         e = Envelope()
         if not e.loadmongo(origid):
             self.write("I can't load that message's history. ;(")
@@ -81,15 +97,26 @@ class MessageHistoryHandler(BaseHandler):
             messages = []
 
             # Add the root msg.
-            current_message = (messageid,e.dict['envelope']['local']['time_added'])
+            current_message = (
+                messageid,
+                e.dict[
+                    'envelope'][
+                    'local'][
+                    'time_added'])
             messages.append(current_message)
 
             # Add all the edits
             for message in e.dict['envelope']['local']['edits']:
-                current_message = (message['envelope']['local']['payload_sha512'],message['envelope']['local']['time_added'])
+                current_message = (
+                    message['envelope']['local']['payload_sha512'],
+                    message['envelope']['local']['time_added'])
                 messages.append(current_message)
 
-            self.write(self.render_string('messagehistory.html',messages=messages))
+            self.write(
+                self.render_string(
+                    'messagehistory.html',
+                    messages=messages))
+
 
 class MessageHandler(BaseHandler):
 
@@ -98,13 +125,14 @@ class MessageHandler(BaseHandler):
     It's intentionally a bit forgiving in the syntax, to make it easy to retrieve messages.
     """
     # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['message-page']['seconds'], maxsize=server.serversettings.settings['cache']['message-page']['size'])
+
     def get(self, *args):
-    
+
         self.getvars()
 
-        # We need both col2 and col3, since the currently active message changes in the col2.
+        # We need both col2 and col3, since the currently active message
+        # changes in the col2.
         divs = ['scrollablediv2', 'scrollablediv3']
-
 
         # Find the final directory/page sent as part of the request.
         # This could be /m/123, /m/some-topic/123 or even /m/some-topic/some-subject/123 (which is canonical)
@@ -127,28 +155,48 @@ class MessageHandler(BaseHandler):
             showoriginal = (self.get_argument('showoriginal') == "True")
         else:
             showoriginal = False
-      
+
         messagesenvelope = server.db.unsafe.find_one('envelopes',
-                                                    {'envelope.local.payload_sha512': messageid})
+                                                     {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is not None:
             displayenvelope = Envelope()
             displayenvelope.loaddict(messagesenvelope)
             topic = displayenvelope.dict['envelope']['payload']['topic']
-            self.canon = "message/" + displayenvelope.dict['envelope']['local']['sorttopic'] + '/' + displayenvelope.dict['envelope']['local']['short_subject'] + "/" + displayenvelope.dict['envelope']['local']['payload_sha512']
+            self.canon = "message/" + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'sorttopic'] + '/' + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'short_subject'] + "/" + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'payload_sha512']
             title = displayenvelope.dict['envelope']['payload']['subject']
         else:
             # If we didn't find that message, throw an error.
-            displayenvelope = server.error_envelope("The Message you are looking for can not be found.")
+            displayenvelope = server.error_envelope(
+                "The Message you are looking for can not be found.")
             title = displayenvelope.dict['envelope']['payload']['subject']
             topic = displayenvelope.dict['envelope']['payload']['topic']
 
-        # Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope.dict['envelope']['payload']['topic']))
+        # Gather up all the replies to this message, so we can send those to
+        # the template as well
+        self.write(
+            self.render_string(
+                'header.html',
+                title=title,
+                canon=self.canon,
+                type="topic",
+                rsshead=displayenvelope.dict[
+                    'envelope'][
+                    'payload'][
+                    'topic']))
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
-        #self.finish(divs=divs)
+        # self.finish(divs=divs)
 
 
 class TopicHandler(BaseHandler):
@@ -159,9 +207,9 @@ class TopicHandler(BaseHandler):
 
     #@memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=server.serversettings.settings['cache']['topic-page']['size'])
     def get(self, topic='all'):
-    
+
         self.getvars()
-        divs = ['scrollablediv2','scrollablediv3']
+        divs = ['scrollablediv2', 'scrollablediv3']
 
         topic = tornado.escape.xhtml_escape(topic)
         # Used for multiple pages, because skip() is slow
@@ -184,41 +232,55 @@ class TopicHandler(BaseHandler):
         else:
             title = "Discuss what matters"
 
-        topicEnvelopes = topictool.messages(topic=topic,maxposts=1)
+        topicEnvelopes = topictool.messages(topic=topic, maxposts=1)
         if len(topicEnvelopes) > 0:
             displayenvelope = topicEnvelopes[0]
         else:
-            displayenvelope = server.error_envelope("That topic does not have any messages in it yet.")
+            displayenvelope = server.error_envelope(
+                "That topic does not have any messages in it yet.")
             canon = None
             title = displayenvelope.dict['envelope']['payload']['subject']
             topic = displayenvelope.dict['envelope']['payload']['topic']
-        # Gather up all the replies to this message, so we can send those to the template as well
-        self.write(self.render_string('header.html', title=title, canon=self.canon, type="topic", rsshead=displayenvelope.dict['envelope']['payload']['topic']))
+        # Gather up all the replies to this message, so we can send those to
+        # the template as well
+        self.write(
+            self.render_string(
+                'header.html',
+                title=title,
+                canon=self.canon,
+                type="topic",
+                rsshead=displayenvelope.dict[
+                    'envelope'][
+                    'payload'][
+                    'topic']))
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 
         self.finish(divs=divs)
 
+
 class ShowTopicsHandler(BaseHandler):
+
     def get(self, start=0):
         self.getvars()
 
-        alltopics = topictool.toptopics(limit=start + 1000,skip=start)
-        toptopics =  topictool.toptopics()
+        alltopics = topictool.toptopics(limit=start + 1000, skip=start)
+        toptopics = topictool.toptopics()
 
         self.write(
             self.render_string('header.html', title="List of all Topics",
                                rsshead=None, type=None))
-        
+
         self.write(self.render_string('showtopics.html',
-                   topics=alltopics, toptopics=toptopics,topic='all'))
+                   topics=alltopics, toptopics=toptopics, topic='all'))
 
         self.write(self.render_string('footer.html'))
         self.finish(divs=['column3'])
 
 
 class TopicPropertiesHandler(BaseHandler):
+
     def get(self, topic):
         self.getvars()
 
@@ -244,6 +306,7 @@ class TopicPropertiesHandler(BaseHandler):
 
 
 class SiteContentHandler(BaseHandler):
+
     def get(self, message):
         self.getvars()
         client_message_id = tornado.escape.xhtml_escape(message)
@@ -251,16 +314,34 @@ class SiteContentHandler(BaseHandler):
         envelope = server.db.unsafe.find_one(
             'envelopes', {'envelope.local.payload_sha512': client_message_id})
 
-        self.write(self.render_string('header.html', title="Tavern :: " + envelope['envelope']['payload']['subject'], canon="sitecontent/" + envelope['envelope']['local']['payload_sha512'], rss="/rss/topic/" + envelope['envelope']['payload']['topic'], topic=envelope['envelope']['payload']['topic']))
-        self.write(self.render_string('sitecontent.html', formattedbody=envelope['envelope']['local']['formattedbody'], envelope=envelope))
+        self.write(
+            self.render_string('header.html',
+                               title="Tavern :: " +
+                               envelope['envelope']['payload']['subject'],
+                               canon="sitecontent/" +
+                               envelope['envelope']['local']['payload_sha512'],
+                               rss="/rss/topic/" +
+                               envelope['envelope']['payload']['topic'],
+                               topic=envelope['envelope']['payload']['topic']))
+        self.write(
+            self.render_string(
+                'sitecontent.html',
+                formattedbody=envelope[
+                    'envelope'][
+                    'local'][
+                    'formattedbody'],
+                envelope=envelope))
         self.write(self.render_string('footer.html'))
 
 
 class AttachmentHandler(BaseHandler):
+
     def get(self, attachment):
         self.getvars()
         client_attachment_id = tornado.escape.xhtml_escape(attachment)
-        envelopes = server.db.unsafe.find('envelopes', {'envelope.payload.binaries.sha_512': client_attachment_id})
+        envelopes = server.db.unsafe.find(
+            'envelopes',
+            {'envelope.payload.binaries.sha_512': client_attachment_id})
         stack = []
         for envelope in envelopes:
             stack.append(envelope)
@@ -280,13 +361,20 @@ class AttachmentHandler(BaseHandler):
             if myattach['displayable'] is not False:
                 preview = True
 
-        self.write(self.render_string('header.html', title="Tavern Attachment " + client_attachment_id, rsshead=client_attachment_id, type="attachment"))
+        self.write(
+            self.render_string(
+                'header.html',
+                title="Tavern Attachment " +
+                client_attachment_id,
+                rsshead=client_attachment_id,
+                type="attachment"))
         self.write(self.render_string(
             'showattachment.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
         self.write(self.render_string('footer.html'))
 
 
 class RegisterHandler(BaseHandler):
+
     def get(self):
         self.getvars()
         self.write(self.render_string('header.html',
@@ -330,7 +418,7 @@ class RegisterHandler(BaseHandler):
         else:
             # Generate the user
             self.user.generate(AllowGuestKey=False,
-                username=client_newuser.lower(), password=client_newpass)
+                               username=client_newuser.lower(), password=client_newpass)
             self.user.UserSettings['lastauth'] = int(time.time())
 
             if client_email is not None:
@@ -347,6 +435,7 @@ class RegisterHandler(BaseHandler):
 
 
 class LoginHandler(BaseHandler):
+
     def get(self, slug=None):
         self.getvars()
         self.write(self.render_string('header.html',
@@ -390,11 +479,15 @@ class LoginHandler(BaseHandler):
                 login = True
             elif u.verify_password(client_password[:1].lower() + client_password[1:]):
                 login = True
-            if login == True:
+            if login:
                 self.user = u
 
                 self.clear_cookie('tavern_passkey')
-                self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(client_password), httponly=True, expires_days=999)
+                self.set_secure_cookie(
+                    "tavern_passkey",
+                    self.user.Keys['master'].get_passkey(client_password),
+                    httponly=True,
+                    expires_days=999)
                 self.user.UserSettings['lastauth'] = int(time.time())
 
                 self.setvars()
@@ -406,19 +499,25 @@ class LoginHandler(BaseHandler):
 
 
 class LogoutHandler(BaseHandler):
+
     def post(self):
         self.clear_all_cookies()
         self.redirect("/")
 
 
 class ChangepasswordHandler(BaseHandler):
+
     def get(self):
         self.getvars()
 
         if not self.recentauth():
             numcharacters = 100 + TavernUtils.randrange(1, 100)
             slug = TavernUtils.randstr(numcharacters, printable=True)
-            server.db.safe.insert('redirects', {'slug': slug, 'url': '/changepassword', 'time': int(time.time())})
+            server.db.safe.insert(
+                'redirects',
+                {'slug': slug,
+                 'url': '/changepassword',
+                 'time': int(time.time())})
             self.redirect('/login/' + slug)
         else:
             self.write(self.render_string('header.html',
@@ -449,11 +548,12 @@ class ChangepasswordHandler(BaseHandler):
 
 
 class UserHandler(BaseHandler):
+
     def get(self, pubkey):
         self.getvars()
 
-        #Unquote it, then convert it to a TavernKey object so we can rebuild it.
-        #Quoting destroys the newlines.
+        # Unquote it, then convert it to a TavernKey object so we can rebuild it.
+        # Quoting destroys the newlines.
         pubkey = urllib.parse.unquote(pubkey)
         pubkey = Key(pub=pubkey).pubkey
 
@@ -464,12 +564,13 @@ class UserHandler(BaseHandler):
                                       rsshead=None, type=None))
 
         self.write(self.render_string(
-            'userpage.html', thatguy=u,topic=None))
+            'userpage.html', thatguy=u, topic=None))
 
         self.write(self.render_string('footer.html'))
 
 
 class ChangeManySettingsHandler(BaseHandler):
+
     def post(self):
         self.getvars(AllowGuestKey=False)
 
@@ -481,7 +582,8 @@ class ChangeManySettingsHandler(BaseHandler):
         else:
             include_location = False
 
-        # AllowEmbed is a int, not a bool, so we can support a 0 state, which means, never set.
+        # AllowEmbed is a int, not a bool, so we can support a 0 state, which
+        # means, never set.
         if 'allowembed' in self.request.arguments:
             allowembed = 1
         else:
@@ -540,22 +642,24 @@ class ChangeSingleSettingHandler(BaseHandler):
         if "js" in self.request.arguments:
             self.finish(divs=['scrollablediv3'])
         else:
-            if redirect == True:
+            if redirect:
                 self.redirect("/")
 
 
 class RatingHandler(BaseHandler):
+
     def get(self, posthash):
         self.getvars()
-        #Calculate the votes for that post.
+        # Calculate the votes for that post.
 
     def post(self):
         self.getvars(AllowGuestKey=False)
 
-        #So you may be asking yourself.. Self, why did we do this as a POST, rather than
-        #Just a GET value, of the form server.com/msg123/voteup
-        #The answer is xsrf protection.
-        #We don't want people to link to the upvote button and trick you into voting up.
+        # So you may be asking yourself.. Self, why did we do this as a POST, rather than
+        # Just a GET value, of the form server.com/msg123/voteup
+        # The answer is xsrf protection.
+        # We don't want people to link to the upvote button and trick you into
+        # voting up.
 
         client_hash = self.get_argument("hash")
         client_rating = self.get_argument("rating")
@@ -569,18 +673,22 @@ class RatingHandler(BaseHandler):
         e.payload.dict['rating'] = rating_val
         e.payload.dict['regarding'] = client_hash
 
-        #Instantiate the user who's currently logged in
+        # Instantiate the user who's currently logged in
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+        e.payload.dict[
+            'author'][
+            'replyto'] = self.user.Keys[
+            'posted'][
+            -1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
-        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
+        if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
-            #Don't check from home.
+            # Don't check from home.
             if ip == "127.0.0.1":
                 ip = "8.8.8.8"
 
@@ -588,22 +696,30 @@ class RatingHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
+        # Add stamps to show we're the author (and optionally) we're the origin
+        # server
+        e.addStamp(
+            stampclass='author',
+            friendlyname=self.user.UserSettings['friendlyname'],
+            keys=self.user.Keys['master'],
+            passkey=self.user.passkey)
+        if server.serversettings.settings['mark-origin']:
+                e.addStamp(
+                    stampclass='origin',
+                    keys=server.ServerKeys,
+                    hostname=server.serversettings.settings['hostname'])
 
-        # Add stamps to show we're the author (and optionally) we're the origin server
-        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-        if server.serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
-
-
-        #Send to the server
+        # Send to the server
         server.receiveEnvelope(env=e)
 
         self.write("Your vote has been recorded. Thanks!")
 
+
 class UserNoteHandler(BaseHandler):
+
     def get(self, user):
         self.getvars()
-        #Show the Note for a user
+        # Show the Note for a user
 
     def post(self):
         self.getvars(AllowGuestKey=False)
@@ -613,14 +729,18 @@ class UserNoteHandler(BaseHandler):
         self.user.setNote(client_pubkey, client_note)
 
         # Write it back to the page
-        self.write('<input class="usernote" type="text" value="" name="note" placeholder="' + client_note + '">')
+        self.write(
+            '<input class="usernote" type="text" value="" name="note" placeholder="' +
+            client_note +
+            '">')
         server.logger.debug("Note Submitted.")
 
 
 class UserTrustHandler(BaseHandler):
+
     def get(self, user):
         self.getvars()
-        #Calculate the trust for a user.
+        # Calculate the trust for a user.
 
     def post(self):
         self.getvars(AllowGuestKey=False)
@@ -643,15 +763,18 @@ class UserTrustHandler(BaseHandler):
         e.payload.dict['topic'] = client_topic
         e.payload.dict['trusted_pubkey'] = trusted_pubkey
 
-        #Instantiate the user who's currently logged in
+        # Instantiate the user who's currently logged in
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+        e.payload.dict[
+            'author'][
+            'replyto'] = self.user.Keys[
+            'posted'][
+            -1].pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
-
-        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
+        if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
@@ -663,19 +786,26 @@ class UserTrustHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
+        # Add stamps to show we're the author (and optionally) we're the origin
+        # server
+        e.addStamp(
+            stampclass='author',
+            friendlyname=self.user.UserSettings['friendlyname'],
+            keys=self.user.Keys['master'],
+            passkey=self.user.passkey)
+        if server.serversettings.settings['mark-origin']:
+                e.addStamp(
+                    stampclass='origin',
+                    keys=server.ServerKeys,
+                    hostname=server.serversettings.settings['hostname'])
 
-        # Add stamps to show we're the author (and optionally) we're the origin server
-        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-        if server.serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
-
-
-        #Send to the server
-
+        # Send to the server
         server.receiveEnvelope(env=e)
         server.logger.debug("Trust Submitted.")
 
+
 class EditMessageHandler(BaseHandler):
+
     def get(self, regarding):
         self.getvars()
         self.write(self.render_string('header.html',
@@ -694,7 +824,7 @@ class EditMessageHandler(BaseHandler):
             oldtext = e2.dict['envelope']['payload']['body']
             topic = e2.dict['envelope']['payload']['topic']
 
-        self.write(self.render_string('editmessageform.html',oldtext=oldtext))
+        self.write(self.render_string('editmessageform.html', oldtext=oldtext))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['scrollablediv3'])
 
@@ -705,7 +835,7 @@ class ReplyHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Reply to a message", rsshead=None, type=None))
-        self.write(self.render_string('replyform.html',regarding=regarding))
+        self.write(self.render_string('replyform.html', regarding=regarding))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['scrollablediv3'])
 
@@ -716,20 +846,21 @@ class NewmessageHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Post a new message", rsshead=None, type=None))
-        self.write(self.render_string('newmessageform.html',topic=topic))
+        self.write(self.render_string('newmessageform.html', topic=topic))
         self.write(self.render_string('footer.html'))
         self.finish(divs=['scrollablediv3'])
 
 
 class ReceiveEnvelopeHandler(BaseHandler):
+
     """
     Where envelopes POST.
     """
+
     def options(self, regarding=None):
         self.set_header('Access-Control-Allow-Methods',
                         'OPTIONS, HEAD, GET, POST, PUT, DELETE')
         self.set_header('Access-Control-Allow-Origin', '*')
-
 
     def get(self, topic=None, regarding=None):
         self.redirect('/')
@@ -770,7 +901,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 else:
                     print("Calculating Hash in Python. Nginx should do this.")
                     SHA512 = hashlib.sha512()
-                    while 1:
+                    while True:
                         buf = individual_file['filehandle'].read(0x100000)
                         if not buf:
                             break
@@ -792,7 +923,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 individual_file['filehandle'].write(individual_file['body'])
                 individual_file['size'] = len(individual_file['body'])
                 SHA512 = hashlib.sha512()
-                while 1:
+                while True:
                     buf = individual_file['filehandle'].read(0x100000)
                     if not buf:
                         break
@@ -805,11 +936,12 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
         envelopebinarylist = []
 
-        # Attach the files that are actually here, submitted alongside the message.
+        # Attach the files that are actually here, submitted alongside the
+        # message.
         for attached_file in filelist:
-            #All the same, let's strip out all but the basename.
+            # All the same, let's strip out all but the basename.
             server.logger.debug("Dealing with File " + attached_file['filename']
-                               + " with hash " + attached_file['hash'])
+                                + " with hash " + attached_file['hash'])
             if not server.bin_GridFS.exists(filename=attached_file['hash']):
                 attached_file['filehandle'].seek(0)
                 imagetype = imghdr.what(
@@ -819,22 +951,26 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 if imagetype in acceptable_images:
                     attached_file['filehandle'].seek(0)
                     # If it's an image, open and re-save to strip EXIF data.
-                    # Do so here, rather than in server, so that server->server messages aren't touched
+                    # Do so here, rather than in server, so that server->server
+                    # messages aren't touched
                     Image.open(attached_file['filehandle']).save(
                         attached_file['filehandle'], format=imagetype)
                 attached_file['filehandle'].seek(0)
-                server.bin_GridFS.put(attached_file['filehandle'], filename=attached_file['hash'], content_type=individual_file['content_type'])
+                server.bin_GridFS.put(
+                    attached_file['filehandle'],
+                    filename=attached_file['hash'],
+                    content_type=individual_file['content_type'])
             server.logger.debug("Creating Message")
-            #Create a message binary.
+            # Create a message binary.
             mybinary = Envelope.binary(sha512=attached_file['hash'])
-            #Set the Filesize. Clients can't trust it, but oh-well.
+            # Set the Filesize. Clients can't trust it, but oh-well.
             print('estimated size : ' + str(attached_file['size']))
             mybinary.dict['filesize_hint'] = attached_file['size']
             mybinary.dict['content_type'] = attached_file['content_type']
             mybinary.dict['filename'] = attached_file['filename']
             envelopebinarylist.append(mybinary.dict)
 
-            #Don't keep spare copies on the webservers
+            # Don't keep spare copies on the webservers
             attached_file['filehandle'].close()
             if attached_file['clean_up_file_afterward'] is True:
                 os.remove(attached_file['fullpath'])
@@ -860,7 +996,8 @@ class ReceiveEnvelopeHandler(BaseHandler):
             return
 
         # Add the binaries which are referenced only
-        # The jQuery uploader will upload them seperately, so this isn't unusual.
+        # The jQuery uploader will upload them seperately, so this isn't
+        # unusual.
         for argument in self.request.arguments:
             print(argument)
             if argument.startswith("referenced_file1") and argument.endswith('_name'):
@@ -877,17 +1014,14 @@ class ReceiveEnvelopeHandler(BaseHandler):
                     'referenced_file' + binarycount + '_name')
                 envelopebinarylist.append(mybinary.dict)
 
-
         # Now that we have the file handled.. (Whew!) .. Let's do the Envelope
-
         # Pull in our Form variables.
         client_body = self.get_argument("body", None)
         client_topic = self.get_argument("topic", None)
         client_subject = self.get_argument("subject", None)
 
-        client_to = self.get_argument("to",None)
-        client_regarding = self.get_argument("regarding",None)
-
+        client_to = self.get_argument("to", None)
+        client_regarding = self.get_argument("regarding", None)
 
         e = Envelope()
         e.payload.dict['formatting'] = "markdown"
@@ -905,47 +1039,73 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 e.payload.dict['binaries'] = envelopebinarylist
 
             e.payload.dict['author'] = OrderedDict()
-            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+            e.payload.dict[
+                'author'][
+                'replyto'] = self.user.Keys[
+                'posted'][
+                -1].pubkey
             e.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
 
-
-            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+            e.addStamp(
+                stampclass='author',
+                friendlyname=self.user.UserSettings['friendlyname'],
+                keys=self.user.Keys['master'],
+                passkey=self.user.passkey)
 
         elif flag == 'reply':
             e.payload.dict['class'] = "message"
             if client_regarding is not None:
                 e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict['topic'] = regardingmsg['envelope']['payload']['topic']
-                e.payload.dict['subject'] = regardingmsg['envelope']['payload']['subject']
+                regardingmsg = server.db.unsafe.find_one(
+                    'envelopes',
+                    {'envelope.local.payload_sha512': client_regarding})
+                e.payload.dict[
+                    'topic'] = regardingmsg[
+                    'envelope'][
+                    'payload'][
+                    'topic']
+                e.payload.dict[
+                    'subject'] = regardingmsg[
+                    'envelope'][
+                    'payload'][
+                    'subject']
             if client_body is not None:
                 e.payload.dict['body'] = client_body
             if envelopebinarylist:
                 e.payload.dict['binaries'] = envelopebinarylist
- 
+
             e.payload.dict['author'] = OrderedDict()
-            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+            e.payload.dict[
+                'author'][
+                'replyto'] = self.user.Keys[
+                'posted'][
+                -1].pubkey
             e.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
 
-
-            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-
-
+            e.addStamp(
+                stampclass='author',
+                friendlyname=self.user.UserSettings['friendlyname'],
+                keys=self.user.Keys['master'],
+                passkey=self.user.passkey)
 
         elif flag == 'messagerevision':
             e.payload.dict['class'] = "messagerevision"
             if client_body is not None:
                 e.payload.dict['body'] = client_body
-            e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+            e.addStamp(
+                stampclass='author',
+                friendlyname=self.user.UserSettings['friendlyname'],
+                keys=self.user.Keys['master'],
+                passkey=self.user.passkey)
 
-        elif flag =='privatemessage':
-            # For encrypted messages we want to actually create a whole sub-envelope inside of it!
+        elif flag == 'privatemessage':
+            # For encrypted messages we want to actually create a whole
+            # sub-envelope inside of it!
 
             single_use_key = self.user.get_pmkey()
             single_use_key.unlock(self.user.passkey)
-
 
             e.payload.dict['class'] = "privatemessage"
             touser = Key(pub=client_to)
@@ -960,33 +1120,38 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
             if client_regarding is not None:
                 encrypted['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': client_regarding})
+                regardingmsg = server.db.unsafe.find_one(
+                    'envelopes',
+                    {'envelope.local.payload_sha512': client_regarding})
 
                 # The message we're referencing is likey unreadable due to encryption.
                 # Pull in it's subject if possible.
-                decrypted_regarding_dict = self.user.decrypt(regardingmsg['payload']['encrypted'])
+                decrypted_regarding_dict = self.user.decrypt(
+                    regardingmsg['payload']['encrypted'])
                 decrypted_regarding = Envelope()
                 decrypted_regarding.loaddict(decrypted_regarding_dict)
 
-                encrypted_msg.payload.dict['subject'] = decrypted_regarding.payload.dict['subject']
+                encrypted_msg.payload.dict[
+                    'subject'] = decrypted_regarding.payload.dict[
+                    'subject']
             else:
                 encrypted_msg.payload.dict['subject'] = client_subject
 
             if envelopebinarylist:
                 encrypted_msg.payload.dict['binaries'] = envelopebinarylist
 
-
             encrypted_msg.payload.dict['author'] = OrderedDict()
-            encrypted_msg.payload.dict['author']['replyto'] = single_use_key.pubkey
+            encrypted_msg.payload.dict[
+                'author'][
+                'replyto'] = single_use_key.pubkey
             encrypted_msg.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
 
-
-            if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
+            if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
                 gi = pygeoip.GeoIP('data/GeoIPCity.dat')
                 ip = self.request.remote_ip
 
-                #Don't check from home.
+                # Don't check from home.
                 if ip == "127.0.0.1":
                     ip = "8.8.8.8"
 
@@ -994,26 +1159,33 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 encrypted_msg.payload.dict['coords'] = str(gir['latitude']) + \
                     "," + str(gir['longitude'])
 
+            # Add stamps to show we're the author (and optionally) we're the
+            # origin server
+            encrypted_msg.addStamp(
+                stampclass='author',
+                friendlyname=self.user.UserSettings['friendlyname'],
+                keys=self.user.Keys['master'],
+                passkey=self.user.passkey)
+            if server.serversettings.settings['mark-origin']:
+                    encrypted_msg.addStamp(
+                        stampclass='origin',
+                        keys=server.ServerKeys,
+                        hostname=server.serversettings.settings['hostname'])
 
-            # Add stamps to show we're the author (and optionally) we're the origin server
-            encrypted_msg.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-            if server.serversettings.settings['mark-origin'] == True:
-                    encrypted_msg.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
-
-
-            # Now that we've created the inner message, convert it to text, store it in the outer message.
+            # Now that we've created the inner message, convert it to text,
+            # store it in the outer message.
             encrypted_pmstr = encrypted_msg.text()
 
-            e.payload.dict['encrypted'] = single_use_key.encrypt(encrypt_to=touser.pubkey, encryptstring=encrypted_pmstr)
-
+            e.payload.dict['encrypted'] = single_use_key.encrypt(
+                encrypt_to=touser.pubkey,
+                encryptstring=encrypted_pmstr)
 
         # For all classses of messages-
-
-        if self.user.UserSettings['include_location'] == True or 'include_location' in self.request.arguments:
+        if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
             gi = pygeoip.GeoIP('data/GeoIPCity.dat')
             ip = self.request.remote_ip
 
-            #Don't check from home.
+            # Don't check from home.
             if ip == "127.0.0.1":
                 ip = "8.8.8.8"
 
@@ -1021,13 +1193,15 @@ class ReceiveEnvelopeHandler(BaseHandler):
             e.payload.dict['coords'] = str(gir['latitude']) + \
                 "," + str(gir['longitude'])
 
+        if server.serversettings.settings['mark-origin']:
+                e.addStamp(
+                    stampclass='origin',
+                    keys=server.ServerKeys,
+                    hostname=server.serversettings.settings['hostname'])
 
-        if server.serversettings.settings['mark-origin'] == True:
-                e.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
-
-        #Send to the server
+        # Send to the server
         newmsgid = server.receiveEnvelope(env=e)
-        if newmsgid != False:
+        if newmsgid:
             if client_to is None:
                 if client_regarding is not None:
                     self.redirect('/message/' + server.getTopMessage(
@@ -1041,7 +1215,8 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
 
 class ShowPrivatesHandler(BaseHandler):
-    def get(self,messageid=None):
+
+    def get(self, messageid=None):
         self.getvars(AllowGuestKey=False)
 
         messages = []
@@ -1049,18 +1224,19 @@ class ShowPrivatesHandler(BaseHandler):
                    title="Your Private messages", rsshead=None, type=None))
 
         # Construct a list of all current PMs
-        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in' : self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
+        for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in': self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
 
             if self.user.decrypt(message['envelope']['payload']['encrypted']):
-                unencrypted_str = self.user.decrypt(message['envelope']['payload']['encrypted'])
+                unencrypted_str = self.user.decrypt(
+                    message['envelope']['payload']['encrypted'])
                 unencrypted_env = Envelope()
                 unencrypted_env.loadstring(unencrypted_str)
                 unencrypted_env.munge()
                 unencrypted_env.dict['parent'] = message
                 messages.append(unencrypted_env)
 
-
-        # Retrieve a PM to display - Either by id if requested, or top PM if not.
+        # Retrieve a PM to display - Either by id if requested, or top PM if
+        # not.
         e = Envelope()
         if messageid is not None:
             if not e.loadmongo(messageid):
@@ -1071,12 +1247,13 @@ class ShowPrivatesHandler(BaseHandler):
                     print("This is to--")
                     print(e.dict['envelope']['payload']['to'])
                     print("Your Keys-")
-                    print( self.user.get_keys(ret='pubkey'))
+                    print(self.user.get_keys(ret='pubkey'))
                     self.write("This isn't you.")
                     return
-                    #TODO - Put better error here. Server.Error?
-            unencrypted_str = self.user.decrypt(e.dict['envelope']['payload']['encrypted'])
-            
+                    # TODO - Put better error here. Server.Error?
+            unencrypted_str = self.user.decrypt(
+                e.dict['envelope']['payload']['encrypted'])
+
             unencrypted_env = Envelope()
             unencrypted_env.loadstring(unencrypted_str)
             unencrypted_env.munge()
@@ -1087,19 +1264,22 @@ class ShowPrivatesHandler(BaseHandler):
         elif messages:
                 displaymessage = messages[0]
         else:
-            displaymessage = server.error_envelope("You don't have any private messages yet. Silly goose!")
+            displaymessage = server.error_envelope(
+                "You don't have any private messages yet. Silly goose!")
 
-
-
-
-        self.write(self.render_string('header.html', title="Private Messages", rsshead=None, type=None))
         self.write(
-            self.render_string('show_privates.html', messages=messages,envelope=displaymessage))
+            self.render_string(
+                'header.html',
+                title="Private Messages",
+                rsshead=None,
+                type=None))
+        self.write(
+            self.render_string('show_privates.html', messages=messages, envelope=displaymessage))
         self.write(self.render_string('footer.html'))
 
 
-
 class NewPrivateMessageHandler(BaseHandler):
+
     def get(self, urlto=None):
         self.getvars()
         self.write(self.render_string('header.html',
@@ -1110,6 +1290,7 @@ class NewPrivateMessageHandler(BaseHandler):
 
 class NullHandler(BaseHandler):
         # This is grabbed by nginx, and never called in prod.
+
     def get(self, url=None):
         return
 
@@ -1118,29 +1299,35 @@ class NullHandler(BaseHandler):
 
 
 class BinariesHandler(tornado.web.RequestHandler):
+
     """
     Serves images/etc out of nginx.
     Really shouldn't be used in prod.
     Use the nginx handler instead
     """
+
     def get(self, binaryhash, filename=None):
-        server.logger.info("The gridfs_nginx plugin is a much better option than this method")
+        server.logger.info(
+            "The gridfs_nginx plugin is a much better option than this method")
         self.set_header("Content-Type", 'application/octet-stream')
 
         req = server.bin_GridFS.get_last_version(filename=binaryhash)
         self.write(req.read())
 
+
 class AvatarHandler(tornado.web.RequestHandler):
+
     """
     Create Avatars using Robohashes.
     You should cache these on disk using nginx.
     """
+
     def get(self, avatar):
         format = 'png'
         self.set_header("Content-Type", "image/" + format)
 
         # Ensure proper sizing
-        sizex,sizey = self.get_argument('size','40x40').split("x")
+        sizex, sizey = self.get_argument('size', '40x40').split("x")
         sizex = int(sizex)
         sizey = int(sizey)
         if sizex > 4096 or sizex < 0:
@@ -1148,15 +1335,41 @@ class AvatarHandler(tornado.web.RequestHandler):
         if sizey > 4096 or sizey < 0:
             sizey = 40
         robo = Robohash.Robohash(avatar)
-        robo.assemble(roboset=self.get_argument('set','any'),format=format,bgset=self.get_argument('bgset','any'),sizex=sizex,sizey=sizey)
-        robo.img.save(self,format='png')
+        robo.assemble(
+            roboset=self.get_argument(
+                'set',
+                'any'),
+            format=format,
+            bgset=self.get_argument(
+                'bgset',
+                'any'),
+            sizex=sizex,
+            sizey=sizey)
+        robo.img.save(self, format='png')
 
 
-define("writelog", default=True, help="Determines if Tavern writes to a log file.",type=bool)
-define("loglevel", default="UNSET", help="Amount of detail you want.",type=str)
-define("initonly", default=False, help="Create config files, then quit.",type=bool)
-define("debug", default=False, help="Run with options that make debugging easier.",type=bool)
+define(
+    "writelog",
+    default=True,
+    help="Determines if Tavern writes to a log file.",
+    type=bool)
+define(
+    "loglevel",
+    default="UNSET",
+    help="Amount of detail you want.",
+    type=str)
+define(
+    "initonly",
+    default=False,
+    help="Create config files, then quit.",
+    type=bool)
+define(
+    "debug",
+    default=False,
+    help="Run with options that make debugging easier.",
+    type=bool)
 define("port", default=8080, help="run on the given port", type=int)
+
 
 def main():
     tornado.options.parse_command_line()
@@ -1170,7 +1383,6 @@ def main():
     # Tell the server process to fire up and run for a while.
     server.start()
 
-
     settings = {
         "cookie_secret": server.serversettings.settings['cookie-encryption'],
         "login_url": "/login",
@@ -1182,7 +1394,9 @@ def main():
     # Detect if we have the ramdisk setup for static files
     staticopts = {}
     if os.path.isfile('tmp/static/scripts/default.js'):
-        staticopts['path'] = os.path.join(os.path.dirname(__file__), "tmp/static/")
+        staticopts['path'] = os.path.join(
+            os.path.dirname(__file__),
+            "tmp/static/")
     else:
         staticopts['path'] = os.path.join(os.path.dirname(__file__), "static/")
 
@@ -1198,7 +1412,7 @@ def main():
 
         (r"/topic/(.*)", TopicHandler),
         (r"/t/(.*)", TopicHandler),
-        
+
         (r"/sitecontent/(.*)", SiteContentHandler),
 
         (r"/showtopics", ShowTopicsHandler),
@@ -1207,13 +1421,13 @@ def main():
 
         (r"/topicinfo/(.*)", TopicPropertiesHandler),
         (r"/attachment/(.*)", AttachmentHandler),
-        
+
 
         (r"/messagehistory/(.*)", MessageHistoryHandler),
         (r"/user/(.*)", UserHandler),
 
-        (r"/newmessage/(.*)", NewmessageHandler),        
-        (r"/newmessage", NewmessageHandler),        
+        (r"/newmessage/(.*)", NewmessageHandler),
+        (r"/newmessage", NewmessageHandler),
 
         (r"/edit/(.*)", EditMessageHandler),
         (r"/reply/(.*)/(.*)", ReplyHandler),
@@ -1229,7 +1443,7 @@ def main():
         (r"/changepassword", ChangepasswordHandler),
         (r"/logout", LogoutHandler),
 
-        
+
         (r"/vote", RatingHandler),
         (r"/usertrust", UserTrustHandler),
         (r"/usernote", UserNoteHandler),
@@ -1250,7 +1464,7 @@ def main():
     http_server.listen(options.port)
 
     server.logger.info(
-        server.serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port) )
+        server.serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port))
     if options.initonly is False:
         tornado.ioloop.IOLoop.instance().start()
     else:

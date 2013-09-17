@@ -54,43 +54,43 @@ class list1(list):
 
 
 
-def primegenerator():
-  D = {}
-  q = 2  # first integer to test for primality.
-
-  while True:
-    if q not in D:
-      # not marked composite, must be prime  
-      yield q 
-
-      #first multiple of q not already marked
-      D[q * q] = [q] 
-    else:
-      for p in D[q]:
-        D.setdefault(p + q, []).append(p)
-      # no longer need D[q], free memory
-      del D[q]
-
-    q += 1
-
-# http://stackoverflow.com/questions/14613304/rabin-miller-strong-pseudoprime-test-implementation-wont-work
-def miller_rabin(n, k=40):
+def small_prime_generator(max=1000):
     """
-    Return True if n passes k rounds of the Miller-Rabin primality
-    test (and is probably prime). Return False if n is proved to be
-    composite.
+    Generate every small prime up to `max`
     """
-    if n < 2: return False
+    prime = []
+    notprime = []
+    for i in range(2,max):
+        if i not in notprime:
+            prime.append(i) 
+            for j in range(i,max,i):
+                notprime.append(j)
+    return prime
+
+def miller_rabin(n,rounds=64):
+    """
+    True if `n` passes `k` rounds of Miller-Rabin.
+    """
+    if n < 2:
+        return False
+    
+    # Eliminate the easy ones with a table
+    global small_primes
+
+    if not 'small_primes' in globals():
+        small_primes = small_prime_generator(50)
     for p in small_primes:
-        if n < p * p:
-            return True
         if n % p == 0:
             return False
-    r, s = 0, n - 1
+
+    # Do Miller-Robin (40 rounds) to determine likely prime
+    s = n-1
+    r = 1
     while s % 2 == 0:
-        r += 1
         s //= 2
-    for _ in range(k):
+        r +=1 
+
+    for _ in range(rounds):
         a = random.SystemRandom().randrange(2, n - 1)
         x = pow(a, s, n)
         if x == 1 or x == n - 1:
@@ -102,7 +102,6 @@ def miller_rabin(n, k=40):
         else:
             return False
     return True
-
 
 def gen_prime(bits):
     prime = False
@@ -119,40 +118,90 @@ def gen_dh_group(bits):
     while 1:
         # Generate random prime q until 2q+1 is also a prime. 
         q = int(gen_prime(bits))
-        p = (2 * q)
-        a = (p/2)
-        if a != q:
-            print(repr(a))
-            print(repr(q))
-            raise Exception("Noooo!")
+        p = (2 * q) + 1
         if miller_rabin(p):
             # A generator of 2 will provide just as much security as any other, and is cheaper.
             g = 2
             break
     return (p, q, g)
 
+def dh_test(bits=100,a=None,b=None,p=None,g=None):
+    """Test DH exchange"""
+    if p == None:
+        p,q,g = gen_dh_group(bits)
+    if g == None:
+        g = 2
+
+    if a is None:
+        alice_priv = random.SystemRandom().getrandbits(bits)
+    else:
+        alice_priv = a
+
+    alice_pub = G(g, alice_priv, p)
+
+    if b is None:
+        bob_priv = random.SystemRandom().getrandbits(bits)
+    else:
+        bob_priv = b
+    bob_pub = G(g, bob_priv, p)
+
+    alice_shared_secret = pow(bob_pub, alice_priv, p)
+    bob_shared_secret = pow(alice_pub, bob_priv, p)
+
+    if alice_shared_secret == bob_shared_secret:
+        print(alice_shared_secret)
+        print("Match")
+    else:
+        print("No Match")
 
 def main():
 
-    # Setup a global small_primes list
-    global small_primes
-    small_primes = []
-    primgen = primegenerator()
-    for _ in range(1,1000):
-        small_primes.append(primgen.__next__())
+    # number of participants
+    n = 20
+    bits = 100
 
-    # # number of participants
-    # n = 10
+    # Every participant agrees on a Generator function
+    p,q,g= gen_dh_group(100)
+    G = lambda x: pow(g,x,p)
 
-    # # Every participant gets a number
-    # i = list1()
-    # for loop in irange(1,10):
-    #     i.append(loop)
+    # Every participant gets a number   
+    x = list1()
 
-    # # Every participant agrees on a Generator function
-    # nonce = random.SystemRandom().randrange(100,200)
+    ### ROUND 1
+    # Loop through all participants (i)
+    for i in irange(1,n):
+        
+        # Each participant selects a random number.
+        R = random.SystemRandom().getrandbits(bits)
+        # Store this for each participant as x
+        x.append(R)
 
-    print(gen_dh_group(100))
+    ### When this round finishes, each participant computes
+    for i in irange(1,n):
+
+        numerator = 1
+        for j in range(1,i-1):
+            numerator *= G(x[j])
+     #   print("n: " + str(numerator))
+
+        denominator = 1
+        for j in range(i+1,n):
+            denominator *= G(x[j])           
+     #   print("d: " + str(denominator))
+
+        gyi = numerator//denominator
+        print("gyi " + str(gyi))
+
+
+
+    # Every participant broadcasts a value gciyi and a knowledge proof for ci, where ci is either xi or a random value 
+
+
+
+
+
+
+
     #print(small_primes)
 if __name__ == "__main__":
     main()

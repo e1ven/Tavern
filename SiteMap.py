@@ -56,7 +56,8 @@ for i in range(sitemapcount):
     sitemap_path = "static/sitemaps/sitemap-" + str(i) + ".xml"
     sitemap = open(sitemap_path, 'w')
     sitemap.write("""<?xml version="1.0" encoding="UTF-8"?>\n""")
-    sitemap.write("""<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n""")
+    sitemap.write(
+        """<urlset xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd" xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n""")
     server.logger.info("Starting file " + str(i) + "; start = " + str(
         start) + " ; end " + str())
 
@@ -69,7 +70,16 @@ for i in range(sitemapcount):
     a = server.db.unsafe.find('envelopes',
                               {"envelope.local.short_subject": {"$exists": True}})[start:end]
     for envelope in a:
-        url = serverprefix + '/message/' + envelope['envelope']['local']['sorttopic'] + '/' + envelope['envelope']['local']['short_subject'] + "/" + envelope['envelope']['local']['payload_sha512']
+        url = serverprefix + '/message/' + envelope[
+            'envelope'][
+            'local'][
+            'sorttopic'] + '/' + envelope[
+            'envelope'][
+            'local'][
+            'short_subject'] + "/" + envelope[
+            'envelope'][
+            'local'][
+            'payload_sha512']
         date = datetime.datetime.utcfromtimestamp(
             envelope['envelope']['stamps'][0]['time_added'])
         datestr = date.strftime('%Y-%m-%d')

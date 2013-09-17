@@ -14,10 +14,11 @@ import functools
 import datetime
 import calendar
 import time
-# We're not using  @memorise because we don't WANT cached copies of the keys hanging around, even though it'd be faster ;()
+# We're not using  @memorise because we don't WANT cached copies of the
+# keys hanging around, even though it'd be faster ;()
+
 
 class Key(object):
-
 
     def privatekeyaccess(fn):
         """
@@ -25,17 +26,18 @@ class Key(object):
         This allows us to define a separate unlock for each type of key, and call them from the parent.
         """
         @functools.wraps(fn)
-        def wrapper(cls,*args,**kwargs):
+        def wrapper(cls, *args, **kwargs):
             passkey = None
             # If our original class has an unlock function, call it.
             if hasattr(cls, 'unlock'):
-                # If we passed in a passkey parameter, remove it, and pass it to the unlock instead.
+                # If we passed in a passkey parameter, remove it, and pass it
+                # to the unlock instead.
                 if 'passkey' in kwargs:
                     passkey = kwargs.pop('passkey')
                     cls.unlock(pk)
                 else:
                     cls.unlock()
-            result =  fn(cls,*args,**kwargs)
+            result = fn(cls, *args, **kwargs)
             # Now, relock it back up.
             if hasattr(cls, 'lock'):
                 if passkey is not None:
@@ -55,7 +57,7 @@ class Key(object):
         self.privkey = priv
         self.expires = None
         self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
-        self.gpg = gnupg.GPG(verbose=False,gnupghome=self.gnuhome,
+        self.gpg = gnupg.GPG(verbose=False, gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'
 
@@ -77,8 +79,7 @@ class Key(object):
         """
         if self.gnuhome is not None:
             if shutil is not None:
-                shutil.rmtree(self.gnuhome,ignore_errors=True,onerror=None)
-
+                shutil.rmtree(self.gnuhome, ignore_errors=True, onerror=None)
 
     def _setKeyDetails(self):
         """
@@ -90,8 +91,10 @@ class Key(object):
         self.keydetails['format'] = 'gpg'
         self.keydetails['uids'] = []
 
-        if len( self.gpg.list_keys()) > 1:
-            raise Exception("Too many Keys!","There are too many keys in this keyring - I'm not sure what's going on anymore.")
+        if len(self.gpg.list_keys()) > 1:
+            raise Exception(
+                "Too many Keys!",
+                "There are too many keys in this keyring - I'm not sure what's going on anymore.")
 
         details = self.gpg.list_keys()[0]
 
@@ -131,7 +134,7 @@ class Key(object):
         elif details['algo'] is '18' or 'e':
             self.keydetails['algorithm'] = 'ECDH'
             self.keydetails['sign'] = False
-            self.keydetails['encrypt'] = True        
+            self.keydetails['encrypt'] = True
         elif details['algo'] is '19' or 'e':
             self.keydetails['algorithm'] = 'ECDSA'
             self.keydetails['sign'] = True
@@ -146,18 +149,26 @@ class Key(object):
         Ensure the keys are in the proper format, with linebreaks.
         linebreaks are every 64 characters, and we have a header/footer.
         """
-        #Strip out the headers
-        #Strip out the linebreaks
-        #Re-Add the Linebreaks
-        #Re-add the headers
-        #Check for compressed versions-
+        # Strip out the headers
+        # Strip out the linebreaks
+        # Re-Add the Linebreaks
+        # Re-add the headers
+        # Check for compressed versions-
         if self.privkey is not None:
-            self.privkey = self.privkey.replace("-----BEGINPGPPRIVATEKEYBLOCK-----", "-----BEGIN PGP PRIVATE KEY BLOCK-----")
-            self.privkey = self.privkey.replace("-----ENDPGPPRIVATEKEYBLOCK-----", "-----END PGP PRIVATE KEY BLOCK-----")
+            self.privkey = self.privkey.replace(
+                "-----BEGINPGPPRIVATEKEYBLOCK-----",
+                "-----BEGIN PGP PRIVATE KEY BLOCK-----")
+            self.privkey = self.privkey.replace(
+                "-----ENDPGPPRIVATEKEYBLOCK-----",
+                "-----END PGP PRIVATE KEY BLOCK-----")
 
             if "-----BEGIN PGP PRIVATE KEY BLOCK-----" in self.privkey:
-                noheaders = self.privkey.replace('-----BEGIN PGP PRIVATE KEY BLOCK-----','').lstrip()
-                noheaders = noheaders.replace('-----END PGP PRIVATE KEY BLOCK-----','').rstrip()
+                noheaders = self.privkey.replace(
+                    '-----BEGIN PGP PRIVATE KEY BLOCK-----',
+                    '').lstrip()
+                noheaders = noheaders.replace(
+                    '-----END PGP PRIVATE KEY BLOCK-----',
+                    '').rstrip()
             else:
                 self.logger.debug("USING NO HEADER VERSION OF PRIVKEY")
                 noheaders = self.privkey
@@ -168,12 +179,20 @@ class Key(object):
                 withLinebreaks + "\n-----END PGP PRIVATE KEY BLOCK-----"
 
         if self.pubkey is not None:
-            self.pubkey = self.pubkey.replace("-----BEGINPGPPUBLICKEYBLOCK-----", "-----BEGIN PGP PUBLIC KEY BLOCK-----")
-            self.pubkey = self.pubkey.replace("-----ENDPGPPUBLICKEYBLOCK-----", "-----END PGP PUBLIC KEY BLOCK-----")
+            self.pubkey = self.pubkey.replace(
+                "-----BEGINPGPPUBLICKEYBLOCK-----",
+                "-----BEGIN PGP PUBLIC KEY BLOCK-----")
+            self.pubkey = self.pubkey.replace(
+                "-----ENDPGPPUBLICKEYBLOCK-----",
+                "-----END PGP PUBLIC KEY BLOCK-----")
 
             if "-----BEGIN PGP PUBLIC KEY BLOCK-----" in self.pubkey:
-                noheaders = self.pubkey.replace("-----BEGIN PGP PUBLIC KEY BLOCK-----",'').lstrip()
-                noheaders = noheaders.replace("-----END PGP PUBLIC KEY BLOCK-----",'').rstrip()
+                noheaders = self.pubkey.replace(
+                    "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+                    '').lstrip()
+                noheaders = noheaders.replace(
+                    "-----END PGP PUBLIC KEY BLOCK-----",
+                    '').rstrip()
             else:
                 self.logger.debug("USING NO HEADER VERSION OF PUBKEY")
                 noheaders = self.pubkey
@@ -192,7 +211,7 @@ class Key(object):
             print("Does not expire")
             return True
 
-    def generate(self,autoexpire=False):
+    def generate(self, autoexpire=False):
         """
         Replaces whatever keys currently might exist with new ones.
         """
@@ -210,20 +229,29 @@ class Key(object):
         self._format_keys()
         self._setKeyDetails()
         self.generated = int(time.time())
- 
 
         if autoexpire:
             # If this key should expire, we want to do it at the end of NEXT month.
             # So if it's currently Oct 15, we want the answer Nov31-23:59:59
-            # This makes it harder to pin down keys by when they were generated, since it's not based on current time        
-                 
-            number_of_days_this_month =  calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month)[1]
-            number_of_days_next_month = calendar.monthrange(datetime.datetime.now().year, datetime.datetime.now().month + 1)[1]
-            two_months = datetime.datetime.now() + datetime.timedelta(days = number_of_days_this_month + number_of_days_next_month)
-            expiresdate = datetime.date(two_months.year, two_months.month, 1) - datetime.timedelta (days = 1)
-            expiresdatetime = datetime.datetime.combine(expiresdate,datetime.time.max)
-            self.expires = calendar.timegm(expiresdatetime.utctimetuple())
+            # This makes it harder to pin down keys by when they were
+            # generated, since it's not based on current time
 
+            number_of_days_this_month = calendar.monthrange(
+                datetime.datetime.now().year,
+                datetime.datetime.now().month)[1]
+            number_of_days_next_month = calendar.monthrange(
+                datetime.datetime.now().year,
+                datetime.datetime.now().month + 1)[1]
+            two_months = datetime.datetime.now() + datetime.timedelta(
+                days=number_of_days_this_month + number_of_days_next_month)
+            expiresdate = datetime.date(
+                two_months.year,
+                two_months.month,
+                1) - datetime.timedelta(
+                days=1)
+            expiresdatetime = datetime.datetime.combine(
+                expiresdate, datetime.time.max)
+            self.expires = calendar.timegm(expiresdatetime.utctimetuple())
 
     @privatekeyaccess
     def signstring(self, signstring):
@@ -239,7 +267,6 @@ class Key(object):
             raise Exception("Signing Error")
         return signed_data
 
-
     def verify_string(self, stringtoverify, signature):
         """
         Verify the passed in string matches the passed signature.
@@ -249,7 +276,7 @@ class Key(object):
         verify = self.gpg.verify(signature)
 
         # Make sure that this is a valid signature from Someone.
-        if verify.valid != True:
+        if verify.valid is True:
             self.logger.info("This key does not match")
             return False
 
@@ -275,7 +302,8 @@ class Key(object):
         encoded_currenthash = base64.b64encode(currenthash).decode('utf-8')
 
         if encoded_currenthash != signedtext:
-            print("The correct user signed a string, but it was not the expected string.")
+            print(
+                "The correct user signed a string, but it was not the expected string.")
             return False
         else:
             return True
@@ -291,7 +319,11 @@ class Key(object):
         recipient = Key(pub=encrypt_to)
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
-        encrypted_string = str(self.gpg.encrypt(data=encryptstring, recipients=[recipient.fingerprint], always_trust=True, armor=True))
+        encrypted_string = str(
+            self.gpg.encrypt(data=encryptstring,
+                             recipients=[recipient.fingerprint],
+                             always_trust=True,
+                             armor=True))
         self.gpg.delete_keys(recipient.fingerprint)
         return encrypted_string
 
@@ -316,7 +348,12 @@ class Key(object):
         tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
         ) + TavernUtils.randstr(50, printable=True)
 
-        self.gpg.encrypt_file(stream=oldfile, recipients=[recipient.fingerprint], always_trust=True, armor=True, output=tmpfilename)
+        self.gpg.encrypt_file(
+            stream=oldfile,
+            recipients=[recipient.fingerprint],
+            always_trust=True,
+            armor=True,
+            output=tmpfilename)
         self.gpg.delete_keys(recipient.fingerprint)
         return tmpfilename
 
@@ -333,7 +370,11 @@ class Key(object):
         Verify the signing/verification engine works as expected
         """
         self._format_keys()
-        return self.verify_string(stringtoverify="ABCD1234", signature=self.signstring("ABCD1234"))
+        return (
+            self.verify_string(
+                stringtoverify="ABCD1234",
+                signature=self.signstring("ABCD1234"))
+        )
 
     def test_encryption(self):
         self._format_keys()

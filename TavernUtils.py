@@ -19,9 +19,10 @@ except ImportError:
     print("server already loaded.")
 # The random that comes with Python does not use /dev/urandom, it uses MT.
 # Wrap random.SystemRandom so we always use expected randomness.
-randrange =  random.SystemRandom().randrange
+randrange = random.SystemRandom().randrange
 
-def proveWork(input,difficulty):
+
+def proveWork(input, difficulty):
     """
     Produces a Proof-of-work SHA collision based on HashCash.
     This is useful for avoiding spam.
@@ -33,23 +34,24 @@ def proveWork(input,difficulty):
 
     # We'll always add a padding number, even if it's 0.
     # Even if a basestring matters, we ignore that.
-    zerocount=0
+    zerocount = 0
     count = 0
 
     while zerocount < difficulty:
         newhash = basehash.copy()
-        newhash.update(  str(count).encode('utf-8')  )
+        newhash.update(str(count).encode('utf-8'))
 
         # Get the raw bit string of the hash
         binver = bin(int(newhash.hexdigest(), 16))[2:]
         zerocount = 256 - len(binver)
 
         finalcount = count
-        count +=1
+        count += 1
 
     return finalcount
 
-def checkWork(input,proof,difficulty):
+
+def checkWork(input, proof, difficulty):
     """
     Check a Proof-of-work calculation
     """
@@ -85,18 +87,19 @@ def longtime():
 
 
 class randomWords():
+
     def __init__(self, fortunefile="data/fortunes"):
         self.fortunes = []
         fortunes = open(fortunefile, "r", encoding='utf-8')
         line = fortunes.readline()
         lines = 0
         while line:
-            lines+= 1
+            lines += 1
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
         print(str(lines) + " fortunes loaded.")
         fortunes.close()
-        
+
     def random(self):
         """
         Return a Random Fortune from the stack
@@ -121,7 +124,7 @@ class randomWords():
         for segment in chunks(hexdigest, chunksize):
             intversion = int(segment, 16)
 
-            #figure out which array integer the word is in
+            # figure out which array integer the word is in
             fortuneslot = intversion % len(self.fortunes)
             word = self.fortunes[fortuneslot]
             words.append(word)
@@ -140,10 +143,9 @@ def chunks(s, n):
         yield s[start:start + n]
 
 
-
 def randstr(length, printable=False):
     # Ensure it's self.logger.infoable.
-    if printable == True:
+    if printable:
         # TODO - Expand this using a python builtin.
         ran = ''.join(chr(randrange(65, 90)) for i in range(length))
     else:
@@ -152,6 +154,7 @@ def randstr(length, printable=False):
 
 
 class TavernCache(object):
+
         def __init__(self):
             self.mc = OrderedDict()
             self.cache = {}
@@ -176,22 +179,22 @@ def objresolve(obj, attrspec):
     return obj
 
 
-
 class instancer(object):
     _shared_state = {}
 
-    def __init__(self,slot='default'):
+    def __init__(self, slot='default'):
         cn = type(self).__name__
         if not cn in self._shared_state:
             self._shared_state[cn] = {}
- 
+
         if not slot in self._shared_state[cn]:
             self._shared_state[cn][slot] = {}
-        
+
         self.__dict__ = self._shared_state[cn][slot]
- 
+
 
 class memorise(object):
+
         """Decorate any function or class method/staticmethod with a memcace
         enabled caching wrapper. Similar to the memoise pattern, this will push
         mutator operators into memcache.Client.set(), and pull accessor
@@ -213,7 +216,7 @@ class memorise(object):
 
             If we pass a `taverncache` entry to the wrapped function, memorise will intercept it.
             taverncache='invalidate' will remove the entry from the cache, if it's there.
-            taverncache='bypass' will ignore the stored entry, re-run the function, and re-store the result. 
+            taverncache='bypass' will ignore the stored entry, re-run the function, and re-store the result.
         """
 
         def __init__(self, parent_keys=[], set=None, ttl=60, maxsize=None):
@@ -243,12 +246,11 @@ class memorise(object):
                                 if argnames[0] == 'cls':
                                     static = True
 
-
                         arg_values_hash = []
                         # Grab all the keyworded and non-keyworded arguements so
                         # that we can use them in the hashed memcache key
                         for i, v in sorted(itertools.chain(zip(argnames, args), iter(kwargs.items()))):
-                                if i not in ['self','cls','taverncache']:
+                                if i not in ['self', 'cls', 'taverncache']:
                                                 arg_values_hash.append(
                                                     "%s=%s" % (i, v))
                                 elif i == 'taverncache':
@@ -285,7 +287,6 @@ class memorise(object):
                         key = "%s%s(%s)" % (parent_name,
                                             fn.__name__, ",".join(arg_values_hash))
 
-
                         # If taverncache is set to 'invalidate', don't run the function..
                         # Instead, just drop the result from the cache.
                         if taverncache == 'invalidate':
@@ -293,10 +294,10 @@ class memorise(object):
                                 val = TavernCache.mc.pop(key)
                                 return val['value']
                             else:
-                                return False 
+                                return False
 
-
-                        # Check to see if we have a valid/current cached result.
+                        # Check to see if we have a valid/current cached
+                        # result.
                         usecached = False
                         if key in TavernCache.mc:
                             output = TavernCache.mc[key]['value']
@@ -305,7 +306,7 @@ class memorise(object):
                                 usecached = True
 
                         # 'taverncache=bypass' will skip the cached value, and end up restoring.
-                        if usecached == False or taverncache == 'bypass':
+                        if usecached is False or taverncache == 'bypass':
                             output = fn(*args, **kwargs)
                             if output is None:
                                 set_value = memcache_none()
@@ -314,7 +315,8 @@ class memorise(object):
 
                             # We're going to store a key.
                             # Make room if nec; This shouldn't run more than once, but the while will ensure
-                            # That if we get out of whack, this will correct it.
+                            # That if we get out of whack, this will correct
+                            # it.
                             if self.maxsize is not None:
                                 while len(TavernCache.mc) >= self.maxsize:
                                     TavernCache.mc.popitem(last=False)
@@ -342,6 +344,7 @@ class memorise(object):
 
 
 class memcache_none:
+
         """Stub class for storing None values in memcache,
         so we can distinguish between None values and not-found
         entries.

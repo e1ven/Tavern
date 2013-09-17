@@ -19,3 +19,5 @@ LEN=`cat Server.py | grep serversettings | grep -v self | grep -v memor | grep -
 	echo "Server should use self.serversettings, not the root module."
 	exit 2
 fi
+
+pep8 --show-source --show-pep8 --ignore=E501 *.py

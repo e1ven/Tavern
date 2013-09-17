@@ -45,6 +45,7 @@ nginxfile = """
   }
 """
 
-# We do the whole socket.gethostbyaddr thing because the nginx GridFS config doesn't allow lookups by DNS name. JSYK.
+# We do the whole socket.gethostbyaddr thing because the nginx GridFS
+# config doesn't allow lookups by DNS name. JSYK.
 f.write(nginxfile)
 f.close()

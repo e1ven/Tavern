@@ -110,14 +110,14 @@ class UASparser:
                 flag = flag | re.I
             return re.compile(reg_l, flag)
 
-        #Check argument
+        # Check argument
         if not useragent:
             raise UASException("Excepted argument useragent is not given.")
 
-        #Load cache data
+        # Load cache data
         data = self.loadData()
 
-        #Is it a spider?
+        # Is it a spider?
         for index in data['robots']['order']:
             test = data['robots'][index]
             if test[0] == useragent:
@@ -126,7 +126,8 @@ class UASparser:
                     if i < 6:
                         ret[ua_index[i - 1]] = test[i]
                     elif i == 6:
-                        ret[ua_index[i - 1]] = ('ua_icon' in entire_url and self.ua_img_url or "%s") % test[i]
+                        ret[ua_index[i - 1]] = (
+                            'ua_icon' in entire_url and self.ua_img_url or "%s") % test[i]
                     elif i == 7:
                         if test[7]:  # OS detail
                             for j in range(1, len(data['os'][int(test[7])])):
@@ -137,7 +138,7 @@ class UASparser:
 
                 return ret
 
-        #A browser
+        # A browser
         id_browser = None
         for index in data['browser_reg']['order']:
             test = data['browser_reg'][index]
@@ -153,14 +154,17 @@ class UASparser:
             _index = ['ua_family', 'ua_url', 'ua_company',
                       'ua_company_url', 'ua_icon', 'ua_info_url']
             try:
-                if id_browser in data['browser']:  # Any better method to figure out it?
+                # Any better method to figure out it?
+                if id_browser in data['browser']:
                     for i in range(1, len(data['browser'][id_browser]) + 1):
                         if i <= 4:
                             ret[_index[i - 1]] = data['browser'][id_browser][i]
                         elif i == 5:
-                            ret[_index[i - 1]] = ('ua_icon' in entire_url and self.ua_img_url or "%s") % data['browser'][id_browser][i]
+                            ret[_index[i - 1]] = ('ua_icon' in entire_url and self.ua_img_url or "%s") % data[
+                                'browser'][id_browser][i]
                         else:
-                            ret[_index[i - 1]] = "".join([self.info_url, data['browser'][id_browser][i]])
+                            ret[_index[i - 1]] = "".join(
+                                [self.info_url, data['browser'][id_browser][i]])
             except:
                 pass
 
@@ -180,12 +184,13 @@ class UASparser:
                     if i < 5:
                         ret[os_index[i]] = data['os'][os_id][i]
                     else:
-                        ret[os_index[i]] = ('os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
+                        ret[os_index[i]] = (
+                            'os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
                 return ret
             except:
                 pass
 
-        #Try to match an OS
+        # Try to match an OS
         os_id = None
         for index in data['os_reg']['order']:
             test = data['os_reg'][index]
@@ -200,7 +205,8 @@ class UASparser:
                 if i < 5:
                     ret[os_index[i]] = data['os'][os_id][i]
                 else:
-                    ret[os_index[i]] = ('os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
+                    ret[os_index[i]] = (
+                        'os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
 
         # Clean up some stuff the root library doesn't detect
         if ret['ua_name'] is not None:
@@ -231,7 +237,7 @@ class UASparser:
         section_pat = re.compile(r'^\[(\S+)\]$')
         option_pat = re.compile(r'^(\d+)\[\]\s=\s"(.*)"$')
 
-        #step by line
+        # step by line
         for line in file:
             option = option_pat.findall(line)
             if option:  # do something for option

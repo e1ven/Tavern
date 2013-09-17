@@ -16,6 +16,7 @@ import TavernUtils
 
 
 class KeyGenerator(object):
+
     """
     Pre-generates GPG keys.
     """
@@ -36,7 +37,9 @@ class KeyGenerator(object):
         self.stop()
         self.procs = []
         for proc in range(0, server.serversettings.settings['KeyGenerator']['workers']):
-            newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
+            newproc = multiprocessing.Process(
+                target=self.GenerateAsNeeded,
+                args=())
             self.procs.append(newproc)
             server.logger.info(" Created KeyGenerator - " + str(proc))
 
@@ -62,8 +65,8 @@ class KeyGenerator(object):
         Create a LockedKey with a random password.
         """
         lk = LockedKey()
-        password = lk.generate(random=True)   
-        unusedkey = {'key':lk,'password':password}
+        password = lk.generate(random=True)
+        unusedkey = {'key': lk, 'password': password}
         return unusedkey
 
     def PopulateUnusedKeyCache(self):
@@ -75,7 +78,6 @@ class KeyGenerator(object):
             unusedkey = self.CreateUnusedLK()
             server.unusedkeycache.put(unusedkey)
 
-
     def GenerateAsNeeded(self):
         """
         Watch to see if the queue gets low, and then add users
@@ -83,7 +85,7 @@ class KeyGenerator(object):
 
         count = 0
         # Grab some emails from the stack
-        while 1:
-            self.PopulateUnusedKeyCache();
+        while True:
+            self.PopulateUnusedKeyCache()
             sleeptime = server.serversettings.settings['KeyGenerator']['sleep']
             time.sleep(sleeptime)

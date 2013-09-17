@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-import pymongo
-from datetime import datetime, timedelta
 from Envelope import Envelope
 import Server
 server = Server.Server()
-from collections import OrderedDict
-import json
 import sys
 import os
 import argparse
@@ -37,16 +33,20 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def writetopic(topic, since=0, limit=0, skip=0,directory=None):
+def writetopic(topic, since=0, limit=0, skip=0, directory=None):
     """
     Write a topic out to .7z files
     """
     e = Envelope()
     if topic == 'all':
-        #envelopes = server.mongos['safe']['envelopes'].find({'envelope.local.time_added': {'$gt' : since }},limit=limit,skip=skip)
         envelopes = server.db.safe.find('envelopes')
     else:
-        envelopes = server.db.safe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.payload.topic': topic}, limit=limit, skip=skip)
+        envelopes = server.db.safe.find(
+            'envelopes',
+            {'envelope.local.time_added': {'$gt': since},
+             'envelope.payload.topic': topic},
+            limit=limit,
+            skip=skip)
 
     for envelope in envelopes:
         if args.verbose:
@@ -61,7 +61,7 @@ def writetopic(topic, since=0, limit=0, skip=0,directory=None):
         else:
             topic = 'none'
 
-        if directory == None:
+        if directory is None:
             topicdir = msgsdir + topic
         else:
             topicdir = directory
@@ -74,14 +74,14 @@ def writetopic(topic, since=0, limit=0, skip=0,directory=None):
             e.savefile(topicdir)
 
 
-def loaddir(directory=None,topic='sitecontent'):
+def loaddir(directory=None, topic='sitecontent'):
     """
     Load in a directory full of Tavern Messages.
     """
-    if directory == None:
+    if directory is None:
         directory = msgsdir + topic
     print("Using directory: " + directory)
-    
+
     listing = os.listdir(directory)
     e = Envelope()
 
@@ -90,7 +90,8 @@ def loaddir(directory=None,topic='sitecontent'):
         e.loadfile(directory + "/" + infile)
         if args.verbose:
             print(e.text())
-        # Send to the server. Don't bother to validate it first, the server will do it.
+        # Send to the server. Don't bother to validate it first, the server
+        # will do it.
         server.receiveEnvelope(env=e)
 
 
@@ -128,17 +129,15 @@ def main():
                 if os.path.isdir(topic):
                     loaddir(topic=topic)
 
-
     # Reprocess all Tavern messages
     if args.reprocess:
         print("Writing all envelopes to files...")
         directory = tempfile.mkdtemp()
-        writetopic(topic='all',directory=directory)
+        writetopic(topic='all', directory=directory)
         server.db.safe.drop_collection('envelopes')
         print("Reading envelopes back in...")
         loaddir(directory=directory)
-        shutil.rmtree(directory,ignore_errors=True,onerror=None)
-
+        shutil.rmtree(directory, ignore_errors=True, onerror=None)
 
     # We're done here.
     server.stop()
