@@ -1,5 +1,6 @@
 import random
 import timeit
+import sys
 # This a literal translation of the AVnet.
 # I used inclusive ranges and lists because the original paper did, and I wanted to make sure I followed.
 
@@ -120,9 +121,11 @@ def gen_dh_group(bits):
         q = int(gen_prime(bits))
         p = (2 * q) + 1
         if miller_rabin(p):
-            # A generator of 2 will provide just as much security as any other, and is cheaper.
-            g = 2
-            break
+            # A generator of 2 will work for DH, but for our AVnet we need another.
+            # Generate random values (g) until  g^2 != 1 mod p and g^q == 1 mod p
+            g = random.SystemRandom().randrange(2, p - 1)
+            if pow(g,2,p) != 1 and pow(g,q,p) !=1:
+                break
     return (p, q, g)
 
 def dh_test(bits=100,a=None,b=None,p=None,g=None):
@@ -154,18 +157,22 @@ def dh_test(bits=100,a=None,b=None,p=None,g=None):
     else:
         print("No Match")
 
-def main():
+def avnet():
 
     # number of participants
     n = 20
     bits = 100
 
     # Every participant agrees on a Generator function
+    print("Generating DH")
+    # p,q,g = (378019149936402528836294373203, 189009574968201264418147186601, 219179160367544848293941757544)
     p,q,g= gen_dh_group(100)
     G = lambda x: pow(g,x,p)
 
     # Every participant gets a number   
     x = list1()
+    round1 = list1()
+    round2 = list1()
 
     ### ROUND 1
     # Loop through all participants (i)
@@ -176,32 +183,47 @@ def main():
         # Store this for each participant as x
         x.append(R)
 
-    ### When this round finishes, each participant computes
+    print("Round.. 1")
+    ### When this round finishes, each participant computes the following:
     for i in irange(1,n):
 
         numerator = 1
-        for j in range(1,i-1):
+        for j in irange(1,i-1):
             numerator *= G(x[j])
-     #   print("n: " + str(numerator))
 
         denominator = 1
-        for j in range(i+1,n):
-            denominator *= G(x[j])           
-     #   print("d: " + str(denominator))
+        for j in irange(i+1,n):
+            denominator *= G(x[j])
 
         gyi = numerator//denominator
         print("gyi " + str(gyi))
+        round1.append(gyi)
+
+    print("Round.. 2")
+
+    #### Round 2
+    # Every participant broadcasts a value G(cy) and a knowledge proof for c[i], where c[i] is either x[i] or a random value 
+    # depending on whether participant Pi vetoes or not.
+
+    # Remember, for multiplying exponents (a^n)^m = a^(nm)
 
 
+    for i in irange(1,n):
 
-    # Every participant broadcasts a value gciyi and a knowledge proof for ci, where ci is either xi or a random value 
+        VETO = False
+
+        if VETO is True:
+            c = random.SystemRandom().getrandbits(bits)
+        else:
+            c = x[i]
+
+        round2.append(pow(round1[i],c))
+        print(round2[i])
 
 
-
-
-
-
-
+def main():
+    #print(gen_dh_group(100))
+    print(avnet())
     #print(small_primes)
 if __name__ == "__main__":
     main()
