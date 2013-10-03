@@ -1,59 +1,9 @@
 import random
 import timeit
 import sys
+import math
 # This a literal translation of the AVnet.
 # I used inclusive ranges and lists because the original paper did, and I wanted to make sure I followed.
-
-def irange(param1,param2=None,param3=None):
-    """Inclusive range function"""
-    if param2 is None and param3 is None:
-        # 1 argument passed in
-        return range(param1+1)
-    elif param3 is None:
-        # 2 args
-        return range(param1,param2+1)
-    else:
-        return range(param1,param2+1,param3)
-
-class list1(list):
-    """One-based version of list."""
-
-    def _zerobased(self, i):
-        if type(i) is slice:
-            return slice(self._zerobased(i.start),
-                         self._zerobased(i.stop), i.step)
-        else:
-            if i is None or i < 0:
-                return i
-            elif not i:
-                raise IndexError("element 0 does not exist in 1-based list")
-            return i - 1
-
-    def __getitem__(self, i):
-        return list.__getitem__(self, self._zerobased(i))
-
-    def __setitem__(self, i, value):
-        list.__setitem__(self, self._zerobased(i), value)
-
-    def __delitem__(self, i):
-        list.__delitem__(self, self._zerobased(i))
-
-    def __getslice__(self, i, j):
-        return list.__getslice__(self, self._zerobased(i or 1),
-                                 self._zerobased(j))
-
-    def __setslice__(self, i, j, value):
-        list.__setslice__(self, self._zerobased(i or 1),
-                          self._zerobased(j), value)
-
-    def index(self, value, start=1, stop=-1):
-        return list.index(self, value, self._zerobased(start),
-                          self._zerobased(stop)) + 1
-
-    def pop(self, i):
-        return list.pop(self, self._zerobased(i))
-
-
 
 def small_prime_generator(max=1000):
     """
@@ -160,24 +110,23 @@ def dh_test(bits=100,a=None,b=None,p=None,g=None):
 def avnet():
 
     # number of participants
-    n = 20
+    n = 10
     bits = 100
 
     # Every participant agrees on a Generator function
     print("Generating DH")
-    # p,q,g = (378019149936402528836294373203, 189009574968201264418147186601, 219179160367544848293941757544)
-    p,q,g= gen_dh_group(100)
+    p,q,g = (378019149936402528836294373203, 189009574968201264418147186601, 219179160367544848293941757544)
+    #p,q,g= gen_dh_group(10)
     G = lambda x: pow(g,x,p)
 
     # Every participant gets a number   
-    x = list1()
-    round1 = list1()
-    round2 = list1()
+    x = []
+    round1 = []
+    round2 = []
 
     ### ROUND 1
     # Loop through all participants (i)
-    for i in irange(1,n):
-        
+    for i in range(n):
         # Each participant selects a random number.
         R = random.SystemRandom().getrandbits(bits)
         # Store this for each participant as x
@@ -185,45 +134,48 @@ def avnet():
 
     print("Round.. 1")
     ### When this round finishes, each participant computes the following:
-    for i in irange(1,n):
+    for i in range(n):
 
+        numeratorList = []
         numerator = 1
-        for j in irange(1,i-1):
+        for j in range(i-1):
             numerator *= G(x[j])
-
+        denominatorList = []
         denominator = 1
-        for j in irange(i+1,n):
+        for j in range(i+1,n):
             denominator *= G(x[j])
+        gyi = numerator/denominator
+        print("gyi - " +  str(gyi))
 
-        gyi = numerator//denominator
-        print("gyi " + str(gyi))
-        round1.append(gyi)
+        print("girl")
+        gciyi = pow(gyi,x[j])
+        print(gciyi)
+        print("Scout")
 
     print("Round.. 2")
 
-    #### Round 2
-    # Every participant broadcasts a value G(cy) and a knowledge proof for c[i], where c[i] is either x[i] or a random value 
-    # depending on whether participant Pi vetoes or not.
+    # #### Round 2
+    # # Every participant broadcasts a value G(cy) and a knowledge proof for c[i], where c[i] is either x[i] or a random value 
+    # # depending on whether participant Pi vetoes or not.
 
-    # Remember, for multiplying exponents (a^n)^m = a^(nm)
+    # # Remember, for multiplying exponents (a^n)^m = a^(nm)
 
+    # for i in irange(1,n):
 
-    for i in irange(1,n):
+    #     VETO = False
 
-        VETO = False
+    #     if VETO is True:
+    #         c = random.SystemRandom().getrandbits(bits)
+    #     else:
+    #         c = x[i]
 
-        if VETO is True:
-            c = random.SystemRandom().getrandbits(bits)
-        else:
-            c = x[i]
-
-        round2.append(pow(round1[i],c))
-        print(round2[i])
+    #     round2.append(pow(round1[i],c))
+    #     print(round2[i])
 
 
 def main():
     #print(gen_dh_group(100))
-    print(avnet())
+    avnet()
     #print(small_primes)
 if __name__ == "__main__":
     main()
