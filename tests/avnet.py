@@ -1,9 +1,79 @@
 import random
 import timeit
 import sys
-import math
+import numpy
+
 # This a literal translation of the AVnet.
 # I used inclusive ranges and lists because the original paper did, and I wanted to make sure I followed.
+
+def sigma_not(start,end,seq):
+    totalsum = 0
+    current = start
+    while current <= end:
+        totalsum += seq(current)
+        current += 1
+    return totalsum
+
+
+def pi_not(start,end,seq):
+    totalprod = 1
+    current = start
+    while current <= end:
+        totalprod *= seq(current)
+        current += 1
+    return totalprod
+
+
+def irange(param1,param2=None,param3=None):
+    """Inclusive range function"""
+    if param2 is None and param3 is None:
+        # 1 argument passed in
+        return range(param1+1)
+    elif param3 is None:
+        # 2 args
+        return range(param1,param2+1)
+    else:
+        return range(param1,param2+1,param3)
+
+class list1(list):
+    """One-based version of list."""
+
+    def _zerobased(self, i):
+        if type(i) is slice:
+            return slice(self._zerobased(i.start),
+                         self._zerobased(i.stop), i.step)
+        else:
+            if i is None or i < 0:
+                return i
+            elif not i:
+                raise IndexError("element 0 does not exist in 1-based list")
+            return i - 1
+
+    def __getitem__(self, i):
+        return list.__getitem__(self, self._zerobased(i))
+
+    def __setitem__(self, i, value):
+        list.__setitem__(self, self._zerobased(i), value)
+
+    def __delitem__(self, i):
+        list.__delitem__(self, self._zerobased(i))
+
+    def __getslice__(self, i, j):
+        return list.__getslice__(self, self._zerobased(i or 1),
+                                 self._zerobased(j))
+
+    def __setslice__(self, i, j, value):
+        list.__setslice__(self, self._zerobased(i or 1),
+                          self._zerobased(j), value)
+
+    def index(self, value, start=1, stop=-1):
+        return list.index(self, value, self._zerobased(start),
+                          self._zerobased(stop)) + 1
+
+    def pop(self, i):
+        return list.pop(self, self._zerobased(i))
+
+
 
 def small_prime_generator(max=1000):
     """
@@ -111,66 +181,123 @@ def avnet():
 
     # number of participants
     n = 10
-    bits = 100
+    bits = 10
 
     # Every participant agrees on a Generator function
     print("Generating DH")
-    p,q,g = (378019149936402528836294373203, 189009574968201264418147186601, 219179160367544848293941757544)
-    #p,q,g= gen_dh_group(10)
+    # p,q,g = (378019149936402528836294373203, 189009574968201264418147186601, 219179160367544848293941757544)
+    p,q,g= gen_dh_group(bits)
+    p = p
+    q = q
+    g = g
     G = lambda x: pow(g,x,p)
-
-    # Every participant gets a number   
-    x = []
-    round1 = []
-    round2 = []
-
+    
+    # Every participant gets a number 
+    global x  
+    x = list1()
+    global gx
+    gx = list1()
+    gy = list1()
+    round2 = list1()
+    yi = list1()
     ### ROUND 1
     # Loop through all participants (i)
-    for i in range(n):
+    for i in irange(1,n):
+        
         # Each participant selects a random number.
         R = random.SystemRandom().getrandbits(bits)
         # Store this for each participant as x
         x.append(R)
+        gx.append(G(R))
 
     print("Round.. 1")
     ### When this round finishes, each participant computes the following:
-    for i in range(n):
-
-        numeratorList = []
+    for i in irange(1,n):
         numerator = 1
-        for j in range(i-1):
-            numerator *= G(x[j])
-        denominatorList = []
-        denominator = 1
-        for j in range(i+1,n):
-            denominator *= G(x[j])
-        gyi = numerator/denominator
-        print("gyi - " +  str(gyi))
+        numA = numpy.zeros(0)
 
-        print("girl")
-        gciyi = pow(gyi,x[j])
-        print(gciyi)
-        print("Scout")
+        for j in irange(1,i-1):
+            numerator *= gx[j]
+            numA = numpy.append(numA,gx[j])
+
+        denominator = 1
+        # Doing the appends is slow, but it's for testing
+        numB = numpy.zeros(0)
+        for j in irange(i+1,n):
+            denominator *= gx[j]
+            numB = numpy.append(numB,gx[j])
+
+        gyi = numerator/denominator
+        print("gyi")
+        gy.append(gyi)
+        print(gyi)
+
+
+        #Yi
+        a = 0
+        for j in irange(1,i-1):
+            a += x[j]
+        b = 0
+        for j in irange(i+1,n):
+            b += x[j]
+        y = a - b      
+        yi.append(y)
+
+        gyi2 = G(abs(y))
+        print("gyi2")
+        print(gyi2)
+
+    print("----")
+    # result = 0
+    # # Test for 0
+    # for i in irange(1,n):
+    #     result += x[i] * y[i]
+    #     #print("Calculating " + str(x[i])  + " * " + str(y[i]) +  " = " + str(result))
+    # print("Final - " + str(result))
+
+    ## This check isn't needed, since it's mathmatically guaranteed to be true.
+    # total = 0
+    # for i in x:
+    #     for j in x:
+    #         combined = i - j
+    #         total += combined
+    # print("Combined - " + str(combined))
 
     print("Round.. 2")
 
-    # #### Round 2
-    # # Every participant broadcasts a value G(cy) and a knowledge proof for c[i], where c[i] is either x[i] or a random value 
-    # # depending on whether participant Pi vetoes or not.
+    #### Round 2
+    # Every participant broadcasts a value G(cy) and a knowledge proof for c[i], where c[i] is either x[i] or a random value 
+    # depending on whether participant Pi vetoes or not.
 
-    # # Remember, for multiplying exponents (a^n)^m = a^(nm)
+    # Since we have g^yi now, if we raise that to the C power, then mod p again, we should have it.
 
-    # for i in irange(1,n):
+    for i in irange(1,n):
 
-    #     VETO = False
+        VETO = False
+        if i == 222222:
+            VETO = True
+        if VETO is True:
+            c = random.SystemRandom().getrandbits(bits)
+            print("Veto")
+        else:
+            c = x[i]
 
-    #     if VETO is True:
-    #         c = random.SystemRandom().getrandbits(bits)
-    #     else:
-    #         c = x[i]
+        gciyi = G(c*yi[i])
+        print("y - " + str(yi[i]) + " c - " + str(c) + " gciyi - " + str(gciyi) )
+        # print(gciyi)
+        round2.append(gciyi)
 
-    #     round2.append(pow(round1[i],c))
-    #     print(round2[i])
+    print("Calculate..")
+    # To check the final message, each participant computes the following.
+    # If no one vetos, it should == 1
+    # OTOH, if anyone DOES veto, it should == !1
+
+    lastnum = 1
+    for i in round2:
+        print(i)
+        lastnum *= i
+    print("Last - " + str(lastnum))
+
 
 
 def main():

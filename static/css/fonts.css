@@ -7,5 +7,27 @@
          url('/static/fonts/geosanslight-webfont.svg#webfontY02WmcuR') format('svg');
     font-weight: normal;
     font-style: normal;
-
 }
+
+@font-face {
+    font-family: 'RalewayThin';
+    src: url('/static/fonts/raleway_thin-webfont.eot');
+    src: url('/static/fonts/raleway_thin-webfont.eot?#iefix') format('eot'),
+         url('/static/fonts/raleway_thin-webfont.woff') format('woff'),
+         url('/static/fonts/raleway_thin-webfont.ttf') format('truetype'),
+         url('/static/fonts/raleway_thin-webfont.svg') format('svg');
+    font-weight: 300;
+    font-style: normal;
+}
+
+
+@font-face {
+    font-family: 'FiraSans';
+    src: url('/static/fonts/FiraSansSC-Light.eot') format('eot'),
+        url('/static/fonts/FiraSans-Light.ttf') format('ttf'),
+        url('/static/fonts/FiraSans-Light.woff') format('woff');
+
+    font-weight: normal;
+    font-style: normal;
+}
+

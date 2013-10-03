@@ -19,14 +19,10 @@ server = Server.Server()
 
 class EmailServer(object):
 
-    """
-    Sends email from the mongo queue of emails.
-    """
+    """Sends email from the mongo queue of emails."""
 
     def __init__(self):
-        """
-        Initialize our main module, and create threads.
-        """
+        """Initialize our main module, and create threads."""
         # Create a hopper for all the emails to reside in
         self.emails = multiprocessing.Queue()
         self.optouts = []
@@ -35,9 +31,7 @@ class EmailServer(object):
             self.makedefaults()
 
     def makedefaults(self):
-        """
-        Stick default settings in a file.
-        """
+        """Stick default settings in a file."""
         server.serversettings.settings['email'] = {}
         server.serversettings.settings['email'][
             'sender'] = "noreply <noreply@example.com>"
@@ -60,9 +54,7 @@ class EmailServer(object):
         server.serversettings.saveconfig()
 
     def loadmail(self):
-        """
-        Load in the emails
-        """
+        """Load in the emails."""
 
         for email in server.db.safe.find('output-emails', {}):
             self.optouts.append(email['address'])
@@ -75,9 +67,7 @@ class EmailServer(object):
             server.db.unsafe.remove('notifications_queue', email)
 
     def start(self):
-        """
-        Start up all subprocs
-        """
+        """Start up all subprocs."""
         count = 0
 
         self.stop()
@@ -93,9 +83,7 @@ class EmailServer(object):
             count += 1
 
     def stop(self):
-        """
-        Terminate all subprocs
-        """
+        """Terminate all subprocs."""
         count = 0
         server.logger.info("stopping")
         for proc in self.procs:
@@ -105,9 +93,7 @@ class EmailServer(object):
         server.logger.info("You are now free to turn off your computer.")
 
     def sendmail(self):
-        """
-        Actually connect to the server, and push out the message.
-        """
+        """Actually connect to the server, and push out the message."""
 
         count = 0
         # Grab some emails from the stack

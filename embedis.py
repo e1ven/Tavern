@@ -14,7 +14,7 @@ import io
 
 class embedis:
 
-    """Embedis is a quick class/API for translating embeddable media"""
+    """Embedis is a quick class/API for translating embeddable media."""
 
     def __init__(self, x=640, y=480):
 
@@ -80,9 +80,7 @@ class embedis:
             return None
 
     def embedis(self):
-        """
-        Embed.is integration
-        """
+        """Embed.is integration."""
         api_url = server.serversettings.settings['embedserver'] + \
             '/iframe/' + self.x + '/' + self.y + '/'
         full_url = api_url + self.url
@@ -104,9 +102,8 @@ class embedis:
 
     @memorise(ttl=server.serversettings.settings['cache']['avatarcache']['seconds'], maxsize=server.serversettings.settings['cache']['avatarcache']['size'])
     def getavatar(self, myid, datauri=True, width=40, height=40):
-        """
-        Retrieve the Avatar from Robohash.org, for use in the datauri embed.
-        """
+        """Retrieve the Avatar from Robohash.org, for use in the datauri
+        embed."""
         # If user.datauri is True, generate the image and hand it back.
         if datauri:
 

@@ -1,20 +1,36 @@
-# Tavern install instructions
-# It is assumed you will be using Python 3.3
-# If you're on OSX, I suggest you install homebrew, which is used to pull further deps.
+# Tavern system-install instructions
+# Tavern is designed to run on Python3.3, under Ubuntu or OSX.
+# It'll almost certainly work on other systems, but the docs are yet to be written.
+# 
+#                               IMPORTANT!
+#           This is not the recomended way for testing out Tavern.
+#           There is a Vagrant Virtual Machine, which will be -MUCH- Easier.
+#
+#           If you want to check out Tavern, you should almost certainly use the Vagrant box, at least at first.
+#           These instructions will install it directly on the machine -
+#           This makes it run faster, but also is more invasive, and a lot more work. 
+#           I strongly suggest you checkout the DOCS/Using-Vagrant file for instructions on installing via Vagrant instead.
+#           
+#           If you complain "Tavern is hard to install", and you used these instructions instead of the Vagrant box, I will cry.
+#           Really. I'll cry like a baby. I'll help you, but I'll be helping through tears.
+#
+#
+#
 
-### For Debian-based systems 
-    apt-get update
-    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 
-    apt-get install libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor 
-    apt-get install gnupg make git-core scons libpq-dev curl
-    # On 64 bit linux
-        apt-get install lib32z1
-    apt-get install mongodb-10gen
+# Install the Needed packages.
+# Note - This will also install MongoDB, which will run in the background.
+# Anytime you are not using Tavern, you may want to disable this.
+# Before you argue "That's not convienient", see the note labeled IMPORTANT at the top ;) 
+
+# Package install for Ubuntu
+
+    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev curl libmpc2 lib32z1 mongodb-10gen
 
 
-### for OS X
-    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba
-
+# Package install for OSX
+# Requires Homebrew - ( http://brew.sh/ )
+    
+    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba libmpc gmp
 
 # Install RVM, so we can load in a more recent ruby without messing up the system ruby
 curl -L https://get.rvm.io | bash

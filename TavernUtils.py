@@ -76,9 +76,7 @@ def checkWork(input, proof, difficulty):
 
 
 def inttime():
-    """
-    Force 1 sec precision, so multiple requests per second cache.
-    """
+    """Force 1 sec precision, so multiple requests per second cache."""
     return int(time.time())
 
 
@@ -101,16 +99,13 @@ class randomWords():
         fortunes.close()
 
     def random(self):
-        """
-        Return a Random Fortune from the stack
-        """
+        """Return a Random Fortune from the stack."""
         fortuneindex = randrange(0, len(self.fortunes) - 1)
         return self.fortunes[fortuneindex]
 
     def wordhash(self, st, slots=4):
-        """
-        Generate a WordHash, such as MinibarAvoureParapetedSlashings for a string
-        """
+        """Generate a WordHash, such as MinibarAvoureParapetedSlashings for a
+        string."""
 
         # Build a hash of the word
         hsh = hashlib.sha512()
@@ -217,6 +212,7 @@ class memorise(object):
             If we pass a `taverncache` entry to the wrapped function, memorise will intercept it.
             taverncache='invalidate' will remove the entry from the cache, if it's there.
             taverncache='bypass' will ignore the stored entry, re-run the function, and re-store the result.
+
         """
 
         def __init__(self, parent_keys=[], set=None, ttl=60, maxsize=None):

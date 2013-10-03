@@ -21,9 +21,7 @@ class BaseHandler(tornado.web.RequestHandler):
     """
 
     def __init__(self, *args, **kwargs):
-        """
-        Wrap the default RequestHandler with extra methods
-        """
+        """Wrap the default RequestHandler with extra methods."""
         self.html = ""
         super().__init__(*args, **kwargs)
 
@@ -74,9 +72,8 @@ class BaseHandler(tornado.web.RequestHandler):
 
     # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=server.serversettings.settings['cache']['templates']['seconds'], maxsize=server.serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name, **kwargs):
-        """
-        Overwrite the default render_string to ensure the "server" variable is always available to templates
-        """
+        """Overwrite the default render_string to ensure the "server" variable
+        is always available to templates."""
         arguments = dict(
             server=server,
             browser=self.browser,
@@ -105,20 +102,19 @@ class BaseHandler(tornado.web.RequestHandler):
         self.write(ptext)
 
     def get_argument(self, *args, **kwargs):
-        """
-        Overwrite the default get_argument to always HTML escape strings.
-        """
+        """Overwrite the default get_argument to always HTML escape strings."""
         results = super().get_argument(*args, **kwargs)
         if type(results) in [bytes, str, None]:
             results = tornado.escape.xhtml_escape(results)
         return results
 
     def finish(self, divs=['wrappertable'], message=None):
-        """
-        Pulls in appropriate divs and serves them out via JS if possible.
+        """Pulls in appropriate divs and serves them out via JS if possible.
         This saves bits, and keeps the columns as you left them.
 
-        Finish() is a function defined by tornado, so this will be called automatically if not included manually.
+        Finish() is a function defined by tornado, so this will be
+        called automatically if not included manually.
+
         """
 
         # Don't run this function twice. If we're called a second time, get the
@@ -250,10 +246,11 @@ class BaseHandler(tornado.web.RequestHandler):
 
     @memorise(parent_keys=['request.uri', 'html'], ttl=server.serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=server.serversettings.settings['cache']['getpagelemenent']['size'])
     def getjselement(self, element):
-        """
-        Get the element text, remove all linebreaks, and escape it up.
-        Then, send that as a document replacement
-        Also, rewrite the document history in the browser, so the URL looks normal.
+        """Get the element text, remove all linebreaks, and escape it up.
+
+        Then, send that as a document replacement Also, rewrite the
+        document history in the browser, so the URL looks normal.
+
         """
         try:
             soup = BeautifulSoup(self.html, "html.parser")
@@ -280,9 +277,10 @@ class BaseHandler(tornado.web.RequestHandler):
         return(ret)
 
     def recentauth(self, seconds=300):
-        """
-        Ensure the user has authenticated recently.
+        """Ensure the user has authenticated recently.
+
         To be used for things like change-password.
+
         """
         currenttime = int(time.time())
 
@@ -337,9 +335,7 @@ class BaseHandler(tornado.web.RequestHandler):
             print(self.user.UserSettings['author_sha512'])
 
     def getvars(self, AllowGuestKey=True):
-        """
-        Retrieve the basic user variables out of your cookies.
-        """
+        """Retrieve the basic user variables out of your cookies."""
         self.user = User()
         # Load in our session token if we have one.
         userid = self.get_secure_cookie("tavern_settings")
@@ -388,8 +384,10 @@ class BaseHandler(tornado.web.RequestHandler):
         return self.user.UserSettings['username']
 
     def write_error(self, status_code, **kwargs):
-        """
-        Errors? We don't need no stinkin errors. Just ignore for now, redirect.
+        """Errors?
+
+        We don't need no stinkin errors. Just ignore for now, redirect.
+
         """
         self.write(
             self.render_string(

@@ -22,16 +22,12 @@ class KeyGenerator(object):
     """
 
     def __init__(self):
-        """
-        Initialize our main module, and create threads.
-        """
+        """Initialize our main module, and create threads."""
         # Create a hopper for all the emails to reside in
         self.procs = []
 
     def start(self):
-        """
-        Start up all subprocs
-        """
+        """Start up all subprocs."""
         count = 0
 
         self.stop()
@@ -49,9 +45,7 @@ class KeyGenerator(object):
             count += 1
 
     def stop(self):
-        """
-        Terminate all subprocs
-        """
+        """Terminate all subprocs."""
         count = 0
         server.logger.info("Stopping KeyGenerator")
         for proc in self.procs:
@@ -61,9 +55,7 @@ class KeyGenerator(object):
         server.logger.info("All KeyGenerator threads ceased.")
 
     def CreateUnusedLK(self):
-        """
-        Create a LockedKey with a random password.
-        """
+        """Create a LockedKey with a random password."""
         lk = LockedKey()
         password = lk.generate(random=True)
         unusedkey = {'key': lk, 'password': password}
@@ -79,9 +71,7 @@ class KeyGenerator(object):
             server.unusedkeycache.put(unusedkey)
 
     def GenerateAsNeeded(self):
-        """
-        Watch to see if the queue gets low, and then add users
-        """
+        """Watch to see if the queue gets low, and then add users."""
 
         count = 0
         # Grab some emails from the stack

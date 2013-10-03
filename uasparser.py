@@ -229,9 +229,7 @@ class UASparser:
         return ret
 
     def _parseIniFile(self, file):
-        """
-        Parse an ini file into a dictionary structure
-        """
+        """Parse an ini file into a dictionary structure."""
         data = {}
         current_section = 'unknown'
         section_pat = re.compile(r'^\[(\S+)\]$')
@@ -255,9 +253,7 @@ class UASparser:
         return data
 
     def loadData(self):
-        """
-        Load cache data
-        """
+        """Load cache data."""
 
         if self.cache_data:  # no need to load
             return self.cache_data

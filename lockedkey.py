@@ -8,14 +8,15 @@ import functools
 
 class LockedKey(key.Key):
 
-    """
-    A securely locked away key, which uses a secret only stored in the client to unlock.
-    If our DB is ever compromised, this will prevent bad guys from easily impersonating users.
-    This also prevents us from evesdropping on private messages.
+    """A securely locked away key, which uses a secret only stored in the
+    client to unlock. If our DB is ever compromised, this will prevent bad guys
+    from easily impersonating users. This also prevents us from evesdropping on
+    private messages.
 
     Class is basically a wrapper around Keys.py
 
     We aren't just using gpg passphrases because there is no easy way to progratically change them.
+
     """
 
     # access_privatekey is an empty function that is called before every function that requires privatekey access.
@@ -32,9 +33,7 @@ class LockedKey(key.Key):
         super().__init__(pub=pub, priv=priv)
 
     def lock(self, passkey=None):
-        """
-        Remove the private key from Python obj
-        """
+        """Remove the private key from Python obj."""
         if self.privkey is None and self.encryptedprivkey is not None:
             # Already locked!
             print("Already locked.")
@@ -56,9 +55,7 @@ class LockedKey(key.Key):
             "Asked to lock a key, but unable to do so.")
 
     def unlock(self, passkey=None):
-        """
-        Sets self.privkey to be the public key, if possible
-        """
+        """Sets self.privkey to be the public key, if possible."""
         if passkey is not None:
             self.passkey = passkey
 
@@ -103,9 +100,7 @@ class LockedKey(key.Key):
         return self.encryptedprivkey
 
     def _decryptprivkey(self, passkey):
-        """
-        Decode and return the private key.
-        """
+        """Decode and return the private key."""
         if isinstance(passkey, str):
             passkey = passkey.encode('utf-8')
 
@@ -119,9 +114,10 @@ class LockedKey(key.Key):
         return result
 
     def get_passkey(self, password):
-        """
-        Returns the hashed version of the password.
+        """Returns the hashed version of the password.
+
         Broken out into a method, so we can swap it if nec.
+
         """
         if password is None:
             raise Exception("Password cannot be null.")
@@ -155,9 +151,10 @@ class LockedKey(key.Key):
 
     def generate(self, password=None,
                  passkey=None, random=False, autoexpire=False):
-        """
-        Generate a new set of keys.
+        """Generate a new set of keys.
+
         Store only the encrypted version
+
         """
 
         if password is None and passkey is None and random is False:

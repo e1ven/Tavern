@@ -21,9 +21,12 @@ import time
 class Key(object):
 
     def privatekeyaccess(fn):
-        """
-        privatekeyaccess is an wrapper decorator. It will call the unlock() function in the obj if it has one.
-        This allows us to define a separate unlock for each type of key, and call them from the parent.
+        """privatekeyaccess is an wrapper decorator.
+
+        It will call the unlock() function in the obj if it has one.
+        This allows us to define a separate unlock for each type of key,
+        and call them from the parent.
+
         """
         @functools.wraps(fn)
         def wrapper(cls, *args, **kwargs):
@@ -48,9 +51,10 @@ class Key(object):
         return wrapper
 
     def __init__(self, pub=None, priv=None):
-        """
-        Create a Key object.
+        """Create a Key object.
+
         Pass in either pub=foo, or priv=foo, to use pre-existing keys.
+
         """
         self.logger = logging.getLogger('Tavern')
         self.pubkey = pub
@@ -73,18 +77,20 @@ class Key(object):
                 self._setKeyDetails()
 
     def __del__(self):
-        """
-        Clean up after ourselves.
+        """Clean up after ourselves.
+
         In this case, remove the tempdir used to store gnukeys.
+
         """
         if self.gnuhome is not None:
             if shutil is not None:
                 shutil.rmtree(self.gnuhome, ignore_errors=True, onerror=None)
 
     def _setKeyDetails(self):
-        """
-        Set the format of the key.
+        """Set the format of the key.
+
         Format types via https://bitbucket.org/skskeyserver/sks-keyserver/src/4069c369eaaa718c6d4f19427f8f164fb9a1e1f0/packet.ml?at=default#cl-250
+
         """
 
         self.keydetails = {}
@@ -145,9 +151,10 @@ class Key(object):
             self.keydetails['encrypt'] = False
 
     def _format_keys(self):
-        """
-        Ensure the keys are in the proper format, with linebreaks.
+        """Ensure the keys are in the proper format, with linebreaks.
+
         linebreaks are every 64 characters, and we have a header/footer.
+
         """
         # Strip out the headers
         # Strip out the linebreaks
@@ -202,9 +209,7 @@ class Key(object):
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
 
     def isValid(self):
-        """
-        Does this key have an 'expires' variable set in the past?
-        """
+        """Does this key have an 'expires' variable set in the past?"""
         if vars(self).get('expires') is not None:
             return time.time() < self.expires
         else:
@@ -212,9 +217,7 @@ class Key(object):
             return True
 
     def generate(self, autoexpire=False):
-        """
-        Replaces whatever keys currently might exist with new ones.
-        """
+        """Replaces whatever keys currently might exist with new ones."""
         self.logger.debug("MAKING A KEY.")
         # We don't want to use gen_key_input here because it insists on having an email, when it's not needed.
         # GPG doesn't require one, but many email programs do, so for general-use it's usually best practice.
@@ -255,9 +258,7 @@ class Key(object):
 
     @privatekeyaccess
     def signstring(self, signstring):
-        """
-        Sign a string, and return back the Base64 Signature.
-        """
+        """Sign a string, and return back the Base64 Signature."""
         hashed_str = hashlib.sha512(signstring.encode('utf-8')).digest()
         encoded_hashed_str = base64.b64encode(hashed_str).decode('utf-8')
         signed_data = self.gpg.sign(
@@ -268,10 +269,11 @@ class Key(object):
         return signed_data
 
     def verify_string(self, stringtoverify, signature):
-        """
-        Verify the passed in string matches the passed signature.
-        We're expanding the GPG signatures a bit, so that we can verify the message matches
-        Not just the signature.
+        """Verify the passed in string matches the passed signature.
+
+        We're expanding the GPG signatures a bit, so that we can verify
+        the message matches Not just the signature.
+
         """
         verify = self.gpg.verify(signature)
 
@@ -310,9 +312,7 @@ class Key(object):
 
     @privatekeyaccess
     def encrypt(self, encryptstring, encrypt_to):
-        """
-        Encrypt a string, to the gpg key of the specified recipient)
-        """
+        """Encrypt a string, to the gpg key of the specified recipient)"""
 
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
@@ -335,9 +335,7 @@ class Key(object):
 
     @privatekeyaccess
     def encrypt_file(self, newfile):
-        """
-        Encrypt a string, to the gpg key of the specified recipient)
-        """
+        """Encrypt a string, to the gpg key of the specified recipient)"""
 
         # In order for this to work, we need to temporarily import B's key into A's keyring.
         # We then do the encryptions, and immediately remove it.
@@ -366,9 +364,7 @@ class Key(object):
         return tmpfilename
 
     def test_signing(self):
-        """
-        Verify the signing/verification engine works as expected
-        """
+        """Verify the signing/verification engine works as expected."""
         self._format_keys()
         return (
             self.verify_string(
