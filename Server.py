@@ -264,10 +264,8 @@ class Server(TavernUtils.instancer):
 
     class FancyDateTimeDelta(object):
 
-        """
-        Format the date / time difference between the supplied date and
-        the current time using approximate measurement boundaries
-        """
+        """Format the date / time difference between the supplied date and the
+        current time using approximate measurement boundaries."""
 
         def __init__(self, dt):
             now = datetime.datetime.now()
@@ -403,9 +401,8 @@ class Server(TavernUtils.instancer):
         self.guestacct = None
 
     def start(self):
-        """
-        Stuff that should be done when the server is running as a process, not just imported as a obj.
-        """
+        """Stuff that should be done when the server is running as a process,
+        not just imported as a obj."""
         self.external = embedis.embedis()
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
@@ -444,9 +441,7 @@ class Server(TavernUtils.instancer):
         # self.keygenerator.start()
 
     def stop(self):
-        """
-        Stop all server procs.
-        """
+        """Stop all server procs."""
         self.logger.info("Shutting down Server instance")
         self.keygenerator.stop()
 
@@ -494,9 +489,10 @@ class Server(TavernUtils.instancer):
     # Cache to failfast on receiving dups
     @memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
     def receiveEnvelope(self, envstr=None, env=None):
-        """
-        Receive an envelope for processing in the server.
+        """Receive an envelope for processing in the server.
+
         Can take either a string, or an envelope obj.
+
         """
         if envstr is None and env is None:
             raise Exception(

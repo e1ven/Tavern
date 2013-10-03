@@ -82,9 +82,7 @@ class RSSHandler(BaseHandler):
 
 class MessageHistoryHandler(BaseHandler):
 
-    """
-    Display the various edits to a message.
-    """
+    """Display the various edits to a message."""
 
     def get(self, messageid):
         self.getvars()
@@ -120,9 +118,11 @@ class MessageHistoryHandler(BaseHandler):
 
 class MessageHandler(BaseHandler):
 
-    """
-    The Message Handler displays a message, when given by message id.
-    It's intentionally a bit forgiving in the syntax, to make it easy to retrieve messages.
+    """The Message Handler displays a message, when given by message id.
+
+    It's intentionally a bit forgiving in the syntax, to make it easy to
+    retrieve messages.
+
     """
     # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['message-page']['seconds'], maxsize=server.serversettings.settings['cache']['message-page']['size'])
 
@@ -201,9 +201,7 @@ class MessageHandler(BaseHandler):
 
 class TopicHandler(BaseHandler):
 
-    """
-    The Topic Handler displays a topic, and the messages that are in it.
-    """
+    """The Topic Handler displays a topic, and the messages that are in it."""
 
     #@memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=server.serversettings.settings['cache']['topic-page']['size'])
     def get(self, topic='all'):
@@ -853,9 +851,7 @@ class NewmessageHandler(BaseHandler):
 
 class ReceiveEnvelopeHandler(BaseHandler):
 
-    """
-    Where envelopes POST.
-    """
+    """Where envelopes POST."""
 
     def options(self, regarding=None):
         self.set_header('Access-Control-Allow-Methods',
@@ -1300,10 +1296,10 @@ class NullHandler(BaseHandler):
 
 class BinariesHandler(tornado.web.RequestHandler):
 
-    """
-    Serves images/etc out of nginx.
-    Really shouldn't be used in prod.
-    Use the nginx handler instead
+    """Serves images/etc out of nginx.
+
+    Really shouldn't be used in prod. Use the nginx handler instead
+
     """
 
     def get(self, binaryhash, filename=None):
@@ -1317,9 +1313,10 @@ class BinariesHandler(tornado.web.RequestHandler):
 
 class AvatarHandler(tornado.web.RequestHandler):
 
-    """
-    Create Avatars using Robohashes.
+    """Create Avatars using Robohashes.
+
     You should cache these on disk using nginx.
+
     """
 
     def get(self, avatar):

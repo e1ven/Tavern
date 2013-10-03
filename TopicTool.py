@@ -12,16 +12,16 @@ import sys
 
 class TopicTool(object):
 
-    """
-    Break some of the common topic handling routines out into a tool, so that they can be cached.
+    """Break some of the common topic handling routines out into a tool, so
+    that they can be cached.
+
     Shouldn't be instantiated directly.
+
     """
 
     @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def messages(self, topic, maxposts, before=None):
-        """
-        Get all messages in a topic, no later than `before`
-        """
+        """Get all messages in a topic, no later than `before`"""
 
         if topic is not 'all':
             if isinstance(topic, str):
@@ -56,9 +56,7 @@ class TopicTool(object):
 
     @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def getbackdate(self, topic, maxposts, after):
-        """
-        Get the earliest dated message, before `after`
-        """
+        """Get the earliest dated message, before `after`"""
         sorttopic = server.sorttopic(topic)
         subjects = []
         if topic != "all":

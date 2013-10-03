@@ -34,9 +34,7 @@ args = parser.parse_args()
 
 
 def writetopic(topic, since=0, limit=0, skip=0, directory=None):
-    """
-    Write a topic out to .7z files
-    """
+    """Write a topic out to .7z files."""
     e = Envelope()
     if topic == 'all':
         envelopes = server.db.safe.find('envelopes')
@@ -75,9 +73,7 @@ def writetopic(topic, since=0, limit=0, skip=0, directory=None):
 
 
 def loaddir(directory=None, topic='sitecontent'):
-    """
-    Load in a directory full of Tavern Messages.
-    """
+    """Load in a directory full of Tavern Messages."""
     if directory is None:
         directory = msgsdir + topic
     print("Using directory: " + directory)

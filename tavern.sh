@@ -340,7 +340,7 @@ function start
     done
     # Convert the SCSS to CSS and put in production folder
     compass compile $STATIC/sass/ -e production
-    cp $STATIC/sass/css/* $STATIC/css/
+    cp -v $STATIC/sass/css/* $STATIC/css/
 
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
@@ -358,6 +358,7 @@ function start
         then
             # No pre-hashed version available
             $yui $i > $STATIC/scripts/$basename.min.js $flags
+            echo "$yui $i > $STATIC/scripts/$basename.min.js $flags"
             result=$?
             echo -e "\t $basename"
             # Reformatted
@@ -380,9 +381,11 @@ function start
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
             $yui $i > $STATIC/css/$basename.min.css
+            echo "$yui $i > $STATIC/css/$basename.min.css"
             echo -e "\t $basename"
             # Reformatted
         else
+            echo "Skipping $i because hash already exists at tmp/unchecked/$filehash.exists"
             : # No Reformatting needed 
         fi
         touch tmp/checked/$filehash.exists

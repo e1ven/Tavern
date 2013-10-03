@@ -28,9 +28,8 @@ class Envelope(object):
                 self.server = srv
 
         def alphabetizeAllItems(self, oldobj):
-            """
-            To ensure our messages are reconstructable, the message, and all fields should be in alphabetical order
-            """
+            """To ensure our messages are reconstructable, the message, and all
+            fields should be in alphabetical order."""
             # Recursively loop through all the keys/items
             # If we can sort them, do so, if not, just return it.
             if isinstance(oldobj, collections.Mapping):
@@ -186,9 +185,7 @@ class Envelope(object):
             return True
 
     def validate(self):
-        """
-        Ensures an envelope is valid, legal, and according to spec.
-        """
+        """Ensures an envelope is valid, legal, and according to spec."""
         self.registerpayload()
         # Check headers
         if 'envelope' not in self.dict:
@@ -294,9 +291,7 @@ class Envelope(object):
         return True
 
     def munge(self):
-        """
-        Set things in the local block of the message.
-        """
+        """Set things in the local block of the message."""
 
         # If we don't have a local section, add one.
         # This isn't inside of validation since it's legal not to have one.
@@ -382,9 +377,10 @@ class Envelope(object):
             del(self.dict['_id'])
 
     def mungebins(self):
-        """
-        Store detailed information for any binaries.
+        """Store detailed information for any binaries.
+
         Create Thumbnails for all images.
+
         """
         attachmentList = []
         for binary in self.dict['envelope']['payload']['binaries']:
@@ -499,9 +495,7 @@ class Envelope(object):
         return results
 
     def addStamp(self, stampclass, keys, passkey=None, **kwargs):
-        """
-        Adds a stamp of type `class` to the current envelope
-        """
+        """Adds a stamp of type `class` to the current envelope."""
 
         if passkey is not None:
             keys.unlock(passkey)
@@ -534,9 +528,11 @@ class Envelope(object):
         self.dict['envelope']['stamps'].append(fullstamp)
 
     def addAncestor(self, ancestorid):
-        """
-        A new Ancestor has been found (parent, parent's parent, etc) for this message.
+        """A new Ancestor has been found (parent, parent's parent, etc) for
+        this message.
+
         Set it locally, and tell all my children, if I have any
+
         """
         ancestor = Envelope()
         if ancestor.loadmongo(mongo_id=ancestorid):
@@ -568,8 +564,10 @@ class Envelope(object):
             self.saveMongo()
 
     def addcite(self, citedby):
-        """
-        Another message has referenced this one. Mark it in the local area.
+        """Another message has referenced this one.
+
+        Mark it in the local area.
+
         """
         if not 'citedby' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['citedby'] = []
@@ -579,9 +577,10 @@ class Envelope(object):
         self.saveMongo()
 
     def addEdit(self, editid):
-        """
-        Another message has come in that says it's an edit of this one.
+        """Another message has come in that says it's an edit of this one.
+
         Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.
+
         """
         newmessage = Envelope()
 

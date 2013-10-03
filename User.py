@@ -34,9 +34,10 @@ class User(object):
         self.server = Server.Server()
 
     def find_commkey(self):
-        """
-        Retrieves the current public communication key.
+        """Retrieves the current public communication key.
+
         This will retrieve the key using only public information.
+
         """
 
         posts = self.server.getUsersPosts(self.Keys['master'].pubkey)
@@ -46,11 +47,13 @@ class User(object):
             return None
 
     def get_pmkey(self, talkingto=None):
-        """
-        Generate a Private Message to person X.
-        This is create a new Secret Key for the message, and add it to our pool.
-        This helps avoid analysis, and helps ensure that if our master key is compromised,
-        our older communications don't leak.
+        """Generate a Private Message to person X.
+
+        This is create a new Secret Key for the message, and add it to
+        our pool. This helps avoid analysis, and helps ensure that if
+        our master key is compromised, our older communications don't
+        leak.
+
         """
 
         if self.passkey is None:
@@ -64,9 +67,10 @@ class User(object):
         return newkey
 
     def get_keys(self, ret='all', excludeMaster=True):
-        """
-        Retrieve a list of all of our Keys objects.
+        """Retrieve a list of all of our Keys objects.
+
         Optionally exclude the 'master' key.
+
         """
         # Allow both Keys['foo'] and Keys['foo']['bar'] styles
         allkeys = []
@@ -101,9 +105,10 @@ class User(object):
             return retarray
 
     def verify_password(self, guessed_password, maxtime=50):
-        """
-        Verify if we can unlock the master key.
+        """Verify if we can unlock the master key.
+
         If we can, allow auth to the this user.
+
         """
 
         passkey = self.Keys['master'].get_passkey(guessed_password)
@@ -114,9 +119,7 @@ class User(object):
 
     # @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=self.server.serversettings.settings['cache']['user-note']['size'])
     def getNote(self, noteabout):
-        """
-        Retrieve any note by user A about user B
-        """
+        """Retrieve any note by user A about user B."""
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 
@@ -322,9 +325,7 @@ class User(object):
 
     # @memorise(parent_keys=['Keys.master.pubkey'], ttl=self.server.serversettings.settings['cache']['message-ratings']['seconds'], maxsize=self.server.serversettings.settings['cache']['message-ratings']['size'])
     def getRatings(self, postInQuestion):
-        """
-        Get the ratings of a specific message
-        """
+        """Get the ratings of a specific message."""
         # Move this. Maybe to Server??
         allvotes = self.server.db.unsafe.find(
             'envelopes',
@@ -371,9 +372,11 @@ class User(object):
 
     def generate(self, AllowGuestKey=True,
                  password=None, email=None, username=None):
-        """
-        Create a Tavern user, filling in any missing information for existing users.
+        """Create a Tavern user, filling in any missing information for
+        existing users.
+
         Only creates keys if asked to.
+
         """
 
         # Ensure that these values are filled in.
@@ -559,11 +562,11 @@ class User(object):
             return True
 
     def decrypt(self, text, passkey=None):
-        """
-        Decrypt a message sent to me, using one of my communication keys.
+        """Decrypt a message sent to me, using one of my communication keys.
 
         Note - We don't try to decrypt using the master key, even though it's technically possible.
         This is intentional, so that other clients don't start sending PMs to the master key, and compromise security.
+
         """
         if self.passkey is not None:
             passkey = self.passkey
@@ -578,9 +581,7 @@ class User(object):
                 return result
 
     def changepass(self, newpassword, oldpasskey=None):
-        """
-        Change the User's password
-        """
+        """Change the User's password."""
         # Re-encrypt our Privkey
 
         if oldpasskey is None and self.passkey is not None:
@@ -602,9 +603,8 @@ class User(object):
             return False
 
     def presave_clean(self):
-        """
-        Ensure our keys are saved to the userdict for later restore, and remove sensetive info
-        """
+        """Ensure our keys are saved to the userdict for later restore, and
+        remove sensetive info."""
         if self.Keys.get('master'):
             if not self.UserSettings['keys'].get('master'):
                 self.UserSettings['keys']['master'] = {}
@@ -737,9 +737,7 @@ class User(object):
         filehandle.close()
 
     def load_mongo_by_pubkey(self, pubkey):
-        """
-        Returns a user object for a given pubkey
-        """
+        """Returns a user object for a given pubkey."""
 
         # Get Formatted key for searching.
         tmpkey = Key(pub=pubkey)
@@ -756,9 +754,7 @@ class User(object):
             self.load_pubkey_only(pubkey)
 
     def load_mongo_by_sha512(self, sha):
-        """
-        Returns a user object for a given sha512
-        """
+        """Returns a user object for a given sha512."""
         print("Trying to load : " + str(sha))
         user = self.server.db.unsafe.find_one('users', {'author_sha512': sha})
         if user is not None:
