@@ -406,7 +406,10 @@ function start
         echo "Combining and further minimizing JS.."
         JSFILES="$STATIC/scripts/json3.min.js $STATIC/scripts/jquery.min.js $STATIC/scripts/mousetrap.min.js $STATIC/scripts/jstorage.min.js $STATIC/scripts/jquery.json.min.js $STATIC/scripts/colresizable.min.js $STATIC/scripts/jquery-throttle.min.js $STATIC/scripts/default.min.js $STATIC/scripts/garlic.min.js $STATIC/scripts/video.min.js $STATIC/scripts/audio.min.js $STATIC/scripts/retina.min.js"
         if [ $DEBUG -eq 0 ]
-        then
+        then    
+    
+            $STATIC/scripts/json3.min.js
+    
             cat $JSFILES > $STATIC/scripts/unified.js
 
             # It's smaller if we re-minimize afterwords. 
@@ -423,7 +426,10 @@ function start
             echo "" > themes/default/header-debug-JS.html
             for script in $JSFILES
             do 
-                echo "<script src=\"/$script\"></script>" >> themes/default/header-debug-JS.html
+                # Get the basename, to avoid getting the $STATIC/tmp dir
+                bn=`basename $script`
+                echo "<script defer src=\"/static/scripts/$bn\"></script>" >> themes/default/header-debug-JS.html
+
             done
         fi
 

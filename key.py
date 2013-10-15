@@ -278,7 +278,7 @@ class Key(object):
         verify = self.gpg.verify(signature)
 
         # Make sure that this is a valid signature from Someone.
-        if verify.valid is True:
+        if verify.valid is not True:
             self.logger.info("This key does not match")
             return False
 

@@ -52,12 +52,12 @@ class BaseHandler(tornado.web.RequestHandler):
         self.set_header("X-Content-Type-Options", "nosniff")
 
         # http://cspisawesome.com/content_security_policies
-        self.set_header(
-            "Content-Security-Policy-Report-Only",
-            "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " +
-            server.serversettings.settings[
-                'embedserver'] +
-            " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+        # self.set_header(
+        #     "Content-Security-Policy-Report-Only",
+        #     "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " +
+        #     server.serversettings.settings[
+        #         'embedserver'] +
+        #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
 
         self.fullcookies = {}
         for cookie in self.request.cookies:
@@ -244,7 +244,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
         return (ret)
 
-    @memorise(parent_keys=['request.uri', 'html'], ttl=server.serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=server.serversettings.settings['cache']['getpagelemenent']['size'])
+    #@memorise(parent_keys=['request.uri', 'html'], ttl=server.serversettings.settings['cache']['getpagelemenent']['seconds'], maxsize=server.serversettings.settings['cache']['getpagelemenent']['size'])
     def getjselement(self, element):
         """Get the element text, remove all linebreaks, and escape it up.
 
@@ -252,6 +252,7 @@ class BaseHandler(tornado.web.RequestHandler):
         document history in the browser, so the URL looks normal.
 
         """
+        print("Your element is " + str(element))
         try:
             soup = BeautifulSoup(self.html, "html.parser")
         except:
