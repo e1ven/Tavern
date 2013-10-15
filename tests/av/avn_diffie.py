@@ -37,12 +37,13 @@ class Diffie(object):
 
 class Cryptographer(object):
 
-    def __init__(self,number,veto = False):
+    def __init__(self,number,veto = False,bits=1024):
         self.number = number
         self.veto = veto
-    
+        self.bits=bits
+
     def compute_gx(self):
-        self.x = random.randint(Diffie.q>>3, Diffie.q-1)          # generating a big random number x (less than q)
+        self.x = random.SystemRandom().getrandbits(self.bits)          # generating a big random number x (less than q)
         self.gx = mpmath.power(Diffie.g, self.x)
 
     def compute_gy(self,table):
