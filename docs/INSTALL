@@ -69,7 +69,7 @@ sudo chown -R "$USER" Tavern
     cd ../..
 
     # on Linux
-        ./configure --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
+        ./configure --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
     # On OS X
         ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
     make
@@ -79,7 +79,9 @@ sudo chown -R "$USER" Tavern
     chmod 777 /opt/uploads/
     mkdir -p /var/www/cache/tmp
 
-    cd /opt/Tavern/data/nginx/nginx /opt/nginx/sbin/initscript
+    cp /opt/Tavern/data/nginx/nginx /opt/nginx/sbin/initscript
+    rm /etc/init.d/nginx
+    rm /opt/nginx/conf/nginx.conf
     ln -s /opt/nginx/sbin/initscript /etc/init.d/nginx
     ln -s /opt/Tavern/data/nginx/nginx.conf /opt/nginx/conf/nginx.conf
 

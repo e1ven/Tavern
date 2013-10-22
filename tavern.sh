@@ -114,7 +114,8 @@ then
         fi
     else
         # Linux
-        mount -t tmpfs -o size=$2M tmpfs $mntpt
+        mkdir -p $mntpt
+        mount -t tmpfs -o size="$size"M tmpfs $mntpt
         echo $mntpt >> mounted
     fi
 elif [ "$control" == "stop" ]
@@ -265,6 +266,7 @@ function start
     mkdir -p logs
     mkdir -p data/conf
 
+    rvm use 1.9.3@Tavern --install --create
     if [ "$1" == "debug" ]
     then
         DEBUG=1
@@ -289,10 +291,10 @@ function start
     ramdisk start static 15
 
     cd ..
-    robohashfiles=`ls -l tmp/robohash/ | wc -l`
+    robohashfiles=`ls -l tmp/Robohash/ | wc -l`
     if [ $robohashfiles -lt 10 ]
     then
-        cp -pr libs/Robohash/* tmp/robohash
+        cp -pr libs/Robohash/* tmp/Robohash
     fi
     
     # Copy static files into the Ramdisk
