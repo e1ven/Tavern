@@ -20,3 +20,4 @@ gmpy
 mpmath
 bitarray
 untokenize
+pillow

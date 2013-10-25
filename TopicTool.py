@@ -23,6 +23,7 @@ class TopicTool(object):
     def messages(self, topic, maxposts, before=None):
         """Get all messages in a topic, no later than `before`"""
 
+        print("My Topic is " + str(topic))
         if topic is not 'all':
             if isinstance(topic, str):
                 topics = []

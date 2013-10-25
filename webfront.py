@@ -14,7 +14,7 @@ import socket
 import json
 import os
 
-import Image
+from PIL import Image
 import imghdr
 import io
 import pygeoip
@@ -224,7 +224,8 @@ class TopicHandler(BaseHandler):
         else:
             showoriginal = False
 
-        if topic != 'sitecontent':
+        # TODO - Better custom handlers for this.
+        if topic not in ['sitecontent','all','all-subscribed']:
             self.canon = "topic/" + topic
             title = topic
         else:

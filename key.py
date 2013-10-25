@@ -61,6 +61,7 @@ class Key(object):
         self.privkey = priv
         self.expires = None
         self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
+
         self.gpg = gnupg.GPG(verbose=False, gnupghome=self.gnuhome,
                              options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
         self.gpg.encoding = 'utf-8'

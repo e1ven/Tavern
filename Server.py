@@ -129,6 +129,19 @@ class FakeMongo():
         for row in rows:
             self.insert(out, row)
 
+    def ensure_index(self, collection, index):
+        # TODO - add logic to detect existing idex, and not try to re-create.
+        cur = self.conn.cursor()
+        cursor.execute(
+            'CREATE INDEX idx_' +
+            collection +
+            ' ON col_' +
+            collection +
+            "(find_in_obj('data','" +
+            index +
+            "'));")
+        cursor.execute()
+
 
 class MongoWrapper():
 
@@ -211,6 +224,9 @@ class MongoWrapper():
 
     def count(self, collection, query={}):
         return self.mongo[collection].find(query).count()
+
+    def ensure_index(self, collection, index):
+        return self.mongo[collection].create_index(index)
 
 
 class DBWrapper():
@@ -368,6 +384,26 @@ class Server(TavernUtils.instancer):
             host=self.serversettings.settings['bin-mongo-hostname'],
             port=self.serversettings.settings['bin-mongo-port'])
         self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
+
+        # Ensure we have Proper indexes.
+        self.db.safe.ensure_index('envelope', 'envelope.local.time_added')
+        self.db.safe.ensure_index('envelope', 'envelope.local.sorttopic')
+        self.db.safe.ensure_index('envelope', 'envelope.local.payload_sha512')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.class')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.regarding')
+        self.db.safe.ensure_index(
+            'envelope',
+            'envelope.payload.binaries.sha_512')
+        self.db.safe.ensure_index('envelope', 'envelope.local.payload_sha512')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.author.pubkey')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.author.pubkey')
+        self.db.safe.ensure_index('envelope', 'usertrusts.asking')
+        self.db.safe.ensure_index('envelope', 'incomingtrust')
+
+        self.binaries.safe.ensure_index('fs.files', 'filename')
+        self.binaries.safe.ensure_index('fs.files', 'uploadDate')
+        self.binaries.safe.ensure_index('fs.files', '_id')
+        self.binaries.safe.ensure_index('fs.files', 'uploadDate')
 
         # Get a list of all the valid templates that can be used, to compare
         # against later on.

@@ -6,12 +6,12 @@ import collections
 from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
-import pylzma
+import lzma
 import TavernUtils
 from operator import itemgetter
 import magic
 import imghdr
-import Image
+from PIL import Image
 import gridfs
 from bs4 import BeautifulSoup
 
@@ -678,12 +678,8 @@ class Envelope(object):
 
         # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
-        filehandle = open(filename, 'rb')
+        filehandle = lzma.open(filename, 'r')
         filecontents = filehandle.read()
-        if (ext == '.7zTavernEnvelope'):
-            # 7zip'd JSON
-            filecontents = pylzma.decompress(filecontents)
-            filecontents = filecontents.decode('utf-8')
         filehandle.close()
         self.loadstring(filecontents)
 
@@ -725,16 +721,11 @@ class Envelope(object):
         self.payload.format()
         self.flatten()
 
-        # Compress the whole internal Envelope for saving.
-        compressed = pylzma.compress(self.text(), dictionary=10, fastBytes=255)
-        # self.server.logger.info "Compressed size " + str(sys.getsizeof(compressed))
-        # self.server.logger.info "Full Size " + str(sys.getsizeof(self.dict))
-
         # We want to name this file to the SHA512 of the payload contents, so
         # it is consistant across servers.
-        filehandle = open(
-            directory + "/" + self.payload.hash() + ".7zTavernEnvelope", 'wb')
-        filehandle.write(compressed)
+        filehandle = lzma.open(filename=
+                               directory + "/" + self.payload.hash() + ".7zTavernEnvelope", mode='w')
+        filehandle.write(self.text())
         filehandle.close()
 
     def saveMongo(self):
