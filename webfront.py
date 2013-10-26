@@ -225,7 +225,7 @@ class TopicHandler(BaseHandler):
             showoriginal = False
 
         # TODO - Better custom handlers for this.
-        if topic not in ['sitecontent','all','all-subscribed']:
+        if topic not in ['sitecontent', 'all', 'all-subscribed']:
             self.canon = "topic/" + topic
             title = topic
         else:

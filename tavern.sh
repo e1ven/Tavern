@@ -282,7 +282,7 @@ function start
     source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
     rvm use system@Tavern --install --create
     # Python
-    source data/env/bin/activate
+    source tmp/env/bin/activate
 
 
     if [ "$1" == "debug" ]

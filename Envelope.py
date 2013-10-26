@@ -678,7 +678,7 @@ class Envelope(object):
 
         # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
-        filehandle = lzma.open(filename, 'r')
+        filehandle = lzma.open(filename, 'r',encoding='utf-8')
         filecontents = filehandle.read()
         filehandle.close()
         self.loadstring(filecontents)
@@ -724,7 +724,7 @@ class Envelope(object):
         # We want to name this file to the SHA512 of the payload contents, so
         # it is consistant across servers.
         filehandle = lzma.open(filename=
-                               directory + "/" + self.payload.hash() + ".7zTavernEnvelope", mode='w')
+                               directory + "/" + self.payload.hash() + ".7zTavernEnvelope", mode='w',encoding='utf-8')
         filehandle.write(self.text())
         filehandle.close()
 
