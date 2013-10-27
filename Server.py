@@ -496,30 +496,41 @@ class Server(TavernUtils.instancer):
         return topic
 
     @memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
-    def error_envelope(self, error="Error"):
+    def error_envelope(self, subject="Error", topic="sitecontent", body=None):
+
+        if body is None:
+            body = """
+            Oh my, something seems to have happened that we weren't expecting.
+            Hopefully this will get cleared up relatively quickly.
+            If not, you might want to send a note to support@tavern.is, with the URL, and notes on how you got here :/
+
+            So sorry for the trouble.
+            -The Barkeep
+            """
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
-        e.dict['envelope']['payload']['subject'] = "Error"
-        e.dict['envelope']['payload']['topic'] = "sitecontent"
+        e.dict['envelope']['payload']['subject'] = subject
+        e.dict['envelope']['payload']['topic'] = topic
         e.dict['envelope']['payload']['formatting'] = "markdown"
         e.dict['envelope']['payload']['class'] = "message"
         e.dict['envelope']['payload'][
-            'body'] = "Oh, No, something's gone wrong.. \n\n " + error
+            'body'] = body
         e.dict['envelope']['payload']['author'] = OrderedDict()
         e.dict['envelope']['payload']['author']['pubkey'] = "1234"
         e.dict['envelope']['payload']['author']['friendlyname'] = "ERROR!"
         e.dict['envelope']['payload']['author']['useragent'] = "Error Agent"
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
-        e.dict['envelope']['local']['time_added'] = 1297396876
-        e.dict['envelope']['local']['author_wordhash'] = "ErrorMessage!"
-        e.dict['envelope']['local']['sorttopic'] = "error"
-        e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
-
         e.addStamp(
             stampclass='author',
             keys=self.ServerKeys,
             friendlyname=defaultsettings.settings['hostname'])
+        e.flatten()
         e.munge()
+        e.dict['envelope']['local']['time_added'] = 1297396876
+        e.dict['envelope']['local'][
+            'author_wordhash'] = "Automatically generated message"
+        e.dict['envelope']['local']['sorttopic'] = "error"
+        e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
         return e
 
     # Cache to failfast on receiving dups

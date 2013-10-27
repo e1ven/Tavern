@@ -114,39 +114,39 @@ class Key(object):
         for uid in self.gpg.list_keys()[0]['uids']:
             self.keydetails['uids'].append(uid)
 
-        if details['algo'] is '1' or 'R':
+        if details['algo'] == '1' or 'R':
             self.keydetails['algorithm'] = 'RSA'
             self.keydetails['sign'] = True
             self.keydetails['encrypt'] = True
-        elif details['algo'] is '2' or 'r':
+        elif details['algo'] == '2' or 'r':
             self.keydetails['algorithm'] = 'RSA'
             self.keydetails['sign'] = False
             self.keydetails['encrypt'] = True
-        elif details['algo'] is '3' or 's':
+        elif details['algo'] == '3' or 's':
             self.keydetails['algorithm'] = 'RSA'
             self.keydetails['sign'] = True
             self.keydetails['encrypt'] = False
-        elif details['algo'] is '16' or 'g':
+        elif details['algo'] == '16' or 'g':
             self.keydetails['algorithm'] = 'ElGamal'
             self.keydetails['sign'] = False
             self.keydetails['encrypt'] = True
-        elif details['algo'] is '20' or 'G':
+        elif details['algo'] == '20' or 'G':
             self.keydetails['algorithm'] = 'ElGamal'
             self.keydetails['sign'] = True
             self.keydetails['encrypt'] = True
-        elif details['algo'] is '17' or 'D':
+        elif details['algo'] == '17' or 'D':
             self.keydetails['algorithm'] = 'DSA'
             self.keydetails['sign'] = True
             self.keydetails['encrypt'] = False
-        elif details['algo'] is '18' or 'e':
+        elif details['algo'] == '18' or 'e':
             self.keydetails['algorithm'] = 'ECDH'
             self.keydetails['sign'] = False
             self.keydetails['encrypt'] = True
-        elif details['algo'] is '19' or 'e':
+        elif details['algo'] == '19' or 'e':
             self.keydetails['algorithm'] = 'ECDSA'
             self.keydetails['sign'] = True
             self.keydetails['encrypt'] = False
-        elif details['algo'] is '_' or '?':
+        elif details['algo'] == '_' or '?':
             self.keydetails['algorithm'] = 'Unknown'
             self.keydetails['sign'] = False
             self.keydetails['encrypt'] = False

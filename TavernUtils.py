@@ -319,7 +319,7 @@ class memorise(object):
                             TavernCache.mc[key] = {'value':
                                                    set_value, 'timeset': time.time()}
 
-                        if output.__class__ is memcache_none:
+                        if output.__class__ == memcache_none:
                                 # Because not-found keys return
                                 # a None value, we use the
                                 # memcache_none stub class to
