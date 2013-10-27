@@ -3,6 +3,7 @@
 # To do so, it performs a few tests, as well as compressing files where possible.
 
 
+
 function usage 
 {
     echo "Usage: $0 {start|stop|restart} [debug/initonly]"
@@ -264,6 +265,8 @@ function start
 
     mkdir -p logs
     mkdir -p data/conf
+
+    rvm use 1.9.3@Tavern --create  --install
 
     if [ "$1" == "debug" ]
     then

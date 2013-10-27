@@ -24,20 +24,22 @@
 
 # Package install for Ubuntu
 
-    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev curl libmpc2 lib32z1 mongodb-10gen
+    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev curl libmpc2 lib32z1 mongodb
 
 
 # Package install for OSX
 # Requires Homebrew - ( http://brew.sh/ )
     
-    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba libmpc gmp
+    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba libmpc gmp git
 
 # Install RVM, so we can load in a more recent ruby without messing up the system ruby
 curl -L https://get.rvm.io | bash
-source ~/.rvm/scripts/rvm
 
+source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
 
 # Install the Gems that convert the sass files into CSS
+# Use a separate gemset as to not screw up system ruby.
+rvm use 1.9.3@Tavern --create  --install
 gem install sass compass bourbon
 
 
@@ -53,9 +55,9 @@ sudo chown -R "$USER" Tavern
 ### You can skip this step, and just connect directly for development.
 
     cd /usr/local/src
-    wget http://nginx.org/download/nginx-1.4.1.tar.gz   
-    tar xvfz nginx-1.4.1.tar.gz
-    cd nginx-1.4.1
+    wget http://nginx.org/download/nginx-1.4.3.tar.gz   
+    tar xvfz nginx-1.4.3.tar.gz
+    cd nginx-1.4.3
 
     wget http://www.grid.net.ru/nginx/download/nginx_upload_module-2.2.0.tar.gz
     tar -zxvf nginx_upload_module-2.2.0.tar.gz
@@ -69,9 +71,9 @@ sudo chown -R "$USER" Tavern
     cd ../..
 
     # on Linux
-        ./configure --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
+        ./configure --add-module=/usr/local/src/nginx-1.4.3/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.3/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
     # On OS X
-        ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.1/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.1/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
+        ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.3/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.3/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
     make
     make install
 
