@@ -1,3 +1,4 @@
+
 #!/bin/bash
 # This is a wrapper script that fires up Tavern both on Linux and OSX.
 # To do so, it performs a few tests, as well as compressing files where possible.
@@ -14,12 +15,13 @@ function usage
 
 function getarg 
 {
-# Get an argument.. Or if it doesn't exist, echo 0
-# This way, we don't get "unary operator expected" errors.
+    # Get an argument.. Or if it doesn't exist, echo 0
+    # This way, we don't get "unary operator expected" errors.
 
-    c=$1
-    v=${!c}
-    if [ ! -z $v ]
+    key=`echo $1 | $sed 's/[^a-zA-Z0-9_]/_/g'`
+    v=${!key}
+
+    if [ ! -z "$v" ]
     then
         echo $v
     else
@@ -27,18 +29,28 @@ function getarg
     fi
 }
 
-function since
-{
-# Calculate time since Variable
 
+function sinceArg
+{
+    # Calculate time elapsed between the stored-variable $1, and the date $2
+    # Example: sinceArg lastrun would give the seconds since timestamp in the `lastrun` variable.
     ODATE=$(getarg $1)
-    if [ -z $DATE ]
+    if [ -z $2 ]
     then
-        DATE=`date +s`
+        NDATE=$DATE
+    else
+        NDATE=$2
     fi
-    echo $(($DATE-$ODATE))
+    echo $(($NDATE-$ODATE))
 }
 
+function sinceFileArg
+{
+
+    # Calculate the time elapsed between mtime of $1 and the stored-variable $2
+    # Example: sinceFileArg test.txt lastrun would determine if test.txt had been updated since `lastrun` was saved.
+    sinceArg $2 `$stat $1`
+}
 
 function loadargs 
 {
@@ -49,15 +61,17 @@ function loadargs
         source tmp/startup-settings
         true > tmp/startup-settings
     fi
-    DATE=`date +%s`
 }
 
 function writearg 
 {
 # Write out an argument
     if [ $# -eq 2 ]
-    then    
-        echo $1=$2 >> tmp/startup-settings
+    then
+        # Remove unspeakable chars
+        key=`echo $1 | $sed 's/[^a-zA-Z0-9_]/_/g'`
+        value=$2
+        echo $key=\"$value\" >> tmp/startup-settings
     elif [ $# -eq 1 ]
     then
         writearg $1 $(getarg $1)
@@ -77,7 +91,7 @@ then
     if [ -z "$3" ]
     then
         echo "Bad call to ramdisk"
-        exit
+        stop
         # Using exit, not return here, since this should abort the script.
     fi
     # Determine if we should use OSX or Linux style ramdisks
@@ -101,13 +115,19 @@ then
         if [ "$actual_size" != "$disksize" ]
         then
             echo "Error creating Ramdisk! - $actual_size + $disksize"
-
-            exit
+            stop
         else
             diskutil erasevolume HFS+ "TavernRamDisk-$mntpt" $virt_disk
             umount $virt_disk
             mkdir -p $mntpt
-            mount -t hfs -o union -o nobrowse $virt_disk $mntpt
+            # Union to mount locally in the FS tree
+            # noowners so non-root can access
+            # noauto so it doesn't mount on it's own, outside of Tavern
+            # nobrowse so we don't clutter up the finder
+            # noexec to head off any vulns from the local file
+            # nosuid for the same reason. Not needed, so disable by default.
+            # noatime since atime isn't needed, and just slows things down slightly
+            mount -t hfs -o union,noowners,noauto,noexec,nosuid,noatime,nobrowse $virt_disk $mntpt
             if [ $? -eq 0 ]
                 then
                 echo $mntpt >> mounted
@@ -115,23 +135,27 @@ then
         fi
     else
         # Linux
-        mount -t tmpfs -o size=$2M tmpfs $mntpt
+        mkdir -p $mntpt
+        mount -t tmpfs -o size="$size"M,noauto,noexec,nosuid,noatime tmpfs $mntpt
         echo $mntpt >> mounted
     fi
 elif [ "$control" == "stop" ]
 then
     echo "stopping disk images"
-    which diskutil > /dev/null
-    if [ $? -eq 0 ]
-    then #OSX
-        for i in `cat tmp/mounted`
-        do
-            echo $i
-            hdiutil detach tmp/$i -force
-        done
-        # We're done here.
-        mv tmp/mounted tmp/mounted-old
-    fi
+    for i in `cat tmp/mounted`
+    do
+        device=`mount | grep $(pwd) | grep $i|awk '{print $1}'`
+        umount -f $device
+
+        # Detect if we're on OSX, and need to remove the attached ramdisk
+        which diskutil > /dev/null
+        if [ $? -eq 0 ]
+        then
+            hdiutil detach -force $device
+        fi
+    done
+    # We're done here.
+    mv tmp/mounted tmp/mounted-old
 fi
 }
 
@@ -154,6 +178,7 @@ function stop
 
     # Remove ramdisks
     ramdisk stop
+    exit
 }
 
 function findcommands
@@ -243,6 +268,22 @@ function findcommands
             writearg hash $hash
         fi
     fi
+
+    # Find which version of stat we should use, OS X or GNU
+    if [ -z "$stat" ]
+    then
+        echo "Determining which version of stat to use."
+        touch tmp/delete-me-please
+        stat -f "%m"  tmp/delete-me-please > /dev/null
+        if [ $? -eq 0 ]
+        then
+            #Use OSX stat
+            stat='stat -f %m'
+        else
+            stat='stat -c %Y'
+        fi
+    fi
+    writearg stat "$stat"
 }
 
 
@@ -255,7 +296,11 @@ function start
     cd /opt/Tavern
 
     numservers=2
-    # First, create two working directories
+
+    # Set the current date, so it's consistant
+    DATE=`date +%s`
+
+    # First, create working directories for the functions below.
     mkdir -p tmp/checked
     mkdir -p tmp/unchecked
     mkdir -p tmp/gpgfiles
@@ -263,10 +308,17 @@ function start
     mkdir -p tmp/gzipchk
     mkdir -p tmp/unchecked-gzipchk
 
+    mkdir -p tmp/last-run/
+
     mkdir -p logs
     mkdir -p data/conf
 
-    rvm use 1.9.3@Tavern --create  --install
+    #### Ensure we're living in isolated envs, so we don't screw up the overall system
+    # Ruby
+    source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
+    rvm use system@Tavern --install --create
+    # Python
+    source tmp/env/bin/activate
 
     if [ "$1" == "debug" ]
     then
@@ -290,202 +342,173 @@ function start
     ramdisk start gpgfiles 5
     ramdisk start Robohash 20
     ramdisk start static 15
-
     cd ..
-    robohashfiles=`ls -l tmp/robohash/ | wc -l`
-    if [ $robohashfiles -lt 10 ]
-    then
-        cp -pr libs/Robohash/* tmp/robohash
-    fi
-    
-    # Copy static files into the Ramdisk
-    cp -pr static/* tmp/static
-    STATIC='tmp/static'
 
+    echo "Ensuring Python deps are up-to-date"
+    # Ensure we have the expected Python deps
+    pip install -qr requirements.txt
 
-    if [ $(since lastrun) -gt 3600 ]
-    then
-        # Run the various functions to ensure DB caches and whatnot
-        echo "Running onStart functions."
-        ./ensureindex.sh
-        ./TopicList.py
-        ./ModList.py
-        ./DiskTopics.py -l
-        writearg lastrun $DATE
-    else
-        echo "It's only been $(($(since lastrun)/60)) minutes.. Not running onStart functions again until the hour mark."
-        writearg lastrun
-    fi
-    ./validate.sh
-    if [ "$?" -ne 0 ]
-        then
-        echo "Aborting due to code issue."
-        exit 2
-    fi
     echo "Ensuring fontello directory compliance"
+    for i in static/css/fontello*.css
+    do
+        if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
+        then
+            # Update file to change ../font to ../fonts
+            # This will show up when updating fontello
+            "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' $i
+        fi
+        writearg lastrun_fontello_$i `date +%s`
+    done
 
-
-    "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' $STATIC/css/fontello*.css
-    "$sed" -i 's/margin-right: 0.2em;//g' $STATIC/css/fontello.css
-
+    if [ $(sinceFileArg static/css/fontello.css lastrun_fontello2_$i) -gt 0 ]
+    then
+        # Update file to remove margin if it's there.
+        "$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
+    fi
+    writearg lastrun_fontello2_$i `date +%s`
 
     # Convert from SCSS to CSS.
     echo "Converting from SASS to CSS"
 
     # Remove any old and no longer used generated css files
-    for i in `ls $STATIC/sass/css/`
+    for i in `ls static/sass/css/`
     do
         base=`basename $i .css`
-        if [ ! -f $STATIC/sass/scss/$base.scss ]
+        if [ ! -f static/sass/scss/$base.scss ]
             then
-            rm $STATIC/sass/css/$i
+            echo static/sass/css/$i
         fi
     done
     # Convert the SCSS to CSS and put in production folder
-    compass compile $STATIC/sass/ -e production
-    cp -v $STATIC/sass/css/* $STATIC/css/
+    compass compile static/sass/ -q -e production
+    rsync -a static/sass/css/* static/css/
 
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
     # If we haven't, minimize it. Otherwise, just skip forward, for speed.
     echo "Minimizing JS"
-    mv tmp/checked/* tmp/unchecked/ > /dev/null 2>&1 
-    mv tmp/gzipchk/* tmp/unchecked-gzipchk > /dev/null 2>&1 
-
-    result=255
-    for i in `find $STATIC/scripts/ -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
+    for i in `find static/scripts -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
     do
-        filehash=`cat $i | $hash | cut -d" " -f 1`
-        basename=`basename $i ".js"`
-        if [ ! -f tmp/unchecked/$filehash.exists ]
+        if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
         then
-            # No pre-hashed version available
-            $yui $i > $STATIC/scripts/$basename.min.js $flags
-            echo "$yui $i > $STATIC/scripts/$basename.min.js $flags"
-            result=$?
-            echo -e "\t $basename"
-            # Reformatted
-        else
-            : # No Reformatting needed 
-            result=0
+            basename=`basename $i ".js"`
+            echo -e "\t $basename $(sinceFileArg $i lastrun)"
+            $yui $i > static/scripts/$basename.min.js $flags
         fi
-        if [ $result -eq 0 ]
-        # only write the touchfile if the minimize worked
-            then
-            touch tmp/checked/$filehash.exists
-        fi
+        writearg lastrun_minjs_$i `date +%s`
     done
 
     echo "Minimizing CSS"
-    for i in `find $STATIC/css/ -name "*.css"| grep -v '.min.css'`
+    for i in `find static/css -name "*.css"| grep -v '.min.css'`
     do
-        filehash=`cat $i | $hash | cut -d" " -f 1`
-        basename=`basename $i ".css"`
-        if [ ! -f tmp/unchecked/$filehash.exists ]
+        if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
         then
-            $yui $i > $STATIC/css/$basename.min.css
-            echo "$yui $i > $STATIC/css/$basename.min.css"
-            echo -e "\t $basename"
-            # Reformatted
-        else
-            echo "Skipping $i because hash already exists at tmp/unchecked/$filehash.exists"
-            : # No Reformatting needed 
+            basename=`basename $i ".css"`
+            echo -e "\t $basename $(sinceFileArg $i lastrun)"
+            $yui $i > static/css/$basename.min.css
         fi
-        touch tmp/checked/$filehash.exists
+        writearg lastrun_mincss_$i `date +%s`
     done
 
     echo "Combining CSS.."
-    # No need to re-minimize the CSS, it's already OK.
-    # It's faster to combine them, then to hash to see if we need to.
-    for i in `ls $STATIC/css/style-*.min.css`
+    for i in `ls static/css/style-*.min.css`
     do  
-        STYLE=`echo style-default.min.css | awk -F- {'print $2'} |  awk -F. {'print $1'}`
-        echo $i
-        cat $i $STATIC/css/fontello.min.css $STATIC/css/video-js.min.css $STATIC/css/animation.min.css $STATIC/css/fonts.min.css  > $STATIC/css/unified-$STYLE.min.css
+        # Find the basename we're working with, such as 'style-default.min.css'
+        STYLE=`echo $i | awk -F- {'print $2'} |  awk -F. {'print $1'}`
+        echo -e "\t $STYLE"
+        cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css static/css/fonts.min.css  > static/css/unified-$STYLE.min.css
     done
 
-
-
-        echo "Combining and further minimizing JS.."
-        JSFILES="$STATIC/scripts/json3.min.js $STATIC/scripts/jquery.min.js $STATIC/scripts/mousetrap.min.js $STATIC/scripts/jstorage.min.js $STATIC/scripts/jquery.json.min.js $STATIC/scripts/colresizable.min.js $STATIC/scripts/jquery-throttle.min.js $STATIC/scripts/default.min.js $STATIC/scripts/garlic.min.js $STATIC/scripts/video.min.js $STATIC/scripts/audio.min.js $STATIC/scripts/retina.min.js"
-        if [ $DEBUG -eq 0 ]
-        then    
-    
-            $STATIC/scripts/json3.min.js
-    
-            cat $JSFILES > $STATIC/scripts/unified.js
-
-            # It's smaller if we re-minimize afterwords. 
-            filehash=`cat $STATIC/scripts/unified.js | $hash | cut -d" " -f 1`
-            if [ ! -f tmp/unchecked/$filehash.exists ]
-            then
-                $yui $STATIC/scripts/unified.js > $STATIC/scripts/unified.min.js
-            else
-                : # No Reformatting needed 
-            fi
-            touch tmp/checked/$filehash.exists
-        else
-            # In debug mode, let's include these inline, so we can debug easier.
-            echo "" > themes/default/header-debug-JS.html
-            for script in $JSFILES
-            do 
-                # Get the basename, to avoid getting the $STATIC/tmp dir
-                bn=`basename $script`
-                echo "<script defer src=\"/static/scripts/$bn\"></script>" >> themes/default/header-debug-JS.html
-
-            done
-        fi
-
-    echo "Ensuring Proper Python formatting.."
-    for i in `find . -maxdepth 1 -name "*.py"`
-    do
-        filehash=`cat $i | $hash | cut -d" " -f 1`
-        basename=`basename $i ".css"`
+    echo "Combining and further minimizing JS.."
+    # This uses hashes, rather than timestamps, for simplicity.
+    # By using hashes, we can always cat them, then compare one file for differences
+    # Otherwise, we'd need to compare dates N times.
+    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js"
+    if [ $DEBUG -eq 0 ]
+    then    
+        cat $JSFILES > static/scripts/unified.js
+        # Check to see if we already have a hashed copy of this file.
+        # If we do, then don't minimize it.
+        filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
-            autopep8  --in-place  --aggressive $i 
-            docformatter --in-place $i 
-            echo -e "\t $basename"
-            # Reformatted
+            $yui static/scripts/unified.js > static/scripts/unified.min.js
         else
             : # No Reformatting needed 
         fi
         touch tmp/checked/$filehash.exists
+    else
+        # If we're in DEBUG mode, we want to directly include the files, rather than inlinine them.
+        # This makes it MUCH easier to find/fix errors.
+        echo "" > themes/default/header-debug-JS.html
+        for script in $JSFILES
+        do 
+            # Get the basename, to avoid getting the static/tmp dir
+            bn=`basename $script`
+            echo "<script defer src=\"/static/scripts/$bn\"></script>" >> themes/default/header-debug-JS.html
+        done
+    fi
+
+    echo "Ensuring Proper Python formatting.."
+    # Use a hash as a secondary check, because these are slow.
+    for i in `find . -maxdepth 1 -name "*.py"`
+    do
+        if [ $(sinceFileArg $i lastrun_autopep_$i) -gt 0 ]
+        then
+            echo -e "\t $i"
+            autopep8 --in-place -p1 --aggressive $i
+            docformatter --in-place $i
+        fi
+        writearg lastrun_autopep_$i `date +%s`
     done
 
+    echo "Validating code correctness.."
+    # Run our manual validations. 
     ./validate.sh
     if [ "$?" -ne 0 ]
         then
         echo "Aborting due to code issue."
-        exit 2
+        stop 2
     fi
-
-    echo "Gzipping individual files"
-    # Compress the files with gzip
-    for file in `find static -not -name "*.gz" -and -not -path "$STATIC/scripts/*" -and -not -path "$STATIC/css/*" -and -not -path "$STATIC/sass/*" -type f`
-    do 
-        filehash=`cat $file | $hash | cut -d" " -f 1`
-        if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
+    # Run automated tests against the code.
+    for i in `find . -maxdepth 1 -name "*.py"`
+    do
+        if [ $(sinceFileArg $i lastrun_validate_$i) -gt 0 ]
         then
-            gzip --best < $file > $file.gz
-            echo -e "\t $file"
-            # Compressed
-        else
-            : # No compressing needed 
+            echo -e "\t $i"
+            pep8 --show-source --show-pep8 --ignore=E501 $i
+            if [ "$?" -ne 0 ]
+            then
+                echo "Aborting due to unfixable style issue."
+                stop 2
+            fi
         fi
-        touch tmp/gzipchk/$filehash.exists
+        writearg lastrun_validate_$i `date +%s`
     done
 
+    echo "Gzipping individual files"
+    # Compress static files with gzip, so nginx can serve pre-compressed version of them (if so configured)
+    for file in `find static -not -name "*.gz" -and -not -path "static/scripts/*" -and -not -path "static/css/*" -and -not -path "static/sass/*" -type f`
+    do 
+        if [ $(sinceFileArg $file lastrun_gzip_$i) -gt 0 ]
+        then
+            echo -e "\t $file"
+            gzip --best < $file > $file.gz
+        fi
+        writearg lastrun_gzip_$i `date +%s`
+
+    done
 
     echo "Gzipping Unified files"
-    # Compress the files with gzip
-    for file in `echo "$STATIC/css/unified-*.min.css $STATIC/scripts/unified.min.js" `
+    # Gzip CSS files which need it.
+    # This uses hashes rather than timestamps since Unified.min.js is created every time.
+    for file in `echo "static/css/unified-*.min.css static/scripts/unified.min.js" `
     do 
         filehash=`cat $file | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
         then
-            gzip --best < $file > $file.gz
             echo -e "\t $file"
+            gzip --best < $file > $file.gz
             # Compressed
         else
             : # No compressing needed 
@@ -497,24 +520,46 @@ function start
     rm tmp/unchecked/*.exists > /dev/null 2>&1 
 
 
+    echo "Updating Ramdisk"
+    rsync -a --delete static/* tmp/static
+    rsync -a --delete libs/Robohash/* tmp/Robohash
+
+    if [ $(sinceArg onStartLastRun) -gt 3600 ]
+    then
+        # Run the various functions to ensure DB caches and whatnot
+        echo "Running onStart functions."
+        ./ensureindex.sh
+        ./TopicList.py
+        ./ModList.py
+        ./DiskTopics.py -l
+        writearg onStartLastRun $DATE
+    else
+        echo "It's only been $(($(sinceArg onStartLastRun)/60)) minutes.. Not running onStart functions again until the hour mark."
+        writearg onStartLastRun
+    fi
+
+    writearg lastrun `date +%s`
     echo "Starting Tavern..."
     if [ $DEBUG -eq 1 ]
     then
-        /usr/bin/env python3 ./webfront.py --loglevel=DEBUG --writelog=False --debug=True
+        python3 ./webfront.py --loglevel=DEBUG --writelog=False --debug=True
     elif [ $INITONLY -eq 1 ]
     then
-        /usr/bin/env python3 ./webfront.py --initonly=True
+        python3 ./webfront.py --initonly=True
     else    
         # -1 in the line below, since we start the count at 0, so we can be starting on 8080
         for ((i=0;i<=$((numservers -1));i++))
         do            
             port=$((8080 +i))
             echo "Starting on port $port"
-            nohup /usr/bin/env python3 ./webfront.py --port=$port > logs/webfront-$port.log &
+            nohup python3 ./webfront.py --port=$port > logs/webfront-$port.log &
         done
         tail -n 10 logs/*
     fi
+    # Write out the last successful start
+
     cd $CURDIR
+
 }
 
 

@@ -67,13 +67,13 @@ class Cryptographer(object):
             self.c = self.x
 
         self.gcy = mpmath.power(self.gy,self.c)
-    
+        # if self.gcy >= 1:
+        #     print(self.number)    
     def any_veto(self,table):
 
         r = 1
         for c in table:
             r *= c.give_gcy()
-
         limit = mpmath.power(mpmath.mpf(0.1),(mpmath.mp.dps/2))
 
         if abs(r-1)>limit:
@@ -109,25 +109,26 @@ def AVBit():
         cryptos.append(c)
 
 
-    #print('Round 1')
+    # print('Round 1')
     [c.compute_gx() for c in cryptos]
     
-    #print('Round 2')
+    # print('Round 2')
     [c.compute_gy(cryptos) for c in cryptos]
         
     # Check to see if anyone Vetoed.
     if cryptos[0].any_veto(cryptos):
+        print('At least one person was observed to veto. - Actual count was ' + str(number_vetos) + ' vetoers.')
         return True
-        #print('At least one person was observed to veto. - Actual count was ' + str(number_vetos) + ' vetoers.')
+
     else:
+        print('No people were observed to veto. - Actual count was ' + str(number_vetos) + ' vetoers.')
         return False
-        #print('No people were observed to veto. - Actual count was ' + str(number_vetos) + ' vetoers.')
 
 def main():
 
     vetos = bitarray()
 
-    for i in range(1024):
+    for i in range(100):
 
         # Determine if anyone vetos for each bit.
         a = AVBit()

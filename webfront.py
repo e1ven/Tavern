@@ -14,7 +14,7 @@ import socket
 import json
 import os
 
-import Image
+from PIL import Image
 import imghdr
 import io
 import pygeoip
@@ -224,7 +224,8 @@ class TopicHandler(BaseHandler):
         else:
             showoriginal = False
 
-        if topic != 'sitecontent':
+        # TODO - Better custom handlers for this.
+        if topic not in ['sitecontent', 'all', 'all-subscribed']:
             self.canon = "topic/" + topic
             title = topic
         else:
@@ -235,7 +236,13 @@ class TopicHandler(BaseHandler):
             displayenvelope = topicEnvelopes[0]
         else:
             displayenvelope = server.error_envelope(
-                "That topic does not have any messages in it yet.")
+                subject="That topic doesn't have any messages in it yet!",
+                topic=topic,
+                body="""The particular topic you're viewing doesn't have any posts in it yet.
+                You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
+                Don't be nervous. Breathe. You can do this.
+                Click the "New Message" button, and get started.
+                We're rooting you.""")
             canon = None
             title = displayenvelope.dict['envelope']['payload']['subject']
             topic = displayenvelope.dict['envelope']['payload']['topic']
@@ -255,7 +262,7 @@ class TopicHandler(BaseHandler):
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
 
-        self.finish(divs=divs)
+        # self.finish(divs=divs)
 
 
 class ShowTopicsHandler(BaseHandler):
@@ -274,7 +281,7 @@ class ShowTopicsHandler(BaseHandler):
                    topics=alltopics, toptopics=toptopics, topic='all'))
 
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['column3'])
+        # self.finish(divs=['column3'])
 
 
 class TopicPropertiesHandler(BaseHandler):
@@ -288,7 +295,7 @@ class TopicPropertiesHandler(BaseHandler):
                 mod['_id']['moderator'].encode('utf-8')).hexdigest()
             mods.append(mod)
 
-        toptopics = toptool.toptopics()
+        toptopics = topictool.toptopics()
 
         subjects = []
         for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
@@ -300,7 +307,7 @@ class TopicPropertiesHandler(BaseHandler):
         self.write(self.render_string('topicprefs.html', topic=topic,
                    toptopics=toptopics, subjects=subjects, mods=mods))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['scrollablediv3'])
+        # self.finish(divs=['scrollablediv3'])
 
 
 class SiteContentHandler(BaseHandler):
@@ -607,7 +614,9 @@ class ChangeManySettingsHandler(BaseHandler):
         self.setvars()
 
         if "js" in self.request.arguments:
-            self.finish(divs=['scrollablediv3'])
+            # self.finish(divs=['scrollablediv3'])
+            self.finish(divs=['wrappertable'])
+
         else:
             keyurl = ''.join(self.user.Keys['master'].pubkey.split())
             self.redirect('/user/' + keyurl)
@@ -638,7 +647,9 @@ class ChangeSingleSettingHandler(BaseHandler):
         self.user.savemongo()
         self.setvars()
         if "js" in self.request.arguments:
-            self.finish(divs=['scrollablediv3'])
+            # self.finish(divs=['scrollablediv3'])
+            self.finish(divs=['wrappertable'])
+
         else:
             if redirect:
                 self.redirect("/")
@@ -824,7 +835,8 @@ class EditMessageHandler(BaseHandler):
 
         self.write(self.render_string('editmessageform.html', oldtext=oldtext))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['scrollablediv3'])
+        # self.finish(divs=['scrollablediv3'])
+        self.finish(divs=['wrappertable'])
 
 
 class ReplyHandler(BaseHandler):
@@ -835,7 +847,8 @@ class ReplyHandler(BaseHandler):
                    title="Reply to a message", rsshead=None, type=None))
         self.write(self.render_string('replyform.html', regarding=regarding))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['scrollablediv3'])
+        # self.finish(divs=['scrollablediv3'])
+        self.finish(divs=['wrappertable'])
 
 
 class NewmessageHandler(BaseHandler):
@@ -846,7 +859,7 @@ class NewmessageHandler(BaseHandler):
                    title="Post a new message", rsshead=None, type=None))
         self.write(self.render_string('newmessageform.html', topic=topic))
         self.write(self.render_string('footer.html'))
-        self.finish(divs=['scrollablediv3'])
+        self.finish(divs=['wrappertable'])
 
 
 class ReceiveEnvelopeHandler(BaseHandler):

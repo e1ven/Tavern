@@ -20,4 +20,21 @@ LEN=`cat Server.py | grep serversettings | grep -v self | grep -v memor | grep -
 	exit 2
 fi
 
-pep8 --show-source --show-pep8 --ignore=E501 *.py
+# Don't accidentily use comparisons to judge equality for non constants
+LEN=`grep "is not" *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#" | wc -l`
+ if [ $LEN -gt 0 ] 
+    then
+    grep "is not" *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"
+    echo "Ensure you are not using 'is not' when you mean !=  "
+
+    exit 2
+fi
+
+LEN=`grep "is " *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"  | wc -l`
+ if [ $LEN -gt 0 ] 
+    then
+    grep "is " *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#" 
+    echo "Ensure you are not using 'is' when you mean == "
+    
+    exit 2
+fi

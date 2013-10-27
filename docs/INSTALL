@@ -1,5 +1,5 @@
 # Tavern system-install instructions
-# Tavern is designed to run on Python3.3, under Ubuntu or OSX.
+# Tavern is written to run on Python 3.3+, under Ubuntu or OSX.
 # It'll almost certainly work on other systems, but the docs are yet to be written.
 # 
 #                               IMPORTANT!
@@ -24,17 +24,18 @@
 
 # Package install for Ubuntu
 
-    apt-get install luajit g++ libpcre3-dev zlib1g-dev libssl-dev python-dev swig libfreetype6 libfreetype6-dev libjpeg8-dev libjpeg8 libzzip-dev libxml2-dev libxslt-dev python3 python3-dev libmagic-dev python-imaging java-common yui-compressor gnupg make git-core scons libpq-dev curl libmpc2 lib32z1 mongodb
-
+    apt-get install curl g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
+    libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
+    mongodb-10gen python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev
 
 # Package install for OSX
 # Requires Homebrew - ( http://brew.sh/ )
     
-    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba libmpc gmp git
+    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
+    libmpc gmp install libtiff libjpeg webp littlecms
 
 # Install RVM, so we can load in a more recent ruby without messing up the system ruby
 curl -L https://get.rvm.io | bash
-
 source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
 
 # Install the Gems that convert the sass files into CSS
@@ -71,7 +72,7 @@ sudo chown -R "$USER" Tavern
     cd ../..
 
     # on Linux
-        ./configure --add-module=/usr/local/src/nginx-1.4.3/nginx_upload_module-2.2.0 --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.3/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
+        ./configure --with-http_ssl_module  --prefix=/opt/nginx  --with-http_stub_status_module --add-module=/usr/local/src/nginx-1.4.3/nginx-gridfs --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -Wno-unused-but-set-variable -D_POSIX_SOURCE'
     # On OS X
         ./configure --with-ld-opt="-L /usr/local/lib"  --add-module=/usr/local/src/nginx-1.4.3/nginx_upload_module-2.2.0 --add-module=/usr/local/src/nginx-1.4.3/nginx-gridfs --with-http_ssl_module  --prefix=/opt/nginx --with-http_stub_status_module --with-cc-opt='-Wno-missing-field-initializers -Wno-unused-function -D_POSIX_SOURCE'
     make
@@ -81,7 +82,9 @@ sudo chown -R "$USER" Tavern
     chmod 777 /opt/uploads/
     mkdir -p /var/www/cache/tmp
 
-    cd /opt/Tavern/data/nginx/nginx /opt/nginx/sbin/initscript
+    cp /opt/Tavern/data/nginx/nginx /opt/nginx/sbin/initscript
+    rm /etc/init.d/nginx
+    rm /opt/nginx/conf/nginx.conf
     ln -s /opt/nginx/sbin/initscript /etc/init.d/nginx
     ln -s /opt/Tavern/data/nginx/nginx.conf /opt/nginx/conf/nginx.conf
 
@@ -100,8 +103,17 @@ ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
     
     
 # Install the python deps.    
-cd /opt/Tavern
-pip3 install -r requirements.txt
+cd /opt/Tavern/libs
+
+# Ensure we have VirtualEnv, so we can create our own packages.
+wget https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
+tar -zxvf wget https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
+cd ..
+# Create a Virtual Environment, so we don't spew across the whole system
+libs/virtualenv-1.10/virtualenv.py  --no-site-packages --distribute tmp/env -p `which python3.3`
+source tmp/env/bin/activate
+
+pip install -r requirements.txt
 
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
@@ -114,21 +126,6 @@ gunzip data/GeoIPCity.dat.gz
 # There is a list of user agents included in the Tavern 'data' directory.
 # This list is -not- kept up to date, however. You can update it easily if you want to, but it is not necessary.
 curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > /opt/Tavern/data/useragent.ini
-
-
-# Install the Python3 port of PIL.
-# Eventually, this will be unnecessary, but for now it still is ;(
-cd /opt/Tavern/libs
-git clone https://github.com/grahame/pil-py3k
-cd pil-py3k
-
-### If you are on 64_bit linux, you'll want to add the 64 bit lib dir as shown-
-    vi setup.py
-    on line 196, add
-    add_directory(library_dirs, "/usr/lib/x86_64-linux-gnu")
-
-python3 setup.py install
-
 
 # Install PyLZMA, after fixing it to be py3 compatible.
 cd /opt/Tavern/libs

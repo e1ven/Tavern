@@ -19,3 +19,5 @@ docformatter
 gmpy
 mpmath
 bitarray
+untokenize
+pillow

@@ -129,6 +129,19 @@ class FakeMongo():
         for row in rows:
             self.insert(out, row)
 
+    def ensure_index(self, collection, index):
+        # TODO - add logic to detect existing idex, and not try to re-create.
+        cur = self.conn.cursor()
+        cursor.execute(
+            'CREATE INDEX idx_' +
+            collection +
+            ' ON col_' +
+            collection +
+            "(find_in_obj('data','" +
+            index +
+            "'));")
+        cursor.execute()
+
 
 class MongoWrapper():
 
@@ -211,6 +224,9 @@ class MongoWrapper():
 
     def count(self, collection, query={}):
         return self.mongo[collection].find(query).count()
+
+    def ensure_index(self, collection, index):
+        return self.mongo[collection].create_index(index)
 
 
 class DBWrapper():
@@ -369,6 +385,26 @@ class Server(TavernUtils.instancer):
             port=self.serversettings.settings['bin-mongo-port'])
         self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
 
+        # Ensure we have Proper indexes.
+        self.db.safe.ensure_index('envelope', 'envelope.local.time_added')
+        self.db.safe.ensure_index('envelope', 'envelope.local.sorttopic')
+        self.db.safe.ensure_index('envelope', 'envelope.local.payload_sha512')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.class')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.regarding')
+        self.db.safe.ensure_index(
+            'envelope',
+            'envelope.payload.binaries.sha_512')
+        self.db.safe.ensure_index('envelope', 'envelope.local.payload_sha512')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.author.pubkey')
+        self.db.safe.ensure_index('envelope', 'envelope.payload.author.pubkey')
+        self.db.safe.ensure_index('envelope', 'usertrusts.asking')
+        self.db.safe.ensure_index('envelope', 'incomingtrust')
+
+        self.binaries.safe.ensure_index('fs.files', 'filename')
+        self.binaries.safe.ensure_index('fs.files', 'uploadDate')
+        self.binaries.safe.ensure_index('fs.files', '_id')
+        self.binaries.safe.ensure_index('fs.files', 'uploadDate')
+
         # Get a list of all the valid templates that can be used, to compare
         # against later on.
         self.availablethemes = []
@@ -460,30 +496,41 @@ class Server(TavernUtils.instancer):
         return topic
 
     @memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
-    def error_envelope(self, error="Error"):
+    def error_envelope(self, subject="Error", topic="sitecontent", body=None):
+
+        if body is None:
+            body = """
+            Oh my, something seems to have happened that we weren't expecting.
+            Hopefully this will get cleared up relatively quickly.
+            If not, you might want to send a note to support@tavern.is, with the URL, and notes on how you got here :/
+
+            So sorry for the trouble.
+            -The Barkeep
+            """
         e = Envelope()
         e.dict['envelope']['payload'] = OrderedDict()
-        e.dict['envelope']['payload']['subject'] = "Error"
-        e.dict['envelope']['payload']['topic'] = "sitecontent"
+        e.dict['envelope']['payload']['subject'] = subject
+        e.dict['envelope']['payload']['topic'] = topic
         e.dict['envelope']['payload']['formatting'] = "markdown"
         e.dict['envelope']['payload']['class'] = "message"
         e.dict['envelope']['payload'][
-            'body'] = "Oh, No, something's gone wrong.. \n\n " + error
+            'body'] = body
         e.dict['envelope']['payload']['author'] = OrderedDict()
         e.dict['envelope']['payload']['author']['pubkey'] = "1234"
         e.dict['envelope']['payload']['author']['friendlyname'] = "ERROR!"
         e.dict['envelope']['payload']['author']['useragent'] = "Error Agent"
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
-        e.dict['envelope']['local']['time_added'] = 1297396876
-        e.dict['envelope']['local']['author_wordhash'] = "ErrorMessage!"
-        e.dict['envelope']['local']['sorttopic'] = "error"
-        e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
-
         e.addStamp(
             stampclass='author',
             keys=self.ServerKeys,
             friendlyname=defaultsettings.settings['hostname'])
+        e.flatten()
         e.munge()
+        e.dict['envelope']['local']['time_added'] = 1297396876
+        e.dict['envelope']['local'][
+            'author_wordhash'] = "Automatically generated message"
+        e.dict['envelope']['local']['sorttopic'] = "error"
+        e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
         return e
 
     # Cache to failfast on receiving dups

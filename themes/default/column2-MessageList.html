@@ -6,9 +6,15 @@
                             {% set subjects = topictool.messages(before=before,topic=user.UserSettings['followedTopics'],maxposts=user.UserSettings['maxposts']) %}
                         {% end %}
 
-                        {% set beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}
-                        {% set aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}  
-                        {% set newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}               
+                        {% if len(subjects) > 0 %}
+                            {% set beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}
+                            {% set aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}  
+                            {% set newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}  
+                        {% else %}
+                             {% set beforecount = 0 %}
+                            {% set aftercount = 0 %}  
+                        {% end %}
+            
 
 
                         {% if topic is not None %}

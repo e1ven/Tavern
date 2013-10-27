@@ -1,12 +1,11 @@
-    {# Do the Standard Python Imports #}
-    {% from TopicTool import topictool %}
-    {% import TavernUtils %}
+{# Do the Standard Python Imports #}
+{% from TopicTool import topictool %}
+{% import TavernUtils %}
 
 {# Make sure defaults are set #}
-    {% if not 'before' in locals() %}
-        {% set before = None %}
-    {% end %}
-
+{% if not 'before' in locals() %}
+    {% set before = None %}
+{% end %}
 
 <table id="wrappertable" class='wrappertable' cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
