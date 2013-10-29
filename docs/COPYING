@@ -14,9 +14,6 @@ Tavern contains code from and/or uses libraries from the following projects:
 		For converting Binaries to Text.
 		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.	
 			
-	py3 (LGPL)
-		For reducing the size of on-disk saves.
-
 	jQuery.splitter.js (MIT)
 		http://methvin.com/splitter/ - The Image of the grabber is used.		
 
@@ -71,6 +68,10 @@ Tavern contains code from and/or uses libraries from the following projects:
 	python-hashes (MIT)
 		https://github.com/sangelone/python-hashes
 
+
+	Robohash - http://Robohash.org (MIT)
+		"Robots lovingly delivered by Robohash.org"
+		
 	At least one icon is included from glyphish.com.
 
 	jQuery Tools v1.2.6 - Some CSS was copied for the Tooltip.

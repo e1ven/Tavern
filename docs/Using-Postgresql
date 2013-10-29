@@ -4,7 +4,6 @@
 
 # You'll likely want to use  http://postgresapp.com/ instead of compiling postgres yourself.
 # I'd suggest version > 9.2.4.3 (https://s3-eu-west-1.amazonaws.com/eggerapps.at/postgresapp/PostgresApp-9.2.4.3-Beta2.zip)
-# Older versions of this document included notes on compiling and linking postgres and v8, but it goes stale quickly.
 
 PATH="/Applications/Postgres.app/Contents/MacOS/bin:$PATH"
 

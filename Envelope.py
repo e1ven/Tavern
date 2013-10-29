@@ -273,15 +273,15 @@ class Envelope(object):
 
         # It's OK if they don't include a user-agent, but not if they include a
         # bad one.
-        if 'useragent' in self.dict['envelope']['payload']['author']:
-            if not 'name' in self.dict['envelope']['payload']['author']['useragent']:
-                self.server.logger.debug(
-                    "If you supply a user agent, it must have a valid name")
-                return False
-            if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) and not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
-                    self.server.logger.debug(
-                        "Bad Useragent version must be a float or integer")
-                    return False
+        # if 'useragent' in self.dict['envelope']['payload']['author']:
+        #     if not 'name' in self.dict['envelope']['payload']['author']['useragent']:
+        #         self.server.logger.debug(
+        #             "If you supply a user agent, it must have a valid name")
+        #         return False
+        #     if not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], int) and not isinstance(self.dict['envelope']['payload']['author']['useragent']['version'], float):
+        #             self.server.logger.debug(
+        #                 "Bad Useragent version must be a float or integer")
+        #             return False
 
         # Do this last, so we don't waste time if the stamps are bad.
         if not self.payload.validate():
@@ -678,7 +678,7 @@ class Envelope(object):
 
         # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
-        filehandle = lzma.open(filename, 'r', encoding='utf-8')
+        filehandle = lzma.open(filename, 'rt', encoding='utf-8')
         filecontents = filehandle.read()
         filehandle.close()
         self.loadstring(filecontents)

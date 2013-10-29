@@ -380,6 +380,13 @@ a.commentDetails
         border: none;
         float: left;
     }
+
+    .bigavatar
+    {
+        @include border-radius(20px);
+    }
+
+
 }
  
 #column2in3col {
@@ -447,7 +454,7 @@ a.commentDetails
         }
 
         .navIcon {
-            font-size:20px;
+            font-size:16px;
             float:left;
         }
 
@@ -694,6 +701,16 @@ a.commentDetails
              
     #firstMessageLinks {
         margin-left:9px;
+
+        .messageCommands, .externalsharing {
+            display: none;
+        }
+        &:hover {
+            .messageCommands, .externalsharing {
+                display: block;
+            }
+        }
+
     }
 
     .messageCommands
@@ -951,7 +968,7 @@ a.commentDetails
     }
 
 }
-       
+
 
 
 

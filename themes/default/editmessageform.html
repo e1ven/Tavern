@@ -3,6 +3,8 @@
 {% block submitblock %}
 		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/messagerevision" method="post" class="messageform" id='{{timeid}}'>
 			{% raw xsrf_form_html() %}
+			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
+
 			<p>
 				Feel free to change the text of your post below.<br/>
 				Please note, older versions will remain available.<br/>

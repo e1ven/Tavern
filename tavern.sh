@@ -316,7 +316,8 @@ function start
     #### Ensure we're living in isolated envs, so we don't screw up the overall system
     # Ruby
     source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
-    rvm use system@Tavern --install --create
+    rvm use 1.9.3@Tavern --create  --install
+    
     # Python
     source tmp/env/bin/activate
 
@@ -456,7 +457,7 @@ function start
         if [ $(sinceFileArg $i lastrun_autopep_$i) -gt 0 ]
         then
             echo -e "\t $i"
-            autopep8 --in-place -p1 --aggressive $i
+            autopep8 --in-place -p1 --aggressive --max-line-length=160 $i
             docformatter --in-place $i
         fi
         writearg lastrun_autopep_$i `date +%s`
@@ -528,7 +529,6 @@ function start
     then
         # Run the various functions to ensure DB caches and whatnot
         echo "Running onStart functions."
-        ./ensureindex.sh
         ./TopicList.py
         ./ModList.py
         ./DiskTopics.py -l

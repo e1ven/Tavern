@@ -145,6 +145,8 @@ function setupColumnSlider(jqueryobj)
         draggingClass:"commentSliderDrag", 
         gripInnerHtml:"<div class='commentSliderGrip'></div>", 
         onResize:onSlide,
+        postbackSafe:true,
+        
         minWidth:0
       });
 

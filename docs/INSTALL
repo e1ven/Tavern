@@ -26,16 +26,16 @@
 
     apt-get install curl g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
     libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
-    mongodb-10gen python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev
+    mongodb-10gen python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev
 
 # Package install for OSX
 # Requires Homebrew - ( http://brew.sh/ )
     
     brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
-    libmpc gmp install libtiff libjpeg webp littlecms
+    libmpc gmp libtiff libjpeg webp littlecms postgres 
 
 # Install RVM, so we can load in a more recent ruby without messing up the system ruby
-curl -L https://get.rvm.io | bash
+curl -L https://get.rvm.io | bash -s stable
 source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
 
 # Install the Gems that convert the sass files into CSS
@@ -92,22 +92,13 @@ sudo chown -R "$USER" Tavern
 # Create Tavern init file.
 ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
 
-# If you are on Python < 3.3, you will need to install Distribute, to get the rest of the python requirements.
-# >= 3.3 appears to ship with it.
-    cd /opt/Tavern/libs
-    curl -O http://pypi.python.org/packages/source/d/distribute/distribute-0.6.30.tar.gz
-    tar -xzvf distribute-0.6.30.tar.gz
-    cd distribute-0.6.30
-    python3 setup.py install
-    /usr/local/bin/easy_install-3.2 pip
-    
-    
+        
 # Install the python deps.    
 cd /opt/Tavern/libs
 
 # Ensure we have VirtualEnv, so we can create our own packages.
-wget https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
-tar -zxvf wget https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
+curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
+tar -zxvf virtualenv-1.10.tar.gz
 cd ..
 # Create a Virtual Environment, so we don't spew across the whole system
 libs/virtualenv-1.10/virtualenv.py  --no-site-packages --distribute tmp/env -p `which python3.3`
@@ -118,31 +109,27 @@ pip install -r requirements.txt
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
 # This is not included in git because it is 17M, and frequently updated.
-mkdir -p /opt/Tavern/data
-curl http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz >  data/GeoIPCity.dat.gz
-gunzip data/GeoIPCity.dat.gz
+cd data
+curl -O http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
+gunzip GeoLiteCity.dat.gz
 
 
 # There is a list of user agents included in the Tavern 'data' directory.
 # This list is -not- kept up to date, however. You can update it easily if you want to, but it is not necessary.
-curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > /opt/Tavern/data/useragent.ini
+curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > useragent.ini
 
-# Install PyLZMA, after fixing it to be py3 compatible.
+# Pull down a local copy of Robohash.org, so we don't need any outward links
 cd /opt/Tavern/libs
-git clone https://github.com/fancycode/pylzma.git
-cd pylzma
-2to3 -f all -w *.py
-python3 setup.py install
+git clone https://github.com/e1ven/Robohash.git
 
-# If you're in prod, you may want to generate these things automatically. 
+
+# If you're in prod, you may want to generate various things on a schedule.
 # If not, they happen at startup anyway, so you can ignore ;)
     echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
     echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
 
-# Get us some Robots.
-cd /opt/Tavern/libs
-git clone https://github.com/e1ven/Robohash.git
-
+# Make sure your DB is running.
+# I'd suggest installing https://github.com/remysaissy/mongodb-macosx-prefspane instead of using the ./start-dev-servers.sh script
 cd /opt/Tavern
 ./start-dev-servers.sh
 

@@ -196,7 +196,7 @@ class MessageHandler(BaseHandler):
         self.write(self.render_string('showmessage.html',
                    envelope=displayenvelope, before=before, topic=topic))
         self.write(self.render_string('footer.html'))
-        # self.finish(divs=divs)
+        self.finish(divs=divs)
 
 
 class TopicHandler(BaseHandler):
@@ -694,7 +694,7 @@ class RatingHandler(BaseHandler):
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
         if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
             ip = self.request.remote_ip
 
             # Don't check from home.
@@ -784,7 +784,7 @@ class UserTrustHandler(BaseHandler):
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
         if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
             ip = self.request.remote_ip
 
             # Don't check from home.
@@ -832,8 +832,13 @@ class EditMessageHandler(BaseHandler):
             e2.loaddict(newestedit)
             oldtext = e2.dict['envelope']['payload']['body']
             topic = e2.dict['envelope']['payload']['topic']
+            regarding = e2.dict['envelope']['payload']['regarding']
 
-        self.write(self.render_string('editmessageform.html', oldtext=oldtext))
+        self.write(
+            self.render_string(
+                'editmessageform.html',
+                oldtext=oldtext,
+                topic=topic, regarding=regarding))
         self.write(self.render_string('footer.html'))
         # self.finish(divs=['scrollablediv3'])
         self.finish(divs=['wrappertable'])
@@ -845,7 +850,11 @@ class ReplyHandler(BaseHandler):
         self.getvars()
         self.write(self.render_string('header.html',
                    title="Reply to a message", rsshead=None, type=None))
-        self.write(self.render_string('replyform.html', regarding=regarding))
+        self.write(
+            self.render_string(
+                'replyform.html',
+                regarding=regarding,
+                topic=topic))
         self.write(self.render_string('footer.html'))
         # self.finish(divs=['scrollablediv3'])
         self.finish(divs=['wrappertable'])
@@ -1069,13 +1078,11 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 regardingmsg = server.db.unsafe.find_one(
                     'envelopes',
                     {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict[
-                    'topic'] = regardingmsg[
+                e.payload.dict['topic'] = regardingmsg[
                     'envelope'][
                     'payload'][
                     'topic']
-                e.payload.dict[
-                    'subject'] = regardingmsg[
+                e.payload.dict['subject'] = regardingmsg[
                     'envelope'][
                     'payload'][
                     'subject']
@@ -1085,11 +1092,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 e.payload.dict['binaries'] = envelopebinarylist
 
             e.payload.dict['author'] = OrderedDict()
-            e.payload.dict[
-                'author'][
-                'replyto'] = self.user.Keys[
-                'posted'][
-                -1].pubkey
+            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
             e.payload.dict['author'][
                 'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -1103,6 +1106,19 @@ class ReceiveEnvelopeHandler(BaseHandler):
             e.payload.dict['class'] = "messagerevision"
             if client_body is not None:
                 e.payload.dict['body'] = client_body
+            if client_regarding is not None:
+                e.payload.dict['regarding'] = client_regarding
+                regardingmsg = server.db.unsafe.find_one(
+                    'envelopes',
+                    {'envelope.local.payload_sha512': client_regarding})
+                e.payload.dict['topic'] = regardingmsg[
+                    'envelope'][
+                    'payload'][
+                    'topic']
+                e.payload.dict['subject'] = regardingmsg[
+                    'envelope'][
+                    'payload'][
+                    'subject']
             e.addStamp(
                 stampclass='author',
                 friendlyname=self.user.UserSettings['friendlyname'],
@@ -1157,7 +1173,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                 'friendlyname'] = self.user.UserSettings['friendlyname']
 
             if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-                gi = pygeoip.GeoIP('data/GeoIPCity.dat')
+                gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
                 ip = self.request.remote_ip
 
                 # Don't check from home.
@@ -1191,7 +1207,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
         # For all classses of messages-
         if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('data/GeoIPCity.dat')
+            gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
             ip = self.request.remote_ip
 
             # Don't check from home.

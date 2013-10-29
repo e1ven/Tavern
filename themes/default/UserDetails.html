@@ -13,7 +13,7 @@
                 </abbr>
                     {% if trust < 100 %}                    
                         <div class='DetailsOption'>
-                            <i class="icon icon-twitter-squared"></i>
+                            <i class="icon icon-plus-circled"></i>
                                 <form action="/usertrust" method="post">
                                     {% raw xsrf_form_html() %}
                                     <input type="hidden" name="trust" value="100">
@@ -27,7 +27,7 @@
                     {% end %}
                     {% if trust > -100 and trust < 100 %}
                         <div class='DetailsOption'>
-                            <i class="icon icon-twitter-squared"></i>
+                            <i class="icon icon-minus-circled"></i>
                             <form action="/usertrust" method="post">
                                 {% raw xsrf_form_html() %}
                                 <input type="hidden" name="trust" value="-100">

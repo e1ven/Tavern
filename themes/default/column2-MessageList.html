@@ -48,7 +48,7 @@
                                         <a href="/topicinfo/{{server.sorttopic(topic)}}">
             			        		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
                                             Topic Setting
-            			        			<span class="icon-tools navIcon"></span>
+            			        			<span class="icon-wrench-circled navIcon"></span>
             			        		   </button>
                                         </a>
             			        	</td>
@@ -56,7 +56,7 @@
                                       <a href="/newmessage/{{server.sorttopic(topic)}}" class="internal">
                                            <button id="column2ButtonRight" class="column2Buttons" type="button">
                                             New Message
-                                            <span class="icon-tools navIcon"></span>
+                                            <span class="icon-pencil-circled navIcon"></span>
                                            </button>
                                         </a>
             	          			</td>
@@ -91,7 +91,7 @@
                                                     <a href="/topic/{{topic}}?before={{newbefore}}">
                                                        <button id="NewerMessages" class="column2Buttons" type="button">
                                                         Newer Messages
-                                                        <span class="icon-tools navIcon"></span>
+                                                        <span class="icon-right-circled navIcon"></span>
                                                        </button>
                                                     </a>
                                                     {% end %}
@@ -101,7 +101,7 @@
                                                     <a href="/topic/{{topic}}?before={{subjects[-1].dict['envelope']['local']['time_added']}}" class="internal">
                                                        <button id="OlderMessages" class="column2Buttons" type="button">
                                                         Older Messages
-                                                        <span class="icon-tools navIcon"></span>
+                                                        <span class="icon-left-circled navIcon"></span>
                                                        </button>
                                                     </a>
                                                     {% end %}
