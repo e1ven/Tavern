@@ -100,7 +100,6 @@ class Key(object):
                 self.gpg.delete_keys(tmpkey['fingerprint'], secret=True)
                 self.gpg.delete_keys(tmpkey['fingerprint'], secret=False)
 
-            print("Deletin")
             if shutil is not None:
                 shutil.rmtree(self.gnuhome, ignore_errors=True, onerror=None)
 
@@ -195,7 +194,6 @@ class Key(object):
                     '-----END PGP PRIVATE KEY BLOCK-----',
                     '').rstrip()
             else:
-                self.logger.debug("USING NO HEADER VERSION OF PRIVKEY")
                 noheaders = self.privkey
 
             noBreaks = "".join(noheaders.split())
@@ -219,7 +217,6 @@ class Key(object):
                     "-----END PGP PUBLIC KEY BLOCK-----",
                     '').rstrip()
             else:
-                self.logger.debug("USING NO HEADER VERSION OF PUBKEY")
                 noheaders = self.pubkey
             noBreaks = "".join(noheaders.split())
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]

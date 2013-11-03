@@ -101,9 +101,10 @@ def main():
 
     print("Starting server for message-processing...")
     server.start()
+    server.keygenerator.stop()
 
-    server.logger.setLevel("DEBUG")
-    server.logger.addHandler(server.consolehandler)
+    # server.logger.setLevel("DEBUG")
+    # server.logger.addHandler(server.consolehandler)
 
     # Save files to the local HD.
     if args.dump:

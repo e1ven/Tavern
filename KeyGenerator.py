@@ -1,5 +1,7 @@
 import multiprocessing
 from multiprocessing.managers import BaseManager
+from multiprocessing import Queue
+
 import platform
 from time import sleep
 
@@ -33,9 +35,7 @@ class KeyGenerator(object):
         self.stop()
         self.procs = []
         for proc in range(0, server.serversettings.settings['KeyGenerator']['workers']):
-            newproc = multiprocessing.Process(
-                target=self.GenerateAsNeeded,
-                args=())
+            newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
             self.procs.append(newproc)
             server.logger.info(" Created KeyGenerator - " + str(proc))
 
@@ -58,24 +58,16 @@ class KeyGenerator(object):
         """Create a LockedKey with a random password."""
         lk = LockedKey()
         password = lk.generate(random=True)
-        unusedkey = {'key': lk, 'password': password}
+        unusedkey = {'encryptedprivkey': lk.encryptedprivkey, 'pubkey': lk.pubkey, 'password': password}
         return unusedkey
-
-    def PopulateUnusedKeyCache(self):
-        """
-        Pre-generate several lockedKeys. Save them.
-        This is faster.
-        """
-        while not server.unusedkeycache.full():
-            unusedkey = self.CreateUnusedLK()
-            server.unusedkeycache.put(unusedkey)
 
     def GenerateAsNeeded(self):
         """Watch to see if the queue gets low, and then add users."""
 
-        count = 0
-        # Grab some emails from the stack
         while True:
-            self.PopulateUnusedKeyCache()
-            sleeptime = server.serversettings.settings['KeyGenerator']['sleep']
-            time.sleep(sleeptime)
+
+            # Create a LK, and push it up.
+            # If the queue is full, we'll block, so we just wait.
+            unusedkey = self.CreateUnusedLK()
+            server.unusedkeycache.put(unusedkey, block=True)
+            # print(server.unusedkeycache.qsize())

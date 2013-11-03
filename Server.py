@@ -20,7 +20,10 @@ import ServerSettings
 
 import tornado.escape
 import html
+import queue
 import multiprocessing
+
+
 from TavernUtils import TavernCache
 import logging
 import os
@@ -474,7 +477,7 @@ class Server(TavernUtils.instancer):
             self.guestacct.load_mongo_by_pubkey(
                 self.serversettings.settings['guestacct']['pubkey'])
         # Pregenerate some users in the background.
-        # self.keygenerator.start()
+        self.keygenerator.start()
 
     def stop(self):
         """Stop all server procs."""
@@ -558,7 +561,7 @@ class Server(TavernUtils.instancer):
         # accept and save.
         if not c.validate():
             self.logger.info(
-                "Received an Envelope which does not validate-  " + self.payload.hash())
+                "Received an Envelope which does not validate-  " + c.payload.hash())
             self.logger.debug(c.text())
             return False
 

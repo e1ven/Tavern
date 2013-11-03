@@ -37,8 +37,9 @@
         <div class="comment rating_{{messagerating}} " rating={{messagerating}}>
 
             <a class="details commentDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['minipubkey'].split())}}" rel="author">
-                <img class="floatLeft clear commentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="40" height="40" alt="User Details" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['minipubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
-
+                
+                <img class="floatLeft clear commentavatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="40" height="40" alt="User Details" data-src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['minipubkey'].split()),datauri=user.datauri,width=40,height=40)}}" />
+                
                 <h6>
                     By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
                 

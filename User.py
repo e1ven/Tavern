@@ -15,6 +15,8 @@ import calendar
 import hashlib
 import math
 import Server
+import queue
+from multiprocessing import Queue
 
 
 class User(object):
@@ -95,7 +97,6 @@ class User(object):
         # Allow routines to request only what they need.
         # So, for instance, with ret=pubkey, it'll return an array of pubkeys
 
-        print(len(allkeys))
         if ret == 'all':
             return allkeys
         else:
@@ -104,18 +105,37 @@ class User(object):
                 retarray.append(vars(key)[ret])
             return retarray
 
-    def verify_password(self, guessed_password, maxtime=50):
-        """Verify if we can unlock the master key.
+    def verify_password(self, guessed_password, tryinverted=True):
+        """Check a proposed password, to see if it's able to open and load a
+        user's account."""
 
-        If we can, allow auth to the this user.
+        # The cleanest way to see if the password is accurate is to see if it successfully decodes the content in the account.
+        # We can do this by attempting to decode the private key.
+        # We can then verify it decoded properly, by re-deriving the public key, and seeing if they match.
 
-        """
+        test_passkey = self.Keys['master'].get_passkey(guessed_password)
+        byteprivatekey = base64.b64decode(self.encryptedprivkey.encode('utf-8'))
 
-        passkey = self.Keys['master'].get_passkey(guessed_password)
-        if scrypt.decrypt(pword, guessed_password, maxtime):
-            return True
-        else:
+        # We decoded something. Check to see if we can recreate the pubkey using this.
+        if byteprivatekey is None:
             return False
+        else:
+            test_key = Key()
+            test_key.gpg.import_keys(byteprivatekey)
+            reconstituted_pubkey = test_key.gpg.export_keys(test_key.gpg.list_keys()[0]['fingerprint'])
+            test_key.pubkey = reconstituted_pubkey
+            test_key._format_keys()
+
+            if test_key.pubkey == user.pubkey:
+                return True
+
+            # Let's try one other variation before we give up.
+            # It's possible the user has caps lock on, and so their keys are inverted.
+            # Testing this doesn't substantially decrease security, but it does help make things easier for users who had a long day.
+            # Based on the FB-technique, as described at http://blog.agilebits.com/2011/09/13/facebook-and-caps-lock-unintuitive-security/
+
+            if tryinverted:
+                return self.verify_password(guessed_password=guessed_password.swapcase(), tryinverted=False)
 
     # @memorise(parent_keys=['Keys.master.pubkey'], ttl=serversettings.settings['cache']['user-note']['seconds'], maxsize=self.server.serversettings.settings['cache']['user-note']['size'])
     def getNote(self, noteabout):
@@ -384,6 +404,7 @@ class User(object):
 
         # Create a string/immutable version of UserSettings that we can compare
         # against later to see if anything changed.
+
         tmpsettings = str(self.UserSettings) + str(self.Keys)
 
         if self.UserSettings.get('username') is None:
@@ -403,7 +424,7 @@ class User(object):
 
         if not 'setpassword' in self.UserSettings['status']:
             self.UserSettings['status']['setpassword'] = None
-
+        
         # If we've been told not to use a GuestKey, make sure we don't have
         # one.
         if AllowGuestKey is False and self.server.guestacct is not None:
@@ -432,13 +453,15 @@ class User(object):
                 self.Keys = self.server.guestacct.Keys
                 self.UserSettings['status']['guest'] = True
             else:
-                print("Generating a LockedKeys")
-                self.Keys['master'] = LockedKey()
-
-                password = self.Keys['master'].generate(random=True)
+                print("Generating a LockedKey")
+                pulledkey = self.server.unusedkeycache.get(block=True)
+                self.Keys['master'] = LockedKey(
+                    encryptedprivkey=pulledkey['encryptedprivkey'],
+                    pub=pulledkey['pubkey'],
+                    password=pulledkey['password'])
 
                 self.UserSettings['status']['guest'] = False
-                self.passkey = self.Keys['master'].get_passkey(password)
+                self.passkey = self.Keys['master'].get_passkey(password=pulledkey['password'])
 
         # Ensure we have a valid/current public posted key.
         if self.UserSettings['status']['guest'] is not True:
@@ -587,18 +610,15 @@ class User(object):
         if oldpasskey is None and self.passkey is not None:
             oldpasskey = self.passkey
 
-        print("Old Passkey is " + str(oldpasskey))
-        print("Old Key is " + str(self.Keys['master'].encryptedprivkey))
-
         #TODO - Change --all-- keys
         if self.Keys['master'].changepass(oldpasskey=oldpasskey, newpassword=newpassword):
             self.passkey = self.Keys['master'].get_passkey(newpassword)
             self.UserSettings['lastauth'] = int(time.time())
             self.UserSettings['status']['setpassword'] = int(time.time())
             self.savemongo()
-            print("New Passkey is " + str(self.passkey))
-            print("New Password is " + str(newpassword))
-            print("New Key is " + str(self.Keys['master'].encryptedprivkey))
+            # print("New Passkey is " + str(self.passkey))
+            # print("New Password is " + str(newpassword))
+            # print("New Key is " + str(self.Keys['master'].encryptedprivkey))
         else:
             return False
 
@@ -768,6 +788,9 @@ class User(object):
         # Local server Only
         user = self.server.db.safe.find_one('users',
                                             {"username": username})
+        if user is None:
+            return None
+
         # If we're loading by username, it means you logged in.
         # Ensure settings are up to date
 

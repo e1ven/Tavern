@@ -489,9 +489,9 @@ class Envelope(object):
                     self.dict['envelope']['local']['medialink'] = medialink
                     break
 
-   # @TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'],ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
+    #@TavernUtils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
-        print("Looking for childen for :" + self.payload.hash())
+        #print("Looking for childen for :" + self.payload.hash())
         results = self.server.db.unsafe.count(
             'envelopes',
             {"envelope.local.ancestors": self.payload.hash()})

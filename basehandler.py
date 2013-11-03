@@ -8,6 +8,7 @@ from TavernUtils import TavernCache
 import TavernUtils
 import urllib.parse
 from bs4 import BeautifulSoup
+import time
 
 
 class BaseHandler(tornado.web.RequestHandler):
@@ -160,7 +161,6 @@ class BaseHandler(tornado.web.RequestHandler):
                 # if they just want one, just give them that one.
                 client_div = self.get_argument('divs')
                 divs = tornado.escape.xhtml_escape(client_div).split(',')
-                print(divs)
             # Send the header information with the new name, then each div,
             # then the footer.
             super(BaseHandler, self).write(self.getjssetup())
@@ -304,14 +304,11 @@ class BaseHandler(tornado.web.RequestHandler):
         These are encrypted using the built-in Tornado cookie encryption.
         """
 
-        print("Running Setvars..")
-
         # If we're over https, ensure the cookie can't be read over HTTP
         if self.request.protocol == 'https':
             secure = True
         else:
             secure = False
-        print("In Setvars!")
         # Save our out passkey
         if self.user.UserSettings['status']['guest'] is False:
             if self.user.passkey is not None:
@@ -320,9 +317,9 @@ class BaseHandler(tornado.web.RequestHandler):
                     self.user.passkey,
                     httponly=True,
                     expires_days=999)
-                print("set passkey")
         else:
             print(self.user.UserSettings['status']['guest'])
+
         if self.user.UserSettings['author_sha512'] is not None:
             # Delete our sensetive data before saving out.
             self.user.savemongo()
@@ -331,7 +328,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.user.UserSettings['author_sha512'],
                 httponly=True,
                 expires_days=999)
-            print("set settings")
+
         else:
             print(self.user.UserSettings['author_sha512'])
 

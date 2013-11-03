@@ -424,7 +424,7 @@ function start
     # This uses hashes, rather than timestamps, for simplicity.
     # By using hashes, we can always cat them, then compare one file for differences
     # Otherwise, we'd need to compare dates N times.
-    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/retina.min.js"
+    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/jquery.unveil.min.js"
     if [ $DEBUG -eq 0 ]
     then    
         cat $JSFILES > static/scripts/unified.js

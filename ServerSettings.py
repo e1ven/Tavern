@@ -232,8 +232,6 @@ class ServerSettings():
             self.settings['KeyGenerator']['num_pregens'] = 5
         if not 'workers' in self.settings['KeyGenerator']:
             self.settings['KeyGenerator']['workers'] = 1
-        if not 'sleep' in self.settings['KeyGenerator']:
-            self.settings['KeyGenerator']['sleep'] = 5
 
         if not 'keys' in self.settings:
             self.settings['keys'] = {}

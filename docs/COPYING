@@ -96,8 +96,8 @@ Tavern contains code from and/or uses libraries from the following projects:
 	MouseTrap http://craig.is/killing/mice (Apache 2)
 
     JavaScript Vertical Splitter - http://www.stevefenton.co.uk/Content/JavaScript-Vertical-Splitter/ (Apache via email)
-    
-    retina.js https://github.com/imulus/retinajs/ (MIT)
+        
+    Unveil - https://github.com/luis-almeida/unveil (MIT)
     
     jquery-throttle https://github.com/mekwall/jquery-throttle (MIT)
 

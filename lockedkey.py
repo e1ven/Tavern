@@ -5,6 +5,9 @@ import time
 import TavernUtils
 import functools
 
+import Server
+server = Server.Server()
+
 
 class LockedKey(key.Key):
 
@@ -24,13 +27,22 @@ class LockedKey(key.Key):
     # and unlock the privatekey in some way.
 
     def __init__(self, pub=None, priv=None,
-                 password=None, encryptedprivkey=None):
+                 password=None, encryptedprivkey=None, passkey=None):
+
         self.maxtime_verify = 5
         self.maxtime_create = 1
         self.encryptedprivkey = encryptedprivkey
-        self.passkey = None
+        self.passkey = passkey
+        self.privkey = priv
+        self.pubkey = pub
 
-        super().__init__(pub=pub, priv=priv)
+        if self.passkey is None and password is not None:
+            self.passkey = self.get_passkey(password)
+
+        if self.passkey is not None and self.encryptedprivkey is not None:
+            self.privkey = self._decryptprivkey(passkey=self.passkey)
+
+        super().__init__(pub=self.pubkey, priv=self.privkey)
 
     def lock(self, passkey=None):
         """Remove the private key from Python obj."""
@@ -56,6 +68,7 @@ class LockedKey(key.Key):
 
     def unlock(self, passkey=None):
         """Sets self.privkey to be the public key, if possible."""
+
         if passkey is not None:
             self.passkey = passkey
 
@@ -135,7 +148,6 @@ class LockedKey(key.Key):
         if self.passkey is not None:
             return self.passkey
 
-        print("Calling scrypt hash...")
         pkey = base64.b64encode(scrypt.hash(
             password=password, salt=self.pubkey, N=16384, r=8, p=1)).decode('utf-8')
         return pkey
@@ -164,7 +176,6 @@ class LockedKey(key.Key):
 
         if random is True:
             password = TavernUtils.randstr(100)
-            print("Generating a lockedkey with a random password")
             ret = password
         else:
             ret = None

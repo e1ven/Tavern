@@ -210,6 +210,20 @@ function setupReplies(jqueryobj)
 }
 
 
+
+// Show a spinner, so people know it's loading
+function showLazyLoad(jqueryobj)
+{
+  if ( detectAnimation() == true)
+  {
+    if (! jQuery(jqueryobj).is(':visible'))
+    {
+      jQuery("img.lazyload").show();
+      jQuery("img").unveil();
+    }
+  }
+}
+
 // Show a spinner, so people know it's loading
 function showSpinner(jqueryobj)
 {
@@ -563,7 +577,7 @@ jQuery(document).ready(function() {
     setupEmbeddedNote(jQuery(".embeddedcontentnote"));
     setupUserDetails(jQuery("a.details"));
     setupFollowUser(jQuery(".followuser"));
-
+    showLazyLoad(jQuery("img.lazyload"));
  
 
     // Bind key Events.
@@ -658,6 +672,10 @@ jQuery(document).ready(function() {
         jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".commentSlider",function(event)
         {
             setupColumnSlider(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".lazyload",function(event)
+        {
+            showLazyLoad(jQuery(this));
         });
     }
 

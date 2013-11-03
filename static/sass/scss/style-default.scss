@@ -62,11 +62,11 @@ a {
 form.vote {
     @include trivialAnimation();
 }
-      
+ 
+// Ensure the spinner doesn't display until we want it.      
 #spinner {
     display:none;   
 }
-
 
 .spinner:after {
     content: '';
@@ -86,6 +86,12 @@ form.vote {
 }
 
 
+// Disable the view of all .lazyload images
+// Then, we can enable it via JS
+// This way, only JS-enabled browsers will see them.
+.lazyload {
+    display:none;   
+}
 
 
 

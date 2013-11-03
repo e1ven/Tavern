@@ -40,6 +40,7 @@ try:
 except ImportError:
     from libs import Robohash
 
+
 import Server
 server = Server.Server()
 
@@ -414,12 +415,10 @@ class RegisterHandler(BaseHandler):
                     "I'm sorry, this email address has already been used.")
                 return
 
-        users_with_this_username = server.db.safe.find('users',
-                                                       {"username": client_newuser.lower()})
-        if len(users_with_this_username) > 0:
+        u = User()
+        if u.load_mongo_by_username(username = client_newuser ) != False:
             self.write("I'm sorry, this username has already been taken.")
             return
-
         else:
             # Generate the user
             self.user.generate(AllowGuestKey=False,
@@ -463,29 +462,13 @@ class LoginHandler(BaseHandler):
                 if sluglookup['url'] is not None:
                     successredirect = sluglookup['url']
 
-        login = False
-        user = server.db.safe.find_one('users',
-                                       {"username": client_username.lower()})
-        if user is not None:
-            u = User()
-            u.load_mongo_by_username(username=client_username.lower())
-            # Allow four forms of password
-            # Normal password
-            # swapped case (caps lock)
-            # First letter as upper if you initially signed up on mobile
-            # First form lower, as if you're on mobile now.
+        u = User()
+        if u.load_mongo_by_username(username=client_username.lower()):
+            # The username exists.
 
             if u.verify_password(client_password):
-                login = True
-                print("Successful login via direct password")
-            elif u.verify_password(client_password.swapcase()):
-                login = True
-            elif u.verify_password(client_password[:1].upper() + client_password[1:]):
-                login = True
-            elif u.verify_password(client_password[:1].lower() + client_password[1:]):
-                login = True
-            if login:
                 self.user = u
+                # You are successfully Authenticated.
 
                 self.clear_cookie('tavern_passkey')
                 self.set_secure_cookie(
@@ -500,7 +483,7 @@ class LoginHandler(BaseHandler):
                 self.redirect(successredirect)
             else:
                 server.logger.debug("Username/password fail.")
-                self.redirect("http://Google.com")
+                # self.redirect("http://Google.com")
 
 
 class LogoutHandler(BaseHandler):
@@ -885,6 +868,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
 
     def post(self, flag=None):
         self.getvars(AllowGuestKey=False)
+
         filelist = []
 
         # We might be getting files either through nginx, or through directly.
