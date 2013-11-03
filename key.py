@@ -62,8 +62,10 @@ class Key(object):
         self.expires = None
         self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
 
-        self.gpg = gnupg.GPG(verbose=False, gnupghome=self.gnuhome,
-                             options="--no-emit-version --no-comments --no-default-keyring --no-throw-keyids")
+        # Pass in options to anonymize where possible, and use sane-defaults
+        options = ''
+
+        self.gpg = gnupg.GPG(verbose=False, gnupghome=self.gnuhome, options='--options tmp/gpgfiles/gpg.conf -vv')
         self.gpg.encoding = 'utf-8'
 
         self._format_keys()
@@ -83,14 +85,29 @@ class Key(object):
         In this case, remove the tempdir used to store gnukeys.
 
         """
-        if self.gnuhome is not None:
+
+        # Try to delete it as a pubkey first.
+        # If that complains, delete it like a privkey
+
+        for tmpkey in self.gpg.list_keys():
+            # Detect if we have a privkey
+            is_privkey = self.privkey is not None
+            # Then try to delete it, using the value we got.
+            result = self.gpg.delete_keys(tmpkey['fingerprint'], secret=is_privkey)
+
+            # If we were wrong about the status, go ahead and delete the privkey anyway, then the pubkey
+            if result.status != 'ok':
+                self.gpg.delete_keys(tmpkey['fingerprint'], secret=True)
+                self.gpg.delete_keys(tmpkey['fingerprint'], secret=False)
+
+            print("Deletin")
             if shutil is not None:
                 shutil.rmtree(self.gnuhome, ignore_errors=True, onerror=None)
 
     def _setKeyDetails(self):
         """Set the format of the key.
 
-        Format types via https://bitbucket.org/skskeyserver/sks-keyserver/src/4069c369eaaa718c6d4f19427f8f164fb9a1e1f0/packet.ml?at=default#cl-250
+        Format types via https://tools.ietf.org/html/rfc4880#section-9.1
 
         """
 
@@ -100,7 +117,7 @@ class Key(object):
 
         if len(self.gpg.list_keys()) > 1:
             raise Exception(
-                "Too many Keys!",
+                "KeyError",
                 "There are too many keys in this keyring - I'm not sure what's going on anymore.")
 
         details = self.gpg.list_keys()[0]
@@ -208,6 +225,7 @@ class Key(object):
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
+            self.minipubkey = noBreaks
 
     def isValid(self):
         """Does this key have an 'expires' variable set in the past?"""
@@ -220,11 +238,11 @@ class Key(object):
     def generate(self, autoexpire=False):
         """Replaces whatever keys currently might exist with new ones."""
         self.logger.debug("MAKING A KEY.")
-        # We don't want to use gen_key_input here because it insists on having an email, when it's not needed.
-        # GPG doesn't require one, but many email programs do, so for general-use it's usually best practice.
-        # Instead, we'll manually specify the string that it would otherwise generate.
-        #keystr = 'Key-Type: RSA\nKey-Length: ' + server.settings['keys']['keysize'] + '\nName-Real: TAVERN\n\n\n%commit\n'
-        keystr = 'Key-Type: RSA\nKey-Length: 3072\nName-Real: TAVERN\n\n\n%commit\n'
+        # We don't want to use gen_key_input here because the library insists on having an email and name, when those aren't needed.
+        # The OpenPGP spec just demands SOMETHING as an ID. We'll use the comment field, and give it "TAVERN" so they are all identical.
+
+        # TODO - Replace this with values from tavernSettings after #198
+        keystr = 'Key-Type: RSA\nKey-Length: 3072\nName-Real: TAVERN\n%commit'
 
         key = self.gpg.gen_key(keystr)
         self.pubkey = self.gpg.export_keys(key.fingerprint)
@@ -266,7 +284,7 @@ class Key(object):
             encoded_hashed_str, keyid=self.fingerprint).data.decode('utf-8')
 
         if not signed_data:
-            raise Exception("Signing Error")
+            raise Exception("KeyError", "Signing Error")
         return signed_data
 
     def verify_string(self, stringtoverify, signature):
@@ -288,14 +306,21 @@ class Key(object):
             self.logger.info("Key matches *A* user, but not the desired user.")
             return False
 
-        # Find out the text that was originally signed
-        gpg_header = "-----BEGIN PGP SIGNED MESSAGE-----\nHash: SHA1\n"
-        gpg_footer = "\n-----BEGIN PGP SIGNATURE-----\n"
-        startpos = signature.find(gpg_header) + len(gpg_header)
-        endpos = signature.find(gpg_footer)
+        # We need to isolate the original text, so we can verify it.
+        # Break off each chunk that we know has to be there, one piece at a time.
+        # We don't look for the exact hash, since it could be several.
+        gpg_header = "-----BEGIN PGP SIGNED MESSAGE-----"
+        hash_header = "Hash: "
+        gpg_pos = signature.find(gpg_header)
+        hash_pos = signature.find(hash_header, gpg_pos)
 
-        if startpos > -1 and endpos > -1:
-            signedtext = signature[startpos + 1:endpos]
+        start_pos = signature.find('\n', hash_pos)
+
+        gpg_footer = "\n-----BEGIN PGP SIGNATURE-----\n"
+        end_pos = signature.find(gpg_footer)
+
+        if start_pos > -1 and end_pos > -1:
+            signedtext = signature[start_pos + 1:end_pos].lstrip()
         else:
             self.logger.info("Cannot recognize key format")
             return False
@@ -331,7 +356,11 @@ class Key(object):
     @privatekeyaccess
     def decrypt(self, decryptstring):
         # self.gpg.
-        decrypted_string = self.gpg.decrypt(decryptstring).data.decode('utf-8')
+        decrypted = self.gpg.decrypt(decryptstring)
+
+        if decrypted.ok is not True:
+            return False
+        decrypted_string = decrypted.data.decode('utf-8')
         return decrypted_string
 
     @privatekeyaccess

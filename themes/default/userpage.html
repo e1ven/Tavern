@@ -6,7 +6,7 @@
     <h1> Details about {{hisname}} </h1>
 
 
-    <img class="bigavatar" id="avatar_{{''.join(thatguy.Keys['master'].pubkey.split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.Keys['master'].pubkey.split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
+    <img class="bigavatar" id="avatar_{{''.join(thatguy.Keys['master'].minipubkey.split())}}" class="portrait" width="200px" height="200px" alt="User Portrait " src="{{'/avatar/' + ''.join(thatguy.Keys['master'].minipubkey.split()) + '.png?set=any&amp;bgset=any&amp;size=200x200'}}" /><br>
 
     {# If it's me, include my settings page #}
     {% if thatguy.Keys['master'].pubkey == user.Keys['master'].pubkey %}

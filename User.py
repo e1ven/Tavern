@@ -154,7 +154,7 @@ class User(object):
                        "noteabout": noteabout, "note": note}
         newnote['note'] = note
         self.server.db.unsafe.save('notes', newnote)
-        self.getNote(noteabout=noteabout, forcerecache=True)
+        self.getNote(noteabout=noteabout, invalidate=True)
 
    # @memorise(parent_keys=['Keys.master.pubkey'], ttl=self.server.serversettings.settings['cache']['user-trust']['seconds'], maxsize=self.server.serversettings.settings['cache']['user-trust']['size'])
     def gatherTrust(self, askingabout, incomingtrust=250):

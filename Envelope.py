@@ -313,6 +313,9 @@ class Envelope(object):
             if stamp['class'] == "author":
                 self.dict['envelope']['local']['author'] = stamp
 
+                # Create a version of the key without ascii
+                self.dict['envelope']['local']['author']['minipubkey'] = Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
+
             # Calculate highest proof of work difficuly.
             # Only use proof-of-work class sha256 for now.
             if 'proof-of-work' in stamp:

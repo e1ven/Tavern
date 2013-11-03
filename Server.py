@@ -558,7 +558,7 @@ class Server(TavernUtils.instancer):
         # accept and save.
         if not c.validate():
             self.logger.info(
-                "Received an Envelope which does not validate- " + c.payload.hash())
+                "Received an Envelope which does not validate-  " + self.payload.hash())
             self.logger.debug(c.text())
             return False
 

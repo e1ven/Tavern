@@ -524,7 +524,7 @@ function start
     echo "Updating Ramdisk"
     rsync -a --delete static/* tmp/static
     rsync -a --delete libs/Robohash/* tmp/Robohash
-
+    cp data/gpg.conf tmp/gpgfiles
     if [ $(sinceArg onStartLastRun) -gt 3600 ]
     then
         # Run the various functions to ensure DB caches and whatnot
