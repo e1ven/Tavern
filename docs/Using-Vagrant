@@ -1,30 +1,42 @@
-We've setup a Vagrant Image to make Developent faster.
-It's build using veewee, since the ubuntu Raring builds weren't always working right.
-Vagrant 1.x is kinda old, so I've built the file assuming vagrant 1.1+
-This means that you should install via http://downloads.vagrantup.com, not rubygems.
+We've setup a Vagrant Image to make Developent faster and easier.
 
+You'll only need a few pieces to make it work. 
+If you've done dev work on other projects, you may already have them.
 
-Fire it up with
-	vagrant up
+	1) Install VirtualBox, https://virtualbox.org/wiki/Downloads
+	2) Install Vagrant, via http://downloads.vagrantup.com
+	3) cd the Vagrant directory, and run "vagrant up"
 
-This will install Tavern with the settings in bootstrap.sh
+You should be all set!
+If everything went smoothly, you should be able to connect to Tavern at 
 
-If you want to build your own version of the Vagrant box, it's pretty straightforward.
-First, install veewee:
-	git clone https://github.com/jedi4ever/veewee.git
-	cd veewee
-	rvm install rvm use ruby-1.9.2-p320
-	rvm use ruby-1.9.2-p320
-	gem install bundler
-	bundle install
+http://127.0.0.1:8080/
+
+To administer it, cd to the Vagrant directory, and run "vagrant ssh"
+
+---
+
+This will download a baseimage, and apply the Tavern settings using install.sh.
+If you don't trust the base image, it's easy to make your own, using Veewee.
+Alternatively, install it manually using Virtualbox and an a iso, and name it tavern-minimal
+
+To create your own image-
+	1) First, install veewee:
+		git clone https://github.com/jedi4ever/veewee.git
+	2) cd veewee
+	3) rvm install ruby-1.9.2-p320
+	4) rvm use ruby-1.9.2-p320
+	5) gem install bundler
+	6) bundle install
 
 Now, let's create an image for Tavern
-	veewee vbox define 'tavern-minimal' 'ubuntu-13.04-server-amd64'
-	bundle exec veewee vbox build 'tavern-minimal'
-	bundle exec veewee vbox export 'tavern-minimal'
-	cp tavern-minimal.box ..
-	cd ..
-	change the line in the Vagrantfile from
+	1) veewee vbox define 'tavern-minimal' 'ubuntu-13.10-server-amd64'
+	2) bundle exec veewee vbox build 'tavern-minimal'
+	3) bundle exec veewee vbox export 'tavern-minimal'
+	4) cp tavern-minimal.box ..
+	5) cd ..
+	6) 
+		change the line in the Vagrantfile from
 		  config.vm.box_url = "https://www.dropbox.com/s/xnayxfshxobvrsu/tavern-minimal.box"
-	to
+		to
 		  config.vm.box_url = "tavern-minimal.box"
