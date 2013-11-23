@@ -41,12 +41,6 @@ Tavern contains code from and/or uses libraries from the following projects:
 	PyGeoIP (For Pure-Python reading of the Above)
 		http://code.google.com/p/pygeoip/
 		
-	GridFS for Nginx (Apache)
-		https://github.com/mdirolf/nginx-gridfs
-
-	Upload Module for Nginx (BSD)
-		https://github.com/vkholodkov/nginx-upload-module 		
-
 	10Gen's Mongo (AGPL) - Only applies to changes to MongoS and MongoD.
 		http://www.mongodb.org/display/DOCS/Licensing
 			
@@ -67,7 +61,6 @@ Tavern contains code from and/or uses libraries from the following projects:
 
 	python-hashes (MIT)
 		https://github.com/sangelone/python-hashes
-
 
 	Robohash - http://Robohash.org (MIT)
 		"Robots lovingly delivered by Robohash.org"

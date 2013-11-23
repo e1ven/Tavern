@@ -424,7 +424,7 @@ class User(object):
 
         if not 'setpassword' in self.UserSettings['status']:
             self.UserSettings['status']['setpassword'] = None
-        
+
         # If we've been told not to use a GuestKey, make sure we don't have
         # one.
         if AllowGuestKey is False and self.server.guestacct is not None:

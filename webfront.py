@@ -416,7 +416,7 @@ class RegisterHandler(BaseHandler):
                 return
 
         u = User()
-        if u.load_mongo_by_username(username = client_newuser ) != False:
+        if u.load_mongo_by_username(username=client_newuser) is not False:
             self.write("I'm sorry, this username has already been taken.")
             return
         else:
@@ -915,10 +915,6 @@ class ReceiveEnvelopeHandler(BaseHandler):
         # If we get files directly, calculate what we need to know.
         for file_field in self.request.files:
             for individual_file in self.request.files[file_field]:
-                #     You get these keys from Tornado
-                #       body
-                #       content_type
-                #       filename
 
                 individual_file['clean_up_file_afterward'] = False
                 individual_file['filehandle'] = io.BytesIO()
