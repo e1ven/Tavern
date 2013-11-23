@@ -232,7 +232,7 @@ class Envelope(object):
                 return False
 
             if stampkey.keydetails['algorithm'] in ['ElGamal', 'RSA', 'DSA']:
-                if int(stampkey.keydetails['length']) < 2048:
+                if int(stampkey.keydetails['length']) < 3072:
                     self.server.logger.debug("Key is too small.")
                     return False
 
