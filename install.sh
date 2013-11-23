@@ -84,6 +84,7 @@ then
     git init
     git remote add git@github.com:e1ven/Tavern.git 
     git pull origin master
+    git branch  --set-upstream-to=origin/master
     chown -R "$USER" .
 fi
 
@@ -106,9 +107,9 @@ unzip 2.2.zip
 make
 make install
 
-mkdir $installroot/uploads
-chmod 777 $installroot/uploads/
-mkdir -p $installroot/cache/tmp
+mkdir $installroot/nginx/uploads
+chmod 777 $installroot/nginx/uploads/
+mkdir -p $installroot/nginx/cache/tmp
 
 rm /etc/init.d/nginx
 rm $installroot/nginx/conf/nginx.conf
@@ -116,13 +117,13 @@ cp $installroot/Tavern/nginx/nginx /etc/init.d/nginx
 chmod a+x /etc/init.d/nginx
 ln -s $installroot/Tavern/nginx/nginx.conf $installroot/nginx/conf/nginx.conf
 ln -s $installroot/Tavern/nginx/default.site $installroot/nginx/conf/default.site
-mkdir -p $installroot/nginx/cache/tmp
 
 # Create Tavern init file.
 ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
 
         
-# Install the python deps.    
+# Install the python deps. 
+
 cd $taverndir/libs
 
 # Ensure we have VirtualEnv, so we can create our own packages.
@@ -143,7 +144,7 @@ git clone https://github.com/e1ven/Robohash.git
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
 # This is not included in git because it is 17M, and frequently updated.
-cd ../data
+cd $taverndir/data
 curl -O http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
 gunzip GeoLiteCity.dat.gz
 
@@ -166,9 +167,9 @@ then
     /etc/init.d/mongodb start
 elif [ $os == 'OSX' ]
 then
-    cd /tmp
+    cd $taverndir/tmp
     wget https://github.com/remysaissy/mongodb-macosx-prefspane/raw/master/download/MongoDB.prefPane.zip
-    unzip MongoDB.prefPane.zip
+    unzip -f MongoDB.prefPane.zip
     open MongoDB.prefPane &
 
     cd $taverndir

@@ -13,6 +13,7 @@ import datetime
 import socket
 import json
 import os
+import re
 
 from PIL import Image
 import imghdr
@@ -32,6 +33,7 @@ from TavernUtils import TavernCache
 import TavernUtils
 from basehandler import BaseHandler
 
+import hashlib
 from libs import rss
 
 # Import the Ramdisk vers if possible
@@ -895,8 +897,7 @@ class ReceiveEnvelopeHandler(BaseHandler):
                     individual_file['path'], 'rb+')
                 hashname = str(individual_file['basename'] + '.sha512')
 
-                # If we have the nginx_upload new enough to give us the SHA512 hash, use it.
-                # If not, calc. it.
+                # Nginx should give us the SHA512 hash, but if not, calc it.
                 if hashname in self.request.arguments:
                     individual_file['hash'] = self.get_argument(
                         individual_file['basename'] + ".sha512")
@@ -993,12 +994,11 @@ class ReceiveEnvelopeHandler(BaseHandler):
             self.write(details_json)
             return
 
-        # Add the binaries which are referenced only
-        # The jQuery uploader will upload them seperately, so this isn't
-        # unusual.
+        # Add the binaries which are only referenced, not multipart posted.
+        # This is not unusual - The jQuery uploaded will upload them separately, for example.
+
         for argument in self.request.arguments:
-            print(argument)
-            if argument.startswith("referenced_file1") and argument.endswith('_name'):
+            if argument.startswith("referenced_file") and argument.endswith('_name'):
                 r = re.compile('referenced_file(.*?)_name')
                 m = r.search(argument)
                 binarycount = m.group(1)
@@ -1440,6 +1440,7 @@ def main():
         (r"/reply/(.*)", ReplyHandler),
         (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
 
+        (r"/upload/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
         (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
         (r"/uploadfile/(.*)", ReceiveEnvelopeHandler),
 

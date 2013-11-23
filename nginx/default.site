@@ -65,25 +65,24 @@ server
   location /static/fonts/
   {
     add_header Access-Control-Allow-Origin *;
-    root ../Tavern/static/fonts;
+    alias ../Tavern/tmp/static/fonts/;
     expires max;
     autoindex off;
   }
 
   location /static/
   {  
-    root ../Tavern/static;
+    alias ../Tavern/tmp/static/;
     expires max;
     autoindex off;
   }
 
   location /uploadenvelope 
   {
-    proxy_pass http://tornados/uploadenvelope;
+    upload_pass /upload$uri;
     client_max_body_size 2000M;
     client_body_buffer_size 128k;
 
-    upload_pass @uploads;
     upload_resumable on;
 
     upload_store uploads/;
@@ -99,6 +98,7 @@ server
     upload_aggregate_form_field $upload_field_name.size "$upload_file_size";
     upload_aggregate_form_field $upload_field_name.sha512 "$upload_file_sha512";
 
+    # Pass through the form variables
     upload_pass_form_field "submit";
     upload_pass_form_field "_xsrf";
     upload_pass_form_field "topic";
@@ -106,15 +106,22 @@ server
     upload_pass_form_field "body";
     upload_pass_form_field "regarding";
     upload_pass_form_field "include_location";
+
+    # Pass through the hidden variables, that are appended by the JS after a file-only upload.
+    upload_pass_form_field "^referenced_file[0-9]*_hash$";
+    upload_pass_form_field "^referenced_file[0-9]*_size$";
+    upload_pass_form_field "^referenced_file[0-9]*_contenttype$";
+    upload_pass_form_field "^referenced_file[0-9]*_name$";
+
+
+
   }
 
-  location /uploadfile/fileonly 
+  location /uploadfile 
   {
-    proxy_pass http://tornados/uploadfile/fileonly;
+    upload_pass /upload/uploadenvelope/fileonly;
     client_max_body_size 2000M;
     client_body_buffer_size 128k;
-
-    upload_pass @uploads;
 
     upload_store uploads/;
     upload_state_store uploads/;
@@ -151,6 +158,7 @@ server
     proxy_cache_key "$host$request_uri$cookie_tavern_preferences1";
     proxy_pass http://tornados/;
   }
+
 
 }
 

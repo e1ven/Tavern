@@ -42,7 +42,14 @@ class Envelope(object):
 
             elif isinstance(oldobj, collections.Sequence) and not isinstance(oldobj, str):
                 newlist = []
-                oldlist = sorted(oldobj)
+
+                # If this is an array of OrderedDicts, for example, we can't sort them.
+                # So leave them as they are.
+                try:
+                    oldlist = sorted(oldobj)
+                except TypeError:
+                    oldlist = oldobj
+
                 for row in oldlist:
                     newlist.append(self.alphabetizeAllItems(row))
                 return newlist

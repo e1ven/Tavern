@@ -239,7 +239,7 @@ class ServerSettings():
             self.settings['keys']['keysize'] = 3072
 
         if not 'upload-dir' in self.settings:
-            self.settings['upload-dir'] = '/opt/uploads'
+            self.settings['upload-dir'] = '../nginx/uploads'
 
         if not 'mark-origin' in self.settings:
             self.settings['mark-origin'] = False
