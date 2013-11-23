@@ -80,7 +80,6 @@ def loaddir(directory=None, topic='sitecontent'):
 
     listing = os.listdir(directory)
     e = Envelope()
-
     for infile in listing:
         print(infile)
         e.loadfile(directory + "/" + infile)

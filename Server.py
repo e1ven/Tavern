@@ -446,7 +446,6 @@ class Server(TavernUtils.instancer):
         from uasparser import UASparser
         self.logger.info("Loading Browser info")
         self.browserdetector = UASparser()
-        self.keygenerator = KeyGenerator.KeyGenerator()
 
         # Start actually logging to file or console
         if self.debug:
@@ -459,6 +458,10 @@ class Server(TavernUtils.instancer):
 
         print("Logging Server started at level: " +
               str(self.logger.getEffectiveLevel()))
+
+        # Pregenerate some users in the background.
+        self.keygenerator = KeyGenerator.KeyGenerator()
+        self.keygenerator.start()
 
         if not 'guestacct' in self.serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
@@ -476,8 +479,6 @@ class Server(TavernUtils.instancer):
             self.guestacct = User()
             self.guestacct.load_mongo_by_pubkey(
                 self.serversettings.settings['guestacct']['pubkey'])
-        # Pregenerate some users in the background.
-        self.keygenerator.start()
 
     def stop(self):
         """Stop all server procs."""

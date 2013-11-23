@@ -21,12 +21,16 @@ uname -a  | grep -i Darwin
 if [ $? -eq 0 ]
 then
     os='OSX'
+    installroot="$HOME/opt"
 fi
 uname -a  | grep -i Linux
 if [ $? -eq 0 ]
 then
     os='LINUX'
+    installroot="/opt"
 fi
+taverndir="$installroot/Tavern"
+
 
 
 # Install the Needed packages.
@@ -53,13 +57,19 @@ then
         ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go/install)"
     fi
     brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
-    libmpc gmp libtiff libjpeg webp littlecms postgres 
+    libmpc gmp libtiff libjpeg webp littlecms postgres pcre
 fi
 
 
 # Install RVM, so we can load in a more recent ruby without messing up the system ruby
-curl -L https://get.rvm.io | bash -s stable
-source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
+source $HOME/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh > /dev/null
+rvm -v > /dev/null
+if [ $? -ne 0 ]
+    then
+    # RVM is not yet installed
+    curl -L https://get.rvm.io | bash -s stable
+    source $HOME/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
+fi
 
 # Install the Gems that convert the sass files into CSS
 # Use a separate gemset as to not screw up system ruby.
@@ -67,12 +77,14 @@ rvm use 1.9.3@Tavern --create  --install
 gem install sass compass bourbon
 
 # Install the current Tavern source
-if [ ! -d "/opt/Tavern" ]
+if [ ! -d "$taverndir" ]
 then
-    sudo mkdir -p /opt
-    cd /opt
-    sudo git clone git@github.com:e1ven/Tavern.git
-    sudo chown -R "$USER" Tavern
+    mkdir -p $taverndir
+    cd $taverndir
+    git init
+    git remote add git@github.com:e1ven/Tavern.git 
+    git pull origin master
+    chown -R "$USER" .
 fi
 
 ### If you want to run through nginx, we should use a custom compiled version for upload/etc.
@@ -80,41 +92,44 @@ fi
 ### If you want to run through nginx, we should use a custom compiled version for upload/etc.
 ### You can skip this step, and just connect directly for development.
 
-    cd /usr/local/src
-    NGINX_VER=1.4.4
-    wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
-    tar xvfz nginx-$NGINX_VER.tar.gz
-    cd nginx-$NGINX_VER
+mkdir -p $taverndir/tmp/nginx
+cd $taverndir/tmp/nginx
+NGINX_VER=1.4.4
+wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
+tar xvfz nginx-$NGINX_VER.tar.gz
+cd nginx-$NGINX_VER
 
-    wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
-    unzip 2.2.zip
-    ./configure --prefix=/opt/nginx  --add-module=/usr/local/src/nginx-$NGINX_VER/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
+wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
+unzip 2.2.zip
+./configure --prefix=$installroot/nginx  --add-module=`pwd`/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
 
-    make
-    make install
+make
+make install
 
-    mkdir /opt/uploads
-    chmod 777 /opt/uploads/
-    mkdir -p /var/www/cache/tmp
+mkdir $installroot/uploads
+chmod 777 $installroot/uploads/
+mkdir -p $installroot/cache/tmp
 
-    rm /etc/init.d/nginx
-    rm /opt/nginx/conf/nginx.conf
-    cp /opt/Tavern/nginx/nginx /etc/init.d/nginx
-    chmod a+x /etc/init.d/nginx
-    ln -s /opt/Tavern/nginx/nginx.conf /opt/nginx/conf/nginx.conf
-
+rm /etc/init.d/nginx
+rm $installroot/nginx/conf/nginx.conf
+cp $installroot/Tavern/nginx/nginx /etc/init.d/nginx
+chmod a+x /etc/init.d/nginx
+ln -s $installroot/Tavern/nginx/nginx.conf $installroot/nginx/conf/nginx.conf
+ln -s $installroot/Tavern/nginx/default.site $installroot/nginx/conf/default.site
+mkdir -p $installroot/nginx/cache/tmp
 
 # Create Tavern init file.
-ln -s /opt/Tavern/tavern.sh /etc/init.d/tavern
+ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
 
         
 # Install the python deps.    
-cd /opt/Tavern/libs
+cd $taverndir/libs
 
 # Ensure we have VirtualEnv, so we can create our own packages.
 curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
 tar -zxvf virtualenv-1.10.tar.gz
-cd ..
+
+cd $taverndir
 # Create a Virtual Environment, so we don't spew across the whole system
 libs/virtualenv-1.10/virtualenv.py  --no-site-packages --distribute tmp/env -p `which python3.3`
 source tmp/env/bin/activate
@@ -142,18 +157,26 @@ curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&downloa
 
 # If you're in prod, you may want to generate various things on a schedule.
 # If not, they happen at startup anyway, so you can ignore ;)
-    echo "/usr/bin/python /opt/Tavern/TopicList.py" > /etc/cron.hourly/generatetopics
-    echo "/usr/bin/python /opt/Tavern/ModList.py" > /etc/cron.daily/findmods
+    echo "/usr/bin/python $taverndir/TopicList.py" > /etc/cron.hourly/generatetopics
+    echo "/usr/bin/python $taverndir/ModList.py" > /etc/cron.daily/findmods
 
 # Make sure your DB is running.
-# I'd suggest installing https://github.com/remysaissy/mongodb-macosx-prefspane instead of using the ./start-dev-servers.sh script
 if [ $os == 'LINUX' ]
 then
     /etc/init.d/mongodb start
 elif [ $os == 'OSX' ]
-    cd /opt/Tavern
+then
+    cd /tmp
+    wget https://github.com/remysaissy/mongodb-macosx-prefspane/raw/master/download/MongoDB.prefPane.zip
+    unzip MongoDB.prefPane.zip
+    open MongoDB.prefPane &
+
+    cd $taverndir
     ./start-dev-servers.sh
 fi
+
+
+
 
 # Start Tavern in Config mode, to generate all needed config files
 ./tavern start initonly

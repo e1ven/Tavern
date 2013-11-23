@@ -683,6 +683,9 @@ class Envelope(object):
         basename, ext = os.path.splitext(filename)
         filehandle = lzma.open(filename, 'rt', encoding='utf-8')
         filecontents = filehandle.read()
+        print("Fish!")
+        print(filecontents)
+        print("Bread!")
         filehandle.close()
         self.loadstring(filecontents)
 

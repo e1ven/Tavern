@@ -65,14 +65,14 @@ server
   location /static/fonts/
   {
     add_header Access-Control-Allow-Origin *;
-    root /opt/Tavern/static/fonts;
+    root ../Tavern/static/fonts;
     expires max;
     autoindex off;
   }
 
   location /static/
   {  
-    root /opt/Tavern/static;
+    root ../Tavern/static;
     expires max;
     autoindex off;
   }
@@ -86,8 +86,8 @@ server
     upload_pass @uploads;
     upload_resumable on;
 
-    upload_store /opt/uploads/;
-    upload_state_store  /opt/uploads/;
+    upload_store uploads/;
+    upload_state_store uploads/;
 
     upload_store_access user:rw group:rw all:rw;
     upload_buffer_size 128K;
@@ -116,8 +116,8 @@ server
 
     upload_pass @uploads;
 
-    upload_store /opt/uploads/;
-    upload_state_store  /opt/uploads/;
+    upload_store uploads/;
+    upload_state_store uploads/;
 
     upload_store_access user:rw group:rw all:rw;
     upload_resumable on;

@@ -27,6 +27,7 @@ class KeyGenerator(object):
         """Initialize our main module, and create threads."""
         # Create a hopper for all the emails to reside in
         self.procs = []
+        print("Init KeyGen")
 
     def start(self):
         """Start up all subprocs."""
@@ -37,11 +38,11 @@ class KeyGenerator(object):
         for proc in range(0, server.serversettings.settings['KeyGenerator']['workers']):
             newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
             self.procs.append(newproc)
-            server.logger.info(" Created KeyGenerator - " + str(proc))
+            print(" Created KeyGenerator - " + str(proc))
 
         for proc in self.procs:
             proc.start()
-            server.logger.info(" Started KeyGenerator" + str(count))
+            print(" Started KeyGenerator" + str(count))
             count += 1
 
     def stop(self):
