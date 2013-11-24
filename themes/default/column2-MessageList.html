@@ -1,23 +1,26 @@
-    {# Get the messages for the middle column #}
+     <!-- Get the messages for the middle column -->
 
-                        {% if topic != 'all-subscribed' %}
-                            {% set subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts']) %}
-                        {% else %}
-                            {% set subjects = topictool.messages(before=before,topic=user.UserSettings['followedTopics'],maxposts=user.UserSettings['maxposts']) %}
-                        {% end %}
+                        % if not defined('before'):
+                            % before = None
 
-                        {% if len(subjects) > 0 %}
-                            {% set beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}
-                            {% set aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic) %}  
-                            {% set newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) %}  
-                        {% else %}
-                             {% set beforecount = 0 %}
-                            {% set aftercount = 0 %}  
-                        {% end %}
+                        % if topic != 'all-subscribed':
+                            % subjects = topictool.messages(before=before,topic=topic,maxposts=user.UserSettings['maxposts'])
+                        % else:
+                            % subjects = topictool.messages(before=before,topic=user.UserSettings['followedTopics'],maxposts=user.UserSettings['maxposts'])
+                        % end
+
+                        % if len(subjects) > 0:
+                            % beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=topic)
+                            % aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic)
+                            % newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=topic,maxposts=user.UserSettings['maxposts']) 
+                        % else:
+                            % beforecount = 0
+                            % aftercount = 0
+                        % end
             
 
 
-                        {% if topic is not None %}
+                        % if topic is not None:
             	            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
             	            	<tr height="10px">
             	            		<td colspan=2>
@@ -35,13 +38,13 @@
                                 </tr>
                                 <tr>
                                     <td colspan=2>
-                                        {% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
-                                        {% if server.sorttopic(topic) in sortedtopic %}
+                                        % sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ]
+                                        % if server.sorttopic(topic) in sortedtopic:
                                             <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
-                                            {% else %}
+                                            % else:
                                             <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
-                                        {% end %}
-                                    </td>
+                                        % end
+                                </td>
                                 </tr>
             			        <tr>
             			        	<td>    
@@ -68,43 +71,43 @@
             	          		<tr>
             	            		<td valign="top">
                                         <ul class="messages">
-                                        {% for subject in subjects %}
+                                        % for subject in subjects:
                                             <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == envelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
                                                 <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
                                                 <a class='internal messagelink' href="/message/{{server.sorttopic(topic)}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
                                                   <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
                                                   <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span> 
                                                 </a>
-                                                {% if subject.countChildren() > 0 %}
+                                                % if subject.countChildren() > 0:
                                                     <div class="replies"><div>{{subject.countChildren()}}</div></div> 
-                                                {% end %}
+                                                % end
                                                 </abbr>
                                             </li>
-                                        {% end %}
+                                        % end
                                         </ul>
 
             				          
                                         <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
                                             <tr>
                                                 <td>   
-                                                    {% if aftercount > 0 %}
+                                                    % if aftercount > 0:
                                                     <a href="/topic/{{topic}}?before={{newbefore}}">
                                                        <button id="NewerMessages" class="column2Buttons" type="button">
                                                         Newer Messages
                                                         <span class="icon-right-circled navIcon"></span>
                                                        </button>
                                                     </a>
-                                                    {% end %}
+                                                    % end
                                                 </td>
                                                 <td>
-                                                    {% if beforecount > 0 %}
+                                                    % if beforecount > 0:
                                                     <a href="/topic/{{topic}}?before={{subjects[-1].dict['envelope']['local']['time_added']}}" class="internal">
                                                        <button id="OlderMessages" class="column2Buttons" type="button">
                                                         Older Messages
                                                         <span class="icon-left-circled navIcon"></span>
                                                        </button>
                                                     </a>
-                                                    {% end %}
+                                                    % end
                                                 </td>
                                             </tr>
                                         </table>
@@ -113,4 +116,4 @@
             	            		</td>
             	                </tr>
             	            </table>
-                        {% end %}
+                        % end

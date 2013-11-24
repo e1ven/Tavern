@@ -3,19 +3,19 @@
 
 <ul class="accordion">      
 
-    {% if user.UserSettings['status']['guest'] == False %}
+    % if user.UserSettings['status']['guest'] == False:
     <li id="two" class="mainheader"><a href="#">Your Account</a>
         <ul  class="sub-element sub-menu">
                 <div id= "login">
                         <a href="/user/{{user.Keys['master'].minipubkey}}">
                             <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.Keys['master'].minipubkey.split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                         </a>
-                        {% if user.UserSettings['status']['setpassword'] is not None %}
+                        % if user.UserSettings['status']['setpassword'] is not None:
                             <p>You are logged in as: <br>
                             <a href="/user/{{user.Keys['master'].minipubkey}}">{{user.UserSettings['username']}}</a>.</p>
-                        {% else %}
+                        % else:
                             <p>You've using a <br><a href="/user/{{user.Keys['master'].minipubkey}}"> temporary account</a>.</p>
-                        {% end %}
+                        % end
                         You are posting under the alias:<br>
                         <a href="/user/{{user.Keys['master'].minipubkey}}">{{user.UserSettings['friendlyname']}}</a>
                 </div>
@@ -27,7 +27,7 @@
                     </li>
         </ul>
     </li>
-    {% else %}
+    % else:
     <li id="two" class="mainheader"><a href="#">Register or Login</a>
         <ul  class="sub-element">
             <div id="login">
@@ -44,27 +44,34 @@
                 </form>
             </div>
         </ul>
-    {% end %}
+    % end
     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
         <ul class="sub-element sub-menu">
-            {% for quicktopic in topictool.toptopics() %}
+            % for quicktopic in topictool.toptopics():
                 <li 
-                {% if server.sorttopic(quicktopic) == server.sorttopic(topic) %} class="active"{% end %} >
+                % if server.sorttopic(quicktopic) == server.sorttopic(topic):
+                 class="active"
+                % end
+                >
                     <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
                         <bdi>{{quicktopic}}</bdi>
                         <span>{{topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
                     </a>
                 </li>
-            {% end %}
+            % end
         </ul>
     </li>
     <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
         <ul class="sub-element sub-menu">
-            {% for quicktopic in user.UserSettings['followedTopics'] %}
-                <li {%if quicktopic == topic %} class="active"{% end %} >
+            % for quicktopic in user.UserSettings['followedTopics']:
+                <li 
+                    %if quicktopic == topic:
+                        class="active"
+                    %end
+                    >
                     <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
                 </li>
-            {% end %}
+            % end
         </ul>
     </li>
     <li id="four" class="mainheader"><a href="#">Special</a>

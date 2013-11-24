@@ -22,17 +22,16 @@ class TopicTool(object):
     @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def messages(self, topic, maxposts, before=None):
         """Get all messages in a topic, no later than `before`"""
-        if topic != 'all':
-            if isinstance(topic, str):
-                topics = []
-                topics.append(server.sorttopic(topic))
-            elif isinstance(topic, list):
-                topics = []
-                for t in topic:
-                    topics.append(server.sorttopic(t))
+        if topic == 'all':
+            sorttopic = {'envelope.local.sorttopic': {'$exists': False}}
+        elif isinstance(topic, str):
+            sorttopic = {'envelope.local.sorttopic': topic}
+        elif isinstance(topic, list):
+            for t in topic:
+                topics.append(server.sorttopic(t))
             sorttopic = {'envelope.local.sorttopic': {'$in': topics}}
         else:
-            sorttopic = {'envelope.local.sorttopic': {'$exists': True}}
+            sorttopic = {}
 
         # Don't do this in the def, so that our cache is respected.
         if before is None:

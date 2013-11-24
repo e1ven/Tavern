@@ -1,6 +1,4 @@
-{% extends 'tripane.html' %}
-
-{% block column3 %}
+%def column3():
 
     <div id="allreplies">
         {% raw handler.render_string('firstMessage.html',envelope=envelope) %}
@@ -12,4 +10,6 @@
         {% end %}  
     </div>
 
-{% end %}
+%end
+
+%rebase tripane.html column3=column3,user=user,server=server,topic=topic

@@ -2,14 +2,10 @@
 
 {% block column2 %}
 
-
-
     {% set envelope = stack[0] %}
     {% import datetime %}
     {% set medialink = None %}
     {% set permalink = serversettings.settings['web_url'] + '/attachment/' + attachment  %}
-
-    {{preview}}
     <h1> General information regarding {{attachment}} </h1>
 
     <br><br>
