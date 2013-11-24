@@ -11,51 +11,58 @@
     <meta name="robots" content="noindex">
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	{% if 'canon' in globals() and canon is not None %}
+	%if 'canon' in globals() and canon is not None:
 		<link rel=canonical href="{{serversettings.settings['canonical_url']}}/{{canon}}"/>
 		<meta property="og:url" content="{{serversettings.settings['canonical_url']}}/{{canon}}"/>
 		<meta property="og:blog" content="article"/>
-	{% end %}
+	%end
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
 
 
-	{% if len('title') > 1 %}
+	%if len('title') > 1:
 	<meta NAME="Description" CONTENT="Tavern ;) - {{title}}">
-	{% else %}
+	%else:
 	<meta NAME="Description" CONTENT="A shared discussion about the topics that matter.">
-	{% end %}
+	%end
 
 	<meta http-equiv="X-Frame-Options" content="deny">
 
 	<meta property="og:site_name" content="Tavern"/>
 
 	<title>
-		{% if len(title) > 1 %}
+		%if len(title) > 1:
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{title}}
-		{% end %}
-		{% if len(title) < 2 %}
+		%end
+		%if len(title) < 2:
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Discuss what matters.
-		{% end %}
+		%end
 	</title>
-	<meta property="og:title" content="{% if len(title) > 1 %}Tavern :: {{title}}{% end %}{% if len(title) < 2 %}Tavern :: Discuss what matters {% end %}"/>
+	<meta property="og:title" content="
+	%if len(title) > 1:
+	Tavern :: {{title}}
+	%end
+	%if len(title) < 2:
+	Tavern :: Discuss what matters
+	%end
+	"/>
 
-	{% if type == 'topic' %}
+	%if type == 'topic':
 		<link rel="alternate" type="application/rss+xml" title="Updates on {{rsshead}}" href="/rss/topic/{{rsshead}}" /> 
-	{% end %}
+	%end
 
-	{% if browser['ua_family'] != 'Netscape Navigator' and browser['ua_versions'][0] > 4 %}
+	%if browser['ua_family'] != 'Netscape Navigator' and browser['ua_versions'][0] > 4:
 	
-		{% if 'theme' in user.UserSettings %}
+		%if 'theme' in user.UserSettings:
 			<link href="/static/css/unified-{{user.UserSettings['theme']}}.min.css?v={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-			{% else %}
+		%else:
 			<link href="/static/css/unified-default.min.css?v={{serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-		{% end %}
+		%end
 		    <!--[if IE 7]>
     			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
     		<![endif]-->
     	
-	{% end %}
+	%end
 	
 
     <link rel="icon" href="/static/icons/32x32Icon.png?v={{serversettings.settings['static-revision']}}" type="image/png" />
@@ -64,19 +71,19 @@
 	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{serversettings.settings['static-revision']}}" />
 	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?v={{serversettings.settings['static-revision']}}" />
 
-	{% if browser['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
+	%if browser['ua_family'] == 'IE' and browser['ua_versions'][0] < 9:
 	  <script src="/static/scripts/IE9.min.js?v={{serversettings.settings['static-revision']}}"></script>  
-	{% end %}
+	%end
 
 
 
-	{% if server.debug %}
-		{% include 'header-debug-JS.html' %}
-	{% else %}
-		{% if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE') %}
+	%if server.debug:
+		%include 'header-debug-JS.html'
+	%else:
+		%if (browser['ua_family'] != 'IE' and browser['ua_versions'][0] >= 8) or (browser['ua_family'] != 'IE'):
 		  <script defer src="/static/scripts/unified.min.js?v={{serversettings.settings['static-revision']}}"></script>
-		{% end %}
-	{% end %}
+		%end
+	%end
 
 </head>
 <body link="#000000" visited="#000000" text="#000000" background="#CCCCCC" id="body">

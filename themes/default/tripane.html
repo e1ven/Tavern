@@ -1,34 +1,28 @@
-{# Do the Standard Python Imports #}
-{% from TopicTool import topictool %}
-{% import TavernUtils %}
+%from TopicTool import topictool
+% import TavernUtils
 
-{# Make sure defaults are set #}
-{% if not 'before' in locals() %}
-    {% set before = None %}
-{% end %}
+<!-- Make sure defaults are set -->
+% if not 'before' in locals():
+    % before = None
+% end
 
 <table id="wrappertable" class='wrappertable' cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
             <div id="scrollablediv1" class="fullscroller">
-        		{% block column1 %}
-                    {% include 'column1.html' %}
-    	    	{% end %}
+                %include column1.html user=user,server=server,topictool=topictool,topic=topic
             </div>
         </td>
         <td id="column2in3col" valign="top" >
             <div id="scrollablediv2" class="fullscroller">
-                {% block column2 %}
-                    {% include 'column2-MessageList.html' %}
-                {% end %}
+                %include column2-MessageList.html server=server,topic=topic,topictool=topictool,user=user
             </div>
         </td>
         <td id="column3" valign="top">
             <div id="scrollablediv3" class="fullscroller">
             <hr id="TopHR">
 
-            {% block column3 %}
-            {% end %}
+            %column3()
 
             </div>
         </td>

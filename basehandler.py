@@ -332,54 +332,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             print(self.user.UserSettings['author_sha512'])
 
-    def getvars(self, AllowGuestKey=True):
-        """Retrieve the basic user variables out of your cookies."""
-        self.user = User()
-        # Load in our session token if we have one.
-        userid = self.get_secure_cookie("tavern_settings")
-
-        loaded = False
-        if userid is not None:
-            loaded = self.user.load_mongo_by_sha512(userid.decode('utf-8'))
-
-        if loaded is False:
-            # Either no cookie, or bad cookie. Either way, abort.
-            self.clear_all_cookies()
-            self.set_cookie("_xsrf", self.xsrf_token)
-            self.user = User()
-
-        # Get the passkey to unlock our privkey
-        passkey = self.get_secure_cookie("tavern_passkey")
-        if passkey is not None:
-            self.user.passkey = passkey
-
-        # Ensure our user has all expected fields
-        # This method will also generate a key if necessary.
-        if self.user.generate(AllowGuestKey=AllowGuestKey):
-            self.setvars()
-
-        # Check to see if we have support for datauris in our browser.
-        # If we do, send the first ~10 pages with datauris.
-        # After that switch back, since caching the images is likely to be
-        # better, if you're a recurrent reader
-        if not 'datauri' in self.user.UserSettings:
-            if TavernUtils.randrange(1, 10) == 5:
-                self.user.UserSettings['datauri'] = False
-        if 'datauri' in self.user.UserSettings:
-            self.user.datauri = self.user.UserSettings['datauri']
-        elif self.browser['ua_family'] == 'IE' and self.browser['ua_versions'][0] < 8:
-            self.user.datauri = False
-        elif self.browser['ua_family'] == 'IE' and self.browser['ua_versions'][0] >= 8:
-            self.user.datauri = True
-        else:
-            self.user.datauri = True
-        if 'datauri' in self.request.arguments:
-            if self.get_argument("datauri").lower() == 'true':
-                self.user.datauri = True
-            elif self.get_argument("datauri").lower() == 'false':
-                self.user.datauri = False
-
-        return self.user.UserSettings['username']
 
     def write_error(self, status_code, **kwargs):
         """Errors?
