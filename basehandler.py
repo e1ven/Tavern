@@ -332,7 +332,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             print(self.user.UserSettings['author_sha512'])
 
-
     def write_error(self, status_code, **kwargs):
         """Errors?
 

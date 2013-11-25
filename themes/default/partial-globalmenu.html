@@ -1,23 +1,25 @@
+% import TavernUtils
+% from TopicTool import topictool
 
 <a href="/"><img id="logo" src="/static/images/logo.png" alt="TAVERN"/></a>
 
 <ul class="accordion">      
 
-    % if user.UserSettings['status']['guest'] == False:
+    % if requestvars['user'].UserSettings['status']['guest'] is False:
     <li id="two" class="mainheader"><a href="#">Your Account</a>
         <ul  class="sub-element sub-menu">
                 <div id= "login">
-                        <a href="/user/{{user.Keys['master'].minipubkey}}">
-                            <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(user.Keys['master'].minipubkey.split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
+                        <a href="/user/{{requestvars['user'].Keys['master'].minipubkey}}">
+                            <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{''.join(requestvars['user'].Keys['master'].minipubkey.split())}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                         </a>
-                        % if user.UserSettings['status']['setpassword'] is not None:
+                        % if requestvars['user'].UserSettings['status']['setpassword'] is not None:
                             <p>You are logged in as: <br>
-                            <a href="/user/{{user.Keys['master'].minipubkey}}">{{user.UserSettings['username']}}</a>.</p>
+                            <a href="/user/{{requestvars['user'].Keys['master'].minipubkey}}">{{requestvars['user'].UserSettings['username']}}</a>.</p>
                         % else:
-                            <p>You've using a <br><a href="/user/{{user.Keys['master'].minipubkey}}"> temporary account</a>.</p>
+                            <p>You've using a <br><a href="/user/{{requestvars['user'].Keys['master'].minipubkey}}"> temporary account</a>.</p>
                         % end
                         You are posting under the alias:<br>
-                        <a href="/user/{{user.Keys['master'].minipubkey}}">{{user.UserSettings['friendlyname']}}</a>
+                        <a href="/user/{{requestvars['user'].Keys['master'].minipubkey}}">{{requestvars['user'].UserSettings['friendlyname']}}</a>
                 </div>
                     <li>
                         <form action="/logout" method="post">
@@ -49,11 +51,11 @@
         <ul class="sub-element sub-menu">
             % for quicktopic in topictool.toptopics():
                 <li 
-                % if server.sorttopic(quicktopic) == server.sorttopic(topic):
+                % if requestvars['server'].sorttopic(quicktopic) == requestvars['server'].sorttopic(requestvars['topic']):
                  class="active"
                 % end
                 >
-                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}">
+                    <a class="internal" href="/topic/{{requestvars['server'].sorttopic(quicktopic)}}">
                         <bdi>{{quicktopic}}</bdi>
                         <span>{{topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
                     </a>
@@ -63,13 +65,13 @@
     </li>
     <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
         <ul class="sub-element sub-menu">
-            % for quicktopic in user.UserSettings['followedTopics']:
+            % for quicktopic in requestvars['user'].UserSettings['followedTopics']:
                 <li 
-                    %if quicktopic == topic:
+                    %if quicktopic == requestvars['topic']:
                         class="active"
                     %end
                     >
-                    <a class="internal" href="/topic/{{server.sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
+                    <a class="internal" href="/topic/{{requestvars['server'].sorttopic(quicktopic)}}"><bdi>{{quicktopic}}</bdi></a>
                 </li>
             % end
         </ul>
@@ -80,7 +82,7 @@
             <li><a href="/topic/all-subscribed">Subscribed Topics</a></li>
             <li><a href="/showtopics">All Topics</a></li>
             <li><a href="/showprivates">Private Messages</a></li>
-            <li><a href="/user/{{user.Keys['master'].minipubkey}}">My Settings</a></li>
+            <li><a href="/user/{{requestvars['user'].Keys['master'].minipubkey}}">My Settings</a></li>
 
         </ul>
     </li>

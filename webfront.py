@@ -47,25 +47,25 @@ server = Server.Server()
 
 def getuser(AllowGuestKey=True):
     """Retrieve the basic user variables out of your cookies."""
-        
+
     # Create a user obj - We'll either make this a new user, the default user, or an empty user.
     user = User()
 
     # Load in our session token if we have one.
-    userid = bottle.request.get_cookie("tavern_settings",secret=server.serversettings.settings['cookie-encryption'],default=None)
+    userid = bottle.request.get_cookie("tavern_settings", secret=server.serversettings.settings['cookie-encryption'], default=None)
 
     if userid is not None:
         # Try to load - If it fails, abort and clear.
         if not self.user.load_mongo_by_sha512(userid.decode('utf-8')):
 
-            # Either no cookie, or bad cookie. 
+            # Either no cookie, or bad cookie.
             # Either way, abort - Nuke Everything
             for cookie in bottle.request.cookies:
                 print(cookie)
                 bottle.reponse.delete_cookie(cookie)
 
     # Get the passkey to unlock our privkey
-    passkey = bottle.request.get_cookie("tavern_passkey",secret=server.serversettings.settings['cookie-encryption'],default=None)
+    passkey = bottle.request.get_cookie("tavern_passkey", secret=server.serversettings.settings['cookie-encryption'], default=None)
     if passkey is not None:
         user.passkey = passkey
 
@@ -73,8 +73,9 @@ def getuser(AllowGuestKey=True):
     # This method will also generate a key if necessary.
     if user.generate(AllowGuestKey=AllowGuestKey):
         setuser(user)
-    
+
     return user
+
 
 def setuser(user):
     """
@@ -95,7 +96,7 @@ def setuser(user):
                 "tavern_passkey",
                 user.passkey,
                 httponly=True,
-                max_age=60*60*24*360*3, #3 years
+                max_age=60 * 60 * 24 * 360 * 3,  # 3 years
                 secure=secure)
 
     if user.UserSettings['author_sha512'] is not None:
@@ -105,16 +106,14 @@ def setuser(user):
             "tavern_settings",
             user.UserSettings['author_sha512'],
             httponly=True,
-            max_age=60*60*24*360*3, #3 years
+            max_age=60 * 60 * 24 * 360 * 3,  # 3 years
             secure=secure)
 
 
 def setheaders():
-    """
-    Set the default headers that we're expecting
-    """
+    """Set the default headers that we're expecting."""
     # Add in a random fortune
-    bottle.response.set_header("X-Fortune", server.fortune.random().encode('iso-8859-1',errors='ignore'))
+    bottle.response.set_header("X-Fortune", server.fortune.random().encode('iso-8859-1', errors='ignore'))
     # Do not allow the content to load in a frame.
     # Should help prevent certain attacks
     bottle.response.set_header("X-FRAME-OPTIONS", "DENY")
@@ -136,6 +135,7 @@ def setup():
     setheaders()
     requestvars = {}
     requestvars['user'] = getuser()
+    requestvars['server'] = server
 
     # Get the Browser version.
     if 'User-Agent' in bottle.request.headers:
@@ -143,19 +143,56 @@ def setup():
         requestvars['browser'] = server.browserdetector.parse(ua)
     else:
         requestvars['browser'] = server.browserdetector.parse("Unknown")
-   
+
     # If people are accessing a URL that isn't by the canonical URL,
     # redirect them.
     requestvars['canon'] = None
     requestvars['redirected'] = bottle.request.get('redirected', False)
 
-
     # Is this necessary EVERY time? It's quick, I suppose...
     if server.serversettings.settings['web_url'] is None:
-        server.serversettings.settings['web_url'] = bottle.request.urlparts['scheme'] + "://" + bottle.request.urlparts['host']
+        server.serversettings.settings['web_url'] = bottle.request.urlparts[0] + "://" + bottle.request.urlparts[1]
         server.serversettings.saveconfig()
-  
+
+
+
+    # Check to see if we have support for datauris in our browser.
+    # If we do, send the first ~10 pages with datauris.
+    # After that switch back, since caching the images is likely to be
+    # better, if you're a recurrent reader
+
+    # If a URL explicltly asks for datauri on or off, disregard prior.
+    if 'datauri' in bottle.request.query:
+        if bottle.request.query("datauri").lower() == 'true':
+            requestvars['user'].datauri = True
+        elif bottle.request.query("datauri").lower() == 'false':
+            requestvars['user'].datauri = False
+    
+    elif 'datauri' in requestvars['user'].UserSettings:
+        requestvars['user'].datauri = requestvars['user'].UserSettings['datauri']
+
+    elif TavernUtils.randrange(1, 10) == 5:
+            requestvars['user'].UserSettings['datauri'] = False
+            requestvars['user'].datauri = False
+            requestvars['user'].savemongo()
+    elif requestvars['browser']['ua_family'] == 'IE' and requestvars['browser']['ua_versions'][0] < 8:
+        requestvars['user'].datauri = False
+    else:
+        requestvars['user'].datauri = True
+
+
+    if 'ignoreedits' in bottle.request.query:
+        if bottle.request.query("ignoreedits").lower() == 'true':
+            requestvars['user'].ignoreedits = True
+        elif bottle.request.query("ignoreedits").lower() == 'false':
+            requestvars['user'].ignoreedits = False    
+    elif 'ignoreedits' in requestvars['user'].UserSettings:
+        requestvars['user'].ignoreedits = requestvars['user'].UserSettings['ignoreedits']
+    else:
+        requestvars['user'].ignoreedits = False        
+
     return requestvars
+
 
 def EntryHandler_get():
     bottle.redirect('/topic/sitecontent')
@@ -184,7 +221,6 @@ def RSSHandler_get(action, param):
                             envelope['envelope']['local']['formattedbody'])
             channel.additem(item)
         self.write(channel.toprettyxml())
-
 
 
 def MessageHistoryHandler_get(messageid):
@@ -221,6 +257,7 @@ def MessageHistoryHandler_get(messageid):
                 messages=messages))
 
     # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['message-page']['seconds'], maxsize=server.serversettings.settings['cache']['message-page']['size'])
+
 
 def MessageHandler_get(*args):
     """The Message Handler displays a message, when given by message id.
@@ -307,34 +344,35 @@ def TopicHandler_get(topic='all'):
     requestvars = setup()
 
     divs = ['scrollablediv2', 'scrollablediv3']
-    topic = html.escape(topic)
+    requestvars['topic'] = html.escape(topic)
 
     # Used for multiple pages, because skip() is slow
     # Don't really need xhtml escape, since we're converting to a float
     if "before" in bottle.request.query:
-        before = float(bottle.request.query['before'])
+        requestvars['before'] = float(bottle.request.query['before'])
     else:
-        before = None
+        requestvars['before'] = None
 
     # Do we want to show the original, ignoring edits?
     if "showoriginal" in bottle.request.query:
         # Convert the string to a bool.
-        showoriginal = (bottle.request.query['showoriginal'] == "True")
+        requestvars['showoriginal'] = (bottle.request.query['showoriginal'] == "True")
     else:
-        showoriginal = False
+        requestvars['showoriginal'] = False
 
     # TODO - Better custom handlers for this.
     if topic not in ['sitecontent', 'all', 'all-subscribed']:
         requestvars['canon'] = "topic/" + topic
-        title = topic
+        requestvars['title'] = topic
     else:
-        title = "Discuss what matters"
+        requestvars['title'] = "Discuss what matters"
+        requestvars['canon'] = None
 
     topicEnvelopes = topictool.messages(topic=topic, maxposts=1)
     if len(topicEnvelopes) > 0:
-        displayenvelope = topicEnvelopes[0]
+        requestvars['displayenvelope'] = topicEnvelopes[0]
     else:
-        displayenvelope = server.error_envelope(
+        requestvars['displayenvelope'] = server.error_envelope(
             subject="That topic doesn't have any messages in it yet!",
             topic=topic,
             body="""The particular topic you're viewing doesn't have any posts in it yet.
@@ -342,33 +380,11 @@ def TopicHandler_get(topic='all'):
             Don't be nervous. Breathe. You can do this.
             Click the "New Message" button, and get started.
             We're rooting you.""")
-        canon = None
-        title = displayenvelope.dict['envelope']['payload']['subject']
-        topic = displayenvelope.dict['envelope']['payload']['topic']
-    # Gather up all the replies to this message, so we can send those to
-    # the template as well
 
-    resp = ""
-    resp += bottle.template(
-            'header.html',
-            server=server,
-            browser=requestvars['browser'],
-            serversettings=server.serversettings,
-            user=requestvars['user'],
-            title=title,
-            canon=requestvars['canon'],
-            type="topic",
-            rsshead=displayenvelope.dict[
-                'envelope'][
-                'payload'][
-                'topic'])
-
-    resp += bottle.template('showmessage.html',
-               envelope=displayenvelope, before=before, topic=topic,server=server,user=requestvars['user'])
-    resp += bottle.template('footer.html')
+    return bottle.template('tripane.html', requestvars=requestvars)
 
     return resp
-    # # self.finish(divs=divs)
+    # self.finish(divs=divs)
 
 
 def ShowTopicsHandler_get(start=0):
@@ -483,6 +499,7 @@ def RegisterHandler_get():
     self.write(self.render_string('registerform.html'))
     self.write(self.render_string('footer.html'))
 
+
 def RegisterHandler_post():
     self.getvars()
     self.write(self.render_string('header.html',
@@ -539,6 +556,7 @@ def LoginHandler_get(slug=None):
                title="Login to your account", rsshead=None, type=None))
     self.write(self.render_string('loginform.html', slug=slug))
     self.write(self.render_string('footer.html'))
+
 
 def LoginHandler_post():
     self.getvars()
@@ -602,6 +620,7 @@ def ChangepasswordHandler_get():
         self.write(self.render_string('changepassword.html'))
         self.write(self.render_string('footer.html'))
 
+
 def ChangepasswordHandler_post():
     self.getvars(AllowGuestKey=False)
 
@@ -622,6 +641,7 @@ def ChangepasswordHandler_post():
     self.setvars()
     server.logger.debug("Password Change Successful.")
     bottle.redirect("/")
+
 
 def UserHandler_get(pubkey):
     self.getvars()
@@ -689,7 +709,6 @@ def ChangeManySettingsHandler_post():
         bottle.redirect('/user/' + keyurl)
 
 
-
 def ChangeSingleSettingHandler_post(setting, option=None):
     self.getvars(AllowGuestKey=False)
     redirect = True
@@ -720,9 +739,11 @@ def ChangeSingleSettingHandler_post(setting, option=None):
         if redirect:
             bottle.redirect("/")
 
+
 def RatingHandler_get(posthash):
     self.getvars()
     # Calculate the votes for that post.
+
 
 def RatingHandler_post():
     self.getvars(AllowGuestKey=False)
@@ -791,6 +812,7 @@ def UserNoteHandler_get(user):
     self.getvars()
     # Show the Note for a user
 
+
 def UserNoteHandler_post():
     self.getvars(AllowGuestKey=False)
 
@@ -809,6 +831,7 @@ def UserNoteHandler_post():
 def UserTrustHandler_get(user):
     self.getvars()
     # Calculate the trust for a user.
+
 
 def UserTrustHandler_post():
     self.getvars(AllowGuestKey=False)
@@ -925,13 +948,17 @@ def NewmessageHandler_get(topic=None):
 
 
 """Where envelopes POST."""
+
+
 def ReceiveEnvelopeHandler_options(regarding=None):
     self.set_header('Access-Control-Allow-Methods',
                     'OPTIONS, HEAD, GET, POST, PUT, DELETE')
     self.set_header('Access-Control-Allow-Origin', '*')
 
+
 def ReceiveEnvelopeHandler_get(topic=None, regarding=None):
     bottle.redirect('/')
+
 
 def ReceiveEnvelopeHandler_post(flag=None):
     self.getvars(AllowGuestKey=False)
@@ -1357,6 +1384,7 @@ def NewPrivateMessageHandler_get(urlto=None):
 def NullHandler_get(url=None):
     return
 
+
 def NullHandler_post(url=None):
     return
 
@@ -1371,7 +1399,6 @@ def BinariesHandler_get(binaryhash, filename=None):
 
 
 def AvatarHandler_get(avatar):
-
     """Create Avatars using Robohashes.
 
     You should cache these on disk using nginx.
@@ -1410,7 +1437,7 @@ def server_static(filepath):
     else:
         root = os.path.join(os.path.dirname(__file__), "static/")
 
-    return bottle.static_file(filepath,root=root)
+    return bottle.static_file(filepath, root=root)
 
 
 def main():
@@ -1427,7 +1454,6 @@ def main():
     bottle.route('/m/<a>/<b>/<c>', 'GET', MessageHandler_get)
     bottle.route('/m/<a>/<b>', 'GET', MessageHandler_get)
     bottle.route('/m/<a>', 'GET', MessageHandler_get)
-
 
     bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
 

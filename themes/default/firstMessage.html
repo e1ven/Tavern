@@ -1,63 +1,59 @@
-{% set medialink = None %}
-{% set permalink = serversettings.settings['web_url'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
-{% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
-{% set note = user.getNote(envelope.dict['envelope']['local']['author']['minipubkey']) %}
-{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['minipubkey']) %}
+% import datetime
+% medialink = None
 
+% permalink = requestvars['server'].serversettings.settings['web_url'] + '/message/' + requestvars['displayenvelope'].dict['envelope']['local']['sorttopic'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['short_subject'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']
 
-{# Show edited version of comment, if there's nothing stopping us.... #}
-{% if 'edits' in envelope.dict['envelope']['local'] %}
-    {% set showedit = True %}
-{% else %}
-    {% set showedit = False %}
-{% end %}
-{% if 'ignoreedits' in request.arguments %}
-    {% set showedit = False %}
-{% end %}
-{% if user.UserSettings['ignoreedits'] == True %}
-    {% set showedit = False %}
-{% end %}
+% messagerating = requestvars['user'].getRatings(requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512'])
+% note = requestvars['user'].getNote(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'])
 
+<!-- Show edited version of comment, if there's nothing stopping us.... -->
+% if 'edits' in requestvars['displayenvelope'].dict['envelope']['local'] and not requestvars['user'].ignoreedits:
+    % showedit = True
+% else:
+    % showedit = False
+% end
 
 <div id="firstMessage" class="comment">
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['minipubkey'].split())}}" rel="author">
+             <a class="details firstDetails" user="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'].split())}}" rel="author">
 
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['minipubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" src="{{requestvars['server'].external.getavatar(myid=''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'].split()),datauri=requestvars['user'].datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
-                <abbr title="{{envelope.dict['envelope']['payload']['subject']}}"</abbr>
-                    <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
+                <abbr title="{{requestvars['displayenvelope'].dict['envelope']['payload']['subject']}}"</abbr>
+                    <h1>{{requestvars['displayenvelope'].dict['envelope']['payload']['subject']}}</h1>
                 </abbr>
                 <h6 class="firstMessageAuthorInfo">
-                    By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
-                    {% if note is not None %}
+                    By <b>{{requestvars['displayenvelope'].dict['envelope']['local']['author']['friendlyname']}}</b>@{{requestvars['displayenvelope'].dict['envelope']['local']['author_wordhash']}}
+                    % if note is not None:
                         <div class="note"> ( {{note}} ) </div>
-                    {% end %}
+                    % end
                 </h6>
             </a>
-            {% include 'UserDetails.html' %}
+            % include UserDetails.html requestvars=requestvars,note=note
             <p class="firstMessageDate">
-                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['envelope']['local']['time_added']))).format() }}</time></abbr>.
+                Received <abbr title="{{datetime.datetime.fromtimestamp(int(requestvars['displayenvelope'].dict['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(requestvars['displayenvelope'].dict['envelope']['local']['time_added'])).isoformat()}}">{{requestvars['server'].FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(requestvars['displayenvelope'].dict['envelope']['local']['time_added']))).format() }}</time></abbr>.
             </p>
             <p class="firstMessageRating">
-            {% if messagerating != 0 %} Average Message Rating: {{messagerating}} {% end %}
+                % if messagerating != 0:
+                    Average Message Rating: {{messagerating}}
+                % end
             </p>
             <br>
             <div id="firstMessageBody" class="MessageBody">
-                    {% if showedit == True %}
-                        {% raw envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] %}
-                    {% else %}
-                        {% raw envelope.dict['envelope']['local']['formattedbody'] %}
-                    {% end %} 
+                    % if showedit is True:
+                        {{! requestvars['displayenvelope'].dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] }}
+                    % else:
+                        {{! requestvars['displayenvelope'].dict['envelope']['local']['formattedbody'] }}
+                    % end
             </div>
 
             <hr class="clear firstMessageSeparationLine">
             <form action="/vote" method="post" class="vote">
               {% raw xsrf_form_html() %}
             <input type="hidden" name="rating" value="1">
-            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
+            <input type="hidden" name="hash" value="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
             <abbr title= "This post was helpful.">
                 <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                 <input value="Like" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -69,7 +65,7 @@
             <form action="/vote" method="post" class="vote">
               {% raw xsrf_form_html() %}
             <input type="hidden" name="rating" value="-1" >
-            <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
+            <input type="hidden" name="hash" value="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
             <abbr title="This post was inappropriate.">
                 <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
                 <input value="Dislike" type="submit" class="floatLeft iconLabelColorLight likeDislikeLabel textbutton iconLabels">
@@ -82,13 +78,13 @@
             <div id="firstMessageLinks">
                 <div class="externalsharing">
                 <abbr title="Share via Facebook">    
-                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
+                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{requestvars['displayenvelope'].dict['envelope']['local']['short_subject']}}">
                         <i class="icon-facebook-squared floatLeft iconLabelColorLight"></i>
                     </a>
                 </abbr>
 
                 <abbr title="Share via Twitter">    
-                    <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                    <a href="http://twitter.com/home?status=via @Tavern - {{requestvars['displayenvelope'].dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
                         <i class="icon-twitter floatLeft iconLabelColorLight"></i>
                   </a>
                 </abbr>
@@ -99,7 +95,7 @@
                     </a>
                 </abbr>
                 <abbr title="Pin this">
-                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
+                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{requestvars['displayenvelope'].dict['envelope']['local']['short_subject']}}">
                         <i class="icon-pinterest floatLeft iconLabelColorLight" ></i>
                     </a>
                 </abbr>
@@ -122,21 +118,21 @@
                     </abbr>
                 </div>
                 <div class="messageReplyLink">
-                    <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                    <a class="buffer reply" message="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/reply/{{requestvars['displayenvelope'].dict['envelope']['payload']['topic']}}/{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
-                    {% if user.Keys['master'].minipubkey == envelope.dict['envelope']['local']['author']['minipubkey'] %}
-                        <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                    % if requestvars['user'].Keys['master'].minipubkey == requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey']:
+                        <a class="buffer reply iconLabelColorDark" message="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/edit/{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
                             Edit
                         </a>
-                    {% end %}
+                    % end
                 </div>
             </div>
             <div id="commentSliderWrapper">
                 <div id="fewerReplies" class="floatLeft iconLabelColorLight commentDisplayOptions clear">Fewer Replies</div>
                 <div id="moreReplies" class="floatRight iconLabelColorLight commentDisplayOptions">More Replies</div>
                 <br/><br/>
-                <table class="commentSlider" id="commentSlider_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
+                <table class="commentSlider" id="commentSlider_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
                     <tr>
                         <td id="shownComments" width="50%">
                             <span/>
@@ -151,18 +147,18 @@
             </div>
             <div id="numberofreplies" class="iconLabelColorLight commentDisplayOptions">
                 <p>
-                    {% if envelope.countChildren() == 1 %}
+                    % if requestvars['displayenvelope'].countChildren() == 1:
                         1 Reply
-                    {% elif envelope.countChildren() == 0 %}
-                        <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
-                    {% else %}
-                       {{envelope.countChildren()}} Replies
-                    {% end %}
+                    % elif requestvars['displayenvelope'].countChildren() == 0:
+                        <a class="buffer reply" message="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/reply/{{requestvars['displayenvelope'].dict['envelope']['payload']['topic']}}/{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
+                    % else:
+                       {{requestvars['displayenvelope'].countChildren()}} Replies
+                    % end
                 </p>
             </div>
             <Br><br>
-            <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
-            {% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}            
+            <div id="reply_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
+            % include attachmentsandembeds.html requestvars=requestvars
         </li>
     </ul>     
 </div>
