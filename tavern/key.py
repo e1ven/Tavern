@@ -9,11 +9,13 @@ import gnupg
 import tempfile
 import shutil
 import time
-import TavernUtils
 import functools
 import datetime
 import calendar
 import time
+import tavern
+
+
 # We're not using  @memorise because we don't WANT cached copies of the
 # keys hanging around, even though it'd be faster ;()
 
@@ -359,6 +361,9 @@ class Key(object):
             return False
         decrypted_string = decrypted.data.decode('utf-8')
         return decrypted_string
+    
+    def testius(self):
+        print(tavern.utils.longtime)
 
     @privatekeyaccess
     def encrypt_file(self, newfile):
@@ -370,8 +375,8 @@ class Key(object):
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
-        tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
-        ) + TavernUtils.randstr(50, printable=True)
+        tmpfilename = "tmp/gpgfiles/" + tavern.utils.longtime(
+        ) + tavern.utils.randstr(50, printable=True)
 
         self.gpg.encrypt_file(
             stream=oldfile,
@@ -385,8 +390,8 @@ class Key(object):
     @privatekeyaccess
     def decrypt_file(self, tmpfile):
 
-        tmpfilename = "tmp/gpgfiles/" + TavernUtils.longtime(
-        ) + TavernUtils.randstr(50, printable=True)
+        tmpfilename = "tmp/gpgfiles/" + tavern.utils.longtime(
+        ) + tavern.utils.randstr(50, printable=True)
         self.gpg.decrypt_file(tmpfile, output=tmpfilename)
         return tmpfilename
 

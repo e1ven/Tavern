@@ -4,26 +4,46 @@ import platform
 import json
 import collections
 from collections import OrderedDict
-import TavernUtils
 import socket
 import getpass
+import tavern
 
-
-class ServerSettings():
+class ServerSettings(tavern.utils.instancer):
 
     def __init__(self, settingsfile=None, settingsdir=None):
-        self.settings = OrderedDict()
 
         if settingsfile is not None:
             self.settingsfile = settingsfile
         else:
-            self.settingsfile = platform.node() + ".TavernServerSettings"
+            self.settingsfile = 'server.tavernsettings'
 
         if settingsdir is not None:
             self.settingsdir = settingsdir
         else:
             self.settingsdir = 'data/conf/'
 
+
+        super().__init__(self.settingsdir + self.settingsfile)
+        
+        # Do this again, since we just wiped it out with the super() command.
+        # We want this to set the key, and then to actually HAVE it ;)
+        if settingsfile is not None:
+            self.settingsfile = settingsfile
+        else:
+            self.settingsfile = 'server.tavernsettings'
+
+        if settingsdir is not None:
+            self.settingsdir = settingsdir
+        else:
+            self.settingsdir = 'data/conf/'
+
+        # Don't run this more than once.
+        if self.__dict__.get('set') is True:
+            return
+        else:
+            self.set = True
+
+        self.settings = OrderedDict()
         self.loadconfig(filename=settingsfile)
 
     def loadconfig(self, filename=None, directory=None):
@@ -61,12 +81,10 @@ class ServerSettings():
             directory = self.settingsdir
 
         if filename is None:
-            filename = self.settings['hostname'] + \
-                ".TavernServerSettings"
+            filename = 'server.tavernsettings'
 
         print("Writing to " + directory + filename)
         newsettings = self.settings
-        print(newsettings['dbname'])
 
         filehandle = open(directory + filename, 'w')
         filehandle.write(
@@ -251,10 +269,10 @@ class ServerSettings():
             self.settings['max-upload-preview-size'] = 10485760
 
         if not 'cookie-encryption' in self.settings:
-            self.settings['cookie-encryption'] = TavernUtils.randstr(255)
+            self.settings['cookie-encryption'] = tavern.utils.randstr(255)
         if not 'serverkey-password' in self.settings:
             self.settings[
-                'serverkey-password'] = TavernUtils.randstr(255)
+                'serverkey-password'] = tavern.utils.randstr(255)
         if not 'embedserver' in self.settings:
             self.settings['embedserver'] = 'http://embed.is'
 
@@ -275,5 +293,3 @@ class ServerSettings():
             return False
         else:
             return True
-
-serversettings = ServerSettings()

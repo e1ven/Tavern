@@ -43,13 +43,7 @@ import urllib.error
 import urllib.parse
 import re
 import time
-try:
-    import pickle as pickle
-except:
-    import pickle
-from TavernUtils import memorise
-from Envelope import *
-from ServerSettings import serversettings
+import tavern
 
 
 class UASException(Exception):
@@ -58,13 +52,15 @@ class UASException(Exception):
 
 class UASparser:
 
-    ini_file = 'data/useragent.ini'
-    cache_data = None
-    info_url = '/useragent/'
-    os_img_url = '/useragent/img/%s'
-    ua_img_url = '/useragent/img/%s'
+    def __init__(self):
+        self.server = tavern.Server()    
+        ini_file = 'data/useragent.ini'
+        cache_data = None
+        info_url = '/useragent/'
+        os_img_url = '/useragent/img/%s'
+        ua_img_url = '/useragent/img/%s'
 
-    @memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=serversettings.settings['cache']['uasparser']['seconds'], maxsize=serversettings.settings['cache']['uasparser']['size'])
+    # @tavern.utils.memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=self.server.serversettings.settings['cache']['uasparser']['seconds'], maxsize=self.server.serversettings.settings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):
         """
         Get the information of an useragent string

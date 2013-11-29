@@ -1,14 +1,9 @@
 import json
 import pymongo
-from Envelope import Envelope
 import time
-from TavernUtils import memorise
-import TavernUtils
-import Server
-server = Server.Server()
 from collections import OrderedDict
 import sys
-
+import tavern
 
 class TopicTool(object):
 
@@ -19,7 +14,7 @@ class TopicTool(object):
 
     """
 
-    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
+    @tavern.utils.memorise(ttl=tavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=tavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def messages(self, topic, maxposts, before=None):
         """Get all messages in a topic, no later than `before`"""
         if topic == 'all':
@@ -28,14 +23,14 @@ class TopicTool(object):
             sorttopic = {'envelope.local.sorttopic': topic}
         elif isinstance(topic, list):
             for t in topic:
-                topics.append(server.sorttopic(t))
+                topics.append(tavern.server.sorttopic(t))
             sorttopic = {'envelope.local.sorttopic': {'$in': topics}}
         else:
             sorttopic = {}
 
         # Don't do this in the def, so that our cache is respected.
         if before is None:
-            before = TavernUtils.inttime()
+            before = tavern.utils.inttime()
 
         # Append our search topic query.
         subjects = []
@@ -43,23 +38,23 @@ class TopicTool(object):
                   'envelope.payload.regarding': {'$exists': False},
                   'envelope.local.time_added': {'$lt': before}}
         search.update(sorttopic)
-        for envelope in server.db.unsafe.find('envelopes', search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in tavern.server.db.unsafe.find('envelopes', search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
             e = Envelope()
             e.loaddict(envelope)
             subjects.append(e)
 
         return subjects
 
-    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
+    @tavern.utils.memorise(ttl=tavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=tavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def getbackdate(self, topic, maxposts, after):
         """Get the earliest dated message, before `after`"""
-        sorttopic = server.sorttopic(topic)
+        sorttopic = tavern.server.sorttopic(topic)
         subjects = []
         if topic != "all":
-            for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
+            for envelope in tavern.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
         else:
-            for envelope in server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
+            for envelope in tavern.server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
 
         # Adding 1 to maxposts above, because we're going to use this to get the 10 posts AFTER the date we return from this function.
@@ -73,16 +68,16 @@ class TopicTool(object):
             else:
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
-            ret = TavernUtils.inttime()
+            ret = tavern.utils.inttime()
 
         return ret
 
-    @memorise(ttl=server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=server.serversettings.settings['cache']['subjects-in-topic']['size'])
+    @tavern.utils.memorise(ttl=tavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=tavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def moreafter(self, before, topic, maxposts):
-        sorttopic = server.sorttopic(topic)
+        sorttopic = tavern.server.sorttopic(topic)
         if topic != "all":
             count = len(
-                server.db.unsafe.find('envelopes',
+                tavern.server.db.unsafe.find('envelopes',
                                       {'envelope.local.sorttopic': sorttopic,
                                        'envelope.payload.class': 'message',
                                        'envelope.payload.regarding':
@@ -90,37 +85,37 @@ class TopicTool(object):
                                        'envelope.local.time_added': {'$lt': before}}))
         else:
             count = len(
-                server.db.unsafe.find('envelopes',
+                tavern.server.db.unsafe.find('envelopes',
                                       {'envelope.payload.class': 'message',
                                        'envelope.payload.regarding':
                                        {'$exists': False},
                                        'envelope.local.time_added': {'$lt': before}}))
         return count
 
-    @memorise(ttl=server.serversettings.settings['cache']['toptopics']['seconds'], maxsize=server.serversettings.settings['cache']['toptopics']['size'])
+    @tavern.utils.memorise(ttl=tavern.server.serversettings.settings['cache']['toptopics']['seconds'], maxsize=tavern.server.serversettings.settings['cache']['toptopics']['size'])
     def toptopics(self, limit=10, skip=0):
         toptopics = []
-        for quicktopic in server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
+        for quicktopic in tavern.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic['_id'])
         return toptopics
 
-    @memorise(ttl=server.serversettings.settings['cache']['topiccount']['seconds'], maxsize=server.serversettings.settings['cache']['topiccount']['size'])
+    @tavern.utils.memorise(ttl=tavern.server.serversettings.settings['cache']['topiccount']['seconds'], maxsize=tavern.server.serversettings.settings['cache']['topiccount']['size'])
     def topicCount(self, topic, after=0, before=None, toponly=True):
 
         # Don't do this in the def, so that our cache is respected.
         if before is None:
-            before = TavernUtils.inttime()
+            before = tavern.utils.inttime()
 
-        sorttopic = server.sorttopic(topic)
+        sorttopic = tavern.server.sorttopic(topic)
         if toponly:
-            count = server.db.unsafe.count(
+            count = tavern.server.db.unsafe.count(
                 'envelopes',
                 {'envelope.local.time_added': {'$lt': before},
                  'envelope.local.time_added': {'$gt': after},
                  'envelope.payload.regarding': {'$exists': False},
                  'envelope.local.sorttopic': sorttopic})
         else:
-            count = server.db.unsafe.count(
+            count = tavern.server.db.unsafe.count(
                 'envelopes',
                 {'envelope.local.time_added': {'$lt': before},
                  'envelope.local.time_added': {'$gt': after},

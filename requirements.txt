@@ -1,7 +1,7 @@
 Cython
 Mako
 MarkupSafe
-bottle
+flask
 Markdown>=2.2.1
 pygeoip
 postmarkup

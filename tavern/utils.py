@@ -12,11 +12,8 @@ import time
 from io import open
 import hashlib
 import random
-try:
-    import Server
-    server = Server.Server()
-except ImportError:
-    print("server already loaded.")
+import tavern
+
 # The random that comes with Python does not use /dev/urandom, it uses MT.
 # Wrap random.SystemRandom so we always use expected randomness.
 randrange = random.SystemRandom().randrange
