@@ -10,11 +10,7 @@ import signal
 import pdb
 import os
 import time
-from Envelope import Envelope
-import Server
-server = Server.Server()
-from lockedkey import LockedKey
-import TavernUtils
+import tavern
 
 
 class KeyGenerator(object):
@@ -27,6 +23,7 @@ class KeyGenerator(object):
         """Initialize our main module, and create threads."""
         # Create a hopper for all the emails to reside in
         self.procs = []
+        self.server = tavern.Server()
         print("Init KeyGen")
 
     def start(self):
@@ -35,7 +32,7 @@ class KeyGenerator(object):
 
         self.stop()
         self.procs = []
-        for proc in range(0, server.serversettings.settings['KeyGenerator']['workers']):
+        for proc in range(0, self.server.serversettings.settings['KeyGenerator']['workers']):
             newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
             self.procs.append(newproc)
             print(" Created KeyGenerator - " + str(proc))
@@ -48,16 +45,16 @@ class KeyGenerator(object):
     def stop(self):
         """Terminate all subprocs."""
         count = 0
-        server.logger.info("Stopping KeyGenerator")
+        self.server.logger.info("Stopping KeyGenerator")
         for proc in self.procs:
             proc.terminate()
-            server.logger.info(" Stopped KeyGenerator " + str(count))
+            self.server.logger.info(" Stopped KeyGenerator " + str(count))
             count += 1
-        server.logger.info("All KeyGenerator threads ceased.")
+        self.server.logger.info("All KeyGenerator threads ceased.")
 
     def CreateUnusedLK(self):
         """Create a LockedKey with a random password."""
-        lk = LockedKey()
+        lk = tavern.LockedKey()
         password = lk.generate(random=True)
         unusedkey = {'encryptedprivkey': lk.encryptedprivkey, 'pubkey': lk.pubkey, 'password': password}
         return unusedkey
@@ -70,5 +67,5 @@ class KeyGenerator(object):
             # Create a LK, and push it up.
             # If the queue is full, we'll block, so we just wait.
             unusedkey = self.CreateUnusedLK()
-            server.unusedkeycache.put(unusedkey, block=True)
-            # print(server.unusedkeycache.qsize())
+            self.server.unusedkeycache.put(unusedkey, block=True)
+            # print(self.server.unusedkeycache.qsize())

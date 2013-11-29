@@ -2,7 +2,6 @@
 import json
 import platform
 import time
-from key import Key
 import collections
 from collections import OrderedDict
 import pymongo
@@ -15,23 +14,15 @@ from libs import bbcodepy
 from bs4 import BeautifulSoup
 import psycopg2
 from psycopg2.extras import RealDictConnection
-
-import ServerSettings
-
-import tornado.escape
 import html
 import queue
 import multiprocessing
-
-
-from TavernUtils import TavernCache
 import logging
 import os
 import re
-from TavernUtils import memorise
-import TavernUtils
+import tavern
 
-defaultsettings = ServerSettings.ServerSettings('cache.TavernSettings')
+defaultsettings = tavern.ServerSettings('cache.TavernSettings')
 
 
 class FakeMongo():
@@ -275,7 +266,7 @@ def print_timing(func):
     return wrapper
 
 
-class Server(TavernUtils.instancer):
+class Server(tavern.utils.instancer):
 
     # We want to share state across all Server instances.
     # This way we can create a new instance, anywhere, in any subclass, and
@@ -343,14 +334,14 @@ class Server(TavernUtils.instancer):
         # Should the server run in debug mode
         self.debug = False
 
-        self.serversettings = ServerSettings.ServerSettings(settingsfile)
+        self.serversettings = tavern.ServerSettings(settingsfile)
         if self.serversettings.updateconfig():
             self.serversettings.saveconfig()
 
         if not 'pubkey' in self.serversettings.settings or not 'privkey' in self.serversettings.settings:
             # Generate New config
             self.logger.info("Generating new Config")
-            self.ServerKeys = Key()
+            self.ServerKeys = tavern.Key()
             self.ServerKeys.generate()
 
             # We can't encrypt this.. We'd need to store the key here on the machine...
@@ -368,7 +359,7 @@ class Server(TavernUtils.instancer):
         # This does cause a few shenanigans while loading here, but hopefully
         # it's minimal
 
-        self.ServerKeys = Key(pub=self.serversettings.settings['pubkey'],
+        self.ServerKeys = tavern.Key(pub=self.serversettings.settings['pubkey'],
                               priv=self.serversettings.settings['privkey'])
 
         self.db = DBWrapper(
@@ -418,8 +409,8 @@ class Server(TavernUtils.instancer):
 
         self.serversettings.settings['static-revision'] = int(time.time())
 
-        self.fortune = TavernUtils.randomWords(fortunefile="data/fortunes")
-        self.wordlist = TavernUtils.randomWords(fortunefile="data/wordlist")
+        self.fortune = tavern.utils.randomWords(fortunefile="data/fortunes")
+        self.wordlist = tavern.utils.randomWords(fortunefile="data/wordlist")
 
         # Define out logging options.
         formatter = logging.Formatter('[%(levelname)s] %(message)s')
@@ -435,17 +426,16 @@ class Server(TavernUtils.instancer):
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
         self.logger.info("Cached JS")
-        TavernCache.cache['instance.js'] = file.read()
+        tavern.utils.TavernCache.cache['instance.js'] = file.read()
         file.close()
         self.guestacct = None
 
     def start(self):
         """Stuff that should be done when the server is running as a process,
         not just imported as a obj."""
-        self.external = embedis.embedis()
-        from uasparser import UASparser
+        self.external = tavern.Embedis()
         self.logger.info("Loading Browser info")
-        self.browserdetector = UASparser()
+        self.browserdetector = tavern.UASparser()
 
         # Start actually logging to file or console
         if self.debug:
@@ -459,13 +449,10 @@ class Server(TavernUtils.instancer):
         print("Logging Server started at level: " +
               str(self.logger.getEffectiveLevel()))
 
-        # Pregenerate some users in the background.
-        self.keygenerator = KeyGenerator.KeyGenerator()
-        self.keygenerator.start()
 
         if not 'guestacct' in self.serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
-            self.guestacct = User()
+            self.guestacct = tavern.User()
             self.guestacct.generate(AllowGuestKey=False)
             self.serversettings.settings['guestacct'] = {}
             self.serversettings.settings[
@@ -476,21 +463,20 @@ class Server(TavernUtils.instancer):
             self.guestacct.savemongo()
         else:
             self.logger.info("Loading the Guest user acct.")
-            self.guestacct = User()
+            self.guestacct = tavern.User()
             self.guestacct.load_mongo_by_pubkey(
                 self.serversettings.settings['guestacct']['pubkey'])
 
     def stop(self):
         """Stop all server procs."""
         self.logger.info("Shutting down Server instance")
-        self.keygenerator.stop()
 
     def prettytext(self):
         newstr = json.dumps(
             self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    @memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
+    @tavern.utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -499,7 +485,7 @@ class Server(TavernUtils.instancer):
             topic = None
         return topic
 
-    @memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
+    @tavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, subject="Error", topic="sitecontent", body=None):
 
         if body is None:
@@ -538,7 +524,7 @@ class Server(TavernUtils.instancer):
         return e
 
     # Cache to failfast on receiving dups
-    @memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
+    @tavern.utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
     def receiveEnvelope(self, envstr=None, env=None):
         """Receive an envelope for processing in the server.
 
@@ -705,11 +691,11 @@ class Server(TavernUtils.instancer):
 
         return c.dict['envelope']['local']['payload_sha512']
 
-    @memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
+    @tavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
 
-        # Run the text through Tornado's escape to ensure you're not a badguy.
-        text = tornado.escape.xhtml_escape(text)
+        # # Run the text through Tornado's escape to ensure you're not a badguy.
+        # text = tornado.escape.xhtml_escape(text)
         if formatting == 'bbcode':
             formatted = bbcodepy.Parser().to_html(text)
         elif formatting == "plaintext":
@@ -731,7 +717,7 @@ class Server(TavernUtils.instancer):
 
         return formatted
 
-    @memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
+    @tavern.utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
     def getUsersPosts(self, pubkey, limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, limit=limit, sortkey='envelope.local.time_added', sortdirection='descending'):
@@ -819,9 +805,3 @@ class Server(TavernUtils.instancer):
                           c_url + "\">" + c_url + "</a>",
                           html)
         return html
-
-server = Server()
-from User import User
-from Envelope import Envelope
-import embedis
-import KeyGenerator

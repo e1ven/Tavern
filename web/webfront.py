@@ -7,8 +7,8 @@ import socket
 import json
 import os
 import re
-import bottle
 import html
+from flask import Flask
 
 from PIL import Image
 import imghdr
@@ -16,34 +16,24 @@ import io
 import pygeoip
 import urllib.parse
 
-from Envelope import Envelope
+from tavern import Envelope
 from collections import OrderedDict
 import lockedkey
 from key import Key
 from User import User
 
 from TopicTool import topictool
-from TavernUtils import memorise
-from TavernUtils import TavernCache
 import TavernUtils
-from basehandler import BaseHandler
 
 import hashlib
+
 from libs import rss
-
-# Import the Ramdisk vers if possible
-try:
-    from tmp import Robohash
-except ImportError:
-    from libs import Robohash
-
-
+from tmp import Robohash
 import Server
+
+
 server = Server.Server()
-
-# What happens when people request the root level?
-# for now, send them to that Welcome message ;)
-
+app = Flask(__name__)
 
 def getuser(AllowGuestKey=True):
     """Retrieve the basic user variables out of your cookies."""
@@ -1443,6 +1433,9 @@ def server_static(filepath):
 def main():
     server.logger.info(
         "Starting Web Frontend for " + server.serversettings.settings['hostname'])
+
+    app.debug = True
+    app.run(host='0.0.0.0')
 
     bottle.TEMPLATE_PATH = ['./themes/default/']
     server.start()

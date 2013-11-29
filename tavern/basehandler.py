@@ -1,14 +1,3 @@
-import tornado.web
-import tornado.escape
-import Server
-server = Server.Server()
-from User import User
-from TavernUtils import memorise
-from TavernUtils import TavernCache
-import TavernUtils
-import urllib.parse
-from bs4 import BeautifulSoup
-import time
 
 
 class BaseHandler(tornado.web.RequestHandler):

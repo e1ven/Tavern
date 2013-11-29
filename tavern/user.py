@@ -1,23 +1,18 @@
 import os
 import json
-from Envelope import *
 import time
-from key import Key
 from collections import OrderedDict
 import pymongo
 import scrypt
 import base64
-from lockedkey import LockedKey
-from TavernUtils import memorise
 import time
 import datetime
 import calendar
 import hashlib
 import math
-import Server
 import queue
 from multiprocessing import Queue
-
+import tavern
 
 class User(object):
 
@@ -33,7 +28,7 @@ class User(object):
         self.Keys['posted'] = []
         self.Keys['secret'] = []
         self.Keys['master'] = None
-        self.server = Server.Server()
+        self.server = tavern.Server()
 
     def find_commkey(self):
         """Retrieves the current public communication key.
@@ -62,7 +57,7 @@ class User(object):
             raise Exception("Must have a valid passkey to run this method")
 
         # Step 1, Create a new Key for this person.
-        newkey = LockedKey()
+        newkey = tavern.LockedKey()
         newkey.generate(passkey=self.passkey, autoexpire=True)
         self.Keys['secret'].append(newkey)
         self.savemongo()
@@ -120,7 +115,7 @@ class User(object):
         if byteprivatekey is None:
             return False
         else:
-            test_key = Key()
+            test_key = tavern.Key()
             test_key.gpg.import_keys(byteprivatekey)
             reconstituted_pubkey = test_key.gpg.export_keys(test_key.gpg.list_keys()[0]['fingerprint'])
             test_key.pubkey = reconstituted_pubkey
@@ -143,7 +138,7 @@ class User(object):
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 
-        key = Key(pub=noteabout)
+        key = tavern.Key(pub=noteabout)
         noteabout = key.pubkey
         # Retrieve the note from mongo
         note = self.server.db.unsafe.find_one(
@@ -159,7 +154,7 @@ class User(object):
 
     def setNote(self, noteabout, note=""):
         # Format the Key.
-        key = Key(pub=noteabout)
+        key = tavern.Key(pub=noteabout)
         noteabout = key.pubkey
 
         newnote = {"user": self.Keys['master'].pubkey, "noteabout":
@@ -189,7 +184,7 @@ class User(object):
         """
         # Ensure we have proper formatting for the key we're examining, so we
         # find it in the DB.
-        key = Key(pub=askingabout)
+        key = tavern.Key(pub=askingabout)
         askingabout = key.pubkey
 
         # Our opinion of everyone starts off Neutral
@@ -440,7 +435,7 @@ class User(object):
                     self.Keys['master'] = None
 
         # Ensure we don't somehow end up as an empty, but keyed user..
-        if isinstance(self.Keys['master'], LockedKey):
+        if isinstance(self.Keys['master'], tavern.LockedKey):
             if self.Keys['master'].pubkey is None:
                 self.Keys['master'] = None
 
@@ -453,9 +448,9 @@ class User(object):
                 self.Keys = self.server.guestacct.Keys
                 self.UserSettings['status']['guest'] = True
             else:
-                print("Generating a LockedKey")
+                print("Requesting a LockedKey")
                 pulledkey = self.server.unusedkeycache.get(block=True)
-                self.Keys['master'] = LockedKey(
+                self.Keys['master'] = tavern.LockedKey(
                     encryptedprivkey=pulledkey['encryptedprivkey'],
                     pub=pulledkey['pubkey'],
                     password=pulledkey['password'])
@@ -487,7 +482,7 @@ class User(object):
             # Either we have no key, or an old one.
             if validcommkey is False:
                 print("Generating new posted key")
-                newkey = LockedKey()
+                newkey = tavern.LockedKey()
                 newkey.generate(passkey=self.passkey)
 
                 # We want the key to expire on the last second of NEXT month.
@@ -677,7 +672,7 @@ class User(object):
         # Restore our master key
         if self.UserSettings['keys'].get('master') is not None:
             if 'encryptedprivkey' in self.UserSettings['keys']['master']:
-                self.Keys['master'] = LockedKey(
+                self.Keys['master'] = tavern.LockedKey(
                     pub=self.UserSettings['keys']['master']['pubkey'],
                     encryptedprivkey=self.UserSettings['keys']['master']['encryptedprivkey'])
                 self.Keys[
@@ -694,7 +689,7 @@ class User(object):
             else:
                 # If we just have a pubkey string, do the best we can.
                 if self.UserSettings['keys']['master'].get('pubkey'):
-                    self.Keys['master'] = Key(
+                    self.Keys['master'] = tavern.Key(
                         pub=self.UserSettings['keys']['master']['pubkey'])
                     self.Keys['master'].generated = self.UserSettings[
                         'keys']['master'].get('generated')
@@ -706,7 +701,7 @@ class User(object):
             print("Requested user had no master key.")
         # Restore any Posted communication keys.
         for key in self.UserSettings['keys'].get('posted', []):
-            lk = LockedKey(
+            lk = tavern.LockedKey(
                 pub=key['pubkey'],
                 encryptedprivkey=key['encryptedprivkey'])
             lk.generated = key['generated']
@@ -715,7 +710,7 @@ class User(object):
 
         # Restore any oneoff communication keys
         for key in self.UserSettings['keys'].get('secret', []):
-            lk = LockedKey(
+            lk = tavern.LockedKey(
                 pub=key['pubkey'],
                 encryptedprivkey=key['encryptedprivkey'])
             lk.generated = key['generated']
@@ -725,8 +720,8 @@ class User(object):
     def load_string(self, incomingstring):
         self.UserSettings = json.loads(
             incomingstring,
-            object_pairs_hook=collections.OrderedDict,
-            object_hook=collections.OrderedDict)
+            object_pairs_hook=OrderedDict,
+            object_hook=OrderedDict)
         # Sort our Posted keys.
         self.Keys['posted'].sort(key=lambda e: (e.expires), reverse=True)
         self.restore_keys()
@@ -760,7 +755,7 @@ class User(object):
         """Returns a user object for a given pubkey."""
 
         # Get Formatted key for searching.
-        tmpkey = Key(pub=pubkey)
+        tmpkey = tavern.Key(pub=pubkey)
         user = self.server.db.safe.find_one('users',
                                             {"keys.master.pubkey": tmpkey.pubkey})
         if user is not None:

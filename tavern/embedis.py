@@ -4,19 +4,18 @@ import urllib.parse
 import urllib.error
 import socket
 socket.setdefaulttimeout(30)
-import Server
-from Server import server
-from TavernUtils import memorise
 from libs import Robohash
 import base64
 import io
+import tavern
 
-
-class embedis:
+class Embedis:
 
     """Embedis is a quick class/API for translating embeddable media."""
 
     def __init__(self, x=640, y=480):
+
+        self.server = tavern.Server()
 
         self.x = str(x)
         self.y = str(y)
@@ -26,7 +25,7 @@ class embedis:
                              self.embedis,
                              ]
 
-    @memorise(ttl=server.serversettings.settings['cache']['embedded']['seconds'], maxsize=server.serversettings.settings['cache']['embedded']['size'])
+   # @tavern.utils.memorise(ttl=self.server.serversettings.settings['cache']['embedded']['seconds'], maxsize=tavern.singleserv.serversettings.settings['cache']['embedded']['size'])
     def lookup(self, url):
         self.url = url
         self.query = urlparse(url)
@@ -81,7 +80,7 @@ class embedis:
 
     def embedis(self):
         """Embed.is integration."""
-        api_url = server.serversettings.settings['embedserver'] + \
+        api_url = self.server.serversettings.settings['embedserver'] + \
             '/iframe/' + self.x + '/' + self.y + '/'
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
@@ -90,17 +89,17 @@ class embedis:
             if f.getcode() == 200:
                 response = f.read().decode('utf-8')
                 f.close()
-                server.logger.info("Embedis gave us - " + response)
+                self.server.logger.info("Embedis gave us - " + response)
                 return response
             else:
-                server.logger.info(
-                    "No good from " + server.serversettings.settings['embedserver'])
+                self.server.logger.info(
+                    "No good from " + self.server.serversettings.settings['embedserver'])
                 f.close()
                 return None
         except:
             return None
 
-    @memorise(ttl=server.serversettings.settings['cache']['avatarcache']['seconds'], maxsize=server.serversettings.settings['cache']['avatarcache']['size'])
+   # @tavern.utils.memorise(ttl=self.server.serversettings.settings['cache']['avatarcache']['seconds'], maxsize=self.server.serversettings.settings['cache']['avatarcache']['size'])
     def getavatar(self, myid, datauri=True, width=40, height=40):
         """Retrieve the Avatar from Robohash.org, for use in the datauri
         embed."""
@@ -128,5 +127,3 @@ class embedis:
             avlink = '/avatar/' + myid + \
                 '.png?set=any&bgset=any&size=' + str(width) + 'x' + str(height)
             return avlink
-
-emb = embedis
