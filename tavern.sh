@@ -282,6 +282,7 @@ function findcommands
         else
             stat='stat -c %Y'
         fi
+        rm tmp/delete-me-please
     fi
     writearg stat "$stat"
 }
