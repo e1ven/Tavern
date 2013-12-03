@@ -14,7 +14,7 @@ import pdb
 import os
 import time
 import Server
-server = Server.Server()
+server = tavern.Server()
 
 
 class EmailServer(object):
