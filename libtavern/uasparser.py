@@ -43,7 +43,7 @@ import urllib.error
 import urllib.parse
 import re
 import time
-import tavern
+import libtavern
 
 
 class UASException(Exception):
@@ -53,14 +53,14 @@ class UASException(Exception):
 class UASparser:
 
     def __init__(self):
-        self.server = tavern.base.Server()    
+        self.server = libtavern.Server()    
         ini_file = 'data/useragent.ini'
         cache_data = None
         info_url = '/useragent/'
         os_img_url = '/useragent/img/%s'
         ua_img_url = '/useragent/img/%s'
 
-    # @tavern.base.utils.memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=self.server.serversettings.settings['cache']['uasparser']['seconds'], maxsize=self.server.serversettings.settings['cache']['uasparser']['size'])
+    # @libtavern.utils.memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=self.server.serversettings.settings['cache']['uasparser']['seconds'], maxsize=self.server.serversettings.settings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):
         """
         Get the information of an useragent string

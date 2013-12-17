@@ -95,6 +95,7 @@ fi
 
 mkdir -p $taverndir/tmp/nginx
 cd $taverndir/tmp/nginx
+
 NGINX_VER=1.4.4
 wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
 tar xvfz nginx-$NGINX_VER.tar.gz
@@ -113,9 +114,9 @@ mkdir -p $installroot/nginx/cache/tmp
 
 rm /etc/init.d/nginx
 rm $installroot/nginx/conf/nginx.conf
-cp $installroot/Tavern/nginx/nginx /etc/init.d/nginx
+cp $installroot/Tavern/nginx/install/nginx /etc/init.d/nginx
 chmod a+x /etc/init.d/nginx
-ln -s $installroot/Tavern/nginx/nginx.conf $installroot/nginx/conf/nginx.conf
+ln -s $installroot/Tavern/nginx/install/nginx.conf $installroot/nginx/conf/nginx.conf
 ln -s $installroot/Tavern/nginx/default.site $installroot/nginx/conf/default.site
 
 # Create Tavern init file.

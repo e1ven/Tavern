@@ -20,11 +20,9 @@ import multiprocessing
 import logging
 import os
 import re
-import tavern
-from tavern.base import serversettings
-from tavern.base import utils
+import libtavern
 
-defaultsettings = serversettings.ServerSettings('cache.TavernSettings')
+defaultsettings = libtavern.ServerSettings('cache.TavernSettings')
 
 
 class FakeMongo():
@@ -268,7 +266,7 @@ def print_timing(func):
     return wrapper
 
 
-class Server(utils.instancer):
+class Server(libtavern.utils.instancer):
 
     # We want to share state across all Server instances.
     # This way we can create a new instance, anywhere, in any subclass, and
@@ -336,14 +334,14 @@ class Server(utils.instancer):
         # Should the server run in debug mode
         self.debug = False
 
-        self.serversettings = tavern.base.ServerSettings(settingsfile)
+        self.serversettings = libtavern.ServerSettings(settingsfile)
         if self.serversettings.updateconfig():
             self.serversettings.saveconfig()
 
         if not 'pubkey' in self.serversettings.settings or not 'privkey' in self.serversettings.settings:
             # Generate New config
             self.logger.info("Generating new Config")
-            self.ServerKeys = tavern.base.Key()
+            self.ServerKeys = libtavern.Key()
             self.ServerKeys.generate()
 
             # We can't encrypt this.. We'd need to store the key here on the machine...
@@ -361,7 +359,7 @@ class Server(utils.instancer):
         # This does cause a few shenanigans while loading here, but hopefully
         # it's minimal
 
-        self.ServerKeys = tavern.base.Key(pub=self.serversettings.settings['pubkey'],
+        self.ServerKeys = libtavern.Key(pub=self.serversettings.settings['pubkey'],
                               priv=self.serversettings.settings['privkey'])
 
         self.db = DBWrapper(
@@ -411,8 +409,8 @@ class Server(utils.instancer):
 
         self.serversettings.settings['static-revision'] = int(time.time())
 
-        self.fortune = tavern.base.utils.randomWords(fortunefile="data/fortunes")
-        self.wordlist = tavern.base.utils.randomWords(fortunefile="data/wordlist")
+        self.fortune = libtavern.utils.randomWords(fortunefile="data/fortunes")
+        self.wordlist = libtavern.utils.randomWords(fortunefile="data/wordlist")
 
         # Define out logging options.
         formatter = logging.Formatter('[%(levelname)s] %(message)s')
@@ -428,16 +426,16 @@ class Server(utils.instancer):
         # Cache our JS, so we can include it later.
         file = open("static/scripts/instance.min.js")
         self.logger.info("Cached JS")
-        tavern.base.utils.TavernCache.cache['instance.js'] = file.read()
+        libtavern.utils.TavernCache.cache['instance.js'] = file.read()
         file.close()
         self.guestacct = None
 
     def start(self):
         """Stuff that should be done when the server is running as a process,
         not just imported as a obj."""
-        self.external = tavern.base.Embedis()
+        self.external = libtavern.Embedis()
         self.logger.info("Loading Browser info")
-        self.browserdetector = tavern.base.UASparser()
+        self.browserdetector = libtavern.UASparser()
 
         # Start actually logging to file or console
         if self.debug:
@@ -454,7 +452,7 @@ class Server(utils.instancer):
 
         if not 'guestacct' in self.serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
-            self.guestacct = tavern.base.User()
+            self.guestacct = libtavern.User()
             self.guestacct.generate(AllowGuestKey=False)
             self.serversettings.settings['guestacct'] = {}
             self.serversettings.settings[
@@ -465,7 +463,7 @@ class Server(utils.instancer):
             self.guestacct.savemongo()
         else:
             self.logger.info("Loading the Guest user acct.")
-            self.guestacct = tavern.base.User()
+            self.guestacct = libtavern.User()
             self.guestacct.load_mongo_by_pubkey(
                 self.serversettings.settings['guestacct']['pubkey'])
 
@@ -478,7 +476,7 @@ class Server(utils.instancer):
             self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    @utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
+    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -487,14 +485,14 @@ class Server(utils.instancer):
             topic = None
         return topic
 
-    @utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
+    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, subject="Error", topic="sitecontent", body=None):
 
         if body is None:
             body = """
             Oh my, something seems to have happened that we weren't expecting.
             Hopefully this will get cleared up relatively quickly.
-            If not, you might want to send a note to support@tavern.base.is, with the URL, and notes on how you got here :/
+            If not, you might want to send a note to support@libtavern.is, with the URL, and notes on how you got here :/
 
             So sorry for the trouble.
             -The Barkeep
@@ -526,7 +524,7 @@ class Server(utils.instancer):
         return e
 
     # Cache to failfast on receiving dups
-    @utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
+    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
     def receiveEnvelope(self, envstr=None, env=None):
         """Receive an envelope for processing in the server.
 
@@ -693,7 +691,7 @@ class Server(utils.instancer):
 
         return c.dict['envelope']['local']['payload_sha512']
 
-    @utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
+    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
 
         # # Run the text through Tornado's escape to ensure you're not a badguy.
@@ -719,7 +717,7 @@ class Server(utils.instancer):
 
         return formatted
 
-    @utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
+    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
     def getUsersPosts(self, pubkey, limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, limit=limit, sortkey='envelope.local.time_added', sortdirection='descending'):

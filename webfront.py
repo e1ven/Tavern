@@ -3,34 +3,20 @@
 
 import time
 import datetime
-import socket
 import json
 import os
 import re
-import html
 from flask import Flask
-
+from collections import OrderedDict
 from PIL import Image
 import imghdr
 import io
 import pygeoip
 import urllib.parse
-
-from tavern import Envelope
-from collections import OrderedDict
-import lockedkey
-from key import Key
-from User import User
-
-from TopicTool import topictool
-import TavernUtils
-
+import libtavern
 import hashlib
-
 from libs import rss
-from tmp import Robohash
-import Server
-
+from robohash import Robohash
 
 server = Server.Server()
 app = Flask(__name__)
@@ -161,7 +147,7 @@ def setup():
     elif 'datauri' in requestvars['user'].UserSettings:
         requestvars['user'].datauri = requestvars['user'].UserSettings['datauri']
 
-    elif TavernUtils.randrange(1, 10) == 5:
+    elif libtavern.TavernUtils.randrange(1, 10) == 5:
             requestvars['user'].UserSettings['datauri'] = False
             requestvars['user'].datauri = False
             requestvars['user'].savemongo()
@@ -596,8 +582,8 @@ def ChangepasswordHandler_get():
     self.getvars()
 
     if not self.recentauth():
-        numcharacters = 100 + TavernUtils.randrange(1, 100)
-        slug = TavernUtils.randstr(numcharacters, printable=True)
+        numcharacters = 100 + libtavern.TavernUtils.randrange(1, 100)
+        slug = libtavern.TavernUtils.randstr(numcharacters, printable=True)
         server.db.safe.insert(
             'redirects',
             {'slug': slug,
@@ -1405,7 +1391,7 @@ def AvatarHandler_get(avatar):
         sizex = 40
     if sizey > 4096 or sizey < 0:
         sizey = 40
-    robo = Robohash.Robohash(avatar)
+    robo = Robohash(avatar)
     robo.assemble(
         roboset=self.get_argument(
             'set',

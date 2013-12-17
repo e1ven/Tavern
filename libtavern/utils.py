@@ -12,7 +12,7 @@ import time
 from io import open
 import hashlib
 import random
-import tavern
+import libtavern
 
 # The random that comes with Python does not use /dev/urandom, it uses MT.
 # Wrap random.SystemRandom so we always use expected randomness.

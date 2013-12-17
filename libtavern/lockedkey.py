@@ -2,9 +2,9 @@ import scrypt
 import base64
 import time
 import functools
-import tavern
+import libtavern
 
-class LockedKey(object):
+class LockedKey(libtavern.key.Key):
 
     """A securely locked away key, which uses a secret only stored in the
     client to unlock. If our DB is ever compromised, this will prevent bad guys
@@ -170,7 +170,7 @@ class LockedKey(object):
                 'Invalid call to generate() - Must include a password, passkey, or Random')
 
         if random is True:
-            password = tavern.base.utils.randstr(100)
+            password = libtavern.utils.randstr(100)
             ret = password
         else:
             ret = None
