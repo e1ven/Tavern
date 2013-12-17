@@ -6,10 +6,9 @@ import collections
 from collections import OrderedDict
 import socket
 import getpass
-import tavern
-from tavern.base import utils
+import libtavern
 
-class ServerSettings(utils.instancer):
+class ServerSettings(libtavern.utils.instancer):
 
     def __init__(self, settingsfile=None, settingsdir=None):
 
@@ -110,7 +109,7 @@ class ServerSettings(utils.instancer):
         # The Canonical URL is specified so that Google won't detect duplicate
         # content for every Tavern server, and penalize.
         if not 'canonical_url' in self.settings:
-            self.settings['canonical_url'] = "https://tavern.base.is"
+            self.settings['canonical_url'] = "https://libtavern.is"
 
         if not 'logfile' in self.settings:
             self.settings[
@@ -270,10 +269,10 @@ class ServerSettings(utils.instancer):
             self.settings['max-upload-preview-size'] = 10485760
 
         if not 'cookie-encryption' in self.settings:
-            self.settings['cookie-encryption'] = tavern.base.utils.randstr(255)
+            self.settings['cookie-encryption'] = libtavern.utils.randstr(255)
         if not 'serverkey-password' in self.settings:
             self.settings[
-                'serverkey-password'] = tavern.base.utils.randstr(255)
+                'serverkey-password'] = libtavern.utils.randstr(255)
         if not 'embedserver' in self.settings:
             self.settings['embedserver'] = 'http://embed.is'
 

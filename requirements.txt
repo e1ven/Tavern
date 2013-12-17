@@ -22,3 +22,4 @@ mpmath
 bitarray
 untokenize
 pillow
+robohash

@@ -4,10 +4,10 @@ import urllib.parse
 import urllib.error
 import socket
 socket.setdefaulttimeout(30)
-from libs import Robohash
+from robohash import Robohash
 import base64
 import io
-import tavern
+import libtavern
 
 class Embedis:
 
@@ -15,7 +15,7 @@ class Embedis:
 
     def __init__(self, x=640, y=480):
 
-        self.server = tavern.base.Server()
+        self.server = libtavern.Server()
 
         self.x = str(x)
         self.y = str(y)
@@ -25,7 +25,7 @@ class Embedis:
                              self.embedis,
                              ]
 
-   # @tavern.base.utils.memorise(ttl=self.server.serversettings.settings['cache']['embedded']['seconds'], maxsize=tavern.base.singleserv.serversettings.settings['cache']['embedded']['size'])
+   # @libtavern.utils.memorise(ttl=self.server.serversettings.settings['cache']['embedded']['seconds'], maxsize=libtavern.singleserv.serversettings.settings['cache']['embedded']['size'])
     def lookup(self, url):
         self.url = url
         self.query = urlparse(url)
@@ -99,7 +99,7 @@ class Embedis:
         except:
             return None
 
-   # @tavern.base.utils.memorise(ttl=self.server.serversettings.settings['cache']['avatarcache']['seconds'], maxsize=self.server.serversettings.settings['cache']['avatarcache']['size'])
+   # @libtavern.utils.memorise(ttl=self.server.serversettings.settings['cache']['avatarcache']['seconds'], maxsize=self.server.serversettings.settings['cache']['avatarcache']['size'])
     def getavatar(self, myid, datauri=True, width=40, height=40):
         """Retrieve the Avatar from Robohash.org, for use in the datauri
         embed."""
@@ -107,7 +107,7 @@ class Embedis:
         if datauri:
 
             format = 'png'
-            robo = Robohash.Robohash(myid)
+            robo = Robohash(myid)
             robo.assemble(
                 roboset='any',
                 format=format,

@@ -13,7 +13,7 @@ import functools
 import datetime
 import calendar
 import time
-import tavern
+import libtavern
 
 
 # We're not using  @memorise because we don't WANT cached copies of the
@@ -363,7 +363,7 @@ class Key(object):
         return decrypted_string
     
     def testius(self):
-        print(tavern.base.utils.longtime)
+        print(libtavern.utils.longtime)
 
     @privatekeyaccess
     def encrypt_file(self, newfile):
@@ -375,8 +375,8 @@ class Key(object):
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
-        tmpfilename = "tmp/gpgfiles/" + tavern.base.utils.longtime(
-        ) + tavern.base.utils.randstr(50, printable=True)
+        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
+        ) + libtavern.utils.randstr(50, printable=True)
 
         self.gpg.encrypt_file(
             stream=oldfile,
@@ -390,8 +390,8 @@ class Key(object):
     @privatekeyaccess
     def decrypt_file(self, tmpfile):
 
-        tmpfilename = "tmp/gpgfiles/" + tavern.base.utils.longtime(
-        ) + tavern.base.utils.randstr(50, printable=True)
+        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
+        ) + libtavern.utils.randstr(50, printable=True)
         self.gpg.decrypt_file(tmpfile, output=tmpfilename)
         return tmpfilename
 

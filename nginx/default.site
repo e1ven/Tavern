@@ -18,147 +18,24 @@ server
      proxy_pass http://tornados;
   }
 
+  # The URLs are broken up into separate .conf files to make it easy
+  # to run them on multiple servers if you so desire.
+  # For instance, binaries.myserver.com, static.myserver.com, etc
 
-  # Create a pass-through proxy to self
-  # So that we will cache, not just hit GridFS everytime.
-  location /binaries/ {
-    proxy_cache binaries-cache;
-    proxy_cache_valid  200 1y;
-    proxy_cache_valid  404 302  1m;
-    expires max;
-    rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
-    proxy_pass https://bins/binaries2/$basename;
-    proxy_ignore_headers Set-Cookie Expires Cache-Control X-Accel-Expires;
-    proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
-  }
+  # 404, 405, etc
+  import loc-errors.conf;
 
+  # Static files, like images, fonts, etc  
+  import loc-static.conf;
+  
+  # Uploaded Binaries
+  import loc-binaries.conf;
 
+  # Uploads to this server
+  import loc-uploads.conf;
 
-  # Create a location which pulls from mongo directly.
-  # This is faster to do in nginx than in Python.
-
-  location /binaries2/ 
-  {
-      # Allow direct mongo requests from Localhost only
-      allow 127.0.0.1;
-      deny    all;
-
-      # Set additional headers to force download if it's not an image
-      # Kinda complex to do in nginx, but it works ;)
-      if ($uri ~ "/binaries/(.*)\.(png|jpg|jpeg|gif)$")
-      {
-          set $image 1;
-          add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
-      }
-      if ($image != 1)
-      {
-              add_header Content-Type "application/octet-stream";
-              add_header Content-Disposition "attachment";
-              add_header Last-Modified "Tue, 10 Jul 1990 00:00:00 +0000";
-      }
-
-      #gridfs test field=filename type=string;
-      #mongo 127.0.0.1:27017;
-  }
-
-
-  location /static/fonts/
-  {
-    add_header Access-Control-Allow-Origin *;
-    alias ../Tavern/tmp/static/fonts/;
-    expires max;
-    autoindex off;
-  }
-
-  location /static/
-  {  
-    alias ../Tavern/tmp/static/;
-    expires max;
-    autoindex off;
-  }
-
-  location /uploadenvelope 
-  {
-    upload_pass /upload$uri;
-    client_max_body_size 2000M;
-    client_body_buffer_size 128k;
-
-    upload_resumable on;
-
-    upload_store uploads/;
-    upload_state_store uploads/;
-
-    upload_store_access user:rw group:rw all:rw;
-    upload_buffer_size 128K;
-    upload_max_file_size 2000m;
-
-    upload_set_form_field $upload_field_name.name "$upload_file_name";
-    upload_set_form_field $upload_field_name.content_type "$upload_content_type";
-    upload_set_form_field $upload_field_name.path "$upload_tmp_path";
-    upload_aggregate_form_field $upload_field_name.size "$upload_file_size";
-    upload_aggregate_form_field $upload_field_name.sha512 "$upload_file_sha512";
-
-    # Pass through the form variables
-    upload_pass_form_field "submit";
-    upload_pass_form_field "_xsrf";
-    upload_pass_form_field "topic";
-    upload_pass_form_field "subject";
-    upload_pass_form_field "body";
-    upload_pass_form_field "regarding";
-    upload_pass_form_field "include_location";
-
-    # Pass through the hidden variables, that are appended by the JS after a file-only upload.
-    upload_pass_form_field "^referenced_file[0-9]*_hash$";
-    upload_pass_form_field "^referenced_file[0-9]*_size$";
-    upload_pass_form_field "^referenced_file[0-9]*_contenttype$";
-    upload_pass_form_field "^referenced_file[0-9]*_name$";
-
-
-
-  }
-
-  location /uploadfile 
-  {
-    upload_pass /upload/uploadenvelope/fileonly;
-    client_max_body_size 2000M;
-    client_body_buffer_size 128k;
-
-    upload_store uploads/;
-    upload_state_store uploads/;
-
-    upload_store_access user:rw group:rw all:rw;
-    upload_resumable on;
-    upload_buffer_size 128K;
-    upload_max_file_size 2000m;
-
-    upload_set_form_field $upload_field_name.name "$upload_file_name";
-    upload_set_form_field $upload_field_name.content_type "$upload_content_type";
-    upload_set_form_field $upload_field_name.path "$upload_tmp_path";
-    upload_aggregate_form_field $upload_field_name.size "$upload_file_size";
-    upload_aggregate_form_field $upload_field_name.sha512 "$upload_file_sha512";
-
-    upload_pass_form_field "submit";
-    upload_pass_form_field "_xsrf";
-  }
-
-  location / 
-  {
-    ### Set headers ####
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_cache binaries-cache;
-    proxy_cache_valid  200 1s;
-    proxy_cache_valid  404 302  10s;
-    rewrite ^/binaries/(.*)/(.*)$ /binaries/$1 last;
-    proxy_ignore_headers Set-Cookie Expires Cache-Control X-Accel-Expires;
-    proxy_cache_use_stale  error timeout invalid_header updating http_500 http_502 http_503 http_504;
-    proxy_cache_key "$host$request_uri$cookie_tavern_preferences1";
-    proxy_pass http://tornados/;
-  }
-
+  # Most pages go here
+  import loc-default.conf
 
 }
 

@@ -543,17 +543,17 @@ function start
     echo "Starting Tavern..."
     if [ $DEBUG -eq 1 ]
     then
-        python3 ./webfront.py --loglevel=DEBUG --writelog=False --debug=True
+        python -m libtavern.webfront.py --loglevel=DEBUG --writelog=False --debug=True
     elif [ $INITONLY -eq 1 ]
     then
-        python3 ./webfront.py --initonly=True
+        python3 python -m libtavern.webfront.py --initonly=True
     else    
         # -1 in the line below, since we start the count at 0, so we can be starting on 8080
         for ((i=0;i<=$((numservers -1));i++))
         do            
             port=$((8080 +i))
             echo "Starting on port $port"
-            nohup python3 ./webfront.py --port=$port > logs/webfront-$port.log &
+            nohup python -m libtavern.webfront.py --port=$port > logs/webfront-$port.log &
         done
         tail -n 10 logs/*
     fi

@@ -7,7 +7,7 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import lzma
-import tavern
+import libtavern
 
 from operator import itemgetter
 import magic
@@ -229,7 +229,7 @@ class Envelope(object):
                 return False
 
             # Retrieve the key, ensure it's valid.
-            stampkey = tavern.base.Key(pub=stamp['pubkey'])
+            stampkey = libtavern.Key(pub=stamp['pubkey'])
             if stampkey is None:
                 self.server.logger.debug("Key is invalid.")
                 return False
@@ -267,7 +267,7 @@ class Envelope(object):
                     proof = stamp['proof-of-work']['proof']
                     difficulty = stamp['proof-of-work']['difficulty']
                     if stamp['proof-of-work']['class'] == 'sha256':
-                        result = tavern.base.utils.checkWork(
+                        result = libtavern.utils.checkWork(
                             self.payload.hash(),
                             proof,
                             difficulty)
@@ -322,7 +322,7 @@ class Envelope(object):
                 self.dict['envelope']['local']['author'] = stamp
 
                 # Create a version of the key without ascii
-                self.dict['envelope']['local']['author']['minipubkey'] = tavern.base.Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
+                self.dict['envelope']['local']['author']['minipubkey'] = libtavern.Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
 
             # Calculate highest proof of work difficuly.
             # Only use proof-of-work class sha256 for now.
@@ -497,7 +497,7 @@ class Envelope(object):
                     self.dict['envelope']['local']['medialink'] = medialink
                     break
 
-    #@tavern.base.utils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
+    #@libtavern.utils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
         #print("Looking for childen for :" + self.payload.hash())
         results = self.server.db.unsafe.count(
@@ -518,7 +518,7 @@ class Envelope(object):
         fullstamp['keyformat'] = keys.keydetails['format']
         fullstamp['pubkey'] = keys.pubkey
         fullstamp['signature'] = signature
-        fullstamp['time_added'] = tavern.base.utils.inttime()
+        fullstamp['time_added'] = libtavern.utils.inttime()
 
         # Copy in any passed values
         for key in kwargs.keys():
@@ -531,7 +531,7 @@ class Envelope(object):
         proof[
             'difficulty'] = self.server.serversettings.settings[
             'proof-of-work-difficulty']
-        proof['proof'] = tavern.base.utils.proveWork(
+        proof['proof'] = libtavern.utils.proveWork(
             self.payload.hash(),
             proof['difficulty'])
         fullstamp['proof-of-work'] = proof
