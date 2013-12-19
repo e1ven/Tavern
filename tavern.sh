@@ -458,7 +458,7 @@ function start
         if [ $(sinceFileArg $i lastrun_autopep_$i) -gt 0 ]
         then
             echo -e "\t $i"
-            autopep8 --in-place -p1 --aggressive --max-line-length=160 $i
+            autopep8 --in-place -p1 --max-line-length=160 $i
             docformatter --in-place $i
         fi
         writearg lastrun_autopep_$i `date +%s`
@@ -543,10 +543,10 @@ function start
     echo "Starting Tavern..."
     if [ $DEBUG -eq 1 ]
     then
-        python -m libtavern.webfront.py --loglevel=DEBUG --writelog=False --debug=True
+        python3 webfront.py --debug -vvvv
     elif [ $INITONLY -eq 1 ]
     then
-        python3 python -m libtavern.webfront.py --initonly=True
+        python3 webfront.py --initonly=True
     else    
         # -1 in the line below, since we start the count at 0, so we can be starting on 8080
         for ((i=0;i<=$((numservers -1));i++))

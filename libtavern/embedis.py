@@ -7,16 +7,14 @@ socket.setdefaulttimeout(30)
 from robohash import Robohash
 import base64
 import io
-import libtavern
 
 class Embedis:
 
     """Embedis is a quick class/API for translating embeddable media."""
 
-    def __init__(self, x=640, y=480):
+    def __init__(self, server,x=640, y=480):
 
-        self.server = libtavern.Server()
-
+        self.server = server
         self.x = str(x)
         self.y = str(y)
 

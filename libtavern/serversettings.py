@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 import platform
 import json
@@ -6,45 +5,27 @@ import collections
 from collections import OrderedDict
 import socket
 import getpass
-import libtavern
+import libtavern.utils
 
 class ServerSettings(libtavern.utils.instancer):
 
-    def __init__(self, settingsfile=None, settingsdir=None):
+    def __init__(self,slot='default'):
 
-        if settingsfile is not None:
-            self.settingsfile = settingsfile
-        else:
-            self.settingsfile = 'server.tavernsettings'
-
-        if settingsdir is not None:
-            self.settingsdir = settingsdir
-        else:
-            self.settingsdir = 'data/conf/'
-
-
-        super().__init__(self.settingsdir + self.settingsfile)
+        super().__init__(slot)
         
-        # Do this again, since we just wiped it out with the super() command.
-        # We want this to set the key, and then to actually HAVE it ;)
-        if settingsfile is not None:
-            self.settingsfile = settingsfile
-        else:
-            self.settingsfile = 'server.tavernsettings'
-
-        if settingsdir is not None:
-            self.settingsdir = settingsdir
-        else:
-            self.settingsdir = 'data/conf/'
-
-        # Don't run this more than once.
+        # Don't run __init__ more than once, since we return the same one.
         if self.__dict__.get('set') is True:
             return
         else:
             self.set = True
 
+        import libtavern.server
+        self.server = libtavern.server.Server(slot=slot)
+
+        self.settingsdir = 'conf/'
+        self.settingsfile = slot + ".serversettings"
         self.settings = OrderedDict()
-        self.loadconfig(filename=settingsfile)
+        self.loadconfig(filename=self.settingsfile)
 
     def loadconfig(self, filename=None, directory=None):
 
@@ -53,7 +34,7 @@ class ServerSettings(libtavern.utils.instancer):
         if directory is None:
             directory = self.settingsdir
 
-        print("Loading from " + directory + filename)
+        self.server.logger.info("Loading from " + directory + filename)
 
         try:
             filehandle = open(directory + filename, 'r')
@@ -64,7 +45,7 @@ class ServerSettings(libtavern.utils.instancer):
                 object_hook=collections.OrderedDict)
             filehandle.close()
         except:
-            print(
+            self.server.logger.warning(
                 "Error opening config file - " +
                 directory +
                 filename +
@@ -80,10 +61,7 @@ class ServerSettings(libtavern.utils.instancer):
         if directory is None:
             directory = self.settingsdir
 
-        if filename is None:
-            filename = 'server.tavernsettings'
-
-        print("Writing to " + directory + filename)
+        self.server.logger.debug("Writing to " + directory + filename)
         newsettings = self.settings
 
         filehandle = open(directory + filename, 'w')
@@ -100,6 +78,10 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
 
+        if not 'ip_listen_on' in self.settings:
+            self.settings['ip_listen_on'] = '0.0.0.0'
+
+
         if not 'web_url' in self.settings:
             self.settings['web_url'] = None
 
@@ -112,12 +94,26 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['canonical_url'] = "https://libtavern.is"
 
         if not 'logfile' in self.settings:
-            self.settings[
-                'logfile'] = "logs/" + self.settings['hostname'] + '.log'
+            self.settings['logfile'] = "logs/" + self.settings['hostname'] + '.log'
 
         if not 'loglevel' in self.settings:
-            self.settings[
-                'loglevel'] = "INFO"
+            self.settings['loglevel'] = "INFO"
+
+        if not 'url-scheme' in self.settings:
+            self.settings['url-scheme'] = 'http'
+
+        # Keep Permanent sessions around ~forever, since users might not -have- passwords
+        if not 'session-lifetime' in self.settings:
+            self.settings['session-lifetime'] = 31536000 * 20
+
+
+        if not 'flask' in self.settings:
+             self.settings['flask'] = {}
+
+        # As defined at http://flask.pocoo.org/docs/config/#builtin-configuration-values
+        if not 'SECRET_KEY' in self.settings['flask']:
+            self.settings['flask']['SECRET_KEY'] = libtavern.utils.randstr(255)
+        
 
         if not 'mongo-hostname' in self.settings:
             self.settings['mongo-hostname'] = 'localhost'
@@ -268,11 +264,6 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'max-upload-preview-size' in self.settings:
             self.settings['max-upload-preview-size'] = 10485760
 
-        if not 'cookie-encryption' in self.settings:
-            self.settings['cookie-encryption'] = libtavern.utils.randstr(255)
-        if not 'serverkey-password' in self.settings:
-            self.settings[
-                'serverkey-password'] = libtavern.utils.randstr(255)
         if not 'embedserver' in self.settings:
             self.settings['embedserver'] = 'http://embed.is'
 

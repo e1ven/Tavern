@@ -1,4 +1,4 @@
-# This file is the Web server.
+# This file is the Web self.server.
 # It defines the routes, and the handlers which create those webpages.
 
 import time
@@ -6,182 +6,116 @@ import datetime
 import json
 import os
 import re
-from flask import Flask
 from collections import OrderedDict
 from PIL import Image
 import imghdr
 import io
 import pygeoip
 import urllib.parse
-import libtavern
 import hashlib
+import optparse
+
 from libs import rss
 from robohash import Robohash
 
-server = Server.Server()
-app = Flask(__name__)
+import flask
+from flask.views import MethodView
 
-def getuser(AllowGuestKey=True):
-    """Retrieve the basic user variables out of your cookies."""
+import libtavern.server
+import libtavern.envelope
 
-    # Create a user obj - We'll either make this a new user, the default user, or an empty user.
-    user = User()
+from webbase import BaseHandler
 
-    # Load in our session token if we have one.
-    userid = bottle.request.get_cookie("tavern_settings", secret=server.serversettings.settings['cookie-encryption'], default=None)
-
-    if userid is not None:
-        # Try to load - If it fails, abort and clear.
-        if not self.user.load_mongo_by_sha512(userid.decode('utf-8')):
-
-            # Either no cookie, or bad cookie.
-            # Either way, abort - Nuke Everything
-            for cookie in bottle.request.cookies:
-                print(cookie)
-                bottle.reponse.delete_cookie(cookie)
-
-    # Get the passkey to unlock our privkey
-    passkey = bottle.request.get_cookie("tavern_passkey", secret=server.serversettings.settings['cookie-encryption'], default=None)
-    if passkey is not None:
-        user.passkey = passkey
-
-    # Ensure our user has all expected fields
-    # This method will also generate a key if necessary.
-    if user.generate(AllowGuestKey=AllowGuestKey):
-        setuser(user)
-
-    return user
+# def user_required(f):
+#     """Checks whether user is logged in or raises error 401."""
+#     def decorator(*args, **kwargs):
+#         if not g.user:
+#             abort(401)
+#         return f(*args, **kwargs)
+#     return decorator
 
 
-def setuser(user):
-    """
-    Saves out the current userid to a cookie
-    These are encrypted using the built-in Bottle cookie encryption.
-    """
+class EntryHandler(BaseHandler):
 
-    # If we're over https, ensure the cookie can't be read over HTTP
-    if bottle.request.urlparts[0] == 'https':
-        secure = True
-    else:
-        secure = False
+    """For now, EntryHandler is a simple stub handler while redirects to
+    viewing /sitecontent Eventually, it will give a different experience for
+    first time visitors."""
 
-    # Save our out passkey
-    if user.UserSettings['status']['guest'] is False:
-        if user.passkey is not None:
-            bottle.response.set_cookie(
-                "tavern_passkey",
-                user.passkey,
-                httponly=True,
-                max_age=60 * 60 * 24 * 360 * 3,  # 3 years
-                secure=secure)
-
-    if user.UserSettings['author_sha512'] is not None:
-        # Delete our sensetive data before saving out.
-        user.savemongo()
-        bottle.response.set_cookie(
-            "tavern_settings",
-            user.UserSettings['author_sha512'],
-            httponly=True,
-            max_age=60 * 60 * 24 * 360 * 3,  # 3 years
-            secure=secure)
+    def get(self):
+        return flask.redirect('/topic/sitecontent')
 
 
-def setheaders():
-    """Set the default headers that we're expecting."""
-    # Add in a random fortune
-    bottle.response.set_header("X-Fortune", server.fortune.random().encode('iso-8859-1', errors='ignore'))
-    # Do not allow the content to load in a frame.
-    # Should help prevent certain attacks
-    bottle.response.set_header("X-FRAME-OPTIONS", "DENY")
-    # Don't try to guess content-type.
-    # This helps avoid JS sent in an image.
-    bottle.response.set_header("X-Content-Type-Options", "nosniff")
+class MessageHandler(BaseHandler):
 
-    # http://cspisawesome.com/content_security_policies
-    # bottle.response.set_header(
-    #     "Content-Security-Policy-Report-Only",
-    #     "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " +
-    #     server.serversettings.settings[
-    #         'embedserver'] +
-    #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+    def get(self, entrypoint):
+        """The Message Handler displays a message, when given by message id."""
 
+        # Load a message both if it comes in at /message/<messageid>
+        # As we as /<topic>/<short_subject/<messageid>
+        # The later is the canonical name, partially for SEO purposes, partially for breadcrumbing.
+        args = entrypoint.split("/")
+        if len(args) > 4:
+            return "Too many subdirs. Seriously."
 
-def setup():
+        for arg in args:
+            if arg is not None:
+                messageid = arg
 
-    setheaders()
-    requestvars = {}
-    requestvars['user'] = getuser()
-    requestvars['server'] = server
+        # To move forward and backward in the results, we specify a time.
+        # We then move this backward/forward, and search with it.
+        # This is cheaper than skip() http://docs.mongodb.org/manual/reference/method/cursor.skip/
 
-    # Get the Browser version.
-    if 'User-Agent' in bottle.request.headers:
-        ua = bottle.request.get_header('User-Agent')
-        requestvars['browser'] = server.browserdetector.parse(ua)
-    else:
-        requestvars['browser'] = server.browserdetector.parse("Unknown")
+        if "before" in flask.request.args:
+            before = float(flask.request.args['before'])
+        else:
+            before = None
 
-    # If people are accessing a URL that isn't by the canonical URL,
-    # redirect them.
-    requestvars['canon'] = None
-    requestvars['redirected'] = bottle.request.get('redirected', False)
+        # Do we want to show the original, ignoring edits?
+        if "showoriginal" in flask.request.args:
+            # Convert the string to a bool.
+            showoriginal = (flask.request.args['showoriginal'].lower() == "true")
+        else:
+            showoriginal = False
 
-    # Is this necessary EVERY time? It's quick, I suppose...
-    if server.serversettings.settings['web_url'] is None:
-        server.serversettings.settings['web_url'] = bottle.request.urlparts[0] + "://" + bottle.request.urlparts[1]
-        server.serversettings.saveconfig()
+        messagesenvelope = self.server.db.unsafe.find_one('envelopes',
+                                                          {'envelope.local.payload_sha512': messageid})
 
+        if messagesenvelope is not None:
+            displayenvelope = libtavern.envelope.Envelope()
+            displayenvelope.loaddict(messagesenvelope)
+            topic = displayenvelope.dict['envelope']['payload']['topic']
+            self.canon = "message/" + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'sorttopic'] + '/' + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'short_subject'] + "/" + displayenvelope.dict[
+                'envelope'][
+                'local'][
+                'payload_sha512']
+            title = displayenvelope.dict['envelope']['payload']['subject']
+        else:
+            # If we didn't find that message, throw an error.
+            displayenvelope = self.server.error_envelope(
+                "The Message you are looking for can not be found.")
+            title = displayenvelope.dict['envelope']['payload']['subject']
+            topic = displayenvelope.dict['envelope']['payload']['topic']
 
-
-    # Check to see if we have support for datauris in our browser.
-    # If we do, send the first ~10 pages with datauris.
-    # After that switch back, since caching the images is likely to be
-    # better, if you're a recurrent reader
-
-    # If a URL explicltly asks for datauri on or off, disregard prior.
-    if 'datauri' in bottle.request.query:
-        if bottle.request.query("datauri").lower() == 'true':
-            requestvars['user'].datauri = True
-        elif bottle.request.query("datauri").lower() == 'false':
-            requestvars['user'].datauri = False
-    
-    elif 'datauri' in requestvars['user'].UserSettings:
-        requestvars['user'].datauri = requestvars['user'].UserSettings['datauri']
-
-    elif libtavern.TavernUtils.randrange(1, 10) == 5:
-            requestvars['user'].UserSettings['datauri'] = False
-            requestvars['user'].datauri = False
-            requestvars['user'].savemongo()
-    elif requestvars['browser']['ua_family'] == 'IE' and requestvars['browser']['ua_versions'][0] < 8:
-        requestvars['user'].datauri = False
-    else:
-        requestvars['user'].datauri = True
+        return flask.render_template('tripane.html', Handler=self)
 
 
-    if 'ignoreedits' in bottle.request.query:
-        if bottle.request.query("ignoreedits").lower() == 'true':
-            requestvars['user'].ignoreedits = True
-        elif bottle.request.query("ignoreedits").lower() == 'false':
-            requestvars['user'].ignoreedits = False    
-    elif 'ignoreedits' in requestvars['user'].UserSettings:
-        requestvars['user'].ignoreedits = requestvars['user'].UserSettings['ignoreedits']
-    else:
-        requestvars['user'].ignoreedits = False        
+class RSSHandler(MethodView):
 
-    return requestvars
+    """Generates RSS feeds for a Topic."""
 
-
-def EntryHandler_get():
-    bottle.redirect('/topic/sitecontent')
-
-
-def RSSHandler_get(action, param):
-    if action == "topic":
+    def get(action, topic):
         channel = rss.Channel('Tavern - ' + param,
                               'http://GetTavern.com/rss/' + param,
                               'Tavern discussion about ' + param,
                               generator='Tavern',
-                              pubdate=datetime.datetime.now())
-        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
+                              pubdate=datetime.datetime.today())
+        for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
             item = rss.Item(channel,
                             envelope['envelope']['payload']['subject'],
                             "http://GetTavern.com/message/" + envelope[
@@ -197,42 +131,6 @@ def RSSHandler_get(action, param):
                             envelope['envelope']['local']['formattedbody'])
             channel.additem(item)
         self.write(channel.toprettyxml())
-
-
-def MessageHistoryHandler_get(messageid):
-    """Display the various edits to a message."""
-
-    self.getvars()
-    origid = server.getOriginalMessage(messageid)
-
-    e = Envelope()
-    if not e.loadmongo(origid):
-        self.write("I can't load that message's history. ;(")
-    else:
-        messages = []
-
-        # Add the root msg.
-        current_message = (
-            messageid,
-            e.dict[
-                'envelope'][
-                'local'][
-                'time_added'])
-        messages.append(current_message)
-
-        # Add all the edits
-        for message in e.dict['envelope']['local']['edits']:
-            current_message = (
-                message['envelope']['local']['payload_sha512'],
-                message['envelope']['local']['time_added'])
-            messages.append(current_message)
-
-        self.write(
-            self.render_string(
-                'messagehistory.html',
-                messages=messages))
-
-    # @memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['message-page']['seconds'], maxsize=server.serversettings.settings['cache']['message-page']['size'])
 
 
 def MessageHandler_get(*args):
@@ -270,11 +168,11 @@ def MessageHandler_get(*args):
     else:
         showoriginal = False
 
-    messagesenvelope = server.db.unsafe.find_one('envelopes',
-                                                 {'envelope.local.payload_sha512': messageid})
+    messagesenvelope = self.server.db.unsafe.find_one('envelopes',
+                                                      {'envelope.local.payload_sha512': messageid})
 
     if messagesenvelope is not None:
-        displayenvelope = Envelope()
+        displayenvelope = libtavern.envelope.Envelope()
         displayenvelope.loaddict(messagesenvelope)
         topic = displayenvelope.dict['envelope']['payload']['topic']
         self.canon = "message/" + displayenvelope.dict[
@@ -290,7 +188,7 @@ def MessageHandler_get(*args):
         title = displayenvelope.dict['envelope']['payload']['subject']
     else:
         # If we didn't find that message, throw an error.
-        displayenvelope = server.error_envelope(
+        displayenvelope = self.server.error_envelope(
             "The Message you are looking for can not be found.")
         title = displayenvelope.dict['envelope']['payload']['subject']
         topic = displayenvelope.dict['envelope']['payload']['topic']
@@ -313,7 +211,42 @@ def MessageHandler_get(*args):
     self.finish(divs=divs)
 
 
-#@memorise(parent_keys=['fullcookies','request.arguments'], ttl=server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=server.serversettings.settings['cache']['topic-page']['size'])
+def MessageHistoryHandler_get(messageid):
+    """Display the various edits to a message."""
+
+    self.getvars()
+    origid = self.server.getOriginalMessage(messageid)
+
+    e = libtavern.envelope.Envelope()
+    if not e.loadmongo(origid):
+        self.write("I can't load that message's history. ;(")
+    else:
+        messages = []
+
+        # Add the root msg.
+        current_message = (
+            messageid,
+            e.dict[
+                'envelope'][
+                'local'][
+                'time_added'])
+        messages.append(current_message)
+
+        # Add all the edits
+        for message in e.dict['envelope']['local']['edits']:
+            current_message = (
+                message['envelope']['local']['payload_sha512'],
+                message['envelope']['local']['time_added'])
+            messages.append(current_message)
+
+        self.write(
+            self.render_string(
+                'messagehistory.html',
+                messages=messages))
+
+#@memorise(parent_keys=['fullcookies','request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
+
+
 def TopicHandler_get(topic='all'):
     """The Topic Handler displays a topic, and the messages that are in it."""
 
@@ -348,7 +281,7 @@ def TopicHandler_get(topic='all'):
     if len(topicEnvelopes) > 0:
         requestvars['displayenvelope'] = topicEnvelopes[0]
     else:
-        requestvars['displayenvelope'] = server.error_envelope(
+        requestvars['displayenvelope'] = self.server.error_envelope(
             subject="That topic doesn't have any messages in it yet!",
             topic=topic,
             body="""The particular topic you're viewing doesn't have any posts in it yet.
@@ -384,7 +317,7 @@ def TopicPropertiesHandler_get(topic):
     self.getvars()
 
     mods = []
-    for mod in server.db.unsafe.find('modlist', {'_id.topic': server.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
+    for mod in self.server.db.unsafe.find('modlist', {'_id.topic': self.server.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
         mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
             mod['_id']['moderator'].encode('utf-8')).hexdigest()
         mods.append(mod)
@@ -392,7 +325,7 @@ def TopicPropertiesHandler_get(topic):
     toptopics = topictool.toptopics()
 
     subjects = []
-    for envelope in server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
+    for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
         subjects.append(envelope)
 
     title = "Properties for " + topic
@@ -408,7 +341,7 @@ def SiteContentHandler_get(message):
     self.getvars()
     client_message_id = tornado.escape.xhtml_escape(message)
 
-    envelope = server.db.unsafe.find_one(
+    envelope = self.server.db.unsafe.find_one(
         'envelopes', {'envelope.local.payload_sha512': client_message_id})
 
     self.write(
@@ -434,7 +367,7 @@ def SiteContentHandler_get(message):
 def AttachmentHandler_get(attachment):
     self.getvars()
     client_attachment_id = tornado.escape.xhtml_escape(attachment)
-    envelopes = server.db.unsafe.find(
+    envelopes = self.server.db.unsafe.find(
         'envelopes',
         {'envelope.payload.binaries.sha_512': client_attachment_id})
     stack = []
@@ -496,8 +429,8 @@ def RegisterHandler_post():
         return
 
     if client_email is not None:
-        users_with_this_email = server.db.safe.find('users',
-                                                    {"email": client_email.lower()})
+        users_with_this_email = self.server.db.safe.find('users',
+                                                         {"email": client_email.lower()})
         if len(users_with_this_email) > 0:
             self.write(
                 "I'm sorry, this email address has already been used.")
@@ -544,7 +477,7 @@ def LoginHandler_post():
     client_password = self.get_argument("pass")
     if 'slug' in self.request.arguments:
         slug = self.get_argument("slug")
-        sluglookup = server.db.unsafe.find_one('redirects', {'slug': slug})
+        sluglookup = self.server.db.unsafe.find_one('redirects', {'slug': slug})
         if sluglookup is not None:
             if sluglookup['url'] is not None:
                 successredirect = sluglookup['url']
@@ -566,10 +499,10 @@ def LoginHandler_post():
             self.user.UserSettings['lastauth'] = int(time.time())
 
             self.setvars()
-            server.logger.debug("Login Successful.")
+            self.server.logger.debug("Login Successful.")
             bottle.redirect(successredirect)
         else:
-            server.logger.debug("Username/password fail.")
+            self.server.logger.debug("Username/password fail.")
             # bottle.redirect("http://Google.com")
 
 
@@ -584,7 +517,7 @@ def ChangepasswordHandler_get():
     if not self.recentauth():
         numcharacters = 100 + libtavern.TavernUtils.randrange(1, 100)
         slug = libtavern.TavernUtils.randstr(numcharacters, printable=True)
-        server.db.safe.insert(
+        self.server.db.safe.insert(
             'redirects',
             {'slug': slug,
              'url': '/changepassword',
@@ -615,7 +548,7 @@ def ChangepasswordHandler_post():
         password=client_newpass), httponly=True, expires_days=999)
 
     self.setvars()
-    server.logger.debug("Password Change Successful.")
+    self.server.logger.debug("Password Change Successful.")
     bottle.redirect("/")
 
 
@@ -663,7 +596,7 @@ def ChangeManySettingsHandler_post():
 
     if 'theme' in self.request.arguments:
         newtheme = tornado.escape.xhtml_escape(self.get_argument('theme'))
-        if newtheme in server.availablethemes:
+        if newtheme in self.server.availablethemes:
             self.user.UserSettings['theme'] = newtheme
 
     self.user.UserSettings['display_useragent'] = display_useragent
@@ -701,9 +634,9 @@ def ChangeSingleSettingHandler_post(setting, option=None):
             redirect = False
     elif setting == "dontshowembeds":
         self.user.UserSettings['allowembed'] = -1
-        server.logger.debug("forbidding embeds")
+        self.server.logger.debug("forbidding embeds")
     else:
-        server.logger.debug("Warning, you didn't do anything!")
+        self.server.logger.debug("Warning, you didn't do anything!")
 
     self.user.savemongo()
     self.setvars()
@@ -725,7 +658,7 @@ def RatingHandler_post():
     self.getvars(AllowGuestKey=False)
 
     # So you may be asking yourself.. Self, why did we do this as a POST, rather than
-    # Just a GET value, of the form server.com/msg123/voteup
+    # Just a GET value, of the form self.server.com/msg123/voteup
     # The answer is xsrf protection.
     # We don't want people to link to the upvote button and trick you into
     # voting up.
@@ -737,7 +670,7 @@ def RatingHandler_post():
         self.write("Invalid Rating.")
         return -1
 
-    e = Envelope()
+    e = libtavern.envelope.Envelope()
     e.payload.dict['class'] = "messagerating"
     e.payload.dict['rating'] = rating_val
     e.payload.dict['regarding'] = client_hash
@@ -772,14 +705,14 @@ def RatingHandler_post():
         friendlyname=self.user.UserSettings['friendlyname'],
         keys=self.user.Keys['master'],
         passkey=self.user.passkey)
-    if server.serversettings.settings['mark-origin']:
-            e.addStamp(
-                stampclass='origin',
-                keys=server.ServerKeys,
-                hostname=server.serversettings.settings['hostname'])
+    if self.server.serversettings.settings['mark-origin']:
+        e.addStamp(
+            stampclass='origin',
+            keys=self.server.ServerKeys,
+            hostname=self.server.serversettings.settings['hostname'])
 
     # Send to the server
-    server.receiveEnvelope(env=e)
+    self.server.receiveEnvelope(env=e)
 
     self.write("Your vote has been recorded. Thanks!")
 
@@ -801,7 +734,7 @@ def UserNoteHandler_post():
         '<input class="usernote" type="text" value="" name="note" placeholder="' +
         client_note +
         '">')
-    server.logger.debug("Note Submitted.")
+    self.server.logger.debug("Note Submitted.")
 
 
 def UserTrustHandler_get(user):
@@ -824,7 +757,7 @@ def UserTrustHandler_post():
         self.write("Invalid Trust Score.")
         return -1
 
-    e = Envelope()
+    e = libtavern.envelope.Envelope()
     e.payload.dict['class'] = "usertrust"
     e.payload.dict['trust'] = trust_val
     e.payload.dict['topic'] = client_topic
@@ -860,15 +793,15 @@ def UserTrustHandler_post():
         friendlyname=self.user.UserSettings['friendlyname'],
         keys=self.user.Keys['master'],
         passkey=self.user.passkey)
-    if server.serversettings.settings['mark-origin']:
-            e.addStamp(
-                stampclass='origin',
-                keys=server.ServerKeys,
-                hostname=server.serversettings.settings['hostname'])
+    if self.server.serversettings.settings['mark-origin']:
+        e.addStamp(
+            stampclass='origin',
+            keys=self.server.ServerKeys,
+            hostname=self.server.serversettings.settings['hostname'])
 
     # Send to the server
-    server.receiveEnvelope(env=e)
-    server.logger.debug("Trust Submitted.")
+    self.server.receiveEnvelope(env=e)
+    self.server.logger.debug("Trust Submitted.")
 
 
 def EditMessageHandler_get(regarding):
@@ -876,7 +809,7 @@ def EditMessageHandler_get(regarding):
     self.write(self.render_string('header.html',
                title="Edit a message", rsshead=None, type=None))
 
-    e = Envelope()
+    e = libtavern.envelope.Envelope()
     e.loadmongo(regarding)
     oldtext = e.dict['envelope']['payload']['body']
     topic = e.dict['envelope']['payload']['topic']
@@ -884,7 +817,7 @@ def EditMessageHandler_get(regarding):
     if 'edits' in e.dict['envelope']['local']:
 
         newestedit = e.dict['envelope']['local']['edits'][-1]
-        e2 = Envelope()
+        e2 = libtavern.envelope.Envelope()
         e2.loaddict(newestedit)
         oldtext = e2.dict['envelope']['payload']['body']
         topic = e2.dict['envelope']['payload']['topic']
@@ -958,7 +891,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
                 individual_file['basename'] + ".size")
 
             fs_basename = os.path.basename(individual_file['path'])
-            individual_file['fullpath'] = server.serversettings.settings[
+            individual_file['fullpath'] = self.server.serversettings.settings[
                 'upload-dir'] + "/" + fs_basename
 
             individual_file['filehandle'] = open(
@@ -1007,9 +940,9 @@ def ReceiveEnvelopeHandler_post(flag=None):
     # message.
     for attached_file in filelist:
         # All the same, let's strip out all but the basename.
-        server.logger.debug("Dealing with File " + attached_file['filename']
-                            + " with hash " + attached_file['hash'])
-        if not server.bin_GridFS.exists(filename=attached_file['hash']):
+        self.server.logger.debug("Dealing with File " + attached_file['filename']
+                                 + " with hash " + attached_file['hash'])
+        if not self.server.bin_GridFS.exists(filename=attached_file['hash']):
             attached_file['filehandle'].seek(0)
             imagetype = imghdr.what(
                 'ignoreme', h=attached_file['filehandle'].read())
@@ -1023,11 +956,11 @@ def ReceiveEnvelopeHandler_post(flag=None):
                 Image.open(attached_file['filehandle']).save(
                     attached_file['filehandle'], format=imagetype)
             attached_file['filehandle'].seek(0)
-            server.bin_GridFS.put(
+            self.server.bin_GridFS.put(
                 attached_file['filehandle'],
                 filename=attached_file['hash'],
                 content_type=individual_file['content_type'])
-        server.logger.debug("Creating Message")
+        self.server.logger.debug("Creating Message")
         # Create a message binary.
         mybinary = Envelope.binary(sha512=attached_file['hash'])
         # Set the Filesize. Clients can't trust it, but oh-well.
@@ -1053,7 +986,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
             detail['size'] = attached_file['size']
             detail['content_type'] = attached_file['content_type']
 
-            detail['url'] = server.serversettings.settings[
+            detail['url'] = self.server.serversettings.settings[
                 'downloadsurl'] + attached_file['hash']
             details.append(detail)
         details_json = json.dumps(details, separators=(',', ':'))
@@ -1089,7 +1022,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
     client_to = self.get_argument("to", None)
     client_regarding = self.get_argument("regarding", None)
 
-    e = Envelope()
+    e = libtavern.envelope.Envelope()
     e.payload.dict['formatting'] = "markdown"
 
     if flag == 'message':
@@ -1123,7 +1056,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
         e.payload.dict['class'] = "message"
         if client_regarding is not None:
             e.payload.dict['regarding'] = client_regarding
-            regardingmsg = server.db.unsafe.find_one(
+            regardingmsg = self.server.db.unsafe.find_one(
                 'envelopes',
                 {'envelope.local.payload_sha512': client_regarding})
             e.payload.dict['topic'] = regardingmsg[
@@ -1156,7 +1089,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
             e.payload.dict['body'] = client_body
         if client_regarding is not None:
             e.payload.dict['regarding'] = client_regarding
-            regardingmsg = server.db.unsafe.find_one(
+            regardingmsg = self.server.db.unsafe.find_one(
                 'envelopes',
                 {'envelope.local.payload_sha512': client_regarding})
             e.payload.dict['topic'] = regardingmsg[
@@ -1186,14 +1119,14 @@ def ReceiveEnvelopeHandler_post(flag=None):
         e.payload.dict['author'] = OrderedDict()
         e.payload.dict['author']['replyto'] = single_use_key.pubkey
 
-        encrypted_msg = Envelope()
+        encrypted_msg = libtavern.envelope.Envelope()
         encrypted_msg.payload.dict['formatting'] = "markdown"
         encrypted_msg.payload.dict['body'] = client_body
         encrypted_msg.payload.dict['class'] = 'privatemessage'
 
         if client_regarding is not None:
             encrypted['regarding'] = client_regarding
-            regardingmsg = server.db.unsafe.find_one(
+            regardingmsg = self.server.db.unsafe.find_one(
                 'envelopes',
                 {'envelope.local.payload_sha512': client_regarding})
 
@@ -1201,7 +1134,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
             # Pull in it's subject if possible.
             decrypted_regarding_dict = self.user.decrypt(
                 regardingmsg['payload']['encrypted'])
-            decrypted_regarding = Envelope()
+            decrypted_regarding = libtavern.envelope.Envelope()
             decrypted_regarding.loaddict(decrypted_regarding_dict)
 
             encrypted_msg.payload.dict[
@@ -1239,11 +1172,11 @@ def ReceiveEnvelopeHandler_post(flag=None):
             friendlyname=self.user.UserSettings['friendlyname'],
             keys=self.user.Keys['master'],
             passkey=self.user.passkey)
-        if server.serversettings.settings['mark-origin']:
-                encrypted_msg.addStamp(
-                    stampclass='origin',
-                    keys=server.ServerKeys,
-                    hostname=server.serversettings.settings['hostname'])
+        if self.server.serversettings.settings['mark-origin']:
+            encrypted_msg.addStamp(
+                stampclass='origin',
+                keys=self.server.ServerKeys,
+                hostname=self.server.serversettings.settings['hostname'])
 
         # Now that we've created the inner message, convert it to text,
         # store it in the outer message.
@@ -1266,18 +1199,18 @@ def ReceiveEnvelopeHandler_post(flag=None):
         e.payload.dict['coords'] = str(gir['latitude']) + \
             "," + str(gir['longitude'])
 
-    if server.serversettings.settings['mark-origin']:
-            e.addStamp(
-                stampclass='origin',
-                keys=server.ServerKeys,
-                hostname=server.serversettings.settings['hostname'])
+    if self.server.serversettings.settings['mark-origin']:
+        e.addStamp(
+            stampclass='origin',
+            keys=self.server.ServerKeys,
+            hostname=self.server.serversettings.settings['hostname'])
 
     # Send to the server
-    newmsgid = server.receiveEnvelope(env=e)
+    newmsgid = self.server.receiveEnvelope(env=e)
     if newmsgid:
         if client_to is None:
             if client_regarding is not None:
-                bottle.redirect('/message/' + server.getTopMessage(
+                bottle.redirect('/message/' + self.server.getTopMessage(
                     newmsgid) + "?jumpto=" + newmsgid, permanent=False)
             else:
                 bottle.redirect('/message/' + newmsgid, permanent=False)
@@ -1295,12 +1228,12 @@ def ShowPrivatesHandler_get(messageid=None):
                title="Your Private messages", rsshead=None, type=None))
 
     # Construct a list of all current PMs
-    for message in server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in': self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
+    for message in self.server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in': self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
 
         if self.user.decrypt(message['envelope']['payload']['encrypted']):
             unencrypted_str = self.user.decrypt(
                 message['envelope']['payload']['encrypted'])
-            unencrypted_env = Envelope()
+            unencrypted_env = libtavern.envelope.Envelope()
             unencrypted_env.loadstring(unencrypted_str)
             unencrypted_env.munge()
             unencrypted_env.dict['parent'] = message
@@ -1308,7 +1241,7 @@ def ShowPrivatesHandler_get(messageid=None):
 
     # Retrieve a PM to display - Either by id if requested, or top PM if
     # not.
-    e = Envelope()
+    e = libtavern.envelope.Envelope()
     if messageid is not None:
         if not e.loadmongo(messageid):
             self.write("Can't load that..")
@@ -1321,11 +1254,11 @@ def ShowPrivatesHandler_get(messageid=None):
                 print(self.user.get_keys(ret='pubkey'))
                 self.write("This isn't you.")
                 return
-                # TODO - Put better error here. Server.Error?
+                # TODO - Put better error here. self.server.Error?
         unencrypted_str = self.user.decrypt(
             e.dict['envelope']['payload']['encrypted'])
 
-        unencrypted_env = Envelope()
+        unencrypted_env = libtavern.envelope.Envelope()
         unencrypted_env.loadstring(unencrypted_str)
         unencrypted_env.munge()
         unencrypted_env.dict['parent'] = e.dict
@@ -1333,9 +1266,9 @@ def ShowPrivatesHandler_get(messageid=None):
         displaymessage = unencrypted_env
 
     elif messages:
-            displaymessage = messages[0]
+        displaymessage = messages[0]
     else:
-        displaymessage = server.error_envelope(
+        displaymessage = self.server.error_envelope(
             "You don't have any private messages yet. Silly goose!")
 
     self.write(
@@ -1366,11 +1299,11 @@ def NullHandler_post(url=None):
 
 
 def BinariesHandler_get(binaryhash, filename=None):
-    server.logger.info(
+    self.server.logger.info(
         "The gridfs_nginx plugin is a much better option than this method")
     self.set_header("Content-Type", 'application/octet-stream')
 
-    req = server.bin_GridFS.get_last_version(filename=binaryhash)
+    req = self.server.bin_GridFS.get_last_version(filename=binaryhash)
     self.write(req.read())
 
 
@@ -1417,84 +1350,109 @@ def server_static(filepath):
 
 
 def main():
-    server.logger.info(
-        "Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
-    app.debug = True
-    app.run(host='0.0.0.0')
+    # Set up Command Line Parsing
+    parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
+    parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
+                      help="Set loglevel. Use more than once to log extra stuff (5 max)")
+    parser.add_option("--initonly", action="store_true", dest="initonly", default=False,
+                      help="Creates config files, but then immediately exit")
+    parser.add_option("-?", "--help", action="help",
+                      help="Show this helpful message.")
 
-    bottle.TEMPLATE_PATH = ['./themes/default/']
+    group = optparse.OptionGroup(parser, "Very Dangerous Options",
+                                 "Caution: These options will let attackers take over your machine.     "
+                                 "Do not use these on any machine that other people can access!")
+    group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
+                     help="Enable the debugger in the web interface.")
+
+    parser.add_option_group(group)
+    (options, args) = parser.parse_args()
+
+    server = libtavern.server.Server()
+
+    # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
+    if options.verbose > 0:
+        loglevel = 100 - (options.verbose * 20)
+        if loglevel < 1:
+            loglevel = 1
+        server.logger.setLevel(loglevel)
+
     server.start()
 
-    bottle.route('/', 'GET', EntryHandler_get)
-    bottle.route('/message/<a>/<b>/<c>', 'GET', MessageHandler_get)
-    bottle.route('/message/<a>/<b>', 'GET', MessageHandler_get)
-    bottle.route('/message/<a>', 'GET', MessageHandler_get)
-    bottle.route('/m/<a>/<b>/<c>', 'GET', MessageHandler_get)
-    bottle.route('/m/<a>/<b>', 'GET', MessageHandler_get)
-    bottle.route('/m/<a>', 'GET', MessageHandler_get)
+    server.logger.info("Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
-    bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
+    app = flask.Flask(__name__, template_folder='themes/default')
+    app.config.update(server.serversettings.settings['flask'])
+    app.config['DEBUG'] = options.debug
 
-    bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
-    bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
-    bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
-    bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
+    app.config['PREFERRED_URL_SCHEME'] = server.serversettings.settings['url-scheme']
+    app.config['PERMANENT_SESSION_LIFETIME'] = server.serversettings.settings['session-lifetime']
 
-    bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
-    bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
-    bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
+    app.add_url_rule('/', view_func=EntryHandler.as_view('EntryHandler'))
+    app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
 
-    bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
-    bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
+    # bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
 
-    bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
+    # bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
+    # bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
+    # bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
+    # bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
 
-    bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
-    bottle.route('/newmessage', 'GET', NewmessageHandler_get)
-    bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
-    bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
-    bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
+    # bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
+    # bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
+    # bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
 
-    bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-    bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
+    # bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
+    # bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
 
-    bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+    # bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
 
-    bottle.route('/register', 'GET', RegisterHandler_get)
-    bottle.route('/login', 'GET', LoginHandler_get)
-    bottle.route('/login/<slug>', 'GET', LoginHandler_get)
+    # bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
+    # bottle.route('/newmessage', 'GET', NewmessageHandler_get)
+    # bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
+    # bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
+    # bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
 
-    bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
-    bottle.route('/logout', 'GET', LogoutHandler_post)
+    # bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
+    # bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
 
-    bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
-    bottle.route('/vote', 'POST', RatingHandler_post)
+    # bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+    # bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+    # bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
 
-    bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
-    bottle.route('/usertrust', 'POST', UserTrustHandler_post)
+    # bottle.route('/register', 'GET', RegisterHandler_get)
+    # bottle.route('/login', 'GET', LoginHandler_get)
+    # bottle.route('/login/<slug>', 'GET', LoginHandler_get)
 
-    bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
-    bottle.route('/usernote', 'POST', UserTrustHandler_post)
+    # bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
+    # bottle.route('/logout', 'GET', LogoutHandler_post)
 
-    bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
-    bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
-    bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
+    # bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
+    # bottle.route('/vote', 'POST', RatingHandler_post)
 
-    bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
-    bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
+    # bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
+    # bottle.route('/usertrust', 'POST', UserTrustHandler_post)
 
-    bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
-    bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
+    # bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
+    # bottle.route('/usernote', 'POST', UserTrustHandler_post)
 
-    bottle.route('/static/<filepath:path>', 'GET', server_static)
+    # bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
+    # bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
+    # bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
+
+    # bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
+    # bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
+
+    # bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
+    # bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
+
+    # bottle.route('/static/<filepath:path>', 'GET', server_static)
 
     server.logger.info(
         server.serversettings.settings['hostname'] + ' is ready for requests')
 
-    bottle.run(host='localhost', port=8080, debug=True, reloader=True)
+    app.run(host=server.serversettings.settings['ip_listen_on'], use_reloader=False)
 
 if __name__ == "__main__":
     main()

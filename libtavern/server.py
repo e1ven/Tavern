@@ -1,4 +1,3 @@
-
 import json
 import platform
 import time
@@ -20,19 +19,23 @@ import multiprocessing
 import logging
 import os
 import re
-import libtavern
+import libtavern.serversettings
+import libtavern.key
+import libtavern.utils
+import libtavern.embedis
+import libtavern.uasparser
+import libtavern.user
+import libtavern.keygen
+import libtavern.envelope
 
-defaultsettings = libtavern.ServerSettings('cache.TavernSettings')
+class FakeMongo(libtavern.baseobj.Baseobj):
 
-
-class FakeMongo():
-
-    def __init__(self, host, port, name):
+    def __init2__(self, host, port, name):
 
         # Create a connection to Postgres.
         self.conn = psycopg2.connect(
             dbname=name,
-            user=server.serversettings.settings['postgres-user'],
+            user=self.server.serversettings.settings['postgres-user'],
             host=host,
             port=port,
             connection_factory=psycopg2.extras.RealDictConnection)
@@ -137,9 +140,9 @@ class FakeMongo():
         cursor.execute()
 
 
-class MongoWrapper():
+class MongoWrapper(libtavern.baseobj.Baseobj):
 
-    def __init__(self, host, port, name, safe=True):
+    def __init2__(self, host, port, name,safe=True):
 
         if safe:
             # Slower, more reliable mongo connection.
@@ -148,7 +151,7 @@ class MongoWrapper():
                 port,
                 safe=True,
                 journal=True,
-                max_pool_size=defaultsettings.settings['mongo-connections'])
+                max_pool_size=self.server.serversettings.settings['mongo-connections'])
             self.mongo = self.safeconn[name]
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
@@ -156,7 +159,7 @@ class MongoWrapper():
                 host,
                 port,
                 read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED,
-                max_pool_size=defaultsettings.settings['mongo-connections'])
+                max_pool_size=self.server.serversettings.settings['mongo-connections'])
             self.mongo = self.unsafeconn[name]
 
     def drop_collection(self, collection):
@@ -223,48 +226,39 @@ class MongoWrapper():
         return self.mongo[collection].create_index(index)
 
 
-class DBWrapper():
+class DBWrapper(libtavern.baseobj.Baseobj):
 
-    def __init__(self, name, dbtype=None, host=None, port=None):
+    def __init2__(self, name, dbtype=None, host=None, port=None):
 
         if dbtype == "mongo":
             if host is None:
-                host = server.serversettings.settings['mongo-hostname']
+                host = self.server.serversettings.settings['mongo-hostname']
             if port is None:
-                port = server.serversettings.settings['mongo-port']
+                port = self.server.serversettings.settings['mongo-port']
 
             self.safe = MongoWrapper(
                 safe=True,
                 host=host,
                 port=port,
-                name=name)
+                name=name,
+                server=self.server)
             self.unsafe = MongoWrapper(
                 safe=False,
                 host=host,
                 port=port,
-                name=name)
+                name=name,
+                server=self.server)
         elif dbtype == "postgres":
             if host is None:
                 host = server.serversettings.settings['postgres-hostname']
             if port is None:
                 port = server.serversettings.settings['postgres-port']
 
-            self.safe = FakeMongo(host=host, port=port, name=name)
-            self.unsafe = FakeMongo(host=host, port=port, name=name)
+            self.safe = FakeMongo(host=host, port=port, name=name,server=server)
+            self.unsafe = FakeMongo(host=host, port=port, name=name,server=server)
 
         else:
             raise Exception('DBError', 'Invalid type of database')
-
-
-def print_timing(func):
-    def wrapper(*arg):
-        t1 = time.time()
-        res = func(*arg)
-        t2 = time.time()
-        print((t2 - t1) * 1000.0)
-        return res
-    return wrapper
-
 
 class Server(libtavern.utils.instancer):
 
@@ -272,111 +266,70 @@ class Server(libtavern.utils.instancer):
     # This way we can create a new instance, anywhere, in any subclass, and
     # get the same settings/etc
 
-    class FancyDateTimeDelta(object):
-
-        """Format the date / time difference between the supplied date and the
-        current time using approximate measurement boundaries."""
-
-        def __init__(self, dt):
-            now = datetime.datetime.now()
-            delta = now - dt
-            self.year = round(delta.days / 365)
-            self.month = round(delta.days / 30 - (12 * self.year))
-            if self.year > 0:
-                self.day = 0
-            else:
-                self.day = delta.days % 30
-            self.hour = round(delta.seconds / 3600)
-            self.minute = round(delta.seconds / 60 - (60 * self.hour))
-            self.second = delta.seconds - (self.hour * 3600) - \
-                                          (60 * self.minute)
-            self.millisecond = delta.microseconds / 1000
-
-        def format(self):
-            # Round down. People don't want the exact time.
-            # For exact time, reverse array.
-            fmt = ""
-            for period in ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year']:
-                value = getattr(self, period)
-                if value:
-                    if value > 1:
-                        period += "s"
-
-                    fmt = str(value) + " " + period
-            return fmt + " ago"
-
-    def getnextint(self, queuename, forcewrite=False):
-        if not 'queues' in self.serversettings.settings:
-            self.serversettings.settings['queues'] = {}
-
-        if not queuename in self.serversettings.settings['queues']:
-            self.serversettings.settings['queues'][queuename] = 0
-
-        self.serversettings.settings['queues'][queuename] += 1
-
-        if forcewrite:
-            self.serversettings.saveconfig()
-
-        return self.serversettings.settings['queues'][queuename]
-
-    def __init__(self, settingsfile=None, workingdir=None, slot='default'):
+    def __init__(self, slot='default'):
+        """
+        Create the basic structures of the Server (DB, logging, etc)
+        Postpone most intensive activity (Keygen, Users, etc) until `.start()` is run
+        """
 
         super().__init__(slot)
 
-        # Don't run this more than once.
+        # Don't run __init__ more than once, since we return the same one.
         if self.__dict__.get('set') is True:
             return
         else:
             self.set = True
+        
+        # Save our instance name
+        self.slot = slot
 
-        self.logger = logging.getLogger('Tavern')
+        # Create a logger, so we can write to console/log/etc
+        self.logger = logging.getLogger(slot)
 
-        # Should the server run in debug mode
-        self.debug = False
-
-        self.serversettings = libtavern.ServerSettings(settingsfile)
+        # Load in the most recent config file
+        self.serversettings = libtavern.serversettings.ServerSettings(slot=slot)
         if self.serversettings.updateconfig():
             self.serversettings.saveconfig()
 
-        if not 'pubkey' in self.serversettings.settings or not 'privkey' in self.serversettings.settings:
-            # Generate New config
-            self.logger.info("Generating new Config")
-            self.ServerKeys = libtavern.Key()
-            self.ServerKeys.generate()
+        # Restore our logger level to the version in our conf file.
+        self.logger.setLevel(self.serversettings.settings['loglevel'])
 
-            # We can't encrypt this.. We'd need to store the key here on the machine...
-            # If you're worried about it, encrypt the disk, or use a loopback.
-            self.serversettings.settings['pubkey'] = self.ServerKeys.pubkey
-            self.serversettings.settings['privkey'] = self.ServerKeys.privkey
+        # Define the console logging options.
+        formatter = logging.Formatter('[%(levelname)s] %(message)s')
+        
+        self.consolehandler = logging.StreamHandler()
+        self.consolehandler.setFormatter(formatter)
+        self.logger.addHandler(self.consolehandler)
 
-            self.serversettings.updateconfig()
-            self.serversettings.saveconfig()
+        self.handler_file = logging.FileHandler(filename=self.serversettings.settings['logfile'])
+        self.handler_file.setFormatter(formatter)
+        self.logger.addHandler(self.handler_file)
 
-        self.mc = OrderedDict
+        # Create a queue of unused LockedKeys, since they are slow to gen-on-the-fly
         self.unusedkeycache = multiprocessing.Queue(
             self.serversettings.settings['KeyGenerator']['num_pregens'])
-        # Break out the settings into it's own file, so we can include it without including all of server
-        # This does cause a few shenanigans while loading here, but hopefully
-        # it's minimal
 
-        self.ServerKeys = libtavern.Key(pub=self.serversettings.settings['pubkey'],
-                              priv=self.serversettings.settings['privkey'])
+        # Create our Keygenerator
+        self.keygen = libtavern.keygen.KeyGenerator(server=self)
 
         self.db = DBWrapper(
             name=self.serversettings.settings['dbname'],
             dbtype=self.serversettings.settings['dbtype'],
             host=self.serversettings.settings['mongo-hostname'],
-            port=self.serversettings.settings['mongo-port'])
+            port=self.serversettings.settings['mongo-port'],
+            server=self)
         self.sessions = DBWrapper(
             name=self.serversettings.settings['sessions-db-name'],
             dbtype=self.serversettings.settings['dbtype'],
             host=self.serversettings.settings['sessions-db-hostname'],
-            port=self.serversettings.settings['sessions-db-port'])
+            port=self.serversettings.settings['sessions-db-port'],
+            server=self)
         self.binaries = DBWrapper(
             name=self.serversettings.settings['bin-mongo-db'],
             dbtype='mongo',
             host=self.serversettings.settings['bin-mongo-hostname'],
-            port=self.serversettings.settings['bin-mongo-port'])
+            port=self.serversettings.settings['bin-mongo-port'],
+            server=self)
         self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
 
         # Ensure we have Proper indexes.
@@ -407,76 +360,76 @@ class Server(libtavern.utils.instancer):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
-        self.serversettings.settings['static-revision'] = int(time.time())
+        self.serversettings.settings['static-revision'] = libtavern.utils.longtime()
 
         self.fortune = libtavern.utils.randomWords(fortunefile="data/fortunes")
         self.wordlist = libtavern.utils.randomWords(fortunefile="data/wordlist")
 
-        # Define out logging options.
-        formatter = logging.Formatter('[%(levelname)s] %(message)s')
-        self.consolehandler = logging.StreamHandler()
-        self.consolehandler.setFormatter(formatter)
-        self.handler_file = logging.FileHandler(
-            filename=self.serversettings.settings['logfile'])
-        self.handler_file.setFormatter(formatter)
 
-        self.logger.setLevel(self.serversettings.settings['loglevel'])
-        level = self.serversettings.settings['loglevel']
-
-        # Cache our JS, so we can include it later.
-        file = open("static/scripts/instance.min.js")
-        self.logger.info("Cached JS")
-        libtavern.utils.TavernCache.cache['instance.js'] = file.read()
-        file.close()
-        self.guestacct = None
-
-    def start(self):
-        """Stuff that should be done when the server is running as a process,
-        not just imported as a obj."""
-        self.external = libtavern.Embedis()
-        self.logger.info("Loading Browser info")
-        self.browserdetector = libtavern.UASparser()
-
-        # Start actually logging to file or console
-        if self.debug:
-            self.logger.setLevel("DEBUG")
-            self.logger.addHandler(self.consolehandler)
-      #      logging.getLogger('gnupg').setLevel("DEBUG")
-            logging.getLogger('gnupg').addHandler(self.consolehandler)
-
-        self.logger.addHandler(self.handler_file)
-
-        print("Logging Server started at level: " +
+        self.logger.debug("Tavern Server (" + slot + ") is loaded at logging level : " +
               str(self.logger.getEffectiveLevel()))
 
+    def start(self):
+        """
+        Stuff that should be done when the server is running as a process,
+        not just imported as a obj.
+        """
+        self.external = libtavern.embedis.Embedis(server=self)
+        self.logger.info("Loading Browser info")
+        self.browserdetector = libtavern.uasparser.UASparser(server=self)
+        
+        # Start pregenerating random keys to assign out.
+        self.keygen.start()
 
+
+        # Create a Guest account.
+        # This account can be loaded by people until they create their own account
+        # Consider it the equivalent of the 'nobody' user.
+
+        self.guestacct = libtavern.user.User(server=self)    
         if not 'guestacct' in self.serversettings.settings:
             self.logger.info("Generating a Guest user acct.")
-            self.guestacct = libtavern.User()
             self.guestacct.generate(AllowGuestKey=False)
-            self.serversettings.settings['guestacct'] = {}
-            self.serversettings.settings[
-                'guestacct'][
-                'pubkey'] = self.guestacct.Keys[
-                'master'].pubkey
+            self.serversettings.settings['guestacct'] = self.guestacct.to_dict()
             self.serversettings.saveconfig()
-            self.guestacct.savemongo()
+            self.guestacct.save_mongo(overwriteguest=True)
         else:
             self.logger.info("Loading the Guest user acct.")
-            self.guestacct = libtavern.User()
-            self.guestacct.load_mongo_by_pubkey(
-                self.serversettings.settings['guestacct']['pubkey'])
+            self.guestacct = libtavern.user.User(server=self)
+            self.guestacct.load_dict(self.serversettings.settings['guestacct'])
+
+        # Create and/or restore a Server User.
+        # This 'User' is used to sign stamps, etc.
+        # Don't do this anywhere else.
+        self.serveruser = libtavern.user.User(server=self)
+        if 'serveruser' in self.serversettings.settings and 'serverpasskey' in self.serversettings.settings:
+            self.serveruser.passkey = self.serversettings.settings['serverpasskey']
+            self.serveruser.load_dict(self.serversettings.settings['serveruser'])
+        else:
+            self.logger.info("Generating new server useracct.")
+            self.serveruser.generate(AllowGuestKey=False)
+
+            # We can't effectively encrypt this info without prompting
+            # For a username/password before starting the server.
+            self.serversettings.settings['serveruser'] = self.serveruser.to_dict()
+            self.serversettings.settings['serverpasskey'] = self.serveruser.passkey
+
+            self.serversettings.saveconfig()
+
+        self.logger.info("Tavern Server is now running, using logging level : " +
+              str(self.logger.getEffectiveLevel()) + ".  Enjoy!")
 
     def stop(self):
         """Stop all server procs."""
-        self.logger.info("Shutting down Server instance")
+        self.logger.info("Tavern Server (" + self.slot + ") is stopping.")
+        self.keygen.stop()
 
     def prettytext(self):
         newstr = json.dumps(
             self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
+#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -485,7 +438,7 @@ class Server(libtavern.utils.instancer):
             topic = None
         return topic
 
-    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
+ #   @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, subject="Error", topic="sitecontent", body=None):
 
         if body is None:
@@ -497,7 +450,7 @@ class Server(libtavern.utils.instancer):
             So sorry for the trouble.
             -The Barkeep
             """
-        e = Envelope()
+        e = libtavern.envelope.Envelope(server=self)
         e.dict['envelope']['payload'] = OrderedDict()
         e.dict['envelope']['payload']['subject'] = subject
         e.dict['envelope']['payload']['topic'] = topic
@@ -512,8 +465,9 @@ class Server(libtavern.utils.instancer):
         e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
         e.addStamp(
             stampclass='author',
-            keys=self.ServerKeys,
-            friendlyname=defaultsettings.settings['hostname'])
+            passkey=self.serveruser.passkey,
+            keys=self.serveruser.Keys['master'],
+            friendlyname=self.serversettings.settings['hostname'])
         e.flatten()
         e.munge()
         e.dict['envelope']['local']['time_added'] = 1297396876
@@ -524,7 +478,7 @@ class Server(libtavern.utils.instancer):
         return e
 
     # Cache to failfast on receiving dups
-    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
+#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
     def receiveEnvelope(self, envstr=None, env=None):
         """Receive an envelope for processing in the server.
 
@@ -539,7 +493,7 @@ class Server(libtavern.utils.instancer):
             # If we get an envelope, flatten it - The caller may not have.
             c = env.flatten()
         else:
-            c = Envelope()
+            c = libtavern.envelope.Envelope(server=self)
             c.loadstring(importstring=envstr)
 
         # Fill-out the message's local fields.
@@ -552,8 +506,6 @@ class Server(libtavern.utils.instancer):
             self.logger.debug(c.text())
             return False
 
-        utctime = time.time()
-
         existing = self.db.unsafe.find_one(
             'envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['local']['payload_sha512']})
 
@@ -565,12 +517,13 @@ class Server(libtavern.utils.instancer):
         if self.serversettings.settings['mark-seen']:
             c.addStamp(
                 stampclass='server',
-                keys=self.ServerKeys,
-                hostname=defaultsettings.settings['hostname'])
+                passkey=self.serveruser.passkey,
+                keys=self.serveruser.Keys['master'],
+                hostname=self.serversettings.settings['hostname'])
 
         # Store the time, in full UTC (with precision). This is used to skip
         # pages in the viewer later.
-        c.dict['envelope']['local']['time_added'] = utctime
+        c.dict['envelope']['local']['time_added'] = libtavern.utils.longtime()
 
         if c.dict['envelope']['payload']['class'] == "message":
 
@@ -579,7 +532,7 @@ class Server(libtavern.utils.instancer):
             # Partners can calculate this when they receive it.
 
             if 'regarding' in c.dict['envelope']['payload']:
-                repliedTo = Envelope()
+                repliedTo = libtavern.envelope.Envelope(server=self)
                 if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
                     self.logger.debug(
                         " I am :: " + c.dict['envelope']['local']['payload_sha512'])
@@ -596,7 +549,7 @@ class Server(libtavern.utils.instancer):
                             'payload_sha512'])
                     c.addAncestor(c.dict['envelope']['payload']['regarding'])
 
-            print("id is :" + c.dict['envelope']['local']['payload_sha512'])
+            self.logger.debug("id is :" + c.dict['envelope']['local']['payload_sha512'])
 
             # It could also be that this message is cited BY others we already have!
             # Sometimes we received them out of order. Better check.
@@ -609,7 +562,7 @@ class Server(libtavern.utils.instancer):
 
                 # If it's a message, write that in the reply, and in me.
                 if citedict['envelope']['payload']['class'] == 'message':
-                    citedme = Envelope()
+                    citedme = libtavern.envelope.Envelope(server=self)
                     citedme.loaddict(citedict)
                     c.addcite(
                         citedme.dict[
@@ -628,7 +581,7 @@ class Server(libtavern.utils.instancer):
                     c.addEdit(citedict['envelope']['local']['payload_sha512'])
 
                 elif citedict['envelope']['payload']['class'] == 'messagerating':
-                    citedme = Envelope()
+                    citedme = libtavern.envelope.Envelope(server=self)
                     citedme.loaddict(citedict)
                     citedme.dict[
                         'envelope'][
@@ -677,7 +630,7 @@ class Server(libtavern.utils.instancer):
                 c.saveMongo()
 
                 # Modify the original message.
-                r = Envelope()
+                r = libtavern.envelope.Envelope(server=self)
                 r.loaddict(regardingPost)
                 r.addEdit(c.dict['envelope']['local']['payload_sha512'])
 
@@ -691,7 +644,7 @@ class Server(libtavern.utils.instancer):
 
         return c.dict['envelope']['local']['payload_sha512']
 
-    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
+#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
 
         # # Run the text through Tornado's escape to ensure you're not a badguy.
@@ -717,19 +670,19 @@ class Server(libtavern.utils.instancer):
 
         return formatted
 
-    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
+#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
     def getUsersPosts(self, pubkey, limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, limit=limit, sortkey='envelope.local.time_added', sortdirection='descending'):
             messagetext = json.dumps(envelope, separators=(',', ':'))
-            e = Envelope()
+            e = libtavern.envelope.Envelope(server=self)
             e.loadstring(messagetext)
             envelopes.append(e)
         return envelopes
 
     def getOriginalMessage(self, messageid):
 
-        env = Envelope()
+        env = libtavern.envelope.Envelope(server=self)
         # First, pull the referenced message.
         if env.loadmongo(mongo_id=messageid):
             if env.dict['envelope']['payload']['class'] == 'message':
@@ -742,7 +695,7 @@ class Server(libtavern.utils.instancer):
     def getTopMessage(self, messageid):
         # Find the top level of a post that we currently have.
 
-        env = Envelope()
+        env = libtavern.envelope.Envelope(server=self)
         # First, pull the referenced message.
         if env.loadmongo(mongo_id=messageid):
             # If we have no references, congrats, we're the top.

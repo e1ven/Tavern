@@ -7,7 +7,6 @@ from collections import *
 json.encoder.c_make_encoder = None
 import pymongo
 import lzma
-import libtavern
 
 from operator import itemgetter
 import magic
@@ -16,17 +15,16 @@ from PIL import Image
 import gridfs
 from bs4 import BeautifulSoup
 
+import libtavern.baseobj
+import libtavern.key
 
-class Envelope(object):
 
-    class Payload(object):
+class Envelope(libtavern.baseobj.Baseobj):
 
-        def __init__(self, initialdict, srv=None):
+    class Payload(libtavern.baseobj.Baseobj):
+
+        def __init2__(self, initialdict):
             self.dict = OrderedDict(initialdict)
-            if srv is None:
-                self.server = Server.Server()
-            else:
-                self.server = srv
 
         def alphabetizeAllItems(self, oldobj):
             """To ensure our messages are reconstructable, the message, and all
@@ -229,7 +227,7 @@ class Envelope(object):
                 return False
 
             # Retrieve the key, ensure it's valid.
-            stampkey = libtavern.Key(pub=stamp['pubkey'])
+            stampkey = libtavern.key.Key(pub=stamp['pubkey'])
             if stampkey is None:
                 self.server.logger.debug("Key is invalid.")
                 return False
@@ -322,7 +320,7 @@ class Envelope(object):
                 self.dict['envelope']['local']['author'] = stamp
 
                 # Create a version of the key without ascii
-                self.dict['envelope']['local']['author']['minipubkey'] = libtavern.Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
+                self.dict['envelope']['local']['author']['minipubkey'] = libtavern.key.Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
 
             # Calculate highest proof of work difficuly.
             # Only use proof-of-work class sha256 for now.
@@ -508,9 +506,7 @@ class Envelope(object):
     def addStamp(self, stampclass, keys, passkey=None, **kwargs):
         """Adds a stamp of type `class` to the current envelope."""
 
-        if passkey is not None:
-            keys.unlock(passkey)
-        signature = keys.signstring(self.payload.text())
+        signature = keys.signstring(self.payload.text(),passkey=passkey)
 
         # Generate the full stamp obj we will insert.
         fullstamp = {}
@@ -632,7 +628,7 @@ class Envelope(object):
             self.dict = OrderedDict()
             self.dict['sha_512'] = sha512
 
-    def __init__(self, srv=None):
+    def __init2__(self):
         self.dict = OrderedDict()
         self.dict['envelope'] = OrderedDict()
         self.dict['envelope']['payload'] = OrderedDict()
@@ -641,10 +637,6 @@ class Envelope(object):
         self.dict['envelope']['stamps'] = []
 
         self.payload = Envelope.Payload(self.dict['envelope']['payload'])
-        if srv is None:
-            self.server = Server.Server()
-        else:
-            self.server = srv
 
     def registerpayload(self):
         if 'payload' in self.dict['envelope']:

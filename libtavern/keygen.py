@@ -10,21 +10,20 @@ import signal
 import pdb
 import os
 import time
-import tavern
+import libtavern.baseobj
+import libtavern.lockedkey
 
-
-class KeyGenerator(object):
+class KeyGenerator(libtavern.baseobj.Baseobj):
 
     """
     Pre-generates GPG keys.
     """
 
-    def __init__(self):
+    def __init2__(self):
         """Initialize our main module, and create threads."""
         # Create a hopper for all the emails to reside in
         self.procs = []
-        self.server = tavern.Server()
-        print("Init KeyGen")
+        self.server.logger.debug("Init KeyGen")
 
     def start(self):
         """Start up all subprocs."""
@@ -54,9 +53,10 @@ class KeyGenerator(object):
 
     def CreateUnusedLK(self):
         """Create a LockedKey with a random password."""
-        lk = tavern.LockedKey()
+        lk = libtavern.lockedkey.LockedKey(server=self.server)
         password = lk.generate(random=True)
-        unusedkey = {'encryptedprivkey': lk.encryptedprivkey, 'pubkey': lk.pubkey, 'password': password}
+        unusedkey = lk.to_dict()
+        unusedkey['passkey'] = lk.passkey
         return unusedkey
 
     def GenerateAsNeeded(self):
