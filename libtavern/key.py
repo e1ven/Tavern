@@ -11,17 +11,15 @@ import shutil
 import time
 import functools
 import datetime
-import calendar
 import time
-import libtavern
-
+import libtavern.utils
+import libtavern.baseobj
 
 # We're not using  @memorise because we don't WANT cached copies of the
 # keys hanging around, even though it'd be faster ;()
 
 
-class Key(object):
-
+class Key(libtavern.baseobj.Baseobj):
     def privatekeyaccess(fn):
         """privatekeyaccess is an wrapper decorator.
 
@@ -39,7 +37,7 @@ class Key(object):
                 # to the unlock instead.
                 if 'passkey' in kwargs:
                     passkey = kwargs.pop('passkey')
-                    cls.unlock(pk)
+                    cls.unlock(passkey)
                 else:
                     cls.unlock()
             result = fn(cls, *args, **kwargs)
@@ -52,22 +50,27 @@ class Key(object):
             return result
         return wrapper
 
-    def __init__(self, pub=None, priv=None):
+    def __init2__(self, pub=None, priv=None):
         """Create a Key object.
 
         Pass in either pub=foo, or priv=foo, to use pre-existing keys.
 
         """
-        self.logger = logging.getLogger('Tavern')
+      #  super().__init__()
+        self.logger = logging.getLogger('default')
         self.pubkey = pub
         self.privkey = priv
         self.expires = None
         self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
 
-        # Pass in options to anonymize where possible, and use sane-defaults
-        options = ''
+    
+        # If we are in debug mode, then pass debug to GPG
+        if self.logger.getEffectiveLevel() < 20:
+            verbose = True
+        else:
+            verbose = False
 
-        self.gpg = gnupg.GPG(verbose=False, gnupghome=self.gnuhome, options='--options tmp/gpgfiles/gpg.conf -vv')
+        self.gpg = gnupg.GPG(verbose=verbose, gnupghome=self.gnuhome, options='--options tmp/gpgfiles/gpg.conf -vv')
         self.gpg.encoding = 'utf-8'
 
         self._format_keys()
@@ -226,10 +229,35 @@ class Key(object):
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
             self.minipubkey = noBreaks
 
+    def to_dict(self,clean=True):
+        """
+        Saves the key objects as a python dictionary.
+        If `clean` is True, it removes private keys.
+        """
+
+        keydict = {}
+
+        keydict['pubkey'] = self.pubkey
+        keydict['generated'] = self.generated
+        keydict['expires'] = self.expires
+
+        if clean is True:
+            keydict['privkey'] = None
+        else:
+            keydict['privkey'] = self.privkey
+
+    def from_dict(self,keydict):
+        """
+        Restores a key from a dictionary.
+        """
+        self.__init__(pub=keydict['pubkey'],priv=keydict['privkey'])
+        self.expires = keydict['expires']
+        self.generated = keydict['generated']
+
     def isValid(self):
         """Does this key have an 'expires' variable set in the past?"""
         if vars(self).get('expires') is not None:
-            return time.time() < self.expires
+            return libtavern.utils.inttime() < self.expires
         else:
             print("Does not expire")
             return True
@@ -249,30 +277,29 @@ class Key(object):
         self.fingerprint = key.fingerprint
         self._format_keys()
         self._setKeyDetails()
-        self.generated = int(time.time())
+        self.generated = libtavern.utils.inttime()
 
         if autoexpire:
-            # If this key should expire, we want to do it at the end of NEXT month.
+            # We want the key to expire on the last second of NEXT month.
             # So if it's currently Oct 15, we want the answer Nov31-23:59:59
             # This makes it harder to pin down keys by when they were
             # generated, since it's not based on current time
 
-            number_of_days_this_month = calendar.monthrange(
-                datetime.datetime.now().year,
-                datetime.datetime.now().month)[1]
-            number_of_days_next_month = calendar.monthrange(
-                datetime.datetime.now().year,
-                datetime.datetime.now().month + 1)[1]
-            two_months = datetime.datetime.now() + datetime.timedelta(
-                days=number_of_days_this_month + number_of_days_next_month)
-            expiresdate = datetime.date(
-                two_months.year,
-                two_months.month,
-                1) - datetime.timedelta(
-                days=1)
-            expiresdatetime = datetime.datetime.combine(
-                expiresdate, datetime.time.max)
-            self.expires = calendar.timegm(expiresdatetime.utctimetuple())
+            # Calculate this by advancing the date until the month changes 2x
+            # then go to midnight, then back one second. 
+
+            tmpdate = datetime.datetime.today()
+            while tmpdate.month == datetime.datetime.today().month:
+                tmpdate += datetime.timedelta(days=1)
+            next_month = tmpdate
+
+            while tmpdate.month == next_month.month:
+                tmpdate += datetime.timedelta(days=1)
+            
+            beginning_of_day = datetime.datetime(year=tmpdate.year,day=tmpdate.day,month=tmpdate.month,microsecond=0,tzinfo=datetime.timezone.utc)
+            expires_on = beginning_of_day -  datetime.timedelta(seconds=1)
+
+            self.expires = int(expires_on.timestamp())
 
     @privatekeyaccess
     def signstring(self, signstring):
@@ -376,7 +403,7 @@ class Key(object):
         self.gpg.import_keys(recipient.pubkey)
 
         tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
-        ) + libtavern.utils.randstr(50, printable=True)
+        ) + libtavern.utils.randstr(50)
 
         self.gpg.encrypt_file(
             stream=oldfile,
@@ -391,7 +418,7 @@ class Key(object):
     def decrypt_file(self, tmpfile):
 
         tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
-        ) + libtavern.utils.randstr(50, printable=True)
+        ) + libtavern.utils.randstr(50)
         self.gpg.decrypt_file(tmpfile, output=tmpfilename)
         return tmpfilename
 

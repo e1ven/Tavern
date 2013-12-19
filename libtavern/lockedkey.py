@@ -2,11 +2,12 @@ import scrypt
 import base64
 import time
 import functools
-import libtavern
+import libtavern.key
 
 class LockedKey(libtavern.key.Key):
 
-    """A securely locked away key, which uses a secret only stored in the
+    """
+    A securely locked away key, which uses a secret only stored in the
     client to unlock. If our DB is ever compromised, this will prevent bad guys
     from easily impersonating users. This also prevents us from evesdropping on
     private messages.
@@ -21,8 +22,7 @@ class LockedKey(libtavern.key.Key):
     # We're adding it here so that objects that extend Key can overwrite it,
     # and unlock the privatekey in some way.
 
-    def __init__(self, pub=None, priv=None,
-                 password=None, encryptedprivkey=None, passkey=None):
+    def __init2__(self, pub=None, priv=None,password=None, encryptedprivkey=None, passkey=None):
 
         self.maxtime_verify = 5
         self.maxtime_create = 1
@@ -37,7 +37,7 @@ class LockedKey(libtavern.key.Key):
         if self.passkey is not None and self.encryptedprivkey is not None:
             self.privkey = self._decryptprivkey(passkey=self.passkey)
 
-        super().__init__(pub=self.pubkey, priv=self.privkey)
+        super().__init2__(pub=self.pubkey, priv=self.privkey)
 
     def lock(self, passkey=None):
         """Remove the private key from Python obj."""
@@ -66,7 +66,6 @@ class LockedKey(libtavern.key.Key):
 
         if passkey is not None:
             self.passkey = passkey
-
         if self.privkey is not None:
             # Already unlocked.
             return True
@@ -87,22 +86,15 @@ class LockedKey(libtavern.key.Key):
         """
 
         if privkey is None and self.privkey is None:
-            raise Exception(
-                'KeyError',
-                'Invalid call to encryptedprivkey - No privkey found.')
+            raise Exception('KeyError','Invalid call to encryptedprivkey - No privkey found.')
 
         if password is None and passkey is None:
-            raise Exception(
-                'KeyError',
-                'Invalid call to encryptedprivkey - No key or password')
+            raise Exception('KeyError','Invalid call to encryptedprivkey - No key or password')
 
         if passkey is None and password is not None:
             passkey = self.get_passkey(password)
 
-        key = scrypt.encrypt(
-            input=privkey,
-            password=passkey,
-            maxtime=self.maxtime_create)
+        key = scrypt.encrypt(input=privkey,password=passkey,maxtime=self.maxtime_create)
 
         self.encryptedprivkey = base64.b64encode(key).decode('utf-8')
         return self.encryptedprivkey
@@ -112,13 +104,9 @@ class LockedKey(libtavern.key.Key):
         if isinstance(passkey, str):
             passkey = passkey.encode('utf-8')
 
-        byteprivatekey = base64.b64decode(
-            self.encryptedprivkey.encode('utf-8'))
+        byteprivatekey = base64.b64decode(self.encryptedprivkey.encode('utf-8'))
 
-        result = scrypt.decrypt(
-            input=byteprivatekey,
-            password=passkey,
-            maxtime=self.maxtime_verify)
+        result = scrypt.decrypt(input=byteprivatekey,password=passkey,maxtime=self.maxtime_verify)
         return result
 
     def get_passkey(self, password):
@@ -143,25 +131,26 @@ class LockedKey(libtavern.key.Key):
         if self.passkey is not None:
             return self.passkey
 
-        pkey = base64.b64encode(scrypt.hash(
-            password=password, salt=self.pubkey, N=16384, r=8, p=1)).decode('utf-8')
+        pkey = base64.b64encode(scrypt.hash(password=password, salt=self.pubkey, N=16384, r=8, p=1)).decode('utf-8')
         return pkey
 
     def changepass(self, oldpasskey, newpassword):
-        privkey = self._decryptprivkey(oldpasskey)
+        try:
+            privkey = self._decryptprivkey(oldpasskey)
+        except:
+            self.logger.debug("Attempted to change password with incorrect password")
+            return False
+
         self.encryptedprivkey = None
-        self.encryptedprivkey = self._encryptprivkey(privkey=privkey,
-                                                     password=newpassword)
+        self.encryptedprivkey = self._encryptprivkey(privkey=privkey, password=newpassword)
         self.passkey = None
         self.passkey = self.get_passkey(newpassword)
-        return self.encryptedprivkey
+        return True
 
-    def generate(self, password=None,
-                 passkey=None, random=False, autoexpire=False):
-        """Generate a new set of keys.
-
+    def generate(self, password=None, passkey=None, random=False, autoexpire=False):
+        """
+        Generate a new set of keys.
         Store only the encrypted version
-
         """
 
         if password is None and passkey is None and random is False:
@@ -184,3 +173,31 @@ class LockedKey(libtavern.key.Key):
 
         self.lock(passkey=self.passkey)
         return ret
+
+    def to_dict(self,clean=True):
+        """
+        Saves the key objects as a python dictionary.
+        If `clean` is True, it removes private keys.
+        """
+
+        keydict = {}
+
+        keydict['pubkey'] = self.pubkey
+        keydict['generated'] = self.generated
+        keydict['expires'] = self.expires
+        keydict['encryptedprivkey'] = self.encryptedprivkey
+
+        if clean is True:
+            keydict['privkey'] = None
+        else:
+            keydict['privkey'] = self.privkey
+            keydict['passkey'] = self.passkey
+        return keydict
+
+    def from_dict(self,keydict):
+        """
+        Restores a key from a dictionary.
+        """
+        self.__init__(pub=keydict['pubkey'],priv=keydict['privkey'],encryptedprivkey=keydict['encryptedprivkey'],passkey=keydict['passkey'])
+        self.expires = keydict['expires']
+        self.generated = keydict['generated']

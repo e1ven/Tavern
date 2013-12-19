@@ -1,23 +1,25 @@
-from libtavern import key
-from libtavern import embedis
-from libtavern import lockedkey
-from libtavern import topictool
-from libtavern import uasparser
-from libtavern import envelope
-from libtavern import user
-from libtavern import utils
+# This is the package file for libtavern.
 
-from libtavern import serversettings
-ServerSettings = serversettings.ServerSettings
-from libtavern import server
+# Keeping these turned off until I ensure I'm fixed internally.
 
-Key = key.Key
-LockedKey = lockedkey.LockedKey
-User = user.User
-Envelope = envelope.Envelope
+# from libtavern import utils
+# from libtavern import server
+# from libtavern import key
+# from libtavern import embedis
+# from libtavern import lockedkey
+# from libtavern import topictool
+# from libtavern import uasparser
+# from libtavern import envelope
+# from libtavern import user
 
-Server = server.Server
-defaultserver = server.Server()
+# from libtavern import serversettings
+# ServerSettings = serversettings.ServerSettings
 
-UASparser = uasparser.UASparser
-Embedis = embedis.Embedis
+# Server = server.Server
+# Key = key.Key
+# LockedKey = lockedkey.LockedKey
+# User = user.User
+# Envelope = envelope.Envelope
+
+# UASparser = uasparser.UASparser
+# Embedis = embedis.Embedis

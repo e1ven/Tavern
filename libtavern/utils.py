@@ -12,12 +12,9 @@ import time
 from io import open
 import hashlib
 import random
-import libtavern
-
-# The random that comes with Python does not use /dev/urandom, it uses MT.
-# Wrap random.SystemRandom so we always use expected randomness.
-randrange = random.SystemRandom().randrange
-
+import libtavern.baseobj
+import datetime
+import string
 
 def proveWork(input, difficulty):
     """
@@ -81,9 +78,9 @@ def longtime():
     return str(time.time()).translate(str.maketrans('', '', '.'))
 
 
-class randomWords():
+class randomWords(libtavern.baseobj.Baseobj):
 
-    def __init__(self, fortunefile="data/fortunes"):
+    def __init2__(self, fortunefile="data/fortunes"):
         self.fortunes = []
         fortunes = open(fortunefile, "r", encoding='utf-8')
         line = fortunes.readline()
@@ -92,12 +89,12 @@ class randomWords():
             lines += 1
             self.fortunes.append(line.rstrip().lstrip())
             line = fortunes.readline()
-        print(str(lines) + " fortunes loaded.")
+        self.server.logger.debug(str(lines) + " fortunes loaded.")
         fortunes.close()
 
     def random(self):
         """Return a Random Fortune from the stack."""
-        fortuneindex = randrange(0, len(self.fortunes) - 1)
+        fortuneindex = random.SystemRandom().randrange(0, len(self.fortunes) - 1)
         return self.fortunes[fortuneindex]
 
     def wordhash(self, st, slots=4):
@@ -135,13 +132,11 @@ def chunks(s, n):
         yield s[start:start + n]
 
 
-def randstr(length, printable=False):
-    # Ensure it's self.logger.infoable.
-    if printable:
-        # TODO - Expand this using a python builtin.
-        ran = ''.join(chr(randrange(65, 90)) for i in range(length))
-    else:
-        ran = ''.join(chr(randrange(48, 122)) for i in range(length))
+def randstr(length):
+    available = string.ascii_letters + string.digits
+    ran = ''
+    for i in range(length):
+        ran += random.SystemRandom().choice(available)
     return ran
 
 
@@ -183,6 +178,39 @@ class instancer(object):
             self._shared_state[cn][slot] = {}
 
         self.__dict__ = self._shared_state[cn][slot]
+
+def FancyDateTimeDelta(dt):
+    """
+    Format the date / time difference between the supplied date and the
+    current time using approximate measurement boundaries.
+    """
+    now = datetime.datetime.today()
+    delta = now - dt
+    year = round(delta.days / 365)
+    month = round(delta.days / 30 - (12 * year))
+    if year > 0:
+        day = 0
+    else:
+        day = delta.days % 30
+    hour = round(delta.seconds / 3600)
+    minute = round(delta.seconds / 60 - (60 * hour))
+    second = delta.seconds - (hour * 3600) - \
+                                  (60 * minute)
+    millisecond = delta.microseconds / 1000
+
+    # Round down. People don't want the exact time.
+    # For exact time, reverse array.
+    fmt = ""
+    for period in ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year']:
+        value = locals().get(period,None)
+        if value:
+            if value > 1:
+                period += "s"
+
+            fmt = str(value) + " " + period
+    return fmt + " ago"
+
+
 
 
 class memorise(object):
