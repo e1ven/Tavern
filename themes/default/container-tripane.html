@@ -1,28 +1,31 @@
-% include header.html requestvars=requestvars
+{% include 'header.html' %}
 
 <table id="wrappertable" class='wrappertable' cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
             <div id="scrollablediv1" class="fullscroller">
-                % setdefault('column1', 'partial-globalmenu.html')
-                {{! bottle.template(column1,requestvars=requestvars)}}         
+                {% block column1 %}
+                col1
+                {% endblock column1 %}
             </div>
         </td>
         <td id="column2in3col" valign="top" >
             <div id="scrollablediv2" class="fullscroller">
-                % setdefault('column2', 'partial-messagelist.html')
-                {{! bottle.template(column2,requestvars=requestvars)}}
-                Hi! 
+                {% block column2 %}
+                col2
+                {% endblock column2 %}
             </div>
         </td>
         <td id="column3" valign="top">
             <div id="scrollablediv3" class="fullscroller">
                 <hr id="TopHR">
-                % setdefault('column3', 'partial-showmessage.html')
-                {{! bottle.template(column3,requestvars=requestvars)}}  
+                {% block column3 %}
+                    {% include 'partial-showmessage.html' %}
+                {% endblock column3 %}
             </div>
         </td>
     </tr>
 </table>
 
-% include footer.html requestvars=requestvars
+{% include 'footer.html' %}
+

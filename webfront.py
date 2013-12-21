@@ -102,7 +102,7 @@ class MessageHandler(BaseHandler):
             title = displayenvelope.dict['envelope']['payload']['subject']
             topic = displayenvelope.dict['envelope']['payload']['topic']
 
-        return flask.render_template('tripane.html', Handler=self)
+        return flask.render_template('partial-showmessage.html', handler=self)
 
 
 class RSSHandler(MethodView):
