@@ -1,9 +1,13 @@
-<div id="allreplies">
-    <!-- include firstMessage as the top reply, and any children -->
-    % include firstMessage.html requestvars=requestvars
-    % #if 'citedby' in requestvars['displayenvelope'].dict['envelope']['local']:
-    % #    for cite in requestvars['displayenvelope'].dict['envelope']['local']['citedby']:
-    % #        include reply.html requestvars=requestvars,messageid=cite
-    % #    end
-    % # end
-</div>
+{% extends "container-tripane.html" %}
+
+{% block column3 %}
+    <div id="allreplies">
+        <!-- include firstMessage as the top reply, and any children -->
+        % include firstMessage.html requestvars=requestvars
+        % #if 'citedby' in requestvars['displayenvelope'].dict['envelope']['local']:
+        % #    for cite in requestvars['displayenvelope'].dict['envelope']['local']['citedby']:
+        % #        include reply.html requestvars=requestvars,messageid=cite
+        % #    end
+        % # end
+    </div>
+{% endblock column3 %}
