@@ -2,7 +2,7 @@
 <form enctype="multipart/form-data" action="/changesettings" method="post">
     {% raw xsrf_form_html() %}
 
-    {% if user.UserSettings['status']['guest'] == False %}
+    {% if user.UserSettings['status']['hasuniquekey'] is True %}
         <p>Your username (for logging in) is {{user.UserSettings['username']}}</p>
     {% else %}
         <p>You have not registered yet. Your settings will be saved, but you will not be able to log in from any other browsers or devices until you register.</p>

@@ -312,15 +312,13 @@ class Envelope(libtavern.baseobj.Baseobj):
         stamps = self.dict['envelope']['stamps']
 
         highestPOW = 0
+        
         for stamp in stamps:
 
             # Find the author of the message, save it where it's easy to find
             # later.
             if stamp['class'] == "author":
                 self.dict['envelope']['local']['author'] = stamp
-
-                # Create a version of the key without ascii
-                self.dict['envelope']['local']['author']['minipubkey'] = libtavern.key.Key(pub=self.dict['envelope']['local']['author']['pubkey']).minipubkey
 
             # Calculate highest proof of work difficuly.
             # Only use proof-of-work class sha256 for now.

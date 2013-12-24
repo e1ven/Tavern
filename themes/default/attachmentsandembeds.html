@@ -64,7 +64,7 @@
                 <input type="submit" value='Always display external content' class="textbutton"> <br>
             </form>
             <br>
-            <p>You can always change this setting in <a href="/user/{{''.join(requestvars['user'].Keys['master'].minipubkey.split())}}">your user preferences</a></p>
+            <p>You can always change this setting in <a href="/user/{{''.join(requestvars['user'].Keys['master'].pubkey.split())}}">your user preferences</a></p>
         </div>
     % elif requestvars['user'].UserSettings['allowembed'] == -1:
 

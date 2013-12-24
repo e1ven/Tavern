@@ -4,7 +4,7 @@
 % permalink = requestvars['server'].serversettings.settings['web_url'] + '/message/' + requestvars['displayenvelope'].dict['envelope']['local']['sorttopic'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['short_subject'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']
 
 % messagerating = requestvars['user'].getRatings(requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512'])
-% note = requestvars['user'].getNote(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'])
+% note = requestvars['user'].getNote(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'])
 
 <!-- Show edited version of comment, if there's nothing stopping us.... -->
 % if 'edits' in requestvars['displayenvelope'].dict['envelope']['local'] and not requestvars['user'].ignoreedits:
@@ -17,9 +17,9 @@
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'].split())}}" rel="author">
+             <a class="details firstDetails" user="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
 
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" src="{{requestvars['server'].external.getavatar(myid=''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'].split()),datauri=requestvars['user'].datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" src="{{requestvars['server'].external.getavatar(myid=''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'].split()),datauri=requestvars['user'].datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <abbr title="{{requestvars['displayenvelope'].dict['envelope']['payload']['subject']}}"</abbr>
                     <h1>{{requestvars['displayenvelope'].dict['envelope']['payload']['subject']}}</h1>
@@ -121,7 +121,7 @@
                     <a class="buffer reply" message="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/reply/{{requestvars['displayenvelope'].dict['envelope']['payload']['topic']}}/{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
                         Reply
                     </a>
-                    % if requestvars['user'].Keys['master'].minipubkey == requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey']:
+                    % if requestvars['user'].Keys['master'].pubkey == requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey']:
                         <a class="buffer reply iconLabelColorDark" message="{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}" href="/edit/{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
                             Edit
                         </a>

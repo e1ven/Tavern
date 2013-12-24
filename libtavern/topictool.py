@@ -3,9 +3,10 @@ import pymongo
 import time
 from collections import OrderedDict
 import sys
-import libtavern
+import libtavern.baseobj
+import libtavern.utils
 
-class TopicTool(object):
+class TopicTool(libtavern.baseobj.Baseobj):
 
     """Break some of the common topic handling routines out into a tool, so
     that they can be cached.
@@ -13,6 +14,9 @@ class TopicTool(object):
     Shouldn't be instantiated directly.
 
     """
+
+    def __init2__(self):
+        pass
 
    # @libtavern.utils.memorise(ttl=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def messages(self, topic, maxposts, before=None):
@@ -23,7 +27,7 @@ class TopicTool(object):
             sorttopic = {'envelope.local.sorttopic': topic}
         elif isinstance(topic, list):
             for t in topic:
-                topics.append(libtavern.server.sorttopic(t))
+                topics.append(self.server.sorttopic(t))
             sorttopic = {'envelope.local.sorttopic': {'$in': topics}}
         else:
             sorttopic = {}
@@ -38,7 +42,7 @@ class TopicTool(object):
                   'envelope.payload.regarding': {'$exists': False},
                   'envelope.local.time_added': {'$lt': before}}
         search.update(sorttopic)
-        for envelope in libtavern.server.db.unsafe.find('envelopes', search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in self.server.db.unsafe.find('envelopes', search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
             e = Envelope()
             e.loaddict(envelope)
             subjects.append(e)
@@ -48,13 +52,13 @@ class TopicTool(object):
    # @libtavern.utils.memorise(ttl=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def getbackdate(self, topic, maxposts, after):
         """Get the earliest dated message, before `after`"""
-        sorttopic = libtavern.server.sorttopic(topic)
+        sorttopic = self.server.sorttopic(topic)
         subjects = []
         if topic != "all":
-            for envelope in libtavern.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
+            for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
         else:
-            for envelope in libtavern.server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
+            for envelope in self.server.db.unsafe.find('envelopes', {'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
                 subjects.append(envelope)
 
         # Adding 1 to maxposts above, because we're going to use this to get the 10 posts AFTER the date we return from this function.
@@ -74,10 +78,10 @@ class TopicTool(object):
 
   #  @libtavern.utils.memorise(ttl=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['seconds'], maxsize=libtavern.server.serversettings.settings['cache']['subjects-in-topic']['size'])
     def moreafter(self, before, topic, maxposts):
-        sorttopic = libtavern.server.sorttopic(topic)
+        sorttopic = self.server.sorttopic(topic)
         if topic != "all":
             count = len(
-                libtavern.server.db.unsafe.find('envelopes',
+                self.server.db.unsafe.find('envelopes',
                                       {'envelope.local.sorttopic': sorttopic,
                                        'envelope.payload.class': 'message',
                                        'envelope.payload.regarding':
@@ -85,7 +89,7 @@ class TopicTool(object):
                                        'envelope.local.time_added': {'$lt': before}}))
         else:
             count = len(
-                libtavern.server.db.unsafe.find('envelopes',
+                self.server.db.unsafe.find('envelopes',
                                       {'envelope.payload.class': 'message',
                                        'envelope.payload.regarding':
                                        {'$exists': False},
@@ -95,7 +99,7 @@ class TopicTool(object):
   #  @libtavern.utils.memorise(ttl=libtavern.server.serversettings.settings['cache']['toptopics']['seconds'], maxsize=libtavern.server.serversettings.settings['cache']['toptopics']['size'])
     def toptopics(self, limit=10, skip=0):
         toptopics = []
-        for quicktopic in libtavern.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
+        for quicktopic in self.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
             toptopics.append(quicktopic['_id'])
         return toptopics
 
@@ -106,21 +110,18 @@ class TopicTool(object):
         if before is None:
             before = libtavern.utils.inttime()
 
-        sorttopic = libtavern.server.sorttopic(topic)
+        sorttopic = self.server.sorttopic(topic)
         if toponly:
-            count = libtavern.server.db.unsafe.count(
+            count = self.server.db.unsafe.count(
                 'envelopes',
                 {'envelope.local.time_added': {'$lt': before},
                  'envelope.local.time_added': {'$gt': after},
                  'envelope.payload.regarding': {'$exists': False},
                  'envelope.local.sorttopic': sorttopic})
         else:
-            count = libtavern.server.db.unsafe.count(
+            count = self.server.db.unsafe.count(
                 'envelopes',
                 {'envelope.local.time_added': {'$lt': before},
                  'envelope.local.time_added': {'$gt': after},
                  'envelope.local.sorttopic': sorttopic})
         return count
-
-# Only create one, and re-use it.
-topictool = TopicTool()
