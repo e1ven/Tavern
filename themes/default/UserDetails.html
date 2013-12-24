@@ -1,4 +1,4 @@
-% trust = requestvars['user'].gatherTrust(askingabout=requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'])
+% trust = requestvars['user'].gatherTrust(askingabout=requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'])
 
 <div class="UserDetails" id="details_{{requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']}}">
     <abbr title='You {{requestvars['user'].translateTrustToWords(trust)}} this user : {{trust}}'>
@@ -21,7 +21,7 @@
                         % if 'topic' in requestvars['displayenvelope'].dict['envelope']['payload']:
                             <input type="hidden" name="topic" value="{{requestvars['displayenvelope'].dict['envelope']['payload']['topic']}}">
                         % end
-                        <input type="hidden" name="trusted_pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey']}}">
+                        <input type="hidden" name="trusted_pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey']}}">
                         <input class="textbutton icon-label" type="submit" value="Endorse this user">
                     </form>
             </div>
@@ -35,14 +35,14 @@
                     % if 'topic' in requestvars['displayenvelope'].dict['envelope']['payload']:
                         <input type="hidden" name="topic" value="{{requestvars['displayenvelope'].dict['envelope']['payload']['topic']}}">
                     % end
-                    <input type="hidden" name="trusted_pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey']}}">
+                    <input type="hidden" name="trusted_pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey']}}">
                     <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                 </form>
             </div>
         % end
         <form action="/usernote" method="post" class="usernote">
              {% raw xsrf_form_html() %}
-            <input type="hidden" name="pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey']}}">
+            <input type="hidden" name="pubkey" value="{{requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey']}}">
             <input class="usernote" type="text" value="" name="note" 
             % if note is None:
                 placeholder="Add a note to yourself about this user"
@@ -53,6 +53,6 @@
         </form>
         <div class='DetailsOption'>
             <i class="icon icon-twitter-squared"></i>
-            <a href="/user/{{''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['minipubkey'].split())}}">Full Details</a>
+            <a href="/user/{{''.join(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'].split())}}">Full Details</a>
         </div>
 </div>  

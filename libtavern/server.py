@@ -27,6 +27,7 @@ import libtavern.uasparser
 import libtavern.user
 import libtavern.keygen
 import libtavern.envelope
+import libtavern.topictool
 
 class FakeMongo(libtavern.baseobj.Baseobj):
 
@@ -305,6 +306,7 @@ class Server(libtavern.utils.instancer):
         self.handler_file.setFormatter(formatter)
         self.logger.addHandler(self.handler_file)
 
+        self.topictool = libtavern.topictool.TopicTool(server=self)
         # Create a queue of unused LockedKeys, since they are slow to gen-on-the-fly
         self.unusedkeycache = multiprocessing.Queue(
             self.serversettings.settings['KeyGenerator']['num_pregens'])

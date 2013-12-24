@@ -227,7 +227,6 @@ class Key(libtavern.baseobj.Baseobj):
             withLinebreaks = "\n".join(re.findall("(?s).{,64}", noBreaks))[:-1]
             self.pubkey = "-----BEGIN PGP PUBLIC KEY BLOCK-----\n" + \
                 withLinebreaks + "\n-----END PGP PUBLIC KEY BLOCK-----"
-            self.minipubkey = noBreaks
 
     def to_dict(self,clean=True):
         """

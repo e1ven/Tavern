@@ -299,7 +299,7 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             secure = False
         # Save our out passkey
-        if self.user.UserSettings['status']['guest'] is False:
+        if self.user.has_unique_key is True:
             if self.user.passkey is not None:
                 self.set_secure_cookie(
                     "tavern_passkey",
@@ -307,9 +307,9 @@ class BaseHandler(tornado.web.RequestHandler):
                     httponly=True,
                     expires_days=999)
         else:
-            print(self.user.UserSettings['status']['guest'])
+            print(self.user.has_unique_key)
 
-        if self.user.UserSettings['author_sha512'] is not None:
+        if self.user.UserSettings['author_sha512'] is not True:
             # Delete our sensetive data before saving out.
             self.user.save_mongo()
             self.set_secure_cookie(
