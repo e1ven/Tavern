@@ -88,7 +88,8 @@ class Simulation():
                 user.generate(AllowGuestKey=False)
 
                 e.payload.dict['author'] = OrderedDict()
-                e.payload.dict['author']['replyto'] = user.Keys['posted'][-1].pubkey
+                e.payload.dict['author']['replyto'] = user.new_posted_key().pubkey
+
                 e.payload.dict['author']['friendlyname'] = user.UserSettings['friendlyname']
 
                 e.addStamp(stampclass='author',friendlyname=user.UserSettings['friendlyname'],keys=user.Keys['master'],passkey=user.passkey)

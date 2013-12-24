@@ -1,6 +1,6 @@
 {% import datetime %}
 
-{% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
+{% set note = user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
 
 

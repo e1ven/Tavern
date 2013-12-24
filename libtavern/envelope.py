@@ -1,14 +1,10 @@
 import json
 import hashlib
 import os
-
 import collections
 from collections import *
 json.encoder.c_make_encoder = None
-import pymongo
 import lzma
-
-from operator import itemgetter
 import magic
 import imghdr
 from PIL import Image

@@ -27,7 +27,6 @@ import libtavern.uasparser
 import libtavern.user
 import libtavern.keygen
 import libtavern.envelope
-import libtavern.topictool
 
 class FakeMongo(libtavern.baseobj.Baseobj):
 
@@ -306,7 +305,6 @@ class Server(libtavern.utils.instancer):
         self.handler_file.setFormatter(formatter)
         self.logger.addHandler(self.handler_file)
 
-        self.topictool = libtavern.topictool.TopicTool(server=self)
         # Create a queue of unused LockedKeys, since they are slow to gen-on-the-fly
         self.unusedkeycache = multiprocessing.Queue(
             self.serversettings.settings['KeyGenerator']['num_pregens'])
@@ -398,7 +396,7 @@ class Server(libtavern.utils.instancer):
         else:
             self.logger.info("Loading the Guest user acct.")
             self.guestacct = libtavern.user.User(server=self)
-            self.guestacct.load_dict(self.serversettings.settings['guestacct'])
+            self.guestacct.from_dict(self.serversettings.settings['guestacct'])
 
         # Create and/or restore a Server User.
         # This 'User' is used to sign stamps, etc.
@@ -406,7 +404,7 @@ class Server(libtavern.utils.instancer):
         self.serveruser = libtavern.user.User(server=self)
         if 'serveruser' in self.serversettings.settings and 'serverpasskey' in self.serversettings.settings:
             self.serveruser.passkey = self.serversettings.settings['serverpasskey']
-            self.serveruser.load_dict(self.serversettings.settings['serveruser'])
+            self.serveruser.from_dict(self.serversettings.settings['serveruser'])
         else:
             self.logger.info("Generating new server useracct.")
             self.serveruser.generate(AllowGuestKey=False)
@@ -431,7 +429,6 @@ class Server(libtavern.utils.instancer):
             self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['sorttopic']['seconds'], maxsize=defaultsettings.settings['cache']['sorttopic']['size'])
     def sorttopic(self, topic):
         if topic is not None:
             topic = topic.lower()
@@ -672,8 +669,7 @@ class Server(libtavern.utils.instancer):
 
         return formatted
 
-#    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['getUsersPosts']['seconds'], maxsize=defaultsettings.settings['cache']['getUsersPosts']['size'])
-    def getUsersPosts(self, pubkey, limit=1000):
+    def get_all_user_posts(self, pubkey, limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, limit=limit, sortkey='envelope.local.time_added', sortdirection='descending'):
             messagetext = json.dumps(envelope, separators=(',', ':'))

@@ -174,10 +174,10 @@ class LockedKey(libtavern.key.Key):
         self.lock(passkey=self.passkey)
         return ret
 
-    def to_dict(self,clean=True):
+    def to_dict(self):
         """
         Saves the key objects as a python dictionary.
-        If `clean` is True, it removes private keys.
+        Does -not- save out the privkey or passkey!
         """
 
         keydict = {}
@@ -186,18 +186,16 @@ class LockedKey(libtavern.key.Key):
         keydict['generated'] = self.generated
         keydict['expires'] = self.expires
         keydict['encryptedprivkey'] = self.encryptedprivkey
-
-        if clean is True:
-            keydict['privkey'] = None
-        else:
-            keydict['privkey'] = self.privkey
-            keydict['passkey'] = self.passkey
         return keydict
 
-    def from_dict(self,keydict):
+    def from_dict(self,keydict,passkey=None):
         """
         Restores a key from a dictionary.
         """
-        self.__init__(pub=keydict['pubkey'],priv=keydict['privkey'],encryptedprivkey=keydict['encryptedprivkey'],passkey=keydict['passkey'])
+        if passkey is None:
+            self.__init2__(pub=keydict['pubkey'],encryptedprivkey=keydict['encryptedprivkey'])
+        else:
+            self.__init2__(pub=keydict['pubkey'],encryptedprivkey=keydict['encryptedprivkey'],passkey=passkey)
+
         self.expires = keydict['expires']
         self.generated = keydict['generated']
