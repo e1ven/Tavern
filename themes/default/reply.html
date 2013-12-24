@@ -13,7 +13,7 @@
 {% else %}
     {% set medialink = permalink %}
 {% end %}
-{% set note = user.getNote(envelope.dict['envelope']['local']['author']['pubkey']) %}
+{% set note = user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
 {% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
 {% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
 

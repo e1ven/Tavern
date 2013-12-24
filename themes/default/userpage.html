@@ -12,6 +12,9 @@
     {% if thatguy.Keys['master'].pubkey == user.Keys['master'].pubkey %}
         {% include 'mysettings.html' %}
     {% else %}
+        {# See if he's posted a communication Key #}
+        {% for post in handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) %}
+            {% if post.
         {% if thatguy.find_commkey() is not None %}
             <p><a href="/newprivatemessage/{{thatguy.find_commkey()}}">Send {{hisname}} a private message</a></p>
         {% end %}
@@ -20,7 +23,7 @@
 
     {% set trust = user.gatherTrust(askingabout=thatguy.Keys['master'].pubkey) %}
         You <abbr title='{{trust}}'>{{user.translateTrustToWords(trust)}}</abbr> this user.<br>
-        {% set note = user.getNote(thatguy.Keys['master'].pubkey) %}
+        {% set note = user.get_note(thatguy.Keys['master'].pubkey) %}
         {% if note is not None %}
             You set the following note about this user:<Br>
             <div class="note"><i>{{note}}</i></div>

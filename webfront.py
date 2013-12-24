@@ -61,46 +61,24 @@ class MessageHandler(BaseHandler):
             if arg is not None:
                 messageid = arg
 
-        # To move forward and backward in the results, we specify a time.
-        # We then move this backward/forward, and search with it.
-        # This is cheaper than skip() http://docs.mongodb.org/manual/reference/method/cursor.skip/
-
-        if "before" in flask.request.args:
-            before = float(flask.request.args['before'])
-        else:
-            before = None
-
-        # Do we want to show the original, ignoring edits?
-        if "showoriginal" in flask.request.args:
-            # Convert the string to a bool.
-            showoriginal = (flask.request.args['showoriginal'].lower() == "true")
-        else:
-            showoriginal = False
-
         messagesenvelope = self.server.db.unsafe.find_one('envelopes',
                                                           {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is not None:
-            displayenvelope = libtavern.envelope.Envelope()
-            displayenvelope.loaddict(messagesenvelope)
-            topic = displayenvelope.dict['envelope']['payload']['topic']
-            self.canon = "message/" + displayenvelope.dict[
-                'envelope'][
-                'local'][
-                'sorttopic'] + '/' + displayenvelope.dict[
-                'envelope'][
-                'local'][
-                'short_subject'] + "/" + displayenvelope.dict[
-                'envelope'][
-                'local'][
-                'payload_sha512']
-            title = displayenvelope.dict['envelope']['payload']['subject']
+            self.displayenvelope = libtavern.envelope.Envelope()
+            self.displayenvelope.loaddict(messagesenvelope)
+
+            self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+            self.canon = "message/" + self.displayenvelope.dict['envelope']['local']['sorttopic'] + '/' + \
+                         self.displayenvelope.dict['envelope']['local']['short_subject'] + "/" + \
+                         self.displayenvelope.dict['envelope']['local']['payload_sha512']
+            self.title = self.displayenvelope.dict['envelope']['payload']['subject']
         else:
             # If we didn't find that message, throw an error.
-            displayenvelope = self.server.error_envelope(
+            self.displayenvelope = self.server.error_envelope(
                 "The Message you are looking for can not be found.")
-            title = displayenvelope.dict['envelope']['payload']['subject']
-            topic = displayenvelope.dict['envelope']['payload']['topic']
+            self.title = self.displayenvelope.dict['envelope']['payload']['subject']
+            self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
 
         return flask.render_template('partial-showmessage.html', handler=self)
 
@@ -622,10 +600,10 @@ def ChangeSingleSettingHandler_post(setting, option=None):
     self.getvars(AllowGuestKey=False)
     redirect = True
     if setting == "followtopic":
-        self.user.followTopic(
+        self.user.follow_topic(
             self.get_argument("topic"))
     elif setting == "unfollowtopic":
-        self.user.unFollowTopic(
+        self.user.unfollow_topic(
             self.get_argument("topic"))
     elif setting == "showembeds":
         self.user.UserSettings['allowembed'] = 1
@@ -678,11 +656,7 @@ def RatingHandler_post():
     # Instantiate the user who's currently logged in
 
     e.payload.dict['author'] = OrderedDict()
-    e.payload.dict[
-        'author'][
-        'replyto'] = self.user.Keys[
-        'posted'][
-        -1].pubkey
+    e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
     e.payload.dict['author'][
         'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -727,7 +701,7 @@ def UserNoteHandler_post():
 
     client_pubkey = self.get_argument("pubkey")
     client_note = self.get_argument("note")
-    self.user.setNote(client_pubkey, client_note)
+    self.user.set_note(client_pubkey, client_note)
 
     # Write it back to the page
     self.write(
@@ -766,11 +740,7 @@ def UserTrustHandler_post():
     # Instantiate the user who's currently logged in
 
     e.payload.dict['author'] = OrderedDict()
-    e.payload.dict[
-        'author'][
-        'replyto'] = self.user.Keys[
-        'posted'][
-        -1].pubkey
+    e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
     e.payload.dict['author'][
         'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -1038,11 +1008,7 @@ def ReceiveEnvelopeHandler_post(flag=None):
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict[
-            'author'][
-            'replyto'] = self.user.Keys[
-            'posted'][
-            -1].pubkey
+        e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -1073,7 +1039,8 @@ def ReceiveEnvelopeHandler_post(flag=None):
             e.payload.dict['binaries'] = envelopebinarylist
 
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
+        e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
+
         e.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -1110,14 +1077,14 @@ def ReceiveEnvelopeHandler_post(flag=None):
         # For encrypted messages we want to actually create a whole
         # sub-envelope inside of it!
 
-        single_use_key = self.user.get_pmkey()
+        single_use_key = self.user.new_posted_key()
         single_use_key.unlock(self.user.passkey)
 
         e.payload.dict['class'] = "privatemessage"
         touser = Key(pub=client_to)
         e.payload.dict['to'] = touser.pubkey
         e.payload.dict['author'] = OrderedDict()
-        e.payload.dict['author']['replyto'] = single_use_key.pubkey
+        e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 
         encrypted_msg = libtavern.envelope.Envelope()
         encrypted_msg.payload.dict['formatting'] = "markdown"
@@ -1147,9 +1114,8 @@ def ReceiveEnvelopeHandler_post(flag=None):
             encrypted_msg.payload.dict['binaries'] = envelopebinarylist
 
         encrypted_msg.payload.dict['author'] = OrderedDict()
-        encrypted_msg.payload.dict[
-            'author'][
-            'replyto'] = single_use_key.pubkey
+        encrypted_msg.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
+
         encrypted_msg.payload.dict['author'][
             'friendlyname'] = self.user.UserSettings['friendlyname']
 
@@ -1228,7 +1194,7 @@ def ShowPrivatesHandler_get(messageid=None):
                title="Your Private messages", rsshead=None, type=None))
 
     # Construct a list of all current PMs
-    for message in self.server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in': self.user.get_keys(ret='pubkey')}}, limit=10, sortkey='value', sortdirection='descending'):
+    for message in self.server.db.unsafe.find('envelopes', {'envelope.payload.to': {'$in': self.user.get_pubkeys()}}, limit=10, sortkey='value', sortdirection='descending'):
 
         if self.user.decrypt(message['envelope']['payload']['encrypted']):
             unencrypted_str = self.user.decrypt(
@@ -1247,11 +1213,11 @@ def ShowPrivatesHandler_get(messageid=None):
             self.write("Can't load that..")
             return
         else:
-            if e.dict['envelope']['payload']['to'] not in self.user.get_keys(ret='pubkey'):
+            if e.dict['envelope']['payload']['to'] not in self.user.get_pubkeys():
                 print("This is to--")
                 print(e.dict['envelope']['payload']['to'])
                 print("Your Keys-")
-                print(self.user.get_keys(ret='pubkey'))
+                print(self.user.get_pubkeys())
                 self.write("This isn't you.")
                 return
                 # TODO - Put better error here. self.server.Error?

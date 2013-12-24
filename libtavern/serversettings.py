@@ -1,9 +1,7 @@
-from collections import OrderedDict
 import platform
 import json
 import collections
 from collections import OrderedDict
-import socket
 import getpass
 import libtavern.utils
 
@@ -220,10 +218,10 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['cache']['receiveEnvelope']['size'] = 10000
             self.settings['cache']['receiveEnvelope']['seconds'] = 1000
 
-        if not 'getUsersPosts' in self.settings['cache']:
-            self.settings['cache']['getUsersPosts'] = {}
-            self.settings['cache']['getUsersPosts']['size'] = 10000
-            self.settings['cache']['getUsersPosts']['seconds'] = 2
+        if not 'get_all_user_posts' in self.settings['cache']:
+            self.settings['cache']['get_all_user_posts'] = {}
+            self.settings['cache']['get_all_user_posts']['size'] = 10000
+            self.settings['cache']['get_all_user_posts']['seconds'] = 2
 
         if not 'sorttopic' in self.settings['cache']:
             self.settings['cache']['sorttopic'] = {}
@@ -278,6 +276,39 @@ class ServerSettings(libtavern.utils.instancer):
 
         if not 'proof-of-work-difficulty' in self.settings:
             self.settings['proof-of-work-difficulty'] = 19
+
+
+
+        # Set the default settings for all new users
+        if not 'usersettings' in self.settings:
+            self.settings['usersettings'] = {}
+
+        if not 'followed_topics' in self.settings['usersettings']:
+            self.settings['usersettings']['followed_topics'] = ['StarTrek','Python','World Politics','Funny']
+
+        if not 'maxposts' in self.settings['usersettings']:
+            self.settings['usersettings']['maxposts'] = 100
+
+
+        if not 'maxreplies' in self.settings['usersettings']:
+            self.settings['usersettings']['maxreplies'] = 100
+
+        if not 'include_location' in self.settings['usersettings']:
+            self.settings['usersettings']['include_location'] = False
+
+        if not 'ignore_edits' in self.settings['usersettings']:
+            self.settings['usersettings']['ignore_edits'] = False
+
+        # None means prompt.. Then True/False
+        if not 'allow_embed' in self.settings['usersettings']:
+            self.settings['usersettings']['allow_embed'] = None
+
+        if not 'display_useragent' in self.settings['usersettings']:
+            self.settings['usersettings']['display_useragent'] = True
+
+        if not 'theme' in self.settings['usersettings']:
+            self.settings['usersettings']['theme'] = 'default'
+
 
         # Report back on if there were any changes.
         if str(self.settings) == tmpsettings:

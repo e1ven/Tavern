@@ -6,7 +6,7 @@
 <p></p>
 <ul>
 
-{% set envelopes = server.getUsersPosts(thatguy.Keys['master'].pubkey) %}
+{% set envelopes = server.get_all_user_posts(thatguy.Keys['master'].pubkey) %}
 
 {% if len(envelopes) != 0 %}
     {% for envelope in envelopes %}

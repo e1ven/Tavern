@@ -44,11 +44,12 @@
     {% endif %}
     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
         <ul class="sub-element sub-menu">
-            {% for quicktopic in handler.server.topictool.toptopics() %}
+            {% for quicktopic in handler.topicfilter.toptopics() %}
                 <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% endif %} >
                     <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
-                        <bdi>{{quicktopic}}</bdi>
-                        <span>{{handler.server.topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
+                        <bdi>{{ quicktopic }}</bdi>
+                        {% set _ = handler.topicfilter.set_topic(quicktopic) %}
+                        <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
                     </a>
                 </li>
             {% endfor %}
@@ -59,8 +60,9 @@
             {% for quicktopic in handler.user.UserSettings['followedTopics'] %}
                 <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% endif %} >
                     <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
-                        <bdi>{{quicktopic}}</bdi>
-                        <span>{{handler.server.topictool.topicCount(topic=quicktopic,toponly=True)}}</span>
+                        <bdi>{{ quicktopic }}</bdi>
+                        {%  set _ = handler.topicfilter.set_topic(quicktopic) %}
+                        <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
                     </a>
                 </li>
             {% endfor %}

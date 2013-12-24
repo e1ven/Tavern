@@ -4,7 +4,7 @@
 % permalink = requestvars['server'].serversettings.settings['web_url'] + '/message/' + requestvars['displayenvelope'].dict['envelope']['local']['sorttopic'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['short_subject'] + '/' + requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512']
 
 % messagerating = requestvars['user'].getRatings(requestvars['displayenvelope'].dict['envelope']['local']['payload_sha512'])
-% note = requestvars['user'].getNote(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'])
+% note = requestvars['user'].get_note(requestvars['displayenvelope'].dict['envelope']['local']['author']['pubkey'])
 
 <!-- Show edited version of comment, if there's nothing stopping us.... -->
 % if 'edits' in requestvars['displayenvelope'].dict['envelope']['local'] and not requestvars['user'].ignoreedits:

@@ -1,20 +1,13 @@
-<!-- Get the messages for the middle column -->
-% from TopicTool import topictool
+{# Get the messages for the middle column #}
 
-% if requestvars['topic'] != 'all-subscribed':
-    % subjects = topictool.messages(before=requestvars['before'],topic=requestvars['topic'],maxposts=requestvars['user'].UserSettings['maxposts'])
-% else:
-    % subjects = topictool.messages(before=requestvars['before'],topic=requestvars['user'].UserSettings['followedTopics'],maxposts=requestvars['user'].UserSettings['maxposts'])
-% end
+{% set _ = handler.topicfilter.set_topic(handler.topic) %}
+{% set subjects = handler.topicfilter.messages(maxposts=handler.user.UserSettings['maxposts'],before=handler.before,after=handler.after,include_replies=False) %}
 
-% if len(subjects) > 0:
-    % beforecount = topictool.topicCount(before=subjects[0].dict['envelope']['local']['time_added'],topic=requestvars['topic'])
-    % aftercount = topictool.topicCount(after=subjects[0].dict['envelope']['local']['time_added'],topic=requestvars['topic'])
-    % newbefore = topictool.getbackdate(after=subjects[0].dict['envelope']['local']['time_added'],topic=requestvars['topic'],maxposts=requestvars['user'].UserSettings['maxposts']) 
-% else:
-    % beforecount = 0
-    % aftercount = 0
-% end
+{# Calcuate the forward/next buttons #}
+{% if subjects[0] is defined %}
+    {% set number_of_messages_before_displayed = handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']) %}
+    {% set number_of_messages_after_displayed = handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']) %}
+{% endif %}
 
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
 	<tr height="10px">
@@ -24,26 +17,25 @@
 	</tr>
 	<tr>
     	<td>
-        	<h4><a id="column2Topic" href="/topic/{{requestvars['server'].sorttopic(requestvars['topic'])}}">{{requestvars['topic']}}</a>
+        	<h4><a id="column2Topic" href="/topic/{{handler.server.sorttopic(handler.topic)}}">{{handler.topic}}</a>
             </h4>
         </td>
         <td>
-    		<h4 id="column2MsgCount">{{topictool.topicCount(topic=requestvars['topic'],toponly=False)}} Messages</h4>
+    		<h4 id="column2MsgCount">{{ handler.topicfilter.count(include_replies=True)}} Messages</h4>
     	</td>
     </tr>
     <tr>
         <td colspan=2>
-            % sortedtopic =  [ requestvars['server'].sorttopic(x) for x in requestvars['user'].UserSettings['followedTopics'] ]
-            % if requestvars['server'].sorttopic(requestvars['topic']) in sortedtopic:
-                <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
-                % else:
-                <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{requestvars['topic']}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
-            % end
+            {% if handler.server.sorttopic('topic') in handler.user.UserSettings['followed_topics'] %}
+                <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
+            {% else %}
+                <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
+            {% endif %}
     </td>
     </tr>
     <tr>
     	<td>    
-            <a href="/topicinfo/{{requestvars['server'].sorttopic(requestvars['topic'])}}">
+            <a href="/topicinfo/{{handler.topic}}">
     		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
                 Topic Setting
     			<span class="icon-wrench-circled navIcon"></span>
@@ -51,7 +43,7 @@
             </a>
     	</td>
     	<td>
-          <a href="/newmessage/{{requestvars['server'].sorttopic(requestvars['topic'])}}" class="internal">
+          <a href="/newmessage/{{handler.topic}}" class="internal">
                <button id="column2ButtonRight" class="column2Buttons" type="button">
                 New Message
                 <span class="icon-pencil-circled navIcon"></span>
@@ -62,50 +54,50 @@
 </table>
 
 
-	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-		<tr>
-		<td valign="top">
-            <ul class="messages">
-            % for subject in subjects:
-                <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == envelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
-                    <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
-                    <a class='internal messagelink' href="/message/{{requestvars['server'].sorttopic(requestvars['topic'])}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
-                      <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
-                      <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span> 
-                    </a>
-                    % if subject.countChildren() > 0:
-                        <div class="replies"><div>{{subject.countChildren()}}</div></div> 
-                    % end
-                    </abbr>
-                </li>
-            % end
-            </ul>
+<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+    <tr>
+    <td valign="top">
+        <ul class="messages">
+        {% for subject in subjects %}
+            <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512']%} active{% endif %}">
+                <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
+                <a class='internal messagelink' href="/message/{{handler.topic}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
+                  <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
+                  <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span>
+                </a>
+                {% if subject.countChildren() > 0 %}
+                    <div class="replies"><div>{{subject.countChildren()}}</div></div>
+                {% endif %}
+                </abbr>
+            </li>
+        {% endfor %}
+        </ul>
 
-          
-            <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-                <tr>
-                    <td>   
-                        % if aftercount > 0:
-                        <a href="/topic/{{topic}}?before={{newbefore}}">
-                           <button id="NewerMessages" class="column2Buttons" type="button">
-                            Newer Messages
-                            <span class="icon-right-circled navIcon"></span>
-                           </button>
-                        </a>
-                        % end
-                    </td>
-                    <td>
-                        % if beforecount > 0:
-                        <a href="/topic/{{requestvars['topic']}}?before={{subjects[-1].dict['envelope']['local']['time_added']}}" class="internal">
-                           <button id="OlderMessages" class="column2Buttons" type="button">
-                            Older Messages
-                            <span class="icon-left-circled navIcon"></span>
-                           </button>
-                        </a>
-                        % end
-                    </td>
-                </tr>
-            </table>
+
+        <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+            <tr>
+                <td>
+                    {% if number_of_messages_after_displayed is defined %}
+                    <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
+                       <button id="NewerMessages" class="column2Buttons" type="button">
+                        Newer Messages
+                        <span class="icon-right-circled navIcon"></span>
+                       </button>
+                    </a>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if number_of_messages_before_displayed is defined %}
+                    <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
+                       <button id="OlderMessages" class="column2Buttons" type="button">
+                        Older Messages
+                        <span class="icon-left-circled navIcon"></span>
+                       </button>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
 
 
 		</td>
