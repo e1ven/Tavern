@@ -20,9 +20,11 @@ from robohash import Robohash
 
 import flask
 from flask.views import MethodView
+import flask.ext.babel
 
 import libtavern.server
 import libtavern.envelope
+import libtavern.utils
 
 from webbase import BaseHandler
 
@@ -61,25 +63,22 @@ class MessageHandler(BaseHandler):
             if arg is not None:
                 messageid = arg
 
-        messagesenvelope = self.server.db.unsafe.find_one('envelopes',
-                                                          {'envelope.local.payload_sha512': messageid})
+        messagesenvelope = self.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is not None:
             self.displayenvelope = libtavern.envelope.Envelope()
             self.displayenvelope.loaddict(messagesenvelope)
 
-            self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
-            self.canon = "message/" + self.displayenvelope.dict['envelope']['local']['sorttopic'] + '/' + \
-                         self.displayenvelope.dict['envelope']['local']['short_subject'] + "/" + \
-                         self.displayenvelope.dict['envelope']['local']['payload_sha512']
-            self.title = self.displayenvelope.dict['envelope']['payload']['subject']
         else:
             # If we didn't find that message, throw an error.
             self.displayenvelope = self.server.error_envelope(
                 "The Message you are looking for can not be found.")
-            self.title = self.displayenvelope.dict['envelope']['payload']['subject']
-            self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
 
+        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.canon = self.server.url_for(envelope=self.displayenvelope)
+        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
+
+        self.displayenvelope.load_children()
         return flask.render_template('partial-showmessage.html', handler=self)
 
 
@@ -1315,6 +1314,23 @@ def server_static(filepath):
     return bottle.static_file(filepath, root=root)
 
 
+def load_jinja_filters(jinja_env):
+    """Setup the custom Jinja2 filters."""
+
+    # Custom Date filters
+    def format_timestamp(value, format='medium', tzinfo=None, locale='en_US'):
+        dt = datetime.datetime.fromtimestamp(value)
+        if format.lower() == "iso":
+            return dt.isoformat()
+        elif format.lower() == "delta":
+            return libtavern.utils.FancyDateTimeDelta(dt)
+        else:
+            return flask.ext.babel.dates.format_datetime(dt, format=format, tzinfo=tzinfo, locale=locale)
+
+    jinja_env.filters['timestamp'] = format_timestamp
+    return jinja_env
+
+
 def main():
 
     # Set up Command Line Parsing
@@ -1358,6 +1374,9 @@ def main():
     app.add_url_rule('/', view_func=EntryHandler.as_view('EntryHandler'))
     app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
 
+    app.jinja_env.add_extension("jinja2.ext.i18n")
+    app.jinja_env = load_jinja_filters(app.jinja_env)
+
     # bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
 
     # bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
@@ -1371,50 +1390,36 @@ def main():
 
     # bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
     # bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
-
     # bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
-
     # bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
     # bottle.route('/newmessage', 'GET', NewmessageHandler_get)
     # bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
     # bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
     # bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
-
     # bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
     # bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-
     # bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
     # bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
     # bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-
     # bottle.route('/register', 'GET', RegisterHandler_get)
     # bottle.route('/login', 'GET', LoginHandler_get)
     # bottle.route('/login/<slug>', 'GET', LoginHandler_get)
-
     # bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
     # bottle.route('/logout', 'GET', LogoutHandler_post)
-
     # bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
     # bottle.route('/vote', 'POST', RatingHandler_post)
-
     # bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
     # bottle.route('/usertrust', 'POST', UserTrustHandler_post)
-
     # bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
     # bottle.route('/usernote', 'POST', UserTrustHandler_post)
-
     # bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
     # bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
     # bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
-
     # bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
     # bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
-
     # bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
     # bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
-
     # bottle.route('/static/<filepath:path>', 'GET', server_static)
-
     server.logger.info(
         server.serversettings.settings['hostname'] + ' is ready for requests')
 

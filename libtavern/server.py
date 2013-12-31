@@ -469,7 +469,7 @@ class Server(libtavern.utils.instancer):
             friendlyname=self.serversettings.settings['hostname'])
         e.flatten()
         e.munge()
-        e.dict['envelope']['local']['time_added'] = 1297396876
+        e.dict['envelope']['local']['time_added'] = 1297440000
         e.dict['envelope']['local'][
             'author_wordhash'] = "Automatically generated message"
         e.dict['envelope']['local']['sorttopic'] = "error"
@@ -756,3 +756,22 @@ class Server(libtavern.utils.instancer):
                           c_url + "\">" + c_url + "</a>",
                           html)
         return html
+
+    def url_for(self,envelope=None,topic=None,fqdn=False):
+        """
+        Return the canonical URL for a given token
+        :param message: Optional messageid
+        :param topic: optional topic
+        :return string: URL
+        """
+        if envelope is None and topic is None:
+            raise Exception('Nothing to get URL for')
+        elif topic is not None:
+            return '/t/' + topic
+        elif envelope is not None:
+            if isinstance(envelope, libtavern.envelope.Envelope):
+                return "/m/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
+                             envelope.dict['envelope']['local']['short_subject'] + "/" + \
+                             envelope.dict['envelope']['local']['payload_sha512']
+            else:
+                raise Exception("url_for must receive Topic or Envelope")

@@ -180,14 +180,6 @@ a.details
 {
     @include trivialAnimation();
 }
-a.firstDetails
-{
-    color: #ece9d7;
-}
-a.commentDetails
-{
-    color: #000000 !important;
-}
 
 /* Columns Begin */
 #column1 {
@@ -485,7 +477,8 @@ a.commentDetails
             padding:0;
 
 
-            .message {
+            .message
+            {
                 position:relative;
                 padding-bottom:0px;
                 overflow:hidden;
@@ -493,7 +486,6 @@ a.commentDetails
                 &:hover{
                     background: lighten($creme,10%);
                 }
-
             }
 
             a
@@ -511,7 +503,6 @@ a.commentDetails
 
             .replies
             {
-
                 background:rgba(0,0,0,0.025);
                 bottom:0;
                 color:#000;
@@ -597,11 +588,38 @@ a.commentDetails
         padding-right:10px;
     }
 
-    #firstMessage {
-        margin-left:20px;
+
+    #first_message {
+
         margin-top:35px;
-        background-color: #56504d; 
+        margin-left:20px;
+        width: auto;
+        padding: 20px;
+
+        background-color: #56504d;
         background-image: url(/static/images/texture.png);
+
+        border-radius: 8px;
+        @include box-shadow(8px);
+        @include box-shadow( 0px 3px 3px #b5b39a);
+
+        .note {
+           left:20px;
+           display:inline;
+        }
+
+        a {
+            color: $lightgrey;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: $nearblack;
+        }
+        .avatar {
+            @include border-radius(12px);
+            float:left;
+            margin-right:10px;
+        }
 
         h1 {
             font-size: 28px;
@@ -612,43 +630,83 @@ a.commentDetails
             margin-right: 40px;
             margin-top: 10px;
         }
-        
-        #firstMessageBody {
+
+       .message_body {
             margin-bottom: 18px;
             margin-top: 22px;
-            color: #ffffff;
             font: 13px;
             line-height: 16px;
+            color: #ffffff;
+
         }
-           
-        #bigProfileIcon {
-            margin-left: 14px;
-            margin-right: 14px;
-            margin-top: 12px;
-        }
-        .firstMessageAuthorInfo {
+
+        .message_author_info {
             font-size: 15px;
             color: #ece9d7;
             margin-top: 10px;
             padding-bottom: 10px;
         }
 
-        .firstMessageDate {
+        .message_date {
             font-size: 15px;
             color: #ece9d7;
             margin-bottom: 10px;
             float:left;
         }
-        
-        a {
-            color: $lightgrey;
+
+        .message_links {
+            color: #ece9d7;
+            .message_commands {
+                margin-left:250px;
+            }
+
+            .message_replylink {
+                margin-left:350px;
+            }
+
+            .external_sharing_button {
+                @include trivialAnimation();
+            }
+
         }
-        a:hover {
-            color: $darkgrey;
+
+        .message {
+            @extend #first_message;
+            background: #eaeaea;
+            margin-top:10px;
+
+            a {
+                color: $lightgrey;
+            }
+            a:hover {
+                color: $darkgrey;
+            }
+
+            h6 {
+                margin: 0px;
+            }
+            .avatar {
+                @include border-radius(50%);
+            }
+
+            .message_author_info {
+                color: $darkgrey;
+            }
+
+            .message_date {
+                color: $darkgrey;
+            }
+            .message_body {
+                color: $darkgrey;
+            }
+
         }
-        
+
     }
-        
+
+
+
+
     #TopHR {
         height: 5px;
         width: 100%;
@@ -660,13 +718,8 @@ a.commentDetails
         background-color: $bluegrey;
     }
 
-           
-    .note {
-           left:20px;
-           display:inline;
-       }
- 
-    .firstMessageSeparationLine {
+
+    .message_separator_line {
         height: 1px;
         width: 422px;
         border: none;
@@ -694,40 +747,15 @@ a.commentDetails
         float: left;
         background-color: $grey;
       }
-                  
-    .messageDate {
-        font-size: 15px;
-        color: #000000;
-        margin-bottom: 10px;
-        float:left
-    }
+
     .messageRating{
         float:right;
     }
              
-    #firstMessageLinks {
+    .message_links {
         margin-left:9px;
-
-        .messageCommands, .externalsharing {
-            display: none;
-        }
-        &:hover {
-            .messageCommands, .externalsharing {
-                display: block;
-            }
-        }
-
     }
 
-    .messageCommands
-    {
-        margin-left:250px;
-    }
-
-    .messageReplyLink
-    {
-        margin-left:350px;
-    }
          
     .iconLabels {
         font-size: 12px;
@@ -776,23 +804,6 @@ a.commentDetails
         margin-bottom: 17px;
     }
 
-
-    .comment {
-        width: auto;
-        padding: 20px;
-        background: #eaeaea;
-        border-radius: 8px;
-        @include box-shadow(8px);
-        @include box-shadow( 0px 3px 3px #b5b39a);
-        margin-top:10px;
-        a {
-            color: $darkgrey;
-        }
-        a:hover {
-            text-decoration: underline;
-            color: $nearblack;
-        }
-    }
 
     .darkClass
     {
@@ -957,21 +968,6 @@ a.commentDetails
         // This part of the page is unrelated in style to everything else.
         @import "markdown.scss"
         }
-
-
-
-
-
-    .firstcommentavatar
-    {
-        margin-right:10px;
-        @include border-radius(12px);
-    }
-    .commentavatar
-    {
-        margin-right:10px;
-        @include border-radius(8px);
-    }
 
 }
 

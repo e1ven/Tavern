@@ -1,72 +1,72 @@
-% if 'attachmentlist' in requestvars['displayenvelope'].dict['envelope']['local']:
+{% if 'attachmentlist' in envelope.dict['envelope']['local'] %}
     <div class="attachments">
-        % if len(requestvars['displayenvelope'].dict['envelope']['local']['attachmentlist']) > 1:
+        {% if envelope.dict['envelope']['local']['attachmentlist'] | length > 1%}
             Attached Files:<br>
-        % elif len(requestvars['displayenvelope'].dict['envelope']['local']['attachmentlist']) > 0:
+        {% elif envelope.dict['envelope']['local']['attachmentlist'] | length > 0 %}
             Attached File: <br>
-        % end
-        % for attachment in requestvars['displayenvelope'].dict['envelope']['local']['attachmentlist']:
-            % if 'detected_mime' in attachment:
-                % if attachment['detected_mime'] in ['video/mp4','video/webm']:
+        {% endif %}
+        {% for attachment in envelope.dict['envelope']['local']['attachmentlist'] %}
+            {% if 'detected_mime' in attachment %}
+                {% if attachment['detected_mime'] in ['video/mp4','video/webm'] %}
                     <video id="my_video_1" class="video-js vjs-default-skin" controls
                     preload="metadata" width="640" height="264"
                     data-setup="{}">
-                        <source src="{{requestvars['server'].serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
+                        <source src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
                     </video>
-                % end
-                % if attachment['detected_mime'] in ['audio/mpeg']:
+                {% endif %}
+                {% if attachment['detected_mime'] in ['audio/mpeg'] %}
                     <audio preload="metadata">
-                      <source src="{{requestvars['server'].serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                      <source src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
                     </audio>
+                {% endif %}
 
-                % end
+            {% endif %}
 
-            % end  
-
-            % if 'displayable' in attachment:
-                % if attachment['displayable'] is not False:
-                    <a href="{{requestvars['server'].serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-                        <img src="{{requestvars['server'].serversettings.settings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image">
+            {% if 'displayable' in attachment %}
+                {% if attachment['displayable'] %}
+                    <a href="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                        <img src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image">
                         <br>
                     </a>
-                % end
-            % end 
+                {% endif %}
+            {% endif %}
 
 
-            <a href="{{requestvars['server'].serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{round(float(attachment['filesize'] / 1024.0 /1024.0 ),3) }} MB)
+            <a href="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{ (attachment['filesize'] / 1024 / 1024)| round(precision=2) }} MB)
             <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circled'></i></a>
             <br>
-        % end
+        {% endfor %}
     </div>
-% end
+{% endif %}
 
-% if len (requestvars['displayenvelope'].dict['envelope']['local']['embed']) > 0:
-    % if requestvars['user'].UserSettings['allowembed'] == 1:
+{% if envelope.dict['envelope']['local']['embed'] | length > 0 %}
+    {% if handler.user.UserSettings['allowembed'] == 1 %}
         <div class='embedded'>
         Linked Content:<Br>
-            % for embed in requestvars['displayenvelope'].dict['envelope']['local']['embed']:
-                {{! embed }}
-            % end
+            {% for embed in envelope.dict['envelope']['local']['embed'] %}
+                {{ embed }}
+            {% endfor %}
         </div>
-    % elif requestvars['user'].UserSettings['allowembed'] == 0:
+    {% elif handler.user.UserSettings['allowembed'] == 0 %}
         <i class="icon-picture embeddedcontentnote"></i>
-        <div id="embededcontent_{{requestvars['envelope'].dict['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
-            % for embed in requestvars['displayenvelope'].dict['envelope']['local']['embed']:
-                {! embed }}
-            % end
+        <div id="embededcontent_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
+            {% for embed in envelope.dict['envelope']['local']['embed'] %}
+                {{ embed }}
+            {% endfor %}
             ">
             <br>
             This message contains a link to a picture or movie hosted by some other service.<Br>
             Tavern can automatically display a lot of linked content, but (like any webpage) the site it's loaded from will know you viewed it.<br>
             <br>
             <form action="/changesetting/showembeds" method="post" class='alwaysdisplay'> 
-                {% raw xsrf_form_html() %} 
+                {# raw xsrf_form_html() #}
                 <input type="submit" value='Always display external content' class="textbutton"> <br>
             </form>
             <br>
-            <p>You can always change this setting in <a href="/user/{{''.join(requestvars['user'].Keys['master'].pubkey.split())}}">your user preferences</a></p>
+            <p>You can always change this setting in <a href="/user/{{handler.user.Keys['master'].pubkey}}">your user preferences</a></p>
         </div>
-    % elif requestvars['user'].UserSettings['allowembed'] == -1:
+    {% elif handler.user.UserSettings['allowembed'] == -1 %}
+        {# Pass. This is intentionally blank for users who have opted out of embeds #}
 
-    % end
-% end
+    {% endif %}
+{% endif %}

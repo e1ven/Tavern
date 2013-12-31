@@ -425,10 +425,16 @@ function start
     # This uses hashes, rather than timestamps, for simplicity.
     # By using hashes, we can always cat them, then compare one file for differences
     # Otherwise, we'd need to compare dates N times.
-    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/default.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/jquery.unveil.min.js"
+    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/jquery.unveil.min.js  static/scripts/default.min.js"
     if [ $DEBUG -eq 0 ]
-    then    
-        cat $JSFILES > static/scripts/unified.js
+    then
+        echo '' > static/scripts/unified.js
+        for script in $JSFILES
+            do
+                cat $script >> static/scripts/unified.js
+                # Add a ; to cleanup after scripts which fail to do so.
+                echo ";" >> static/scripts/unified.js
+            done
         # Check to see if we already have a hashed copy of this file.
         # If we do, then don't minimize it.
         filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
@@ -478,7 +484,7 @@ function start
         if [ $(sinceFileArg $i lastrun_validate_$i) -gt 0 ]
         then
             echo -e "\t $i"
-            pep8 --show-source --show-pep8 --ignore=E501 $i
+            pep8 --show-source --show-pep8 --ignore=E501,E303 $i
             if [ "$?" -ne 0 ]
             then
                 echo "Aborting due to unfixable style issue."

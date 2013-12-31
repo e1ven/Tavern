@@ -15,8 +15,8 @@
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 	{% if handler.canon is defined %}
-		<link rel=canonical href="{{handler.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
-		<meta property="og:url" content="{{handler.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
+		<link rel=canonical href="{{handler.server.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
+		<meta property="og:url" content="{{handler.server.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
 		<meta property="og:blog" content="article"/>
 	{% endif %}
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
@@ -68,8 +68,9 @@
 	{% endif %}
 
 
+
 	<!-- Include JS one-by-one if loaded in debug -->
-	{% if handler.server.debug %}
+	{% if handler.server.logger.getEffectiveLevel() <= 20 %}
 		{% include 'header-debug-JS.html' %}
 	{% else %}
 		<!-- No JS for IE < 8 -->

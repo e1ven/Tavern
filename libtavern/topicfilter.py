@@ -81,7 +81,6 @@ class TopicFilter(libtavern.baseobj.Baseobj):
 
         subjects = []
         self._create_filter(before=before,after=after,include_replies=include_replies)
-        print(self.search)
         for envelope in self.server.db.unsafe.find('envelopes', self.search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
             e = libtavern.envelope.Envelope()
             e.loaddict(envelope)
@@ -117,7 +116,6 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         if len(subjects) > 0:
             if len(subjects) <= maxposts:
                 ret = subjects[-1]['envelope']['local']['time_added'] + 1
-                print("ret")
             else:
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
