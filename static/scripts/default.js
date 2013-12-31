@@ -117,7 +117,7 @@ function onSlide(e){
 function setupColumnSlider(jqueryobj)
 {
   if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
+  {
       // Add a CSS class so that we can later check for it, and know we already found this element.
       jQuery(jqueryobj).addClass('alreadybound');
       var toprating = 0;
@@ -141,12 +141,12 @@ function setupColumnSlider(jqueryobj)
 
 
       jqueryobj.colResizable({
-        liveDrag:true, 
-        draggingClass:"commentSliderDrag", 
-        gripInnerHtml:"<div class='commentSliderGrip'></div>", 
+        liveDrag:true,
+        draggingClass:"commentSliderDrag",
+        gripInnerHtml:"<div class='commentSliderGrip'></div>",
         onResize:onSlide,
         postbackSafe:true,
-        
+
         minWidth:0
       });
 
@@ -160,14 +160,15 @@ function setupColumnSlider(jqueryobj)
 // Send votes via Ajax.
 function setupVotes(jqueryobj)
 {
-    if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-    { 
+  jqueryobj.each(function() {
+    if( ! jQuery(this).hasClass('alreadybound') )
+    {
       // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).one("submit", function(event) {
+      jQuery(this).addClass('alreadybound');
+      jQuery(this).one("submit", function(event) {
           voteref = jQuery(this);
-          event.preventDefault(); 
-          
+          event.preventDefault();
+
           /* get some values from elements on the page: */
           jQueryform = jQuery( this );
           rating = jQueryform.find( 'input[name="rating"]' ).val();
@@ -176,7 +177,7 @@ function setupVotes(jqueryobj)
           rating = jQueryform.find( 'input[name="rating"]' ).val(),
           hashdata = jQuery.jStorage.get(hash,{});
           hashdata['rating'] = rating;
-          jQuery.jStorage.set(hash, hashdata);   
+          jQuery.jStorage.set(hash, hashdata);
 
           // Mark it as voted
           jQueryform.find( 'input[name="rating"][value=' + rating + ']' ).parent().addClass("darkClass");
@@ -184,20 +185,22 @@ function setupVotes(jqueryobj)
 
           /* Send the data using post and put the results in a div */
           jQuery.post( url, { 'rating': jQueryform.find( 'input[name="rating"]' ).val(),
-                         '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
+                         '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),
                          'hash' : jQueryform.find( 'input[name="hash"]' ).val() });
-      });  
-    }         
+      });
+    }
+  });
 }
 
 // Pull in the reply box inline
 function setupReplies(jqueryobj)
 {
-    if( ! jQuery(jqueryobj).hasClass('alreadybound') )
+  jqueryobj.each(function() {
+    if( ! jQuery(this).hasClass('alreadybound') )
     { 
       // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).one('click',function(event) {
+      jQuery(this).addClass('alreadybound');
+      jQuery(this).one('click',function(event) {
           event.preventDefault();
           var jQuerymsg = jQuery(this).attr('message');
           var jQueryhref = jQuery(this).attr('href');
@@ -206,7 +209,8 @@ function setupReplies(jqueryobj)
           });   
           
       }); 
-    } 
+    }
+  });
 }
 
 
@@ -214,14 +218,16 @@ function setupReplies(jqueryobj)
 // Show a spinner, so people know it's loading
 function showLazyLoad(jqueryobj)
 {
-  if ( detectAnimation() == true)
-  {
-    if (! jQuery(jqueryobj).is(':visible'))
-    {
-      jQuery("img.lazyload").show();
-      jQuery("img").unveil();
-    }
-  }
+  jqueryobj.each(function() {
+      if ( detectAnimation() == true)
+      {
+        if (! jQuery(this).is(':visible'))
+        {
+          jQuery("img.lazyload").show();
+          jQuery("img").unveil();
+        }
+      }
+  });
 }
 
 // Show a spinner, so people know it's loading
@@ -245,118 +251,125 @@ function showSpinner(jqueryobj)
 // Override the click on .internal to load them via JS instead.
 function setupInternalLinks(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      // Place the spinner for all tagged links.
-      jQuery(jqueryobj).one('click',function(event)
-          {
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          // Place the spinner for all tagged links.
+          jQuery(this).one('click',function(event)
+              {
 
-          // Don't fire off more than once.
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          
-          showSpinner(this);
+              // Don't fire off more than once.
+              event.preventDefault();
+              event.stopImmediatePropagation();
 
+              showSpinner(this);
 
-          if (jQuery(this).attr('href').indexOf('?') == -1 )
-            urlsep = '?';
-          else
-            urlsep = '&';
-          jQuery.getScript( jQuery(this).attr('href') + urlsep + "js=yes&timestamp=" + Math.round(new Date().getTime())  );
-          });
-  }
+              if (jQuery(this).attr('href').indexOf('?') == -1 )
+                urlsep = '?';
+              else
+                urlsep = '&';
+              jQuery.getScript( jQuery(this).attr('href') + urlsep + "js=yes&timestamp=" + Math.round(new Date().getTime())  );
+              });
+      }
+  });
 }
 
 // Submit UserNotes via Ajax
 function setupNotes(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).one("submit", function(event) {
-          noteref = jQuery(this);
-          event.preventDefault(); 
-          
-          /* get some values from elements on the page: */
-          var jQueryform = jQuery( this ),
-              rating = jQueryform.find( 'input[name="rating"]' ).val(),
-              url = jQueryform.attr( 'action' );
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          jQuery(this).one("submit", function(event) {
+              noteref = jQuery(this);
+              event.preventDefault();
 
-          /* Send the data using post and put the results in a div */
-          jQuery.post( url, { 'pubkey': jQueryform.find( 'input[name="pubkey"]' ).val(),
-                         '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(), 
-                         'note' : jQueryform.find( 'input[name="note"]' ).val() },
-            function( data ) {
-                noteref.empty().append( data );
-            }
-          );
-      }); 
-  }  
+              /* get some values from elements on the page: */
+              var jQueryform = jQuery( this ),
+                  rating = jQueryform.find( 'input[name="rating"]' ).val(),
+                  url = jQueryform.attr( 'action' );
+
+              /* Send the data using post and put the results in a div */
+              jQuery.post( url, { 'pubkey': jQueryform.find( 'input[name="pubkey"]' ).val(),
+                             '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),
+                             'note' : jQueryform.find( 'input[name="note"]' ).val() },
+                function( data ) {
+                    noteref.empty().append( data );
+                }
+              );
+          });
+      }
+  });
 }
 
 // If you do click on the 'AlwaysShow external content
 // Save it, then make it take effect now.
 function setupAlwaysCheck(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).one('click',function(event)
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
       {
-          var displayform = jQuery( event.target ).parent();         
-          url = displayform.attr( 'action' );
-          displayform.hide();
-          jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},                  
-              function( data ) 
-                    {
-                       displayform.html( data );
-                       displayform.show();
-                    });
-          // If you clicked it, show all the media on THIS page, too.
-          // It's the little stuff, you know?
-          jQuery('.embeddedcontentnote').each( function ()
-            {
-                var embededcontent = jQuery(this).next(); 
-                embededcontent.show();
-                embededcontent.html(embededcontent.attr('stufftoshow') + "<br>");
-            });
-          jQuery('.icon-picture').hide();
-      });
-  }
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          jQuery(this).one('click',function(event)
+          {
+              var displayform = jQuery( event.target ).parent();
+              url = displayform.attr( 'action' );
+              displayform.hide();
+              jQuery.post( url + '/ajax', { 'value': displayform.find( 'input[name="showembeds"]' ).val(),'_xsrf' : displayform.find( 'input[name="_xsrf"]' ).val()},
+                  function( data )
+                        {
+                           displayform.html( data );
+                           displayform.show();
+                        });
+              // If you clicked it, show all the media on THIS page, too.
+              // It's the little stuff, you know?
+              jQuery('.embeddedcontentnote').each( function ()
+                {
+                    var embededcontent = jQuery(this).next();
+                    embededcontent.show();
+                    embededcontent.html(embededcontent.attr('stufftoshow') + "<br>");
+                });
+              jQuery('.icon-picture').hide();
+          });
+      }
+  });
 }
 
 function setupFollowTopic(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      // Send FollowTopic via AJAX
-      jQuery(jqueryobj).one("submit", function(event) {
-          ref = jQuery(this);
-          /* stop form from submitting normally */
-          event.preventDefault();
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          // Send FollowTopic via AJAX
+          jQuery(this).one("submit", function(event) {
+              ref = jQuery(this);
+              /* stop form from submitting normally */
+              event.preventDefault();
 
-          /* get some values from elements on the page: */
-          var jQueryform = jQuery( this ),
-              url = jQueryform.attr( 'action' );
+              /* get some values from elements on the page: */
+              var jQueryform = jQuery( this ),
+                  url = jQueryform.attr( 'action' );
 
-          ref.children().hide();
-          ref.append('One moment please..');
-          /* Send the data using post and put the results in a div */
-          jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
-            function( data ) {
-                ref.empty().append("All set.");
-                jQuery.getScript(stripTrailingSlash(document.URL) + '/?js=yes&divs=savedtopics,followtopic' + "&timestamp=" + Math.round(new Date().getTime())  );
-            }
-          );
+              ref.children().hide();
+              ref.append('One moment please..');
+              /* Send the data using post and put the results in a div */
+              jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'topic' : jQueryform.find( 'input[name="topic"]' ).val() },
+                function( data ) {
+                    ref.empty().append("All set.");
+                    jQuery.getScript(stripTrailingSlash(document.URL) + '/?js=yes&divs=savedtopics,followtopic' + "&timestamp=" + Math.round(new Date().getTime())  );
+                }
+              );
 
-      });
-  }
+          });
+      }
+  });
 }
 
 // Hide any linked content by default.
@@ -364,121 +377,130 @@ function setupFollowTopic(jqueryobj)
 // If they click to load, then adjust the page to retrieve
 function setupEmbeddedNote(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).one('click',function (event)
-      {   
-          var embededcontent = jQuery(event.target).next(); 
-          if (embededcontent.is(":visible"))
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          jQuery(this).one('click',function (event)
           {
-              embededcontent.hide();
-          }
-          else
-          {
-              embededcontent.show();
-              embededcontent.prepend(embededcontent.attr('stufftoshow') + "<br>");
-          }
-      });
-  }
+              var embededcontent = jQuery(event.target).next();
+              if (embededcontent.is(":visible"))
+              {
+                  embededcontent.hide();
+              }
+              else
+              {
+                  embededcontent.show();
+                  embededcontent.prepend(embededcontent.attr('stufftoshow') + "<br>");
+              }
+          });
+      }
+  });
 }
 
 
 // Pop up a box when they click on a user avatar
 function setupUserDetails(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      jQuery(jqueryobj).on('click',function(event)
-      { 
-            //TODO - This is firing twice. The stop propogation fixes.. But why?   
-            event.stopImmediatePropagation();
-            event.preventDefault();
-            userdiv = "details_" + jQuery(this).attr('user');
-            avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
-            jQuery("#" + userdiv).click(function()
-            { // hide on clicks to the function itself.
-        //      jQuery(this).hide();
-            });
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          jQuery(this).on('click',function(event)
+          {
+                //TODO - This is firing twice. The stop propogation fixes.. But why?
+                event.stopImmediatePropagation();
+                event.preventDefault();
+                userdiv = "details_" + jQuery(this).attr('user');
+                avatar = jQuery("#avatar_" + jQuery(this).attr('user'));
+                jQuery("#" + userdiv).click(function()
+                { // hide on clicks to the function itself.
+            //      jQuery(this).hide();
+                });
 
-            if (jQuery("#" + userdiv).is(":visible"))
-            {
-                jQuery("#" + userdiv).hide();
-            }
-            else
-            {
-                jQuery("#" + userdiv).show();
-                // Stupid WebKit workaround. - Webkit isn't pulling position on the Avatar correctly, so pull from the grandparent, then adjust
-                pos = avatar.position();
-                pos.left += avatar.width();
-
-                if (jQuery(this).attr('orient') == "left")
+                if (jQuery("#" + userdiv).is(":visible"))
                 {
-                  jQuery("#" + userdiv).css({top: pos.top + avatar.height(), left: pos.left - avatar.width(), position: 'absolute'});
+                    jQuery("#" + userdiv).hide();
                 }
                 else
                 {
-                  jQuery("#" + userdiv).css({top: pos.top + avatar.height(), right: pos.right, position: 'absolute'});
+                    jQuery("#" + userdiv).show();
+                    // Stupid WebKit workaround. - Webkit isn't pulling position on the Avatar correctly, so pull from the grandparent, then adjust
+                    pos = avatar.position();
+                    pos.left += avatar.width();
+
+                    if (jQuery(this).attr('orient') == "left")
+                    {
+                      jQuery("#" + userdiv).css({top: pos.top + avatar.height(), left: pos.left - avatar.width(), position: 'absolute'});
+                    }
+                    else
+                    {
+                      jQuery("#" + userdiv).css({top: pos.top + avatar.height(), right: pos.right, position: 'absolute'});
+                    }
                 }
-            }
-            return false;
-      });
-  }
+                return false;
+          });
+      }
+  });
 }
 
-// Pop up a box when they click on a user avatar
+// Provide sharing options on each share button.
 function setupSharing(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  {
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-
-       // Hide the sharing buttons via JS, so they show for JS disabled users.
-       divid = jQuery(jqueryobj).attr('value')
-       newdivobj = jQuery('#external_sharing_' + divid);
-       newdivobj.hide();
-
-      jQuery(jqueryobj).on('click',function(event)
+  jqueryobj.each(function() {
+      if( ! jQuery(this).hasClass('alreadybound') )
       {
-           jQuery(newdivobj).show();
-           jQuery(jqueryobj).replaceWith(newdivobj);
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
 
-      });
-  }
+           // Hide the sharing buttons via JS, so they show for JS disabled users.
+           divid = jQuery(this).attr('value')
+           newdivobj = jQuery('#external_sharing_' + divid);
+           newdivobj.hide();
+
+          jQuery(this).on('click',function(event)
+          {
+               newdivobj.show();
+               jQuery(this).replaceWith(newdivobj);
+          });
+      }
+  });
+
 }
 
 // Pop up a box when they click on a user avatar
 function setupFollowUser(jqueryobj)
 {
-  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
-  { 
-      // Add a CSS class so that we can later check for it, and know we already found this element.
-      jQuery(jqueryobj).addClass('alreadybound');
-      // Send Followuser via AJAX
-      jQuery(jqueryobj).one('submit', function(event) {
-          ref = jQuery(this);
-          /* stop form from submitting normally */
-          event.preventDefault();
+  jqueryobj.each(function() {
 
-          /* get some values from elements on the page: */
-          var jQueryform = jQuery( this ),
-              url = jQueryform.attr( 'action' );
-          ref.children().hide();
-          ref.append('One moment please..');
-          /* Send the data using post and put the results in a div */
-          jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
-            function( data ) {
-                ref.empty().append("All set.");
-                jQuery.getScript(stripTrailingSlash(document.URL) +'/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );
-            }
-          );
+      if( ! jQuery(this).hasClass('alreadybound') )
+      {
+          // Add a CSS class so that we can later check for it, and know we already found this element.
+          jQuery(this).addClass('alreadybound');
+          // Send Followuser via AJAX
+          jQuery(this).one('submit', function(event) {
+              ref = jQuery(this);
+              /* stop form from submitting normally */
+              event.preventDefault();
 
-      });
-  }
+              /* get some values from elements on the page: */
+              var jQueryform = jQuery( this ),
+                  url = jQueryform.attr( 'action' );
+              ref.children().hide();
+              ref.append('One moment please..');
+              /* Send the data using post and put the results in a div */
+              jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
+                function( data ) {
+                    ref.empty().append("All set.");
+                    jQuery.getScript(stripTrailingSlash(document.URL) +'/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );
+                }
+              );
+
+          });
+      }
+  });
 }
 
 
@@ -607,8 +629,7 @@ jQuery(document).ready(function() {
     // This should probably be broken out into it's own file.
     // For now, leave it here - This is just a sample key event, to verify the handler works.
     // Add more later.
-    Mousetrap.bind('up up', function() {
-        alert("upup");
+    Mousetrap.bind('up up down down left right left right', function() {
         element = jQuery('#logo');
         element.css('-moz-transform', 'rotate(180deg)'); 
         element.css('-o-transform','rotate(180deg)');  
