@@ -76,22 +76,22 @@
 
         <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
             <tr>
-                <td>
-                    {% if number_of_messages_after_displayed is defined %}
-                    <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
-                       <button id="NewerMessages" class="column2Buttons" type="button">
-                        Newer Messages
-                        <span class="icon-right-circled navIcon"></span>
+                 <td>
+                    {% if number_of_messages_before_displayed is defined %}
+                    <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
+                       <button id="older_messages" class="column2Buttons" type="button">
+                        Older Messages
+                        <span class="icon-left-circled navIcon"></span>
                        </button>
                     </a>
                     {% endif %}
                 </td>
                 <td>
-                    {% if number_of_messages_before_displayed is defined %}
-                    <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
-                       <button id="OlderMessages" class="column2Buttons" type="button">
-                        Older Messages
-                        <span class="icon-left-circled navIcon"></span>
+                    {% if number_of_messages_after_displayed is defined %}
+                    <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
+                       <button id="newer_messages" class="column2Buttons" type="button">
+                        Newer Messages
+                        <span class="icon-right-circled navIcon"></span>
                        </button>
                     </a>
                     {% endif %}

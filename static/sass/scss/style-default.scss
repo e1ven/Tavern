@@ -44,6 +44,9 @@ $gradientHL: mix($creme,lighten(mix($gradient1,$gradient2),10%));
 
 
 a {
+    color:$darkgrey;
+
+    text-decoration:none;
     &:focus {
       outline: thin dotted #333;
       outline: 5px auto -webkit-focus-ring-color;
@@ -53,9 +56,9 @@ a {
     &:hover,
     &:active {
     	outline: 0;
-    	color:#BBBBBB;
-    	text-decoration: none;
-        color: $purple;
+    	text-decoration: underline;
+        color: 000000;
+        font-weight: 500;
     }
 }
 
@@ -440,12 +443,12 @@ a.details
             margin-right: 15px;
         }
 
-        #OlderMessages {
+        #newer_messages {
             width: 140px;
             margin-right: 15px;
         }
 
-        #NewerMessages {
+        #older_messages {
             width: 140px;
             margin-left: 20px;
             margin-right: 9px; 
@@ -572,7 +575,7 @@ a.details
     height:100%;
     width:100%;
     ul li {
-        padding-left: 20px;
+        padding-left: 30px;
     }
 
 
@@ -589,8 +592,7 @@ a.details
     }
 
 
-    #first_message {
-
+    .first_message {
         margin-top:35px;
         margin-left:20px;
         width: auto;
@@ -602,19 +604,13 @@ a.details
         border-radius: 8px;
         @include box-shadow(8px);
         @include box-shadow( 0px 3px 3px #b5b39a);
+        color: $lightgrey;
 
         .note {
            left:20px;
            display:inline;
         }
 
-        a {
-            color: $lightgrey;
-        }
-        a:hover {
-            text-decoration: underline;
-            color: $nearblack;
-        }
         .avatar {
             @include border-radius(12px);
             float:left;
@@ -631,31 +627,60 @@ a.details
             margin-top: 10px;
         }
 
-       .message_body {
+        .message_body {
+            @import "markdown.scss";
             margin-bottom: 18px;
             margin-top: 22px;
             font: 13px;
             line-height: 16px;
             color: #ffffff;
-
+            a {
+                color: $lightgrey;
+                &:visited {
+                    color: $lightgrey;
+                }
+                &:hover {
+                    text-decoration: underline;
+                    color: $darkgrey;
+                }
+            }
         }
 
         .message_author_info {
             font-size: 15px;
-            color: #ece9d7;
+            color: $creme;
             margin-top: 10px;
             padding-bottom: 10px;
         }
 
         .message_date {
             font-size: 15px;
-            color: #ece9d7;
+            color: $creme;
             margin-bottom: 10px;
             float:left;
         }
 
+
+        .likeDislikeIcon {
+            margin-bottom: 8px;
+            color: $creme;
+            &:hover {
+                color: darken($creme,20%);
+            }
+        }
+
+        .likeDislikeLabel {
+           margin-left: 5px;
+           margin-bottom: 11px;
+           color: $creme;
+           &:hover {
+                color: darken($creme,20%);
+           }
+        }
+
         .message_links {
-            color: #ece9d7;
+            color: $creme;
+
             .message_commands {
                 margin-left:250px;
             }
@@ -668,43 +693,80 @@ a.details
                 @include trivialAnimation();
             }
 
+            a {
+                color:inherit;
+                &:hover {
+                    color: darken($creme,20%);
+                }
+            }
+        }
+    }
+
+    // All non-top messages
+    .message {
+
+        @extend .first_message;
+        background: $lightgrey;
+        margin-top:10px;
+
+        // Negative margin is to eat up the first UL element
+        margin-left:-30px;
+        color: $darkgrey;
+        border:1px;
+        h6 {
+            margin: 0px;
+        }
+        .avatar {
+            @include border-radius(50%);
         }
 
-        .message {
-            @extend #first_message;
-            background: #eaeaea;
-            margin-top:10px;
+        .message_date {
+            color: $darkgrey;
+        }
+
+        .message_body {
+            color: $nearblack;
 
             a {
-                color: $lightgrey;
-            }
-            a:hover {
-                color: $darkgrey;
-            }
-
-            h6 {
-                margin: 0px;
-            }
-            .avatar {
-                @include border-radius(50%);
+                color: $greybrown;
+                &:visited {
+                    color: $greybrown;
+                }
+                &:hover {
+                    color: $nearblack;
+                }
             }
 
-            .message_author_info {
-                color: $darkgrey;
-            }
+        }
 
-            .message_date {
-                color: $darkgrey;
-            }
-            .message_body {
-                color: $darkgrey;
-            }
+        .message_author_info {
+            color: $greybrown;
+        }
 
+        .likeDislikeIcon {
+            color: $greybrown;
+            &:hover {
+                color: darken($greybrown,20%);
+            }
+        }
+
+        .likeDislikeLabel {
+           color: $greybrown;
+            &:hover {
+                color: darken($greybrown,20%);
+            }
+        }
+        .message_links {
+            color: $greybrown;
+
+            a {
+                &:hover {
+                    color: darken($greybrown,20%);
+                }
+            }
         }
 
     }
-
-
 
 
     #TopHR {
@@ -763,27 +825,11 @@ a.details
         margin-left: 5px;
         margin-right: 20px;
     }
-         
-    .iconLabelColorDark {
-        color: #666666 !important;
-    }
-         
-    .iconLabelColorLight {
-        color: #d6d6d6;
-    }
-           
+
     #lowerCommentSeparation {
         width:100%;
     }
-         
-    .likeDislikeIcon {
-        margin-bottom: 8px;
-    }
-           
-    .likeDislikeLabel {
-       margin-left: 5px;
-       margin-bottom: 11px;
-    }
+
         
     #scrollBar {
         margin-top: 11px;
@@ -873,7 +919,7 @@ a.details
            overflow: hidden;
            &:hover
            {
-               text-decoration: underline;
+               text-decoration: none;
            } 
        }   
        
@@ -961,14 +1007,6 @@ a.details
         }   
     }
 
-
-    .MessageBody {
-        width:100%;
-        //Formatting for the markdown messages in the BODY section of a message.
-        // This part of the page is unrelated in style to everything else.
-        @import "markdown.scss"
-        }
-
 }
 
 
@@ -983,20 +1021,11 @@ a.details
         display: block;
         margin-left: auto;
         margin-right: auto;
-
         }
 
-          
       button {
         cursor: pointer;
         }
-
-        a:link,a:visited {
-          text-decoration: none;
-          color: #d9d5c4;
-          } 
-
-
 
 /* Animation Keyframe Classes */
 @keyframes nodeInserted {  
