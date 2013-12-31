@@ -3,7 +3,6 @@ import hashlib
 import os
 import collections
 from collections import *
-json.encoder.c_make_encoder = None
 import lzma
 import magic
 import imghdr
@@ -497,6 +496,21 @@ class Envelope(libtavern.baseobj.Baseobj):
             {"envelope.local.ancestors": self.payload.hash()})
         return results
 
+    #@libtavern.utils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
+    def load_children(self):
+        """
+        Create an array of {'id':Envelope()} objects, so we can retrieve these from inside the templates.
+        """
+        results = self.server.db.unsafe.find(
+            'envelopes',
+            {"envelope.local.ancestors": self.payload.hash()})
+        self.childmap = {}
+        for result in results:
+            if result is not None:
+                e = Envelope()
+                e.loaddict(result)
+                self.childmap[result['envelope']['local']['payload_sha512']] = e
+
     def addStamp(self, stampclass, keys, passkey=None, **kwargs):
         """Adds a stamp of type `class` to the current envelope."""
 
@@ -677,9 +691,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         basename, ext = os.path.splitext(filename)
         filehandle = lzma.open(filename, 'rt', encoding='utf-8')
         filecontents = filehandle.read()
-        print("Fish!")
         print(filecontents)
-        print("Bread!")
         filehandle.close()
         self.loadstring(filecontents)
 

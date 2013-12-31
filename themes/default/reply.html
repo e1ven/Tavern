@@ -1,37 +1,3 @@
-{% from ServerSettings import serversettings %}
-{% import Envelope %}
-{% set envelope = Envelope.Envelope() %}
-{% if not envelope.loadmongo(messageid) %}
-    {% set envelope = server.error_envelope("I'm sorry, but your message can't be loaded.") %}
-{% end %}
-
-
-{% set permalink = serversettings.settings['web_url'] + '/message/' + envelope.dict['envelope']['local']['sorttopic'] + '/' + envelope.dict['envelope']['local']['short_subject'] + '/' + envelope.dict['envelope']['local']['payload_sha512']  %}
-
-{% if 'medialink' in envelope.dict['envelope']['local'] %}
-    {% set medialink = str(serversettings.settings['downloadsurl']) + str(envelope.dict['envelope']['local']['medialink']) %}
-{% else %}
-    {% set medialink = permalink %}
-{% end %}
-{% set note = user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
-{% set messagerating = user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
-{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
-
-
-{# Show edited version of comment, if there's nothing stopping us.... #}
-{% if 'edits' in envelope.dict['envelope']['local'] %}
-    {% set showedit = True %}
-{% else %}
-    {% set showedit = False %}
-{% end %}
-{% if 'ignoreedits' in request.arguments %}
-    {% set showedit = False %}
-{% end %}
-{% if user.UserSettings['ignoreedits'] == True %}
-    {% set showedit = False %}
-{% end %}
-
-
 <ul>
     <li>
         <div class="comment rating_{{messagerating}} " rating={{messagerating}}>

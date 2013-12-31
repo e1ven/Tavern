@@ -34,8 +34,8 @@
       autoplay: false,
       loop: false,
       preload: true,
-      imageLocation: '/static/images/player-graphics.gif',
-      swfLocation: '/static/swf/audiojs.swf',
+      imageLocation: path + 'player-graphics.gif',
+      swfLocation: path + 'audiojs.swf',
       useFlash: (function() {
         var a = document.createElement('audio');
         return !(a.canPlayType && a.canPlayType('audio/mpeg;').replace(/no/, ''));
@@ -155,9 +155,8 @@
       },
       loadProgress: function(percent) {
         var player = this.settings.createPlayer,
-            scrubber = getByClass(player.scrubberClass, this.wrapper),
             loaded = getByClass(player.loaderClass, this.wrapper);
-        loaded.style.width = (scrubber.offsetWidth * percent) + 'px';
+        loaded.style.width = (100 * percent) + '%';
       },
       playPause: function() {
         if (this.playing) this.settings.play();
@@ -173,9 +172,8 @@
       },
       updatePlayhead: function(percent) {
         var player = this.settings.createPlayer,
-            scrubber = getByClass(player.scrubberClass, this.wrapper),
             progress = getByClass(player.progressClass, this.wrapper);
-        progress.style.width = (scrubber.offsetWidth * percent) + 'px';
+        progress.style.width = (100 * percent) + '%';
 
         var played = getByClass(player.playedClass, this.wrapper),
             p = this.duration * percent,
@@ -522,9 +520,9 @@
             loadTimer = setInterval(function() {
               audio.loadProgress.apply(audio);
               if (audio.loadedPercent >= 1) clearInterval(loadTimer);
-            });
+            }, 200);
           }
-        }, 10);
+        }, 200);
         audio.readyTimer = readyTimer;
         audio.loadTimer = loadTimer;
       },
@@ -701,8 +699,3 @@
   };
 // The global variable names are passed in here and can be changed if they conflict with anything else.
 })('audiojs', 'audiojsInstance', this);
-
-
-audiojs.events.ready(function() {
-    var as = audiojs.createAll();
-});

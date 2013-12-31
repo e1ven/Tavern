@@ -1,9 +1,9 @@
 Cython
 Mako
 MarkupSafe
-python-dateutil
 
 flask
+Flask-Babel
 
 Markdown>=2.2.1
 pygeoip

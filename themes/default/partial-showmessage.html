@@ -1,15 +1,10 @@
 {% extends "container-tripane.html" %}
+{% import 'macro-showmessage.html' as show_message %}
 
 {% block column3 %}
     <div id="allreplies">
         <!-- include firstMessage as the top reply, and any children -->
-        {# include firstMessage.html requestvars=requestvars
-        % #if 'citedby' in requestvars['displayenvelope'].dict['envelope']['local']:
-        % #    for cite in requestvars['displayenvelope'].dict['envelope']['local']['citedby']:
-        % #        include reply.html requestvars=requestvars,messageid=cite
-        % #    end
-        % # end
+        {{ show_message.message(envelope=handler.displayenvelope,handler=handler,top=True,childmap=handler.displayenvelope.childmap)}}
 
-        #}
     </div>
 {% endblock column3 %}

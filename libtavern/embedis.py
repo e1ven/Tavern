@@ -103,7 +103,6 @@ class Embedis:
         embed."""
         # If user.datauri is True, generate the image and hand it back.
         if datauri:
-
             format = 'png'
             robo = Robohash(myid)
             robo.assemble(

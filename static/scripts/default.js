@@ -430,6 +430,28 @@ function setupUserDetails(jqueryobj)
 }
 
 // Pop up a box when they click on a user avatar
+function setupSharing(jqueryobj)
+{
+  if( ! jQuery(jqueryobj).hasClass('alreadybound') )
+  {
+      // Add a CSS class so that we can later check for it, and know we already found this element.
+      jQuery(jqueryobj).addClass('alreadybound');
+
+       // Hide the sharing buttons via JS, so they show for JS disabled users.
+       divid = jQuery(jqueryobj).attr('value')
+       newdivobj = jQuery('#external_sharing_' + divid);
+       newdivobj.hide();
+
+      jQuery(jqueryobj).on('click',function(event)
+      {
+           jQuery(newdivobj).show();
+           jQuery(jqueryobj).replaceWith(newdivobj);
+
+      });
+  }
+}
+
+// Pop up a box when they click on a user avatar
 function setupFollowUser(jqueryobj)
 {
   if( ! jQuery(jqueryobj).hasClass('alreadybound') )
@@ -576,6 +598,7 @@ jQuery(document).ready(function() {
     setupFollowTopic(jQuery(".followtopic"));
     setupEmbeddedNote(jQuery(".embeddedcontentnote"));
     setupUserDetails(jQuery("a.details"));
+    setupSharing(jQuery(".external_sharing_button"));
     setupFollowUser(jQuery(".followuser"));
     showLazyLoad(jQuery("img.lazyload"));
  
@@ -626,6 +649,8 @@ jQuery(document).ready(function() {
 
 
 
+
+
     // Run the per-instance stuff.
     jQuery.getScript('/static/scripts/instance.min.js');
 
@@ -640,6 +665,10 @@ jQuery(document).ready(function() {
         jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart","a.details",function(event)
         {
             setupUserDetails(jQuery(this));
+        });
+        jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".external_sharing_button",function(event)
+        {
+            setupSharing(jQuery(this));
         });
         jQuery(document).on("animationstart MSAnimationStart webkitAnimationStart",".embeddedcontentnote",function(event)
         {
