@@ -18,25 +18,13 @@ import optparse
 from libs import rss
 from robohash import Robohash
 
-import flask
-from flask.views import MethodView
-import flask.ext.babel
-
 import libtavern.server
 import libtavern.envelope
 import libtavern.utils
 
 from webbase import BaseHandler
 
-# def user_required(f):
-#     """Checks whether user is logged in or raises error 401."""
-#     def decorator(*args, **kwargs):
-#         if not g.user:
-#             abort(401)
-#         return f(*args, **kwargs)
-#     return decorator
-
-
+@route('/') 
 class EntryHandler(BaseHandler):
 
     """For now, EntryHandler is a simple stub handler while redirects to
