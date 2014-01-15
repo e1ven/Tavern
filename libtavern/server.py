@@ -143,7 +143,6 @@ class FakeMongo(libtavern.baseobj.Baseobj):
 class MongoWrapper(libtavern.baseobj.Baseobj):
 
     def __init2__(self, host, port, name,safe=True):
-
         if safe:
             # Slower, more reliable mongo connection.
             self.safeconn = pymongo.MongoClient(
