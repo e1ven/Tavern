@@ -1,28 +1,40 @@
+# System utils
 Cython
-Mako
-MarkupSafe
+ipython
+# Add gevent 1.1 from pypi when avail
 
-flask
-Flask-Babel
+# DB
+pymongo
+psycopg2
 
-Markdown>=2.2.1
-pygeoip
-postmarkup
-pymongo>=2.4
-scrypt
+# Parsing
 beautifulsoup4>=4.1.3
 lxml>=3.0.1
-python-magic
-psycopg2
+MarkupSafe
+Markdown>=2.2.1
+
+
+#BBCode - postmarkup
+
+# Formatting
 flake8
 autopep8
 pep8
 docformatter
+
+# Bittwisting
 mpmath
 bitarray
-untokenize
+
+# Images
 pillow
 robohash
+python-magic
 
+# Security
 python-gnupg>=0.3.5
 pynacl
+scrypt
+
+# IP lookup
+pygeoip

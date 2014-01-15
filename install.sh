@@ -1,5 +1,5 @@
 # Tavern system-install instructions
-# Tavern is written to run on Python 3.3+, under Ubuntu or OSX.
+# Tavern is written to run on Python 3.4+, under Ubuntu or OSX.
 # It'll almost certainly work on other systems, but the docs are yet to be written.
 # 
 #                               IMPORTANT!
@@ -127,13 +127,9 @@ ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
 
 cd $taverndir/libs
 
-# Ensure we have VirtualEnv, so we can create our own packages.
-curl -O https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.10.tar.gz
-tar -zxvf virtualenv-1.10.tar.gz
-
 cd $taverndir
 # Create a Virtual Environment, so we don't spew across the whole system
-libs/virtualenv-1.10/virtualenv.py  --no-site-packages --distribute tmp/env -p `which python3.3`
+pyvenv-3.3 tmp/env
 source tmp/env/bin/activate
 
 pip install -r requirements.txt
