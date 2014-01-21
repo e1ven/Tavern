@@ -179,7 +179,7 @@
                     {% end %}
                     {% if 'citedby' in envelope.dict['envelope']['local'] %}
                         {% for cite in envelope.dict['envelope']['local']['citedby'] %}
-                            
+                            AAABBBCCC
                             {% raw handler.render_string('macro-showmessage.html', envelope=childmap[cite],handler=handler,top=False,childmap=childmap)  %}
                        
                         {% end %}
