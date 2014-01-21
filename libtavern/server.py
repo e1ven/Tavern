@@ -677,17 +677,6 @@ class Server(libtavern.utils.instancer):
             envelopes.append(e)
         return envelopes
 
-    def getOriginalMessage(self, messageid):
-
-        env = libtavern.envelope.Envelope(server=self)
-        # First, pull the referenced message.
-        if env.loadmongo(mongo_id=messageid):
-            if env.dict['envelope']['payload']['class'] == 'message':
-                return env.dict['envelope']['local']['payload_sha512']
-            else:
-                return env.dict['envelope']['payload']['regarding']
-
-        return None
 
     def getTopMessage(self, messageid):
         # Find the top level of a post that we currently have.

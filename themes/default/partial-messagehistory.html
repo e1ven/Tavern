@@ -1,0 +1,27 @@
+{% extends "container-tripane.html" %}
+{% import 'macro-showmessage.html' as show_message %}
+
+{% block column3 %}
+    <div class="infobox">
+        <h1>Message History</h1>
+        <br>
+        <ul>
+        {% for edit in handler.edits %}
+        	<li class='editline'>
+                <a href={{handler.server.url_for(edit)}}
+                    <time datetime="{{edit.dict['envelope']['local']['time_added'] | timestamp('iso') }}">Version # {{loop.index}} - {{edit.dict['envelope']['local']['time_added'] | timestamp }}</time> - {{edit.dict['envelope']['payload']['subject']}}
+                </a>
+                {# 
+                    Include all the edits using the normal post display. 
+                    It won't show children, since the revisions won't include any citedby.
+                #}   
+
+                {{ show_message.message(envelope=edit,handler=handler,top=False,childmap=[])}}
+
+        	</li>
+        {% endfor %}
+        <ul>	
+
+    </div>
+
+{% endblock column3 %}

@@ -1,8 +1,6 @@
 # This file is the Web self.server.
 # It defines the routes, and the handlers which create those webpages.
 
-# Use greenlets to accept a "Thread" per process
-
 import pymongo
 import time
 import datetime
@@ -32,14 +30,37 @@ import webbase
 
 server = libtavern.server.Server()
 
-# A decorator to setup useful/necessary info.
+
+class TavernException(Exception):
+
+    """Exception that produces an error message for the user."""
+
+    def __init__(self, baseobj, subject, body, topic='Error'):
+
+        # Call the base exception
+        Exception.__init__(self, subject)
+
+        # Create a pretty error emessage
+        baseobj.displayenvelope = baseobj.server.error_envelope(subject=subject, topic=topic, body=body)
+        baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
+        baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
+        baseobj.title = baseobj.displayenvelope.dict['envelope']['payload']['subject']
+
+        baseobj.displayenvelope.load_children()
+        self.body = template('partial-showmessage.html', handler=baseobj)
 
 
+# The Tavern plugin sets up a 'baseobj' as the first argument to each handler.
+# This acts as an object for the request, allowing us to store variables, and run initializations.
+# baseobj should be the first argument to every handler - Think of it sort of like 'self'.
 def tavernplugin(callback):
     def wrapper(*args, **kwargs):
         baseobj = webbase.BaseHandler(request=bottle.request, response=bottle.response, server=server)
-        body = callback(*args, baseobj=baseobj, **kwargs)
-        return body
+        try:
+            body = callback(*args, baseobj=baseobj, **kwargs)
+            return body
+        except TavernException as ex:
+            return ex.body
     return wrapper
 
 
@@ -50,171 +71,74 @@ def FrontPageHandler(baseobj):
     Eventually, it may give a different experience for first-time visitors.
 
     """
-    bottle.redirect("/right/url")
+    return("I love you!")
 
 
-def MessageHandler(baseobj, topic, short_name, messageid):
+def MessageHandler(baseobj, messageid, topic=None, short_name=None):
     """Retrieve and display a message."""
 
     messagesenvelope = baseobj.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
 
-    if messagesenvelope is not None:
-        baseobj.displayenvelope = libtavern.envelope.Envelope()
-        baseobj.displayenvelope.loaddict(messagesenvelope)
+    if messagesenvelope is None:
+        raise TavernException(baseobj, subject="That message can't be found", body="I'm sorry, but we just can't find the message you're looking for. ;(")
 
-    else:
-        # If we didn't find that message, throw an error.
-        baseobj.displayenvelope = baseobj.server.error_envelope(
-            "The Message you are looking for can not be found.")
+    baseobj.displayenvelope = libtavern.envelope.Envelope()
+    baseobj.displayenvelope.loaddict(messagesenvelope)
 
     baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
     baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
     baseobj.title = baseobj.displayenvelope.dict['envelope']['payload']['subject']
 
+    # These are the divs that will shift
+    # baseobj.divs = ['scrollablediv2', 'scrollablediv3']
+
     baseobj.displayenvelope.load_children()
     return template('partial-showmessage.html', handler=baseobj)
 
 
-# class RSSHandler(MethodView):
+def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
+    """Display the various edits to a message."""
 
-#     """Generates RSS feeds for a Topic."""
+    e = libtavern.envelope.Envelope()
+    e.loadmongo(messageid)
+    if not e.loadmongo(messageid):
+        raise TavernException(baseobj, subject="That message's history can't be found :(",
+                              body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
-#     def get(action, topic):
-#         channel = rss.Channel('Tavern - ' + param,
-#                               'http://GetTavern.com/rss/' + param,
-#                               'Tavern discussion about ' + param,
-#                               generator='Tavern',
-#                               pubdate=datetime.datetime.today())
-#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
-#             item = rss.Item(channel,
-#                             envelope['envelope']['payload']['subject'],
-#                             "http://GetTavern.com/message/" + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'sorttopic'] + '/' + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'short_subject'] + "/" + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'payload_sha512'],
-#                             envelope['envelope']['local']['formattedbody'])
-#             channel.additem(item)
-#         self.write(channel.toprettyxml())
+    if isinstance(e.payload, libtavern.envelope.Envelope.Message):
+        original = e
+    elif isinstance(e.payload, libtavern.envelope.Envelope.MessageRevision):
+        original = e.get_original()
+    else:
+        raise TavernException(baseobj, subject="That message's history can't be found :(",
+                              body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
+    # Create a list of unique message ids, and the time we first saw it.
+    edits = []
 
-# def MessageHandler_get(*args):
-#     """The Message Handler displays a message, when given by message id.
+    # Append in the original message's information
+    edits.append(original)
 
-#     It's intentionally a bit forgiving in the syntax, to make it easy to
-#     retrieve messages.
+    # Loop through all the messages we've received.
+    for editdict in original.dict['envelope']['local']['edits']:
+        e = libtavern.envelope.Envelope()
+        e.loaddict(editdict)
+        if e not in edits:
+            edits.append(e)
 
-#     """
-#     self.getvars()
+    # Sort the edits
+    edits.sort(key=lambda e: (e.dict['envelope']['local']['priority'], (e.dict['envelope']['local']['time_added'])))
 
-# We need both col2 and col3, since the currently active message
-# changes in the col2.
-#     divs = ['scrollablediv2', 'scrollablediv3']
+    baseobj.edits = edits
+    baseobj.displayenvelope = original
+    baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
+    baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
+    baseobj.title = "History for " + baseobj.displayenvelope.dict['envelope']['payload']['subject']
 
-# Find the final directory/page sent as part of the request.
-# This could be /m/123, /m/some-topic/123 or even /m/some-topic/some-subject/123 (which is canonical)
-# We're being intentionally loose in letting this be accessed by multiple URLs, so it's easy to get here.
-# We only care about the final argument, which is the messageid.
-#     for i in args:
-#         if i is not None:
-#             messageid = tornado.escape.xhtml_escape(i)
-
-# 'before' is used for multiple pages, because skip() is slow
-# Don't really need xhtml escape, since we're converting to a float
-#     if "before" in self.request.arguments:
-#         before = float(self.get_argument('before'))
-#     else:
-#         before = None
-
-# Do we want to show the original, ignoring edits?
-#     if "showoriginal" in self.request.arguments:
-# Convert the string to a bool.
-#         showoriginal = (self.get_argument('showoriginal') == "True")
-#     else:
-#         showoriginal = False
-
-#     messagesenvelope = self.server.db.unsafe.find_one('envelopes',
-#                                                       {'envelope.local.payload_sha512': messageid})
-
-#     if messagesenvelope is not None:
-#         displayenvelope = libtavern.envelope.Envelope()
-#         displayenvelope.loaddict(messagesenvelope)
-#         topic = displayenvelope.dict['envelope']['payload']['topic']
-#         self.canon = "message/" + displayenvelope.dict[
-#             'envelope'][
-#             'local'][
-#             'sorttopic'] + '/' + displayenvelope.dict[
-#             'envelope'][
-#             'local'][
-#             'short_subject'] + "/" + displayenvelope.dict[
-#             'envelope'][
-#             'local'][
-#             'payload_sha512']
-#         title = displayenvelope.dict['envelope']['payload']['subject']
-#     else:
-# If we didn't find that message, throw an error.
-#         displayenvelope = self.server.error_envelope(
-#             "The Message you are looking for can not be found.")
-#         title = displayenvelope.dict['envelope']['payload']['subject']
-#         topic = displayenvelope.dict['envelope']['payload']['topic']
-
-# Gather up all the replies to this message, so we can send those to
-# the template as well
-#     self.write(
-#         self.render_string(
-#             'header.html',
-#             title=title,
-#             canon=self.canon,
-#             type="topic",
-#             rsshead=displayenvelope.dict[
-#                 'envelope'][
-#                 'payload'][
-#                 'topic']))
-#     self.write(self.render_string('showmessage.html',
-#                envelope=displayenvelope, before=before, topic=topic))
-#     self.write(self.render_string('footer.html'))
-#     self.finish(divs=divs)
+    return template('partial-messagehistory.html', handler=baseobj)
 
 
-# def MessageHistoryHandler_get(messageid):
-#     """Display the various edits to a message."""
-
-#     self.getvars()
-#     origid = self.server.getOriginalMessage(messageid)
-
-#     e = libtavern.envelope.Envelope()
-#     if not e.loadmongo(origid):
-#         self.write("I can't load that message's history. ;(")
-#     else:
-#         messages = []
-
-# Add the root msg.
-#         current_message = (
-#             messageid,
-#             e.dict[
-#                 'envelope'][
-#                 'local'][
-#                 'time_added'])
-#         messages.append(current_message)
-
-# Add all the edits
-#         for message in e.dict['envelope']['local']['edits']:
-#             current_message = (
-#                 message['envelope']['local']['payload_sha512'],
-#                 message['envelope']['local']['time_added'])
-#             messages.append(current_message)
-
-#         self.write(
-#             self.render_string(
-#                 'messagehistory.html',
-#                 messages=messages))
-
-# @memorise(parent_keys=['fullcookies','request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
+# @memorise(parent_keys=['fullcookies', 'request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
 
 
 # def TopicHandler_get(topic='all'):
@@ -1298,15 +1222,41 @@ def MessageHandler(baseobj, topic, short_name, messageid):
 #     robo.img.save(self, format='png')
 
 
-# def server_static(filepath):
-#     if os.path.isfile('tmp/static/scripts/default.js'):
-#         root = os.path.join(
-#             os.path.dirname(__file__),
-#             "tmp/static/")
-#     else:
-#         root = os.path.join(os.path.dirname(__file__), "static/")
+# def RssHandler(baseobj,action,topic):
+#    """Generate an RSS feed for a given topic"""
+#     """Generates RSS feeds for a Topic."""
+#     def get(action, topic):
+#         channel = rss.Channel('Tavern - ' + param,
+#                               'http://GetTavern.com/rss/' + param,
+#                               'Tavern discussion about ' + param,
+#                               generator='Tavern',
+#                               pubdate=datetime.datetime.today())
+#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
+#             item = rss.Item(channel,
+#                             envelope['envelope']['payload']['subject'],
+#                             "http://GetTavern.com/message/" + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'sorttopic'] + '/' + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'short_subject'] + "/" + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'payload_sha512'],
+#                             envelope['envelope']['local']['formattedbody'])
+#             channel.additem(item)
+#         self.write(channel.toprettyxml())
+def server_static(baseobj, filepath):
+    if os.path.isfile('tmp/static/scripts/default.js'):
+        root = os.path.join(
+            os.path.dirname(__file__),
+            "tmp/static/")
+    else:
+        root = os.path.join(os.path.dirname(__file__), "static/")
 
-#     return bottle.static_file(filepath, root=root)
+    baseobj.server.logger.info("Serving static file out of Bottle/Python. This is not recommended for production deployments.")
+    return bottle.static_file(filepath, root=root)
 
 
 def config_jinja():
@@ -1376,25 +1326,22 @@ def config():
     server.logger.info("Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
     bottle.route('/', 'GET', FrontPageHandler)
-    bottle.route('/m/<topic>', 'GET', MessageHandler)
+    bottle.route('/m/<messageid>', 'GET', MessageHandler)
     bottle.route('/m/<topic>/<short_name>/<messageid>', 'GET', MessageHandler)
+    bottle.route('/mh/<messageid>', 'GET', MessageHistoryHandler)
+    bottle.route('/mh/<topic>/<short_name>/<messageid>', 'GET', MessageHistoryHandler)
 
     # app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
-
     # app.jinja_env.add_extension("jinja2.ext.i18n")
     # app.jinja_env = load_jinja_filters(app.jinja_env)
-
     # bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
-
     # bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
     # bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
     # bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
     # bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
-
     # bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
     # bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
     # bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
-
     # bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
     # bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
     # bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
@@ -1426,7 +1373,7 @@ def config():
     # bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
     # bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
     # bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
-    # bottle.route('/static/<filepath:path>', 'GET', server_static)
+    bottle.route('/static/<filepath:path>', 'GET', server_static)
     server.logger.info(
         server.serversettings.settings['hostname'] + ' is ready for requests')
 
@@ -1436,7 +1383,7 @@ def config():
 def main():
     # Using waitress for now.
     # Once gevent is ported (1.1), this may be a better option.
-    bottle.run(host='localhost', port=options.port, server='waitress')
+    bottle.run(host='localhost', port=options.port, server='tornado')
 
 
 config()
