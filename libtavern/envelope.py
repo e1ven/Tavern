@@ -88,6 +88,14 @@ class Envelope(libtavern.baseobj.Baseobj):
                     print("Message Revisions must refer to a message.")
                     return False
             return True
+   
+    def get_original(self):
+        """
+        Returns the original message, without any edits
+        """
+        env = Envelope()
+        env.loadmongo(mongo_id=env.dict['envelope']['payload']['regarding'])
+        return env
 
     class Message(Payload):
 
@@ -136,6 +144,7 @@ class Envelope(libtavern.baseobj.Baseobj):
                         return False
 
             return True
+
 
     class PrivateMessage(Payload):
 

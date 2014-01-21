@@ -591,8 +591,9 @@ a.details
         padding-right:10px;
     }
 
+    
+    .infobox {
 
-    .first_message {
         margin-top:35px;
         margin-left:20px;
         width: auto;
@@ -606,6 +607,49 @@ a.details
         @include box-shadow( 0px 3px 3px #b5b39a);
         color: $lightgrey;
 
+        a {
+            color: $lightgrey;
+            &:visited {
+                color: $lightgrey;
+            }
+            &:hover {
+                text-decoration: underline;
+                color: $darkgrey;
+            }
+        }
+        
+        h1 {
+            font-size: 28px;
+            height:1em;
+            overflow:hidden;
+            font-style: normal;
+            color: $creme;
+            margin-right: 40px;
+            margin-top: 10px;
+        }
+
+        .body {
+            @import "markdown.scss";
+            margin-bottom: 18px;
+            margin-top: 22px;
+            font: 13px;
+            line-height: 16px;
+            color: #ffffff;
+        }
+
+        .editline {
+            margin-top: 15px;
+        }
+
+    }
+
+    .first_message {
+        @extend .infobox;
+
+        .message_body {
+            @extend .body;
+        }
+
         .note {
            left:20px;
            display:inline;
@@ -615,35 +659,6 @@ a.details
             @include border-radius(12px);
             float:left;
             margin-right:10px;
-        }
-
-        h1 {
-            font-size: 28px;
-            height:1em;
-            overflow:hidden;
-            font-style: normal;
-            color: #ece9d7;
-            margin-right: 40px;
-            margin-top: 10px;
-        }
-
-        .message_body {
-            @import "markdown.scss";
-            margin-bottom: 18px;
-            margin-top: 22px;
-            font: 13px;
-            line-height: 16px;
-            color: #ffffff;
-            a {
-                color: $lightgrey;
-                &:visited {
-                    color: $lightgrey;
-                }
-                &:hover {
-                    text-decoration: underline;
-                    color: $darkgrey;
-                }
-            }
         }
 
         .message_author_info {
@@ -664,9 +679,6 @@ a.details
         .likeDislikeIcon {
             margin-bottom: 8px;
             color: $creme;
-            &:hover {
-                color: darken($creme,20%);
-            }
         }
 
         .likeDislikeLabel {
@@ -692,13 +704,6 @@ a.details
             .external_sharing_button {
                 @include trivialAnimation();
             }
-
-            a {
-                color:inherit;
-                &:hover {
-                    color: darken($creme,20%);
-                }
-            }
         }
     }
 
@@ -713,9 +718,11 @@ a.details
         margin-left:-30px;
         color: $darkgrey;
         border:1px;
+        
         h6 {
             margin: 0px;
         }
+
         .avatar {
             @include border-radius(50%);
         }
@@ -724,19 +731,18 @@ a.details
             color: $darkgrey;
         }
 
+        a {
+            color: $greybrown;
+            &:visited {
+                color: $greybrown;
+            }
+            &:hover {
+                color: $nearblack;
+            }
+        }
+
         .message_body {
             color: $nearblack;
-
-            a {
-                color: $greybrown;
-                &:visited {
-                    color: $greybrown;
-                }
-                &:hover {
-                    color: $nearblack;
-                }
-            }
-
         }
 
         .message_author_info {
@@ -758,12 +764,6 @@ a.details
         }
         .message_links {
             color: $greybrown;
-
-            a {
-                &:hover {
-                    color: darken($greybrown,20%);
-                }
-            }
         }
 
     }

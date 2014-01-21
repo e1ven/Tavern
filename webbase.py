@@ -12,7 +12,7 @@ class BaseHandler(object):
         Generates a new user (usually guest) if it can't find one.
 
         """
-
+        pass
         # Create a user obj - We'll either make this into a new user, the default user, or an empty user.
         self.user = libtavern.user.User()
 
@@ -46,7 +46,7 @@ class BaseHandler(object):
         These are encrypted using the Bottle encryption system.
 
         """
-
+        pass
         # Note - We're using a sessionid lookup table, not storing a key from the User.
         # This abstraction is useful for 2-factor auth, API lookups, and the like.
         # It does cause a second DB hit, but for now it's worth the tradeoff.
