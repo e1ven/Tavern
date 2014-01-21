@@ -18,7 +18,7 @@
 		<link rel=canonical href="{{handler.server.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
 		<meta property="og:url" content="{{handler.server.serversettings.settings['canonical_url']}}/{{handler.canon}}"/>
 		<meta property="og:blog" content="article"/>
-	{% endif %}
+	{% end %}
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
 
 
@@ -27,7 +27,7 @@
 		<meta NAME="Description" CONTENT="Tavern ;) - {{handler.title}}">
 	{% else %}
 		<meta NAME="Description" CONTENT="A shared discussion about the topics that matter.">
-	{% endif %}
+	{% end %}
 
 	<meta http-equiv="X-Frame-Options" content="deny">
 	<meta property="og:site_name" content="Tavern"/>
@@ -37,14 +37,14 @@
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{ handler.title }}
 		{% else %}
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Discuss what matters.
-		{% endif %}
+		{% end %}
 	</title>
 	<meta property="og:title" content="
 	{% if handler.title is defined %}
 	Tavern :: {{ handler.title }}
 	{% else %}
 	Tavern :: Discuss what matters
-	{% endif %}
+	{% end %}
 	"/>
 
 	<link rel="alternate" type="application/rss+xml" title="Updates on {{ handler.topic }}" href="/rss/topic/{{ handler.topic }}" /> 
@@ -53,8 +53,8 @@
 			<link href="/static/css/unified-{{ handler.user.UserSettings['theme'] }}.min.css?v={{ handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		    <!--[if IE 7]>
     			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
-    		<![endif]-->	
-	{% endif %}
+    		<![end]-->	
+	{% end %}
 	
 
     <link rel="icon" href="/static/icons/32x32Icon.png?v={{ handler.server.serversettings.settings['static-revision'] }}" type="image/png" />
@@ -65,7 +65,7 @@
 
 	{% if handler.useragent['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
 	  <script src="/static/scripts/IE9.min.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>  
-	{% endif %}
+	{% end %}
 
 
 
@@ -76,8 +76,8 @@
 		<!-- No JS for IE < 8 -->
 		{% if handler.useragent['ua_family'] != 'IE' or requestvars['browser']['ua_versions'][0] >= 8 %}
 		  <script defer src="/static/scripts/unified.min.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>
-		{% endif %}
-	{% endif %}
+		{% end %}
+	{% end %}
 
 </head>
 <body link="#000000" visited="#000000" text="#000000" background="#CCCCCC" id="body">

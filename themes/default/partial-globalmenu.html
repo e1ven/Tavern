@@ -13,7 +13,7 @@
                                 <a href="/user/{{handler.user.Keys['master'].pubkey}}">{{handler.user.username}}</a>.</p>
                             {% else %}
                                 <p>You've using a <br><a href="/user/{{handler.user.Keys['master'].pubkey}}"> temporary account</a>.</p>
-                            {% endif %}
+                            {% end %}
                     </div>
                         <li>
                             <form action="/logout" method="post">
@@ -41,31 +41,31 @@
                 </div>
             </ul>
         </li>
-    {% endif %}
+    {% end %}
     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
         <ul class="sub-element sub-menu">
             {% for quicktopic in handler.topicfilter.toptopics() %}
-                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% endif %} >
+                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% end %} >
                     <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
                         <bdi>{{ quicktopic }}</bdi>
                         {% set _ = handler.topicfilter.set_topic(quicktopic) %}
                         <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
                     </a>
                 </li>
-            {% endfor %}
+            {% end %}
         </ul>
     </li>
     <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
         <ul class="sub-element sub-menu">
             {% for quicktopic in handler.user.UserSettings['followedTopics'] %}
-                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% endif %} >
+                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% end %} >
                     <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
                         <bdi>{{ quicktopic }}</bdi>
                         {%  set _ = handler.topicfilter.set_topic(quicktopic) %}
                         <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
                     </a>
                 </li>
-            {% endfor %}
+            {% end %}
         </ul>
     </li>
     <li id="four" class="mainheader"><a href="#">Special</a>

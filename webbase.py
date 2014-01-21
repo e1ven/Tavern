@@ -3,8 +3,17 @@ import libtavern.server
 import libtavern.topicfilter
 import random
 
+import tornado.httpserver
+import tornado.ioloop
+import tornado.options
+import tornado.web
+import tornado.escape
+from tornado.options import define, options
 
-class BaseHandler(object):
+server = libtavern.server.Server()
+
+
+class BaseHandler(tornado.web.RequestHandler):
 
     def load_session(self, AllowGuestKey=True):
         """Load into memory the User class by way of the session cookie.
@@ -12,18 +21,18 @@ class BaseHandler(object):
         Generates a new user (usually guest) if it can't find one.
 
         """
-        pass
+        
         # Create a user obj - We'll either make this into a new user, the default user, or an empty user.
         self.user = libtavern.user.User()
 
         # Load in our saved passkey if it's available.
-        if self.request.get_cookie('passkey', secret=self.server.serversettings.settings['session-key']):
-            self.user.passkey = self.request.get_cookie('passkey', secret=self.server.serversettings.settings['session-key'])
+        if self.get_secure_cookie('passkey'):
+            self.user.passkey = self.get_secure_cookie('passkey')
 
         # Load in our session token if we have one.
-        if self.request.get_cookie('sessionid', secret=self.server.serversettings.settings['session-key']):
+        if self.get_secure_cookie('sessionid'):
             result = self.user.load_mongo_by_sessionid(
-                self.request.get_cookie('sessionid', secure=True, secret=self.server.serversettings.settings['session-key']))
+                self.get_secure_cookie('sessionid'))
 
         # Ensure we have a user that is valid
         # If not, clear cookies, delete user, treat as not-logged-in.
@@ -31,8 +40,8 @@ class BaseHandler(object):
             if self.user.Keys['master'].pubkey is None:
                 raise
         except:
-            self.response.delete_cookie('passkey')
-            self.response.delete_cookie('sessionid')
+            self.clear_cookie('passkey')
+            self.clear_cookie('sessionid')
 
             self.user = libtavern.user.User()
 
@@ -46,7 +55,7 @@ class BaseHandler(object):
         These are encrypted using the Bottle encryption system.
 
         """
-        pass
+        
         # Note - We're using a sessionid lookup table, not storing a key from the User.
         # This abstraction is useful for 2-factor auth, API lookups, and the like.
         # It does cause a second DB hit, but for now it's worth the tradeoff.
@@ -61,25 +70,23 @@ class BaseHandler(object):
         # This passkey is never stored serverside.
         if self.user.has_unique_key:
             if self.user.passkey is not None:
-                self.response.set_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2,
-                                         secret=self.server.serversettings.settings['session-key'])
+                self.set_secure_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2)
 
         # Before we save out the sessionid, make sure the user is valid
         if self.user.generate():
             self.user.save_mongo()
-        self.response.set_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True,
-                                 max_age=31556952 * 2, secret=self.server.serversettings.settings['session-key'])
+        self.set_secure_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True, max_age=31556952 * 2)
 
     def setheaders(self):
         """Set various headers that each HTTP response should have."""
         # Add in a random fortune
-        self.response.headers.replace("X-Fortune", self.server.fortune.random().encode('iso-8859-1', errors='ignore'))
+        self.set_header("X-Fortune", self.server.fortune.random().encode('iso-8859-1', errors='ignore'))
         # Do not allow the content to load in a frame.
         # Should help prevent certain attacks
-        self.response.headers.replace("X-FRAME-OPTIONS", "DENY")
+        self.set_header("X-FRAME-OPTIONS", "DENY")
         # Don't try to guess content-type.
         # This helps avoid JS sent in an image.
-        self.response.headers.replace("X-Content-Type-Options", "nosniff")
+        self.set_header("X-Content-Type-Options", "nosniff")
 
         # http://cspisawesome.com/content_security_policies
         # bottle.response.set_header(
@@ -89,13 +96,16 @@ class BaseHandler(object):
         #         'embedserver'] +
         #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
 
-    def __init__(self, request, response, server):
+    def __init__(self, *args, **kwargs):
 
         print("Creating new init!")
         """Create the base object for all requests to our Tavern webserver."""
-        self.response = response
-        self.request = request
+      
         self.server = server
+
+        self.html = ""
+        super().__init__(*args, **kwargs)
+
 
         self.setheaders()
         self.load_session()

@@ -1,27 +1,23 @@
-{% macro message(envelope,handler,top,childmap) %}
-{% import 'macro-showmessage.html' as show_message %}
-
     {% set permalink = handler.server.url_for(envelope) %}
     {% set messagerating = handler.user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
     {% set note = handler.user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
+    {% set medialink = '' %}
 
     {% if top %}
-        {% set class = 'first' %}
         {% set avatarsize = 80 %}
     {% else %}
-        {% set class = 'comment' %}
         {% set avatarsize = 40 %}
 
-    {% endif %}
+    {% end %}
 
     {% if top %}
     <div class="first_message">
-    {% endif %}
+    {% end %}
         <ul>
             <li>
                  {% if not top %}
                     <div class="message rating_{{messagerating}}" rating={{messagerating}}>
-                 {% endif %}
+                 {% end %}
                     <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}" rel="author">
                         <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
                     </a>
@@ -29,38 +25,38 @@
                     <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
                         <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
                     </abbr>
-                    {% endif %}
+                    {% end %}
                     <h6 class="message_author_info">
                         By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
-                        {% if note is not none %}
+                        {% if note is not None %}
                             <div class="note"> ( {{note}} ) </div>
-                        {% endif %}
+                        {% end %}
                     </h6>
                     </a>
                     {% include 'UserDetails.html' %}
                     <p class="message_date">
-                        Received <abbr title="{{envelope.dict['envelope']['local']['time_added'] | timestamp}}"><time datetime="{{envelope.dict['envelope']['local']['time_added'] | timestamp('iso') }}">{{envelope.dict['envelope']['local']['time_added'] | timestamp('delta') }}</time></abbr>.
+                        Received <abbr title="{{envelope.dict['envelope']['local']['time_added'] }}"><time datetime="{{envelope.dict['envelope']['local']['time_added']  }}">{{envelope.dict['envelope']['local']['time_added']}}</time></abbr>.
                         {% if 'edits' in envelope.dict['envelope']['local'] %}
                             <abbr title="This message has been edited."><a href="/messagehistory/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
-                        {% endif %}
+                        {% end %}
                     </p>
 
                     {% if top %}
                     <p class="averagerating">
                         {% if messagerating != 0 %}
                             Average Message Rating: {{messagerating}}
-                        {% endif %}
+                        {% end %}
                     </p>
-                    {% endif %}
+                    {% end %}
 
 
                     <br>
                     <div class="message_body">
                             {% if not handler.showoriginal and 'edits' in envelope.dict['envelope']['local'] %}
-                                {{ envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] | safe }}
+                                {{ envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] }}
                             {% else %}
-                                {{ envelope.dict['envelope']['local']['formattedbody'] | safe }}
-                            {% endif %}
+                                {{ envelope.dict['envelope']['local']['formattedbody'] }}
+                            {% end %}
                     </div>
 
                     <hr class="clear message_separator_line">
@@ -140,7 +136,7 @@
                                 <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                                     Edit
                                 </a>
-                            {% endif %}
+                            {% end %}
                         </div>
                     </div>
                     {% if top %}
@@ -161,7 +157,7 @@
                             Highest Ranked comment is: <div id="highestrating"></div>. Lowest is <div id="lowestrating">.</div>
                         </div>
                     </div>
-                    {% endif %}
+                    {% end %}
                     <div id="numberofreplies" class="commentDisplayOptions">
                         <p>
                             {% if envelope.countChildren() == 1 %}
@@ -170,7 +166,7 @@
                                 <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
                             {% else %}
                                {{envelope.countChildren()}} Replies
-                            {% endif %}
+                            {% end %}
                         </p>
                     </div>
                     <Br><br>
@@ -180,18 +176,18 @@
 
                     {% if not top %}
                         </div> <!-- End message div -->
-                    {% endif %}
+                    {% end %}
                     {% if 'citedby' in envelope.dict['envelope']['local'] %}
                         {% for cite in envelope.dict['envelope']['local']['citedby'] %}
-                            {{ show_message.message(envelope=childmap[cite],handler=handler,top=False,childmap=childmap)}}
-                        {% endfor %}
-                    {% endif %}
+                            
+                            {% raw handler.render_string('macro-showmessage.html', envelope=childmap[cite],handler=handler,top=False,childmap=childmap)  %}
+                       
+                        {% end %}
+                    {% end %}
             </li>
 
         </ul>
 
     {% if top %}
     </div>
-    {% endif %}
-
-{% endmacro %}
+    {% end %}

@@ -7,7 +7,7 @@
 {% if subjects[0] is defined %}
     {% set number_of_messages_before_displayed = handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']) %}
     {% set number_of_messages_after_displayed = handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']) %}
-{% endif %}
+{% end %}
 
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
 	<tr height="10px">
@@ -30,7 +30,7 @@
                 <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
             {% else %}
                 <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
-            {% endif %}
+            {% end %}
     </td>
     </tr>
     <tr>
@@ -59,7 +59,7 @@
     <td valign="top">
         <ul class="messages">
         {% for subject in subjects %}
-            <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512']%} active{% endif %}">
+            <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
                 <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
                 <a class='internal messagelink' href="/message/{{handler.topic}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
                   <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
@@ -67,10 +67,10 @@
                 </a>
                 {% if subject.countChildren() > 0 %}
                     <div class="replies"><div>{{subject.countChildren()}}</div></div>
-                {% endif %}
+                {% end %}
                 </abbr>
             </li>
-        {% endfor %}
+        {% end %}
         </ul>
 
 
@@ -84,7 +84,7 @@
                         <span class="icon-left-circled navIcon"></span>
                        </button>
                     </a>
-                    {% endif %}
+                    {% end %}
                 </td>
                 <td>
                     {% if number_of_messages_after_displayed is defined %}
@@ -94,7 +94,7 @@
                         <span class="icon-right-circled navIcon"></span>
                        </button>
                     </a>
-                    {% endif %}
+                    {% end %}
                 </td>
             </tr>
         </table>

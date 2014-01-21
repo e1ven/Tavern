@@ -9,7 +9,7 @@
                 This user's ratings have a slight effect on a comment's score.
             {% elif trust <= 0 %}
                 This user's ratings have no effect on a comment's score.
-            {% endif %}
+            {% end %}
          </div>
     </abbr>
         {% if trust < 100 %}
@@ -20,12 +20,12 @@
                         <input type="hidden" name="trust" value="100">
                         {% if 'topic' in envelope.dict['envelope']['payload'] %}
                             <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                        {% endif %}
+                        {% end %}
                         <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                         <input class="textbutton icon-label" type="submit" value="Endorse this user">
                     </form>
             </div>
-        {% endif %}
+        {% end %}
         {% if trust > -100 and trust < 100 %}
             <div class='DetailsOption'>
                 <i class="icon icon-minus-circled"></i>
@@ -34,21 +34,21 @@
                     <input type="hidden" name="trust" value="-100">
                     {% if 'topic' in envelope.dict['envelope']['payload'] %}
                         <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
-                    {% endif %}
+                    {% end %}
                     <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
                     <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                 </form>
             </div>
-        {% endif %}
+        {% end %}
         <form action="/usernote" method="post" class="usernote">
              {# raw xsrf_form_html() #}
             <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
             <input class="usernote" type="text" value="" name="note" 
-            {% if note is none %}
+            {% if note is None %}
                 {% set placeholder="Add a note to yourself about this user" %}
             {% else %}
                 {% set placeholder=note %}
-            {% endif %}
+            {% end %}
             >
         </form>
         <div class='DetailsOption'>
