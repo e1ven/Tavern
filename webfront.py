@@ -15,18 +15,25 @@ import pygeoip
 import urllib.parse
 import hashlib
 import optparse
+import socket
 
 from libs import rss
-from libs import bottle
-from libs.bottle import Jinja2Template
-from libs.bottle import jinja2_view as view, jinja2_template as template
-
 from robohash import Robohash
 
 import libtavern.server
 import libtavern.envelope
 import libtavern.utils
 import webbase
+
+
+import tornado.httpserver
+import tornado.ioloop
+import tornado.options
+import tornado.web
+import tornado.escape
+from tornado.options import define, options
+
+
 
 server = libtavern.server.Server()
 
@@ -35,74 +42,61 @@ class TavernException(Exception):
 
     """Exception that produces an error message for the user."""
 
-    def __init__(self, baseobj, subject, body, topic='Error'):
+    def __init__(self, subject, body, topic='Error'):
 
         # Call the base exception
         Exception.__init__(self, subject)
 
         # Create a pretty error emessage
-        baseobj.displayenvelope = baseobj.server.error_envelope(subject=subject, topic=topic, body=body)
-        baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
-        baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
-        baseobj.title = baseobj.displayenvelope.dict['envelope']['payload']['subject']
+        self.displayenvelope = self.server.error_envelope(subject=subject, topic=topic, body=body)
+        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.canon = self.server.url_for(envelope=self.displayenvelope)
+        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
 
-        baseobj.displayenvelope.load_children()
-        self.body = template('partial-showmessage.html', handler=baseobj)
+        self.displayenvelope.load_children()
+        self.body = self.render_string('partial-showmessage.html', handler=self)
 
+class EntryHandler(webbase.BaseHandler):
+    def get(self):
+        """A simple redirect, that will redirect people from / to a FAQ.
 
-# The Tavern plugin sets up a 'baseobj' as the first argument to each handler.
-# This acts as an object for the request, allowing us to store variables, and run initializations.
-# baseobj should be the first argument to every handler - Think of it sort of like 'self'.
-def tavernplugin(callback):
-    def wrapper(*args, **kwargs):
-        baseobj = webbase.BaseHandler(request=bottle.request, response=bottle.response, server=server)
-        try:
-            body = callback(*args, baseobj=baseobj, **kwargs)
-            return body
-        except TavernException as ex:
-            return ex.body
-    return wrapper
+        Currently, this redirects everyone.
+        Eventually, it may give a different experience for first-time visitors.
 
+        """
+        self.write("I love you!")
 
-def FrontPageHandler(baseobj):
-    """A simple redirect, that will redirect people from / to a FAQ.
+class MessageHandler(webbase.BaseHandler):
+    def get(self, messageid, topic=None, short_name=None):
+        """Retrieve and display a message."""
 
-    Currently, this redirects everyone.
-    Eventually, it may give a different experience for first-time visitors.
+        messagesenvelope = self.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
 
-    """
-    return("I love you!")
+        if messagesenvelope is None:
+            raise TavernException(self, subject="That message can't be found", body="I'm sorry, but we just can't find the message you're looking for. ;(")
 
+        self.displayenvelope = libtavern.envelope.Envelope()
+        self.displayenvelope.loaddict(messagesenvelope)
 
-def MessageHandler(baseobj, messageid, topic=None, short_name=None):
-    """Retrieve and display a message."""
+        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.canon = self.server.url_for(envelope=self.displayenvelope)
+        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
 
-    messagesenvelope = baseobj.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
+        # These are the divs that will shift
+        # self.divs = ['scrollablediv2', 'scrollablediv3']
 
-    if messagesenvelope is None:
-        raise TavernException(baseobj, subject="That message can't be found", body="I'm sorry, but we just can't find the message you're looking for. ;(")
+        self.displayenvelope.load_children()
+        
+        body = self.render_string('partial-showmessage.html', handler=self)
+        self.write(body)
 
-    baseobj.displayenvelope = libtavern.envelope.Envelope()
-    baseobj.displayenvelope.loaddict(messagesenvelope)
-
-    baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
-    baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
-    baseobj.title = baseobj.displayenvelope.dict['envelope']['payload']['subject']
-
-    # These are the divs that will shift
-    # baseobj.divs = ['scrollablediv2', 'scrollablediv3']
-
-    baseobj.displayenvelope.load_children()
-    return template('partial-showmessage.html', handler=baseobj)
-
-
-def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
+def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
     """Display the various edits to a message."""
 
     e = libtavern.envelope.Envelope()
     e.loadmongo(messageid)
     if not e.loadmongo(messageid):
-        raise TavernException(baseobj, subject="That message's history can't be found :(",
+        raise TavernException(self, subject="That message's history can't be found :(",
                               body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
     if isinstance(e.payload, libtavern.envelope.Envelope.Message):
@@ -110,7 +104,7 @@ def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
     elif isinstance(e.payload, libtavern.envelope.Envelope.MessageRevision):
         original = e.get_original()
     else:
-        raise TavernException(baseobj, subject="That message's history can't be found :(",
+        raise TavernException(self, subject="That message's history can't be found :(",
                               body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
     # Create a list of unique message ids, and the time we first saw it.
@@ -129,13 +123,13 @@ def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
     # Sort the edits
     edits.sort(key=lambda e: (e.dict['envelope']['local']['priority'], (e.dict['envelope']['local']['time_added'])))
 
-    baseobj.edits = edits
-    baseobj.displayenvelope = original
-    baseobj.topic = baseobj.displayenvelope.dict['envelope']['payload']['topic']
-    baseobj.canon = baseobj.server.url_for(envelope=baseobj.displayenvelope)
-    baseobj.title = "History for " + baseobj.displayenvelope.dict['envelope']['payload']['subject']
+    self.edits = edits
+    self.displayenvelope = original
+    self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+    self.canon = self.server.url_for(envelope=self.displayenvelope)
+    self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
 
-    return template('partial-messagehistory.html', handler=baseobj)
+    return template('partial-messagehistory.html', handler=self)
 
 
 # @memorise(parent_keys=['fullcookies', 'request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
@@ -1222,7 +1216,7 @@ def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
 #     robo.img.save(self, format='png')
 
 
-# def RssHandler(baseobj,action,topic):
+# def RssHandler(self,action,topic):
 #    """Generate an RSS feed for a given topic"""
 #     """Generates RSS feeds for a Topic."""
 #     def get(action, topic):
@@ -1247,7 +1241,7 @@ def MessageHistoryHandler(baseobj, messageid, topic=None, short_name=None, ):
 #                             envelope['envelope']['local']['formattedbody'])
 #             channel.additem(item)
 #         self.write(channel.toprettyxml())
-def server_static(baseobj, filepath):
+def server_static(self, filepath):
     if os.path.isfile('tmp/static/scripts/default.js'):
         root = os.path.join(
             os.path.dirname(__file__),
@@ -1255,7 +1249,7 @@ def server_static(baseobj, filepath):
     else:
         root = os.path.join(os.path.dirname(__file__), "static/")
 
-    baseobj.server.logger.info("Serving static file out of Bottle/Python. This is not recommended for production deployments.")
+    self.server.logger.info("Serving static file out of Bottle/Python. This is not recommended for production deployments.")
     return bottle.static_file(filepath, root=root)
 
 
@@ -1284,7 +1278,7 @@ def config_jinja():
     Jinja2Template.settings['filters']['timestamp'] = format_timestamp
 
 
-def config():
+def main():
     # Define our App
     # Set up Command Line Parsing
     parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
@@ -1320,75 +1314,105 @@ def config():
         if loglevel <= 20:
             bottle.debug(True)
 
-    config_jinja()
 
-    server.start()
-    server.logger.info("Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
-    bottle.route('/', 'GET', FrontPageHandler)
-    bottle.route('/m/<messageid>', 'GET', MessageHandler)
-    bottle.route('/m/<topic>/<short_name>/<messageid>', 'GET', MessageHandler)
-    bottle.route('/mh/<messageid>', 'GET', MessageHistoryHandler)
-    bottle.route('/mh/<topic>/<short_name>/<messageid>', 'GET', MessageHistoryHandler)
-
-    # app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
-    # app.jinja_env.add_extension("jinja2.ext.i18n")
-    # app.jinja_env = load_jinja_filters(app.jinja_env)
-    # bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
-    # bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
-    # bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
-    # bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
-    # bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
-    # bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
-    # bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
-    # bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
-    # bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
-    # bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
-    # bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
-    # bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
-    # bottle.route('/newmessage', 'GET', NewmessageHandler_get)
-    # bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
-    # bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
-    # bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
-    # bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/register', 'GET', RegisterHandler_get)
-    # bottle.route('/login', 'GET', LoginHandler_get)
-    # bottle.route('/login/<slug>', 'GET', LoginHandler_get)
-    # bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
-    # bottle.route('/logout', 'GET', LogoutHandler_post)
-    # bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
-    # bottle.route('/vote', 'POST', RatingHandler_post)
-    # bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
-    # bottle.route('/usertrust', 'POST', UserTrustHandler_post)
-    # bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
-    # bottle.route('/usernote', 'POST', UserTrustHandler_post)
-    # bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
-    # bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
-    # bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
-    # bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
-    # bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
-    # bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
-    # bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
-    bottle.route('/static/<filepath:path>', 'GET', server_static)
+    # timeout in seconds
+    timeout = 10
+    socket.setdefaulttimeout(timeout)
     server.logger.info(
-        server.serversettings.settings['hostname'] + ' is ready for requests')
+        "Starting Web Frontend for " + server.serversettings.settings['hostname'])
 
-    bottle.install(tavernplugin)
+    server.debug = options.debug
+    # Tell the server process to fire up and run for a while.
+    server.start()
+
+    settings = {
+        "cookie_secret": server.serversettings.settings['cookie-encryption'],
+        "login_url": "/login",
+        "xsrf_cookies": True,
+        "template_path": "themes/default",
+        "autoescape": "xhtml_escape"
+    }
+
+    # Detect if we have the ramdisk setup for static files
+    staticopts = {}
+    if os.path.isfile('tmp/static/scripts/default.js'):
+        staticopts['path'] = os.path.join(
+            os.path.dirname(__file__),
+            "tmp/static/")
+    else:
+        staticopts['path'] = os.path.join(os.path.dirname(__file__), "static/")
+
+    application = tornado.web.Application([
+        (r"/", EntryHandler),
+        (r"/message/(.*)/(.*)/(.*)", MessageHandler),
+        (r"/message/(.*)/(.*)", MessageHandler),
+        (r"/message/(.*)", MessageHandler),
+        (r"/m/(.*)/(.*)/(.*)", MessageHandler),
+        (r"/m/(.*)/(.*)", MessageHandler),
+        (r"/m/(.*)", MessageHandler),
+
+        # (r"/topic/(.*)", TopicHandler),
+        # (r"/t/(.*)", TopicHandler),
+
+        # (r"/sitecontent/(.*)", SiteContentHandler),
+
+        # (r"/showtopics", ShowTopicsHandler),
+        # (r"/showprivates", ShowPrivatesHandler),
+        # (r"/privatemessage/(.*)", ShowPrivatesHandler),
+
+        # (r"/topicinfo/(.*)", TopicPropertiesHandler),
+        # (r"/attachment/(.*)", AttachmentHandler),
 
 
-def main():
-    # Using waitress for now.
-    # Once gevent is ported (1.1), this may be a better option.
-    bottle.run(host='localhost', port=options.port, server='tornado')
+        # (r"/messagehistory/(.*)", MessageHistoryHandler),
+        # (r"/user/(.*)", UserHandler),
+
+        # (r"/newmessage/(.*)", NewmessageHandler),
+        # (r"/newmessage", NewmessageHandler),
+
+        # (r"/edit/(.*)", EditMessageHandler),
+        # (r"/reply/(.*)/(.*)", ReplyHandler),
+        # (r"/reply/(.*)", ReplyHandler),
+        # (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
+
+        # (r"/upload/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
+        # (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
+        # (r"/uploadfile/(.*)", ReceiveEnvelopeHandler),
+
+        # (r"/register", RegisterHandler),
+        # (r"/login/(.*)", LoginHandler),
+        # (r"/login", LoginHandler),
+        # (r"/changepassword", ChangepasswordHandler),
+        # (r"/logout", LogoutHandler),
 
 
-config()
+        # (r"/vote", RatingHandler),
+        # (r"/usertrust", UserTrustHandler),
+        # (r"/usernote", UserNoteHandler),
+
+        # (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),
+        # (r"/changesetting/(.*)", ChangeSingleSettingHandler),
+        # (r"/changesettings", ChangeManySettingsHandler),
+
+        # (r"/rss/(.*)/(.*)", RSSHandler),
+
+        # (r"/avatar/(.*)", AvatarHandler),
+        # (r"/binaries/(.*)/(.*)", BinariesHandler),
+        # (r"/binaries/(.*)", BinariesHandler),
+        (r"/static/(.*)", tornado.web.StaticFileHandler, staticopts)
+    ], **settings)
+
+    http_server = tornado.httpserver.HTTPServer(application)
+    http_server.listen(options.port)
+
+    server.logger.info(
+        server.serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port))
+    if options.initonly is False:
+        tornado.ioloop.IOLoop.instance().start()
+    else:
+        server.logger.info("Exiting immediatly as requested")
+
 if __name__ == "__main__":
     main()
-else:
-    # Create an external variable with the bottle app, that we can call from uwsgi/gunicorn/etc
-    app = bottle.default_app()
+

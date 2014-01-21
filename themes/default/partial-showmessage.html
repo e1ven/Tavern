@@ -1,10 +1,11 @@
-{% extends "container-tripane.html" %}
-{% import 'macro-showmessage.html' as show_message %}
+{# extends "container-tripane.html" #}
+{# import 'macro-showmessage.html' as show_message #}
 
 {% block column3 %}
     <div id="allreplies">
         <!-- include firstMessage as the top reply, and any children -->
-        {{ show_message.message(envelope=handler.displayenvelope,handler=handler,top=True,childmap=handler.displayenvelope.childmap)}}
+        
+        {% raw handler.render_string('macro-showmessage.html', envelope=handler.displayenvelope,handler=handler,top=True,childmap=handler.displayenvelope.childmap)  %}
 
     </div>
-{% endblock column3 %}
+{% end column3 %}

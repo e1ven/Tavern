@@ -104,9 +104,8 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'session-lifetime' in self.settings:
             self.settings['session-lifetime'] = 31536000 * 20
 
-        # As defined at http://flask.pocoo.org/docs/config/#builtin-configuration-values
-        if not 'session-key' in self.settings:
-            self.settings['session-key'] = libtavern.utils.randstr(255)
+        if not 'cookie-encryption' in self.settings:
+            self.settings['cookie-encryption'] = libtavern.utils.randstr(255)
         
 
         if not 'mongo-hostname' in self.settings:

@@ -6,14 +6,14 @@
             <div id="scrollablediv1" class="fullscroller">
                 {% block column1 %}
                     {% include 'partial-globalmenu.html' %}
-                {% endblock column1 %}
+                {% end column1 %}
             </div>
         </td>
         <td id="column2in3col" valign="top" >
             <div id="scrollablediv2" class="fullscroller">
                 {% block column2 %}
                     {% include 'partial-messagelist.html' %}
-                {% endblock column2 %}
+                {% end column2 %}
             </div>
         </td>
         <td id="column3" valign="top">
@@ -21,7 +21,7 @@
                 <hr id="TopHR">
                 {% block column3 %}
                     {% include 'partial-showmessage.html' %}
-                {% endblock column3 %}
+                {% end column3 %}
             </div>
         </td>
     </tr>
