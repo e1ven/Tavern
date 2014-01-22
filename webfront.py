@@ -65,6 +65,7 @@ class EntryHandler(webbase.BaseHandler):
 
         """
         self.write("I love you!")
+        
 
 class MessageHandler(webbase.BaseHandler):
     def get(self, messageid, topic=None, short_name=None):
@@ -1252,30 +1253,6 @@ def server_static(self, filepath):
     self.server.logger.info("Serving static file out of Bottle/Python. This is not recommended for production deployments.")
     return bottle.static_file(filepath, root=root)
 
-
-def config_jinja():
-    """Setup the custom Jinja2 filters."""
-    # I prefer to use Jinja2 templates, rather than SimpleTemplate.
-    Jinja2Template.settings = {
-        'autoescape': True,
-    }
-    bottle.TEMPLATE_PATH.insert(0, 'themes/default')
-
-    # Custom Date filters
-    def format_timestamp(value, format='medium', tzinfo=None, locale='en_US'):
-        dt = datetime.datetime.fromtimestamp(value)
-        if format.lower() == "iso":
-            return dt.isoformat()
-        elif format.lower() == "delta":
-            return libtavern.utils.FancyDateTimeDelta(dt)
-        else:
-            return dt.strftime('%c')
-
-    # Add in our new filters
-    if not 'filters' in Jinja2Template.settings:
-        Jinja2Template.settings['filters'] = {}
-
-    Jinja2Template.settings['filters']['timestamp'] = format_timestamp
 
 
 def main():

@@ -1,6 +1,6 @@
-    {% set permalink = handler.server.url_for(envelope) %}
-    {% set messagerating = handler.user.getRatings(envelope.dict['envelope']['local']['payload_sha512']) %}
-    {% set note = handler.user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
+    {% set permalink = '' %}
+    {% set messagerating = 5 %}
+    {% set note = '' %}
     {% set medialink = '' %}
 
     {% if top %}
@@ -19,7 +19,7 @@
                     <div class="message rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
                     <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}" rel="author">
-                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
+                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{1}}" />
                     </a>
                     {% if top %}
                     <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
