@@ -225,6 +225,7 @@ class User(libtavern.baseobj.Baseobj):
             [Have any FOF or FOFOF rated this person]
             [Each generation of friends gets their trust multiplied by .4, since you trust them less and less]
         """
+        return 5
         # Ensure we have proper formatting for the key we're examining, so we
         # find it in the DB.
         key = libtavern.key.Key(pub=askingabout)
@@ -284,7 +285,7 @@ class User(libtavern.baseobj.Baseobj):
                 friendcount += 1
                 # Load in our friend from the DB.
                 u = User()
-                u.load_dict(
+                u.load_mongo_by_pubkey(
                     trusted['envelope']['payload']['trusted_pubkey'])
                 # TODO -
                 # MAKE THIS NOT LOAD BY PUBKEY

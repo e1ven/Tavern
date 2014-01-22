@@ -181,11 +181,7 @@
                     {% if not top %}
                         </div> <!-- End message div -->
                     {% endif %}
-                    {% if 'citedby' in envelope.dict['envelope']['local'] %}
-                        {% for cite in envelope.dict['envelope']['local']['citedby'] %}
-                            {{ show_message.message(envelope=childmap[cite],handler=handler,top=False,childmap=childmap)}}
-                        {% endfor %}
-                    {% endif %}
+
             </li>
 
         </ul>

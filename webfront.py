@@ -15,6 +15,7 @@ import pygeoip
 import urllib.parse
 import hashlib
 import optparse
+import sys
 
 from libs import rss
 from libs import bottle
@@ -1283,112 +1284,101 @@ def config_jinja():
 
     Jinja2Template.settings['filters']['timestamp'] = format_timestamp
 
-
-def config():
-    # Define our App
-    # Set up Command Line Parsing
-    parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
-    parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
-                      help="Set loglevel. Use more than once to log extra stuff (5 max)")
-    parser.add_option("--initonly", action="store_true", dest="initonly", default=False,
-                      help="Creates config files, but then immediately exit")
-    parser.add_option("-p", "--port", action="store", dest="port", default=8080,
-                      help="Port to listen on (defaults to 8080)")
-    parser.add_option("-l", "--listen", action="store", dest="listen", default='0.0.0.0',
-                      help="IP address to listen on (defaults to 0.0.0.0)")
-
-    parser.add_option("-?", "--help", action="help",
-                      help="Show this helpful message.")
-
-    group = optparse.OptionGroup(parser, "Very Dangerous Options",
-                                 "Caution: These options will let attackers take over your machine.     "
-                                 "Do not use these on any machine that other people can access!")
-    group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
-                     help="Enable the debugger in the web interface.")
-
-    parser.add_option_group(group)
-
-    global options
-    (options, args) = parser.parse_args()
-
-    # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
-    if options.verbose > 0:
-        loglevel = 100 - (options.verbose * 20)
-        if loglevel < 1:
-            loglevel = 1
-        server.logger.setLevel(loglevel)
-        if loglevel <= 20:
-            bottle.debug(True)
-
-    config_jinja()
-
-    server.start()
-    server.logger.info("Starting Web Frontend for " + server.serversettings.settings['hostname'])
-
-    bottle.route('/', 'GET', FrontPageHandler)
-    bottle.route('/m/<messageid>', 'GET', MessageHandler)
-    bottle.route('/m/<topic>/<short_name>/<messageid>', 'GET', MessageHandler)
-    bottle.route('/mh/<messageid>', 'GET', MessageHistoryHandler)
-    bottle.route('/mh/<topic>/<short_name>/<messageid>', 'GET', MessageHistoryHandler)
-
-    # app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
-    # app.jinja_env.add_extension("jinja2.ext.i18n")
-    # app.jinja_env = load_jinja_filters(app.jinja_env)
-    # bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
-    # bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
-    # bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
-    # bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
-    # bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
-    # bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
-    # bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
-    # bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
-    # bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
-    # bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
-    # bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
-    # bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
-    # bottle.route('/newmessage', 'GET', NewmessageHandler_get)
-    # bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
-    # bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
-    # bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
-    # bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
-    # bottle.route('/register', 'GET', RegisterHandler_get)
-    # bottle.route('/login', 'GET', LoginHandler_get)
-    # bottle.route('/login/<slug>', 'GET', LoginHandler_get)
-    # bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
-    # bottle.route('/logout', 'GET', LogoutHandler_post)
-    # bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
-    # bottle.route('/vote', 'POST', RatingHandler_post)
-    # bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
-    # bottle.route('/usertrust', 'POST', UserTrustHandler_post)
-    # bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
-    # bottle.route('/usernote', 'POST', UserTrustHandler_post)
-    # bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
-    # bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
-    # bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
-    # bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
-    # bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
-    # bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
-    # bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
-    bottle.route('/static/<filepath:path>', 'GET', server_static)
-    server.logger.info(
-        server.serversettings.settings['hostname'] + ' is ready for requests')
-
-    bottle.install(tavernplugin)
-
-
-def main():
-    # Using waitress for now.
-    # Once gevent is ported (1.1), this may be a better option.
-    bottle.run(host='localhost', port=options.port, server='tornado')
-
-
-config()
 if __name__ == "__main__":
-    main()
-else:
-    # Create an external variable with the bottle app, that we can call from uwsgi/gunicorn/etc
-    app = bottle.default_app()
+    print("Webfront is not intended to be run directly.")
+    sys.exit(1)
+
+
+# Define our App
+# Set up Command Line Parsing
+parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
+parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
+                  help="Set loglevel. Use more than once to log extra stuff (5 max)")
+parser.add_option("--initonly", action="store_true", dest="initonly", default=False,
+                  help="Creates config files, but then immediately exit")
+parser.add_option("-p", "--port", action="store", dest="port", default=8080,
+                  help="Port to listen on (defaults to 8080)")
+parser.add_option("-l", "--listen", action="store", dest="listen", default='0.0.0.0',
+                  help="IP address to listen on (defaults to 0.0.0.0)")
+
+parser.add_option("-?", "--help", action="help",
+                  help="Show this helpful message.")
+
+group = optparse.OptionGroup(parser, "Very Dangerous Options",
+                             "Caution: These options will let attackers take over your machine.     "
+                             "Do not use these on any machine that other people can access!")
+group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
+                 help="Enable the debugger in the web interface.")
+
+parser.add_option_group(group)
+
+global options
+(options, args) = parser.parse_args()
+
+# Parse -vvvvv for DEBUG, -vvvv for INFO, etc
+if options.verbose > 0:
+    loglevel = 100 - (options.verbose * 20)
+    if loglevel < 1:
+        loglevel = 1
+    server.logger.setLevel(loglevel)
+    if loglevel <= 20:
+        bottle.debug(True)
+
+config_jinja()
+
+server.start()
+server.logger.info("Starting Web Frontend for " + server.serversettings.settings['hostname'])
+app = application = bottle.Bottle()
+app.route('/', 'GET', FrontPageHandler)
+app.route('/m/<messageid>', 'GET', MessageHandler)
+app.route('/m/<topic>/<short_name>/<messageid>', 'GET', MessageHandler)
+app.route('/mh/<messageid>', 'GET', MessageHistoryHandler)
+app.route('/mh/<topic>/<short_name>/<messageid>', 'GET', MessageHistoryHandler)
+
+# app.add_url_rule('/message/<path:entrypoint>', view_func=MessageHandler.as_view('MessageHandler'))
+# app.jinja_env.add_extension("jinja2.ext.i18n")
+# app.jinja_env = load_jinja_filters(app.jinja_env)
+# bottle.route('/sitecontent/<message>', 'GET', MessageHandler_get)
+# bottle.route('/topic/<topic>', 'GET', TopicHandler_get)
+# bottle.route('/showtopics/<start>', 'GET', ShowTopicsHandler_get)
+# bottle.route('/showtopics', 'GET', ShowTopicsHandler_get)
+# bottle.route('/topicinfo/<topic>', 'GET', TopicPropertiesHandler_get)
+# bottle.route('/showprivates', 'GET', ShowPrivatesHandler_get)
+# bottle.route('/privatemessage/<messageid>', 'GET', ShowPrivatesHandler_get)
+# bottle.route('/newprivatemessage/<urlto>', 'GET', NewPrivateMessageHandler_get)
+# bottle.route('/attachment/<attachment>', 'GET', AttachmentHandler_get)
+# bottle.route('/messagehistory/<messageid>', 'GET', MessageHistoryHandler_get)
+# bottle.route('/user/<pubkey>', 'GET', UserHandler_get)
+# bottle.route('/newmessage/<topic>', 'GET', NewmessageHandler_get)
+# bottle.route('/newmessage', 'GET', NewmessageHandler_get)
+# bottle.route('/edit/<regarding>', 'GET', EditMessageHandler_get)
+# bottle.route('/reply/<topic>/<regarding>', 'GET', ReplyHandler_get)
+# bottle.route('/reply/<topic>', 'GET', ReplyHandler_get)
+# bottle.route('/upload/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
+# bottle.route('/uploadenvelope/<topic>/<regarding>', 'GET', ReceiveEnvelopeHandler_post)
+# bottle.route('/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+# bottle.route('/upload/uploadenvelope/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+# bottle.route('/uploadfile/<flag>', 'POST', ReceiveEnvelopeHandler_post)
+# bottle.route('/register', 'GET', RegisterHandler_get)
+# bottle.route('/login', 'GET', LoginHandler_get)
+# bottle.route('/login/<slug>', 'GET', LoginHandler_get)
+# bottle.route('/changepassword', 'GET', ChangepasswordHandler_get)
+# bottle.route('/logout', 'GET', LogoutHandler_post)
+# bottle.route('/vote/<posthash>', 'GET', RatingHandler_get)
+# bottle.route('/vote', 'POST', RatingHandler_post)
+# bottle.route('/usertrust/<user>', 'GET', UserTrustHandler_get)
+# bottle.route('/usertrust', 'POST', UserTrustHandler_post)
+# bottle.route('/usernote/<user>', 'GET', UserTrustHandler_get)
+# bottle.route('/usernote', 'POST', UserTrustHandler_post)
+# bottle.route('/changesetting/<setting>/<option>', 'POST', ChangeSingleSettingHandler_post)
+# bottle.route('/changesetting/<setting>', 'POST', ChangeSingleSettingHandler_post)
+# bottle.route('/changesettings', 'POST', ChangeManySettingsHandler_post)
+# bottle.route('/rss/<action>/<param>', 'GET', RSSHandler_get)
+# bottle.route('/avatar/<avatar>', 'GET', AvatarHandler_get)
+# bottle.route('/binaries/<binaryhash>/<filename>', 'GET', BinariesHandler_get)
+# bottle.route('/binaries/<binaryhash>', 'GET', BinariesHandler_get)
+app.route('/static/<filepath:path>', 'GET', server_static)
+server.logger.info(
+    server.serversettings.settings['hostname'] + ' is ready for requests')
+
+app.install(tavernplugin)
