@@ -173,7 +173,9 @@ function stop
     do
         kill $i
     done
-
+    
+    echo "Stopping Mongo"
+    pkill -F conf/mongod.pid 
     # Remove ramdisks
     ramdisk stop
     exit
@@ -311,11 +313,6 @@ function start
 
     mkdir -p logs
     mkdir -p conf
-
-    #### Ensure we're living in isolated envs, so we don't screw up the overall system
-    # Ruby
-    source ~/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
-    rvm use 1.9.3@Tavern --create  --install
     
     # Python
     source tmp/env/bin/activate
@@ -542,6 +539,10 @@ function start
         echo "It's only been $(($(sinceArg onStartLastRun)/60)) minutes.. Not running onStart functions again until the hour mark."
         writearg onStartLastRun
     fi
+
+    echo "Starting Mongo"
+    ./utils/mongodb/bin/mongod --config conf/mongodb.conf 
+
 
     writearg lastrun `date +%s`
     echo "Starting Tavern..."
