@@ -80,7 +80,6 @@ echo -n "Determining OS type: "
 if [ `uname -a | grep -i Darwin >/dev/null; echo "$?"` -eq 0 ]
 then
     os='OSX'
-    installroot="$HOME/opt"
 elif [`uname -a | grep -i Linux > /dev/null; echo "$?"` -eq 0 ]
 then
     os='LINUX'
@@ -127,14 +126,15 @@ install_gem_if_nec compass
 install_gem_if_nec bourbon
 
 echo "Downloading current Tavern source"
-mkdir -p "$installroot"
 
 # Install the current Tavern source
 if [ ! -d "$installroot" ]
 then
+    mkdir -p "$installroot"
     git clone git@github.com:e1ven/Tavern.git "$installroot"
 else
-    if [ -f "$installroot/tavern.sh"]
+    echo "$installroot exists"
+    if [ -f "$installroot/tavern.sh" ]
     then
         prompt "overwrite_existing" "The given directory appears to already have a Tavern installation. Should it be updated?" "Yes"
         if [ "$overwrite_existing" == "Yes" ]
@@ -178,8 +178,8 @@ mv $installroot/nginx/conf $installroot/nginx/original-unused-conf
 ln -s $installroot/datafiles/nginx-config $installroot/nginx/conf
 
 
-echo "Creating initscript for Tavern"
-ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
+# echo "Creating initscript for Tavern"
+# ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
 
 echo "Installing Python dependencies"        
 cd $installroot
@@ -188,53 +188,56 @@ python3 -m venv $installroot/tmp/env
 source $installroot/tmp/env/bin/activate
 pip install -r $installroot/datafiles/python-requirements.txt
 
-# Pull down a local copy of Robohash.org, so we don't need any outward links
-cd libs
-git clone https://github.com/e1ven/Robohash.git
-
 # Copy in the geo-lookup IP database. 
 # We want to download it from http://dev.maxmind.com/geoip/legacy/install/city to pull the most recent free version.
 # This is not included in git because it is 17M, and frequently updated.
-cd $taverndir/data
-curl -O http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz
-gunzip GeoLiteCity.dat.gz
+if [ ! -f "$installroot/datafiles/GeoLiteCity.dat" ]
+then
+    echo "Retrieving GeoLite datafiles."
+    cd $installroot/datafiles
+    curl "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz" -O "$installroot/datafiles/GeoLiteCity.dat.gz"
+    gunzip "$installroot/datafiles/GeoLiteCity.dat.gz"
+fi
 
 
 # There is a list of user agents included in the Tavern 'data' directory.
 # This list is -not- kept up to date, however. You can update it easily if you want to, but it is not necessary.
-curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > useragent.ini
-
-
-
-
-# If you're in prod, you may want to generate various things on a schedule.
-# If not, they happen at startup anyway, so you can ignore ;)
-    echo "/usr/bin/python $taverndir/TopicList.py" > /etc/cron.hourly/generatetopics
-    echo "/usr/bin/python $taverndir/ModList.py" > /etc/cron.daily/findmods
-
-# Make sure your DB is running.
-if [ $os == 'LINUX' ]
+if [ ! -f "$installroot/datafiles/useragent.ini" ]
 then
-    /etc/init.d/mongodb start
-elif [ $os == 'OSX' ]
-then
-    cd $taverndir/tmp
-    wget https://github.com/remysaissy/mongodb-macosx-prefspane/raw/master/download/MongoDB.prefPane.zip
-    unzip -f MongoDB.prefPane.zip
-    open MongoDB.prefPane &
-
-    cd $taverndir
-    ./start-dev-servers.sh
+    echo "Retrieving UserAgent data."
+    curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > $installroot/datafiles/useragent.ini
 fi
 
 
 
+# # If you're in prod, you may want to generate various things on a schedule.
+# # If not, they happen at startup anyway, so you can ignore ;)
+#     echo "/usr/bin/python $taverndir/TopicList.py" > /etc/cron.hourly/generatetopics
+#     echo "/usr/bin/python $taverndir/ModList.py" > /etc/cron.daily/findmods
 
-# Start Tavern in Config mode, to generate all needed config files
-./tavern start initonly
+# # Make sure your DB is running.
+# if [ $os == 'LINUX' ]
+# then
+#     /etc/init.d/mongodb start
+# elif [ $os == 'OSX' ]
+# then
+#     cd $taverndir/tmp
+#     wget https://github.com/remysaissy/mongodb-macosx-prefspane/raw/master/download/MongoDB.prefPane.zip
+#     unzip -f MongoDB.prefPane.zip
+#     open MongoDB.prefPane &
 
-# Start Tavern for real, and run in the background.
-./tavern.sh start
+#     cd $taverndir
+#     ./start-dev-servers.sh
+# fi
+
+
+
+
+# # Start Tavern in Config mode, to generate all needed config files
+# ./tavern start initonly
+
+# # Start Tavern for real, and run in the background.
+# ./tavern.sh start
 
 
 # SETTINGS
