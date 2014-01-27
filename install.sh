@@ -1,5 +1,9 @@
-# Tavern system-install instructions
-# Tavern is written to run on Python 3.4+, under Ubuntu or OSX.
+#!/bin/bash -e
+
+# This script will install Tavern to your local machine. 
+# It should be safe to run even if Tavern is already installed.
+# 
+# Tavern is written to run on Python 3.4+, under Ubuntu and OSX.
 # It'll almost certainly work on other systems, but the docs are yet to be written.
 # 
 #                               IMPORTANT!
@@ -13,126 +17,176 @@
 #           
 #           If you complain "Tavern is hard to install", and you used these instructions instead of the Vagrant box, I will cry.
 #           Really. I'll cry like a baby. I'll help you, but I'll be helping through tears.
-#
-#
-#
 
-uname -a  | grep -i Darwin
-if [ $? -eq 0 ]
+
+
+function install_gem_if_nec 
+{
+    # Installs gem if it isn't already installed. 
+    # Doesn't re-install existing gems, or trigger the `set -e`
+    # 
+    # Usage: install_gem_if_nec gemname
+
+    if [ `gem list | grep "$1" >/dev/null; echo "$?"` -ne 0 ]
+    then
+        gem install "$1"
+    fi
+}
+
+function prompt 
+{
+    # Prompts for a answer, and saves into a variable
+    # Used because OSX ships with a BASH that doesn't support read -i 
+    # 
+    # Usage: prompt 'variable' 'Whatever you want to say' ['default']
+    
+    DEST="$1"
+    QUESTION="$2"
+    DEFAULT="$3"
+
+    # Clear any current value in dest
+    eval "$DEST"=""
+
+    # Check for a default value
+    if [ ! -z "$DEFAULT" ]
+    then
+        myprompt="$QUESTION [ $DEFAULT ] "
+    else
+        myprompt="$QUESTION "
+    fi
+    echo -n "$myprompt"
+    read "$DEST"
+
+    # If they didn't enter anything, use the default, using indirect references.
+    if [ -z "${!DEST}" ]
+    then
+        eval "$DEST"="$DEFAULT"
+    fi
+}
+
+# Make sure only root can run our script
+if [ "$(id -u)" != "0" ]; then
+   echo "This script must be run as root, or with sudo."
+   echo "Try sudo ./install.sh"
+   exit 1
+fi
+
+prompt "installroot" "Where would you like to install to?" "/opt/tavern"
+echo "Installing to - $installroot"
+
+# OSX or Linux?
+
+echo -n "Determining OS type: "
+if [ `uname -a | grep -i Darwin >/dev/null; echo "$?"` -eq 0 ]
 then
     os='OSX'
     installroot="$HOME/opt"
-fi
-uname -a  | grep -i Linux
-if [ $? -eq 0 ]
+elif [`uname -a | grep -i Linux > /dev/null; echo "$?"` -eq 0 ]
 then
     os='LINUX'
-    installroot="/opt"
 fi
-taverndir="$installroot/Tavern"
+echo "OS is $os."
 
+prompt "user" "What user should Tavern run under?" "$SUDO_USER"
 
-
-# Install the Needed packages.
-# Note - This will also install MongoDB, which will run in the background.
-# Anytime you are not using Tavern, you may want to disable this.
-# Before you argue "That's not convienient", see the note labeled IMPORTANT at the top ;) 
-
-# Package install for Ubuntu
-
-if [ $os == 'LINUX' ]
+echo "Installing System Packages..."
+if [ "$os" == "LINUX" ]
 then
+    # Package install for Ubuntu
     apt-get -y install curl g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
     libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
     mongodb python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev libgmp-dev
 
-# Package install for OSX
-# Requires Homebrew - ( http://brew.sh/ )
-elif [ $os == 'OSX' ]
+elif [ "$os" == "OSX" ]
 then
-    brew
-    if [ $? -ne 0 ]
+    # The Package install for OSX uses homebrew.
+    # We need to make sure this is installed before we can continue.
+    
+    if [ ! -f /usr/local/bin/brew ]
     then
-        # Install Homebrew
-        ruby -e "$(curl -fsSL https://raw.github.com/mxcl/homebrew/go/install)"
+        echo "You do not yet have the Homebrew package manager installed. (http://brew.sh/) "
+        echo "This is necessary to install Tavern :( "
+        prompt "install_homebrew" "Would you like to attempt to install homebrew automatically?" "yes"
+        if [ "$install_homebrew" != "yes" ]
+        then
+            echo "Homebrew cannot be found, and install cannot continue without it."
+            exit 1
+        else
+            echo "Attempting to install homebrew."
+            sudo -u "$user" ruby -e "$(curl -fsSL https://raw.github.com/Homebrew/homebrew/go/install)"
+        fi 
     fi
-    brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
-    libmpc gmp libtiff libjpeg webp littlecms postgres pcre
+       
+    sudo -u "$user" brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
+    libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget
 fi
 
+echo "Installing CSS Manipulation tools via Rubygems"
+install_gem_if_nec sass
+install_gem_if_nec compass
+install_gem_if_nec bourbon
 
-# Install RVM, so we can load in a more recent ruby without messing up the system ruby
-source $HOME/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh > /dev/null
-rvm -v > /dev/null
-if [ $? -ne 0 ]
-    then
-    # RVM is not yet installed
-    curl -L https://get.rvm.io | bash -s stable
-    source $HOME/.rvm/scripts/rvm || source /etc/profile.d/rvm.sh
-fi
-
-# Install the Gems that convert the sass files into CSS
-# Use a separate gemset as to not screw up system ruby.
-rvm use 1.9.3@Tavern --create  --install
-gem install sass compass bourbon
+echo "Downloading current Tavern source"
+mkdir -p "$installroot"
 
 # Install the current Tavern source
-if [ ! -d "$taverndir" ]
+if [ ! -d "$installroot" ]
 then
-    mkdir -p $taverndir
-    cd $taverndir
-    git init
-    git remote add git@github.com:e1ven/Tavern.git 
-    git pull origin master
-    git branch  --set-upstream-to=origin/master
-    chown -R "$USER" .
+    git clone git@github.com:e1ven/Tavern.git "$installroot"
+else
+    if [ -f "$installroot/tavern.sh"]
+    then
+        prompt "overwrite_existing" "The given directory appears to already have a Tavern installation. Should it be updated?" "Yes"
+        if [ "$overwrite_existing" == "Yes" ]
+        then
+            cd "$installroot"
+            git stash
+            git checkout origin/master
+        fi
+    else
+        echo "The specified directory exists and does not appear to be a Tavern installation. Please remove, or re-run and specify a different directory."
+    fi
 fi
+chown -R "$user" "$installroot"
 
-### If you want to run through nginx, we should use a custom compiled version for upload/etc.
-### You can skip this step, and just connect directly for development.
-### If you want to run through nginx, we should use a custom compiled version for upload/etc.
-### You can skip this step, and just connect directly for development.
-
-mkdir -p $taverndir/tmp/nginx
-cd $taverndir/tmp/nginx
 
 NGINX_VER=1.4.4
-wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
-tar xvfz nginx-$NGINX_VER.tar.gz
-cd nginx-$NGINX_VER
+if [ ! -f $installroot/nginx/sbin/nginx ]
+then
+    echo "Installing nginx $NGINX_VER"
+    nginxinstall=$installroot/tmp/nginx_install
+    mkdir -p $nginxinstall
+    cd $nginxinstall
 
-wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
-unzip 2.2.zip
-./configure --prefix=$installroot/nginx  --add-module=`pwd`/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
+    wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
+    tar xfz nginx-$NGINX_VER.tar.gz
+    cd $nginxinstall/nginx-$NGINX_VER
 
-make
-make install
+    wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
+    unzip 2.2.zip
+    ./configure --prefix=$installroot/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
 
-mkdir $installroot/nginx/uploads
+    make
+    make install
+fi
+echo "Linking nginx configs"
+mkdir -p $installroot/nginx/uploads
 chmod 777 $installroot/nginx/uploads/
 mkdir -p $installroot/nginx/cache/tmp
 
-rm /etc/init.d/nginx
-rm $installroot/nginx/conf/nginx.conf
-cp $installroot/Tavern/nginx/install/nginx /etc/init.d/nginx
-chmod a+x /etc/init.d/nginx
-ln -s $installroot/Tavern/nginx/install/nginx.conf $installroot/nginx/conf/nginx.conf
-ln -s $installroot/Tavern/nginx/default.site $installroot/nginx/conf/default.site
+mv $installroot/nginx/conf $installroot/nginx/original-unused-conf
+ln -s $installroot/datafiles/nginx-config $installroot/nginx/conf
 
-# Create Tavern init file.
+
+echo "Creating initscript for Tavern"
 ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
 
-        
-# Install the python deps. 
-
-cd $taverndir/libs
-
-cd $taverndir
+echo "Installing Python dependencies"        
+cd $installroot
 # Create a Virtual Environment, so we don't spew across the whole system
-pyvenv-3.3 tmp/env
-source tmp/env/bin/activate
-
-pip install -r requirements.txt
+python3 -m venv $installroot/tmp/env
+source $installroot/tmp/env/bin/activate
+pip install -r $installroot/datafiles/python-requirements.txt
 
 # Pull down a local copy of Robohash.org, so we don't need any outward links
 cd libs

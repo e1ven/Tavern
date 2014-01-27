@@ -5,7 +5,7 @@
 # That said, it should help get your devbox up and running quickly and easily.
 
 # Don't run this script if we've already installed Tavern.
-if [ -e /opt/tavern/data/COMPLETED-INSTALL ]
+if [ -e /opt/tavern/datafiles/COMPLETED-INSTALL ]
 	then
 	echo "Tavern already installed, not reinstalling."
 	exit 0

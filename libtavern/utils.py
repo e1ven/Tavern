@@ -80,7 +80,7 @@ def longtime():
 
 class randomWords(libtavern.baseobj.Baseobj):
 
-    def __init2__(self, fortunefile="data/fortunes"):
+    def __init2__(self, fortunefile="datafiles/fortunes"):
         self.fortunes = []
         fortunes = open(fortunefile, "r", encoding='utf-8')
         line = fortunes.readline()
