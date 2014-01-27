@@ -14,5 +14,6 @@ tmp
 logs
 .sass-cache
 *.box
-Libs/Robohash
 Libs/virtualenv*
+tavern.sublime-workspace
+.idea

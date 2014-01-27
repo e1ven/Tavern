@@ -1,8 +1,6 @@
-
-#!/bin/bash
+#!/bin/bash -e
 # This is a wrapper script that fires up Tavern both on Linux and OSX.
-# To do so, it performs a few tests, as well as compressing files where possible.
-
+# This script is written in Bash, rather than Python, so that it can load Python in the correct env.
 
 
 function usage 
@@ -312,7 +310,7 @@ function start
     mkdir -p tmp/last-run/
 
     mkdir -p logs
-    mkdir -p data/conf
+    mkdir -p conf
 
     #### Ensure we're living in isolated envs, so we don't screw up the overall system
     # Ruby
@@ -351,7 +349,7 @@ function start
     pip install -qr requirements.txt
 
     echo "Ensuring fontello directory compliance"
-    for i in static/css/fontello*.css
+    for i in webtav/static/css/fontello*.css
     do
         if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
         then
@@ -362,10 +360,10 @@ function start
         writearg lastrun_fontello_$i `date +%s`
     done
 
-    if [ $(sinceFileArg static/css/fontello.css lastrun_fontello2_$i) -gt 0 ]
+    if [ $(sinceFileArg webtav/static/css/fontello.css lastrun_fontello2_$i) -gt 0 ]
     then
         # Update file to remove margin if it's there.
-        "$sed" -i 's/margin-right: 0.2em;//g' static/css/fontello.css
+        "$sed" -i 's/margin-right: 0.2em;//g' webtav/static/css/fontello.css
     fi
     writearg lastrun_fontello2_$i `date +%s`
 
@@ -373,74 +371,74 @@ function start
     echo "Converting from SASS to CSS"
 
     # Remove any old and no longer used generated css files
-    for i in `ls static/sass/css/`
+    for i in `ls webtav/static/sass/css/`
     do
         base=`basename $i .css`
-        if [ ! -f static/sass/scss/$base.scss ]
+        if [ ! -f webtav/static/sass/scss/$base.scss ]
             then
-            echo static/sass/css/$i
+            echo webtav/static/sass/css/$i
         fi
     done
     # Convert the SCSS to CSS and put in production folder
-    compass compile static/sass/ -q -e production
-    rsync -a static/sass/css/* static/css/
+    compass compile webtav/static/sass/ -q -e production
+    rsync -a webtav/static/sass/css/* webtav/static/css/
 
 
     # Go through each JS file in the project, and check to see if we've minimized it already.
     # If we haven't, minimize it. Otherwise, just skip forward, for speed.
     echo "Minimizing JS"
-    for i in `find static/scripts -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
+    for i in `find webtav/static/scripts -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
     do
         if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
         then
             basename=`basename $i ".js"`
             echo -e "\t $basename $(sinceFileArg $i lastrun)"
-            $yui $i > static/scripts/$basename.min.js $flags
+            $yui $i > webtav/static/scripts/$basename.min.js $flags
         fi
         writearg lastrun_minjs_$i `date +%s`
     done
 
     echo "Minimizing CSS"
-    for i in `find static/css -name "*.css"| grep -v '.min.css'`
+    for i in `find webtav/static/css -name "*.css"| grep -v '.min.css'`
     do
         if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
         then
             basename=`basename $i ".css"`
             echo -e "\t $basename $(sinceFileArg $i lastrun)"
-            $yui $i > static/css/$basename.min.css
+            $yui $i > webtav/static/css/$basename.min.css
         fi
         writearg lastrun_mincss_$i `date +%s`
     done
 
     echo "Combining CSS.."
-    for i in `ls static/css/style-*.min.css`
+    for i in `ls webtav/static/css/style-*.min.css`
     do  
         # Find the basename we're working with, such as 'style-default.min.css'
         STYLE=`echo $i | awk -F- {'print $2'} |  awk -F. {'print $1'}`
         echo -e "\t $STYLE"
-        cat $i static/css/fontello.min.css static/css/video-js.min.css static/css/animation.min.css static/css/fonts.min.css  > static/css/unified-$STYLE.min.css
+        cat $i webtav/static/css/fontello.min.css webtav/static/css/video-js.min.css webtav/static/css/animation.min.css webtav/static/css/fonts.min.css  > webtav/static/css/unified-$STYLE.min.css
     done
 
     echo "Combining and further minimizing JS.."
     # This uses hashes, rather than timestamps, for simplicity.
     # By using hashes, we can always cat them, then compare one file for differences
     # Otherwise, we'd need to compare dates N times.
-    JSFILES="static/scripts/json3.min.js static/scripts/jquery.min.js static/scripts/mousetrap.min.js static/scripts/jstorage.min.js static/scripts/jquery.json.min.js static/scripts/colresizable.min.js static/scripts/jquery-throttle.min.js static/scripts/garlic.min.js static/scripts/video.min.js static/scripts/audio.min.js static/scripts/jquery.unveil.min.js  static/scripts/default.min.js"
+    JSFILES="webtav/static/scripts/json3.min.js webtav/static/scripts/jquery.min.js webtav/static/scripts/mousetrap.min.js webtav/static/scripts/jstorage.min.js webtav/static/scripts/jquery.json.min.js webtav/static/scripts/colresizable.min.js webtav/static/scripts/jquery-throttle.min.js webtav/static/scripts/garlic.min.js webtav/static/scripts/video.min.js webtav/static/scripts/audio.min.js webtav/static/scripts/jquery.unveil.min.js  webtav/static/scripts/default.min.js"
     if [ $DEBUG -eq 0 ]
     then
-        echo '' > static/scripts/unified.js
+        echo '' > webtav/static/scripts/unified.js
         for script in $JSFILES
             do
-                cat $script >> static/scripts/unified.js
+                cat $script >> webtav/static/scripts/unified.js
                 # Add a ; to cleanup after scripts which fail to do so.
-                echo ";" >> static/scripts/unified.js
+                echo ";" >> webtav/static/scripts/unified.js
             done
         # Check to see if we already have a hashed copy of this file.
         # If we do, then don't minimize it.
-        filehash=`cat static/scripts/unified.js | $hash | cut -d" " -f 1`
+        filehash=`cat webtav/static/scripts/unified.js | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked/$filehash.exists ]
         then
-            $yui static/scripts/unified.js > static/scripts/unified.min.js
+            $yui webtav/static/scripts/unified.js > webtav/static/scripts/unified.min.js
         else
             : # No Reformatting needed 
         fi
@@ -451,7 +449,7 @@ function start
         echo "" > themes/default/header-debug-JS.html
         for script in $JSFILES
         do 
-            # Get the basename, to avoid getting the static/tmp dir
+            # Get the basename, to avoid getting the webtav/static/tmp dir
             bn=`basename $script`
             echo "<script defer src=\"/static/scripts/$bn\"></script>" >> themes/default/header-debug-JS.html
         done
@@ -496,7 +494,7 @@ function start
 
     echo "Gzipping individual files"
     # Compress static files with gzip, so nginx can serve pre-compressed version of them (if so configured)
-    for file in `find static -not -name "*.gz" -and -not -path "static/scripts/*" -and -not -path "static/css/*" -and -not -path "static/sass/*" -type f`
+    for file in `find static -not -name "*.gz" -and -not -path "webtav/static/scripts/*" -and -not -path "webtav/static/css/*" -and -not -path "webtav/static/sass/*" -type f`
     do 
         if [ $(sinceFileArg $file lastrun_gzip_$i) -gt 0 ]
         then
@@ -510,7 +508,7 @@ function start
     echo "Gzipping Unified files"
     # Gzip CSS files which need it.
     # This uses hashes rather than timestamps since Unified.min.js is created every time.
-    for file in `echo "static/css/unified-*.min.css static/scripts/unified.min.js" `
+    for file in `echo "webtav/static/css/unified-*.min.css webtav/static/scripts/unified.min.js" `
     do 
         filehash=`cat $file | $hash | cut -d" " -f 1`
         if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
@@ -529,9 +527,9 @@ function start
 
 
     echo "Updating Ramdisk"
-    rsync -a --delete static/* tmp/static
+    rsync -a --delete webtav/static/* tmp/static
     rsync -a --delete libs/Robohash/* tmp/Robohash
-    cp data/gpg.conf tmp/gpgfiles
+    cp conf/gpg.conf tmp/gpgfiles
     if [ $(sinceArg onStartLastRun) -gt 3600 ]
     then
         # Run the various functions to ensure DB caches and whatnot
@@ -549,17 +547,17 @@ function start
     echo "Starting Tavern..."
     if [ $DEBUG -eq 1 ]
     then
-        python3 webfront.py --debug -vvvv
+        python -m webtav.webfront --debug -vvvv
     elif [ $INITONLY -eq 1 ]
     then
-        python3 webfront.py --initonly=True
+        python -m webtav.webfront --initonly=True
     else    
         # -1 in the line below, since we start the count at 0, so we can be starting on 8080
         for ((i=0;i<=$((numservers -1));i++))
         do            
             port=$((8080 +i))
             echo "Starting on port $port"
-            nohup python -m libtavern.webfront.py --port=$port > logs/webfront-$port.log &
+            nohup python -m webtav.webfront --port=$port > logs/webfront-$port.log &
         done
         tail -n 10 logs/*
     fi

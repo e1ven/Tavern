@@ -351,18 +351,18 @@ class Server(libtavern.utils.instancer):
         self.binaries.safe.ensure_index('fs.files', '_id')
         self.binaries.safe.ensure_index('fs.files', 'uploadDate')
 
-        # Get a list of all the valid templates that can be used, to compare
+        # Get a list of all the valid web templates that can be used, to compare
         # against later on.
         self.availablethemes = []
-        for name in os.listdir('themes'):
+        for name in os.listdir('webtav/themes'):
             if os.path.isdir(os.path.join('themes', name)):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
         self.serversettings.settings['static-revision'] = libtavern.utils.longtime()
 
-        self.fortune = libtavern.utils.randomWords(fortunefile="data/fortunes")
-        self.wordlist = libtavern.utils.randomWords(fortunefile="data/wordlist")
+        self.fortune = libtavern.utils.randomWords(fortunefile="datafiles/header-fortunes")
+        self.wordlist = libtavern.utils.randomWords(fortunefile="datafiles/wordlist")
 
 
         self.logger.debug("Tavern Server (" + slot + ") is loaded at logging level : " +

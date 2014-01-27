@@ -52,7 +52,7 @@ class UASException(Exception):
 class UASparser(libtavern.baseobj.Baseobj):
 
     def __init2__(self):
-        self.ini_file = 'data/useragent.ini'
+        self.ini_file = 'datafiles/useragent.ini'
         self.cache_data = None
         self.info_url = '/useragent/'
         self.os_img_url = '/useragent/img/%s'

@@ -1,0 +1,61 @@
+{
+    "folders":
+    [
+        {
+            "path": "libtavern",
+            "name": "Core Tavern functionality"
+        },
+        {
+            "path": "webtav",
+            "name": "Tavern Web Interface"
+        },
+        {
+            "path": "docs",
+            "name": "Documentation"
+        },
+        {
+            "path": "data",
+            "name": "Data files"
+        },
+        {
+            "path": "logs",
+            "name": "Logs"
+        },
+        {
+            "path": "libs",
+            "name": "External Libs"
+        },
+        {
+            "path": "Vagrant",
+            "name": "Vagrant"
+        },
+        {
+            "path": "expermiments",
+            "name": "Experiments"
+        },
+        {
+            "path": ".",
+            "name": "Tavern Project Root Dir",
+            "folder_exclude_patterns": ["*"]
+        }
+
+    ],
+    "settings":
+    {
+        "tab_size": 4,
+        "python_interpreter_path": "tmp/env/bin/python",
+        "python_package_paths": [
+            "libs",
+            "libtavern"
+            ]
+    },
+    "build_systems":
+    [
+        {
+        "name": "Tavweb-Debug",
+        "working_dir":"$project_path",
+        "shell":true,
+        "cmd": ["$project_path/tavern.sh debug"]
+        }
+    ]
+}
