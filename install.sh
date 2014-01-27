@@ -92,7 +92,7 @@ echo "Installing System Packages..."
 if [ "$os" == "LINUX" ]
 then
     # Package install for Ubuntu
-    apt-get -y install curl g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
+    apt-get -y install g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
     libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
     mongodb python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev libgmp-dev
 
@@ -195,7 +195,7 @@ if [ ! -f "$installroot/datafiles/GeoLiteCity.dat" ]
 then
     echo "Retrieving GeoLite datafiles."
     cd $installroot/datafiles
-    curl "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz" -O "$installroot/datafiles/GeoLiteCity.dat.gz"
+    wget "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz" -O "$installroot/datafiles/GeoLiteCity.dat.gz"
     gunzip "$installroot/datafiles/GeoLiteCity.dat.gz"
 fi
 
@@ -205,7 +205,7 @@ fi
 if [ ! -f "$installroot/datafiles/useragent.ini" ]
 then
     echo "Retrieving UserAgent data."
-    curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > $installroot/datafiles/useragent.ini
+    wget "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" -O $installroot/datafiles/useragent.ini
 fi
 
 
