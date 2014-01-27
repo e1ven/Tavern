@@ -1,0 +1,193 @@
+    {% set permalink = '' %}
+    {% set messagerating = 5 %}
+    {% set note = '' %}
+    {% set medialink = '' %}
+
+    {% if top %}
+        {% set avatarsize = 80 %}
+    {% else %}
+        {% set avatarsize = 40 %}
+
+    {% end %}
+
+    {% if top %}
+    <div class="first_message">
+    {% end %}
+        <ul>
+            <li>
+                 {% if not top %}
+                    <div class="message rating_{{messagerating}}" rating={{messagerating}}>
+                 {% end %}
+                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}" rel="author">
+                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{1}}" />
+                    </a>
+                    {% if top %}
+                    <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
+                        <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
+                    </abbr>
+                    {% end %}
+                    <h6 class="message_author_info">
+                        By <b>{{envelope.dict['envelope']['local']['author']['friendlyname']}}</b>@{{envelope.dict['envelope']['local']['author_wordhash']}}
+                        {% if note is not None %}
+                            <div class="note"> ( {{note}} ) </div>
+                        {% end %}
+                    </h6>
+                    </a>
+                    {% include 'UserDetails.html' %}
+                    <p class="message_date">
+                        Received <abbr title="{{envelope.dict['envelope']['local']['time_added'] }}"><time datetime="{{envelope.dict['envelope']['local']['time_added']  }}">{{envelope.dict['envelope']['local']['time_added']}}</time></abbr>.
+                        {% if 'edits' in envelope.dict['envelope']['local'] %}
+                            <abbr title="This message has been edited."><a href="/messagehistory/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
+                        {% end %}
+                    </p>
+
+                    {% if top %}
+                    <p class="averagerating">
+                        {% if messagerating != 0 %}
+                            Average Message Rating: {{messagerating}}
+                        {% end %}
+                    </p>
+                    {% end %}
+
+
+                    <br>
+                    <div class="message_body">
+                            {% if not handler.showoriginal and 'edits' in envelope.dict['envelope']['local'] %}
+                                {{ envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] }}
+                            {% else %}
+                                {{ envelope.dict['envelope']['local']['formattedbody'] }}
+                            {% end %}
+                    </div>
+
+                    <hr class="clear message_separator_line">
+                    <form action="/vote" method="post" class="vote">
+                        {# raw xsrf_form_html() #}
+                        <input type="hidden" name="rating" value="1">
+                        <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                        <abbr title= "This post was helpful.">
+                            <input type="image" src="/static/images/t_up.png" alt="Thumbs Up on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                            <input value="Like" type="submit" class="floatLeft likeDislikeLabel textbutton iconLabels">
+                        </abbr>
+                    </form>
+
+                    <form action="/vote" method="post" class="vote">
+                        {# raw xsrf_form_html() #}
+                        <input type="hidden" name="rating" value="-1" >
+                        <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                        <abbr title="This post was inappropriate.">
+                            <input type="image" src="/static/images/t_down.png" alt="Thumbs Down on this post" height="16" width="16" class="floatLeft likeDislikeIcon">
+                            <input value="Dislike" type="submit" class="floatLeft likeDislikeLabel textbutton iconLabels">
+                        </abbr>
+                    </form>
+
+
+                    <div class="message_links">
+
+                        {# This div will be replaced, via JS, with the div beneath it #}
+                        <div id="external_sharing_button_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="external_sharing_button" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                            <i class="icon-facebook-squared floatLeft"></i>
+                        </div>
+
+                        <div class="external_sharing" id="external_sharing_{{envelope.dict['envelope']['local']['payload_sha512']}}" >
+                            <abbr title="Share via Facebook">
+                                <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
+                                    <i class="icon-facebook-squared floatLeft"></i>
+                                </a>
+                            </abbr>
+                            <abbr title="Share via Twitter">
+                                <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                                    <i class="icon-twitter floatLeft"></i>
+                              </a>
+                            </abbr>
+                            <abbr title="Share via Google+">
+                                <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
+                        '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
+                                    <i class="icon-gplus floatLeft"></i>
+                                </a>
+                            </abbr>
+                            <abbr title="Pin this">
+                                <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
+                                    <i class="icon-pinterest floatLeft" ></i>
+                                </a>
+                            </abbr>
+                        </div>
+                        <div class="message_commands">
+                            <abbr title="Mark this post as a favorite">
+                                <a href="#">
+                                    <i class="icon-star-empty floatLeft"></i>
+                                </a>
+                            </abbr>
+                            <abbr title="Report this post">
+                                <a href="#">
+                                    <i class="icon-alert floatLeft"></i>
+                                </a>
+                            </abbr>
+                            <abbr title="Permalink">
+                                <a href="{{permalink}}">
+                                    <i class="icon-link floatLeft"></i>
+                                </a>
+                            </abbr>
+                        </div>
+                        <div class="message_replylink">
+                            <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                                Reply
+                            </a>
+                            {% if handler.user.Keys['master'].pubkey == envelope.dict['envelope']['local']['author']['pubkey'] %}
+                                <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                                    Edit
+                                </a>
+                            {% end %}
+                        </div>
+                    </div>
+                    {% if top %}
+                    <div id="commentSliderWrapper">
+                        <div id="fewerReplies" class="floatLeft commentDisplayOptions clear">Fewer Replies</div>
+                        <div id="moreReplies" class="floatRight commentDisplayOptions">More Replies</div>
+                        <br/><br/>
+                        <table class="commentSlider" id="commentSlider_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="100%" cellspacing="0" cellpadding="0" border="0">
+                            <tr>
+                                <td id="shownComments" width="50%">
+                                    <span/>
+                                <td id="unshownComments">
+                                    <span>&nbsp;</span>
+                                </td>
+                            </tr>
+                        </table>
+                        <div id="ratingsinfo">
+                            Highest Ranked comment is: <div id="highestrating"></div>. Lowest is <div id="lowestrating">.</div>
+                        </div>
+                    </div>
+                    {% end %}
+                    <div id="numberofreplies" class="commentDisplayOptions">
+                        <p>
+                            {% if envelope.countChildren() == 1 %}
+                                1 Reply
+                            {% elif envelope.countChildren() == 0 %}
+                                <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
+                            {% else %}
+                               {{envelope.countChildren()}} Replies
+                            {% end %}
+                        </p>
+                    </div>
+                    <Br><br>
+                    <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}"></div>
+                    {% include 'attachmentsandembeds.html' %}
+
+
+                    {% if not top %}
+                        </div> <!-- End message div -->
+                    {% end %}
+                    {% if 'citedby' in envelope.dict['envelope']['local'] %}
+                        {% for cite in envelope.dict['envelope']['local']['citedby'] %}
+                            AAABBBCCC
+                            {% raw handler.render_string('macro-showmessage.html', envelope=childmap[cite],handler=handler,top=False,childmap=childmap)  %}
+                       
+                        {% end %}
+                    {% end %}
+            </li>
+
+        </ul>
+
+    {% if top %}
+    </div>
+    {% end %}

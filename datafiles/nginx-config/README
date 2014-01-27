@@ -1,0 +1,4 @@
+These are the datafiles used by nginx to serve Tavern.
+
+If you include default.site, it should automatically include the others that are needed.
+A customized version (tavern-com.site) is also included, which breaks things into additional servers.
