@@ -1288,8 +1288,7 @@ def main():
         if loglevel < 1:
             loglevel = 1
         server.logger.setLevel(loglevel)
-        if loglevel <= 20:
-            bottle.debug(True)
+
 
 
 

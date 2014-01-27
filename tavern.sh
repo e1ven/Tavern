@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 # This is a wrapper script that fires up Tavern both on Linux and OSX.
 # This script is written in Bash, rather than Python, so that it can load Python in the correct env.
 
@@ -294,7 +294,6 @@ function start
 
     # Save the current dir, so we can return at the end of the script
     CURDIR=`pwd`
-    cd /opt/Tavern
 
     numservers=2
 
