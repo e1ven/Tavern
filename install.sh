@@ -94,7 +94,7 @@ then
     # Package install for Ubuntu
     apt-get -y install curl g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
     libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
-    mongodb python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev libgmp-dev
+    python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev libgmp-dev
 
 elif [ "$os" == "OSX" ]
 then
@@ -116,11 +116,11 @@ then
         fi 
     fi
        
-    sudo -u "$user" brew install gnupg yuicompressor exiv2 libmagic mongodb python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
+    sudo -u "$user" brew install yuicompressor exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
     libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget
 fi
 
-echo "Installing CSS Manipulation tools via Rubygems"
+echo "Installing Sass via Rubygems"
 install_gem_if_nec sass
 install_gem_if_nec compass
 install_gem_if_nec bourbon
@@ -150,8 +150,10 @@ fi
 chown -R "$user" "$installroot"
 
 
+# INSTALL NGINX
+
 NGINX_VER=1.4.4
-if [ ! -f $installroot/nginx/sbin/nginx ]
+if [ ! -f $installroot/utils/nginx/sbin/nginx ]
 then
     echo "Installing nginx $NGINX_VER"
     nginxinstall=$installroot/tmp/nginx_install
@@ -164,19 +166,41 @@ then
 
     wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
     unzip 2.2.zip
-    ./configure --prefix=$installroot/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
+    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
 
     make
     make install
 fi
 echo "Linking nginx configs"
-mkdir -p $installroot/nginx/uploads
-chmod 777 $installroot/nginx/uploads/
-mkdir -p $installroot/nginx/cache/tmp
+mkdir -p $installroot/utils/nginx/uploads
+chmod 777 $installroot/utils/nginx/uploads/
+mkdir -p $installroot/utils/nginx/cache/tmp
 
-mv $installroot/nginx/conf $installroot/nginx/original-unused-conf
-ln -s $installroot/datafiles/nginx-config $installroot/nginx/conf
+mv $installroot/utils/nginx/conf $installroot/utils/nginx/original-unused-conf
+ln -s $installroot/datafiles/nginx-config $installroot/utils/nginx/conf
 
+
+# INSTALL MONGODB
+
+MONGO_VER=2.4.9
+if [ ! -f $installroot/utils/mongodb/bin/mongod ]
+then
+    echo "Installing MongoDB $MONGO_VER"
+    mongoinstall=$installroot/tmp/mongo_install
+    mkdir -p $mongoinstall
+    cd $mongoinstall
+    if [ "$os" == "LINUX" ]
+    then
+        wget http://downloads.mongodb.org/linux/mongodb-linux-x86_64-$MONGO_VER.tgz
+        tar -zxf mongodb-linux-x86_64-$MONGO_VER.tgz
+        mkdir -p $installroot/utils/mongodb
+        mv mongodb-linux-x86_64-$MONGO_VER/* $installroot/utils/mongodb
+    elif [ "$os" == "OSX" ]
+        wget http://downloads.mongodb.org/osx/mongodb-osx-x86_64-$MONGO_VER.tgz
+        tar -zxf mongodb-osx-x86_64-$MONGO_VER.tgz
+        mkdir -p $installroot/utils/mongodb
+        mv mongodb-osx-x86_64-$MONGO_VER/* $installroot/utils/mongodb
+fi
 
 # echo "Creating initscript for Tavern"
 # ln -s $installroot/Tavern/tavern.sh /etc/init.d/tavern
@@ -184,8 +208,14 @@ ln -s $installroot/datafiles/nginx-config $installroot/nginx/conf
 echo "Installing Python dependencies"        
 cd $installroot
 # Create a Virtual Environment, so we don't spew across the whole system
-python3 -m venv $installroot/tmp/env
+python3 -m venv --upgrade $installroot/tmp/env
 source $installroot/tmp/env/bin/activate
+if [ ! -f $installroot/tmp/env/bin/pip ]
+then
+    # Python3.3 doesn't include pip by default, although Python3.4 does :/
+    wget https://bitbucket.org/pypa/setuptools/raw/bootstrap/ez_setup.py -O - | python
+    wget https://raw.github.com/pypa/pip/master/contrib/get-pip.py -O - | python
+fi
 pip install -r $installroot/datafiles/python-requirements.txt
 
 # Copy in the geo-lookup IP database. 
@@ -195,7 +225,7 @@ if [ ! -f "$installroot/datafiles/GeoLiteCity.dat" ]
 then
     echo "Retrieving GeoLite datafiles."
     cd $installroot/datafiles
-    curl "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz" -O "$installroot/datafiles/GeoLiteCity.dat.gz"
+    wget "http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz" -O "$installroot/datafiles/GeoLiteCity.dat.gz"
     gunzip "$installroot/datafiles/GeoLiteCity.dat.gz"
 fi
 
@@ -205,7 +235,7 @@ fi
 if [ ! -f "$installroot/datafiles/useragent.ini" ]
 then
     echo "Retrieving UserAgent data."
-    curl "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" > $installroot/datafiles/useragent.ini
+    wget "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" -O "$installroot/datafiles/useragent.ini"
 fi
 
 
