@@ -61,7 +61,7 @@ class BaseHandler(tornado.web.RequestHandler):
         # It does cause a second DB hit, but for now it's worth the tradeoff.
 
         # If we're over https, ensure the cookie can't be read over HTTP
-        if self.server.serversettings.settings['url-scheme'].lower() == 'https':
+        if self.server.serversettings.settings['webtav']['scheme'].lower() == 'https':
             secure = True
         else:
             secure = False
@@ -160,3 +160,19 @@ class BaseHandler(tornado.web.RequestHandler):
             self.after = None
 
         self.topicfilter = libtavern.topicfilter.TopicFilter()
+
+
+    def write_error(self,status_code, **kwargs):
+        # Create a pretty error emessage
+        if "exc_info" in kwargs:
+            args = kwargs["exc_info"][1].args
+        else:
+            args = []
+            args.append("That was unexpected")
+            args.append("Something has gone wrong, and we're not quite sure what it was yet.")
+
+        self.displayenvelope = self.server.error_envelope(topic='Error',subject=args[0], body=args[1])
+        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.canon = None
+        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
+        self.write(self.render_string('partial-showmessage.html', handler=self))

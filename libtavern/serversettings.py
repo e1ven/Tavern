@@ -4,6 +4,8 @@ import collections
 from collections import OrderedDict
 import getpass
 import libtavern.utils
+import os
+import multiprocessing
 
 class ServerSettings(libtavern.utils.instancer):
 
@@ -17,14 +19,11 @@ class ServerSettings(libtavern.utils.instancer):
         else:
             self.set = True
 
-        import libtavern.server
-        self.server = libtavern.server.Server(slot=slot)
-
         self.settingsdir = 'conf/'
         self.settingsfile = slot + ".serversettings"
         self.settings = OrderedDict()
         self.loadconfig(filename=self.settingsfile)
-
+    
     def loadconfig(self, filename=None, directory=None):
 
         if filename is None:
@@ -32,26 +31,21 @@ class ServerSettings(libtavern.utils.instancer):
         if directory is None:
             directory = self.settingsdir
 
-        self.server.logger.info("Loading from " + directory + filename)
-
         try:
             filehandle = open(directory + filename, 'r')
             filecontents = filehandle.read()
-            self.settings = json.loads(
-                filecontents,
-                object_pairs_hook=collections.OrderedDict,
-                object_hook=collections.OrderedDict)
+            self.settings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
             filehandle.close()
         except:
-            self.server.logger.warning(
-                "Error opening config file - " +
-                directory +
-                filename +
-                " - Making new one for that filename")
             self.updateconfig()
             self.saveconfig()
             pass
+        
+        # Always ensure we have all variables, to deal with schema upgrades, etc.
+        if self.updateconfig():
+           self.saveconfig()
 
+        
     def saveconfig(self, filename=None, directory=None):
 
         if filename is None:
@@ -59,7 +53,6 @@ class ServerSettings(libtavern.utils.instancer):
         if directory is None:
             directory = self.settingsdir
 
-        self.server.logger.debug("Writing to " + directory + filename)
         newsettings = self.settings
 
         filehandle = open(directory + filename, 'w')
@@ -75,21 +68,155 @@ class ServerSettings(libtavern.utils.instancer):
 
         if not 'hostname' in self.settings:
             self.settings['hostname'] = platform.node()
-
+        if not 'user' in self.settings:
+            self.settings['user'] = getpass.getuser()
+        if not 'path' in self.settings:
+            # Find the root dir where we're running.
+            absolutedir = os.path.dirname(os.path.realpath(__file__))
+            rootdir = os.path.abspath(os.path.join(absolutedir, os.pardir))
+            self.settings['path'] = rootdir
         if not 'ip_listen_on' in self.settings:
             self.settings['ip_listen_on'] = '0.0.0.0'
 
+        # # Which daemons should we start up
+        # if not 'processes' in self.settings:
+        #     self.settings['processes'] = {}
+        # if not 'nginx' in self.settings['processes']:
+        #     self.settings['processes']['nginx'] = True
+        # if not 'mongo' in self.settings['processes']:
+        #     self.settings['processes']['mongo'] = True
+   
 
-        if not 'web_url' in self.settings:
-            self.settings['web_url'] = None
+        if not 'webtav' in self.settings:
+            self.settings['webtav'] = {}
+        if not 'workers' in self.settings['webtav']:
+            self.settings['webtav']['workers'] = multiprocessing.cpu_count()
+        if not 'downloads_url' in self.settings['webtav']:
+            self.settings['webtav']['downloads_url'] = '/binaries/'
+        if not 'main_url' in self.settings['webtav']:
+            self.settings['webtav']['main_url'] = None
+        if not 'canonical_url' in self.settings['webtav']:
+            # The Canonical URL is specified so that Google won't detect duplicate
+            # content for every Tavern server, and penalize.
+            self.settings['webtav']['canonical_url'] = "https://tavern.is"
+        if not 'scheme' in self.settings['webtav']:
+            self.settings['scheme'] = 'http'
+        if not 'session_lifetime' in self.settings['webtav']:
+            # Keep Permanent sessions around ~forever, since users might not -have- passwords
+            self.settings['webtav']['session_lifetime'] = 31536000 * 20
+        if not 'cookie_secret' in self.settings:
+            self.settings['webtav']['cookie_secret'] = libtavern.utils.randstr(255)
+        if not 'port' in self.settings:
+            # Externally Facing Port for nginx
+            self.settings['webtav']['port'] = 8000
+        if not 'appport' in self.settings:
+            # webtav will be started on the port specified, +1 for each worker.
+            self.settings['webtav']['appport'] = 8080
+        
+        
 
-        if not 'downloadsurl' in self.settings:
-            self.settings['downloadsurl'] = '/binaries/'
 
-        # The Canonical URL is specified so that Google won't detect duplicate
-        # content for every Tavern server, and penalize.
-        if not 'canonical_url' in self.settings:
-            self.settings['canonical_url'] = "https://libtavern.is"
+        # Set the default DBs
+        if not 'DB' in self.settings:
+            self.settings['DB'] = {}
+        
+        if not 'default' in self.settings['DB']:
+            self.settings['DB']['default'] = {}
+        if not 'type' in self.settings['DB']['default']:
+            self.settings['DB']['default']['type'] = 'mongo'
+            self.settings['DB']['default']['local'] = True
+
+        if not 'binaries' in self.settings['DB']:
+            self.settings['DB']['binaries'] = {}
+        if not 'type' in self.settings['DB']['binaries']:
+            self.settings['DB']['binaries']['type'] = 'mongo'
+            self.settings['DB']['binaries']['local'] = True
+
+        if not 'sessions' in self.settings['DB']:
+            self.settings['DB']['sessions'] = {}
+        if not 'type' in self.settings['DB']['sessions']:
+            self.settings['DB']['sessions']['type'] = 'mongo'
+            self.settings['DB']['sessions']['local'] = True
+
+        # Set up the various MongoDBs    
+        if not 'mongo' in self.settings:
+            self.settings['mongo'] = {}
+        
+        if not 'default' in self.settings['mongo']:
+            self.settings['mongo']['default'] = {}
+        if not 'hostname' in self.settings['mongo']['default']:
+            self.settings['mongo']['default']['hostname'] = 'localhost'
+        if not 'port' in self.settings['mongo']['default']:
+            self.settings['mongo']['default']['port'] = 27017
+        if not 'name' in self.settings['mongo']['default']:
+            self.settings['mongo']['default']['name'] = 'Tavern'
+        if not 'connections' in self.settings['mongo']['default']:
+            self.settings['mongo']['default']['connections'] = 10
+
+        if not 'binaries' in self.settings['mongo']:
+            self.settings['mongo']['binaries'] = {}
+        if not 'hostname' in self.settings['mongo']['binaries']:
+            self.settings['mongo']['binaries']['hostname'] = 'localhost'
+        if not 'port' in self.settings['mongo']['binaries']:
+            self.settings['mongo']['binaries']['port'] = 27017
+        if not 'name' in self.settings['mongo']['binaries']:
+            self.settings['mongo']['binaries']['name'] = 'Tavern-Binaries'
+        if not 'connections' in self.settings['mongo']['binaries']:
+            self.settings['mongo']['binaries']['connections'] = 10
+
+        if not 'sessions'in self.settings['mongo']:
+            self.settings['mongo']['sessions'] = {}
+        if not 'hostname' in self.settings['mongo']['sessions']:
+            self.settings['mongo']['sessions']['hostname'] = 'localhost'
+        if not 'port' in self.settings['mongo']['sessions']:
+            self.settings['mongo']['sessions']['port'] = 27017
+        if not 'name' in self.settings['mongo']['sessions']:
+            self.settings['mongo']['sessions']['name'] = 'Tavern-Sessions'
+        if not 'connections' in self.settings['mongo']['sessions']:
+            self.settings['mongo']['sessions']['connections'] = 10
+
+
+        # Set up the various PostgresDBs    
+        if not 'postgres' in self.settings:
+            self.settings['postgres'] = {}
+
+        if not 'default' in self.settings['postgres']:
+            self.settings['postgres']['default'] = {}
+        if not 'hostname' in self.settings['postgres']['default']:
+            self.settings['postgres']['default']['hostname'] = 'localhost'
+        if not 'user' in self.settings['postgres']['default']:
+            self.settings['postgres']['default']['user'] = self.settings['user']
+        if not 'hostname' in self.settings['postgres']['default']:
+            self.settings['hostname'] = "localhost"
+        if not 'name' in self.settings['postgres']['default']:
+            self.settings['postgres']['default']['name'] = 'Tavern'
+        if not 'port' in self.settings['postgres']['default']:
+            self.settings['postgres']['default']['port'] = 5432
+        if not 'connections' in self.settings['postgres']['default']:
+            self.settings['postgres']['default']['connections'] = 10
+
+
+        # Set up the various Nginx settings    
+        if not 'nginx' in self.settings:
+            self.settings['nginx'] = {}
+        if not 'workers' in self.settings['nginx']:
+            self.settings['nginx']['workers'] = multiprocessing.cpu_count()
+        if not 'worker_connections' in self.settings['nginx']:
+            import resource
+            max_files_soft = resource.getrlimit(resource.RLIMIT_NOFILE)[0]
+            max_files_hard = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
+
+            # wc is the total number of connections each worker can hold open, 
+            # including connections downstream to tornado.
+            wc = self.settings['webtav']['workers'] * 10000
+            self.settings['nginx']['worker_connections'] = wc
+        if not 'worker_rlimit_nofile' in self.settings['nginx']:
+            self.settings['nginx']['worker_rlimit_nofile'] = self.settings['nginx']['worker_connections'] * self.settings['nginx']['workers']
+        if not 'sitefile' in self.settings['nginx']:
+            self.settings['nginx']['sitefile'] = 'default.site'
+
+
+        # Logging
 
         if not 'logfile' in self.settings:
             self.settings['logfile'] = "logs/" + self.settings['hostname'] + '.log'
@@ -97,47 +224,7 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'loglevel' in self.settings:
             self.settings['loglevel'] = "INFO"
 
-        if not 'url-scheme' in self.settings:
-            self.settings['url-scheme'] = 'http'
 
-        # Keep Permanent sessions around ~forever, since users might not -have- passwords
-        if not 'session-lifetime' in self.settings:
-            self.settings['session-lifetime'] = 31536000 * 20
-
-        if not 'cookie-encryption' in self.settings:
-            self.settings['cookie-encryption'] = libtavern.utils.randstr(255)
-        
-
-        if not 'mongo-hostname' in self.settings:
-            self.settings['mongo-hostname'] = 'localhost'
-        if not 'mongo-port' in self.settings:
-            self.settings['mongo-port'] = 27017
-
-        if not 'postgres-hostname' in self.settings:
-            self.settings['postgres-hostname'] = 'localhost'
-        if not 'postgres-user' in self.settings:
-            self.settings['postgres-user'] = getpass.getuser()
-        if not 'postgres-hostname' in self.settings:
-            self.settings['postgres-hostname'] = "localhost"
-        if not 'postgres-port' in self.settings:
-            self.settings['postgres-port'] = 5432
-
-        if not 'dbname' in self.settings:
-            self.settings['dbname'] = 'Tavern'
-
-        if not 'bin-mongo-hostname' in self.settings:
-            self.settings['bin-mongo-hostname'] = 'localhost'
-        if not 'bin-mongo-port' in self.settings:
-            self.settings['bin-mongo-port'] = 27017
-        if not 'bin-mongo-db' in self.settings:
-            self.settings['bin-mongo-db'] = 'Tavern_Binaries'
-
-        if not 'sessions-db-hostname' in self.settings:
-            self.settings['sessions-db-hostname'] = 'localhost'
-        if not 'sessions-db-port' in self.settings:
-            self.settings['sessions-db-port'] = 27017
-        if not 'sessions-db-name' in self.settings:
-            self.settings['sessions-db-name'] = 'Tavern_Sessions'
 
         if not 'cache' in self.settings:
             self.settings['cache'] = {}
@@ -262,12 +349,6 @@ class ServerSettings(libtavern.utils.instancer):
 
         if not 'maxembeddedurls' in self.settings:
             self.settings['maxembeddedurls'] = 10
-
-        if not 'mongo-connections' in self.settings:
-            self.settings['mongo-connections'] = 10
-
-        if not 'dbtype' in self.settings:
-            self.settings['dbtype'] = 'mongo'
 
         if not 'proof-of-work-difficulty' in self.settings:
             self.settings['proof-of-work-difficulty'] = 19

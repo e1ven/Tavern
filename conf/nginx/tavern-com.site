@@ -34,7 +34,7 @@ server
     ssl_certificate    /etc/ssl/certs/files.tavern.is.crt;
     ssl_certificate_key    /etc/ssl/certs/files.tavern.is.key;
 
-    import settings-ssl.conf;
+    include settings-ssl.conf;
 
     if ($allowedhosts = 0 )
     {
@@ -42,10 +42,10 @@ server
     }
     
     # 404, 405, etc
-    import loc-errors.conf;
+    include loc-errors.conf;
 
     # Uploaded Binaries
-    import loc-binaries.conf;   
+    include loc-binaries.conf;   
 }
 
 # The Main Tavern server
@@ -58,7 +58,7 @@ server
     ssl_certificate    /etc/ssl/certs/gettavern.com.crt;
     ssl_certificate_key    /etc/ssl/certs/gettavern.com.key;
 
-    import settings-ssl.conf;
+    include settings-ssl.conf;
 
     if ($allowedhosts = 0 )
     {
@@ -66,10 +66,10 @@ server
     }
 
     # 404, 405, etc
-    import loc-errors.conf;
+    include loc-errors.conf;
 
     # Static files, like images, fonts, etc  
-    import loc-static.conf;
+    include loc-static.conf;
 
     # Do **NOT** allow /binaries to work on the main URL
     location /binaries/ {
@@ -77,10 +77,10 @@ server
     }
 
     # Uploads to this server
-    import loc-uploads.conf;
+    include loc-uploads.conf;
 
     # Most pages go here
-    import loc-default.conf
+    include loc-default.conf
 
 }
 

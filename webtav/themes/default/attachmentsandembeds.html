@@ -11,12 +11,12 @@
                     <video id="my_video_1" class="video-js vjs-default-skin" controls
                     preload="metadata" width="640" height="264"
                     data-setup="{}">
-                        <source src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
+                        <source src="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}" type='{{attachment['detected_mime']}}'>
                     </video>
                 {% end %}
                 {% if attachment['detected_mime'] in ['audio/mpeg'] %}
                     <audio preload="metadata">
-                      <source src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                      <source src="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
                     </audio>
                 {% end %}
 
@@ -24,15 +24,15 @@
 
             {% if 'displayable' in attachment %}
                 {% if attachment['displayable'] %}
-                    <a href="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
-                        <img src="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image">
+                    <a href="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}">
+                        <img src="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['displayable']}}" alt="Thumbnail of enclosed image">
                         <br>
                     </a>
                 {% end %}
             {% end %}
 
 
-            <a href="{{handler.server.serversettings.settings['downloadsurl']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{ (round(attachment['filesize'] / 1024 / 1024),2) }} MB)
+            <a href="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{ (round(attachment['filesize'] / 1024 / 1024),2) }} MB)
             <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circled'></i></a>
             <br>
         {% end %}

@@ -38,24 +38,6 @@ from tornado.options import define, options
 server = libtavern.server.Server()
 
 
-class TavernException(Exception):
-
-    """Exception that produces an error message for the user."""
-
-    def __init__(self, subject, body, topic='Error'):
-
-        # Call the base exception
-        Exception.__init__(self, subject)
-
-        # Create a pretty error emessage
-        self.displayenvelope = self.server.error_envelope(subject=subject, topic=topic, body=body)
-        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
-        self.canon = self.server.url_for(envelope=self.displayenvelope)
-        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
-
-        self.displayenvelope.load_children()
-        self.body = self.render_string('partial-showmessage.html', handler=self)
-
 class EntryHandler(webbase.BaseHandler):
     def get(self):
         """A simple redirect, that will redirect people from / to a FAQ.
@@ -74,7 +56,7 @@ class MessageHandler(webbase.BaseHandler):
         messagesenvelope = self.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is None:
-            raise TavernException(self, subject="That message can't be found", body="I'm sorry, but we just can't find the message you're looking for. ;(")
+            raise Exception("Can't find that message.", "I'm sorry, but we just can't find the message you're looking for. ;(")
 
         self.displayenvelope = libtavern.envelope.Envelope()
         self.displayenvelope.loaddict(messagesenvelope)
@@ -868,7 +850,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #             detail['content_type'] = attached_file['content_type']
 
 #             detail['url'] = self.server.serversettings.settings[
-#                 'downloadsurl'] + attached_file['hash']
+#                 'downloads_url'] + attached_file['hash']
 #             details.append(detail)
 #         details_json = json.dumps(details, separators=(',', ':'))
 #         self.set_header("Content-Type", "application/json")
@@ -1303,10 +1285,10 @@ def main():
     server.start()
 
     settings = {
-        "cookie_secret": server.serversettings.settings['cookie-encryption'],
+        "cookie_secret": server.serversettings.settings['webtav']['cookie_secret'],
         "login_url": "/login",
         "xsrf_cookies": True,
-        "template_path": "themes/default",
+        "template_path": "webtav/themes/default",
         "autoescape": "xhtml_escape"
     }
 

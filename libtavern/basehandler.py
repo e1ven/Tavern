@@ -26,8 +26,8 @@ class BaseHandler(tornado.web.RequestHandler):
         self.redirected = self.get_argument('redirected', False)
 
         # Is this necessary EVERY time? It's quick, I suppose...
-        if server.serversettings.settings['web_url'] is None:
-            server.serversettings.settings['web_url'] = self.request.protocol + "://" + \
+        if server.serversettings.settings['webtav']['main_url'] is None:
+            server.serversettings.settings['webtav']['main_url'] = self.request.protocol + "://" + \
                 (self.request.host or socket.gethostbyaddr(
                     socket.gethostbyname(socket.gethostname())))
             server.serversettings.saveconfig()
@@ -122,7 +122,7 @@ class BaseHandler(tornado.web.RequestHandler):
                     # Break apart current and canonical URLs to check to see if
                     # they match.
                     canon_scheme, canon_netloc, canon_path, canon_query_string, canon_fragment = urllib.parse.urlsplit(
-                        server.serversettings.settings['web_url'] + '/' + self.canon)
+                        server.serversettings.settings['webtav']['main_url'] + '/' + self.canon)
                     orig_scheme, orig_netloc, orig_path, orig_query_string, orig_fragment = urllib.parse.urlsplit(
                         self.request.full_url())
                     if (orig_path != canon_path) or (orig_scheme != canon_scheme) or (orig_netloc != canon_netloc):

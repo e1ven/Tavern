@@ -617,7 +617,7 @@ class User(libtavern.baseobj.Baseobj):
         """
         sessiondict = {}
         sessiondict['sessionid'] = libtavern.utils.randstr(100)
-        sessiondict['expires'] = libtavern.utils.inttime() + self.server.serversettings.settings['session-lifetime']
+        sessiondict['expires'] = libtavern.utils.inttime() + self.server.serversettings.settings['webtav']['session_lifetime']
         sessiondict['pubkey'] = self.Keys['master'].pubkey
         self.server.sessions.safe.save('sessions', sessiondict)
         return sessiondict['sessionid']

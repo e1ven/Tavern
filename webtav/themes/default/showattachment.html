@@ -5,7 +5,7 @@
     {% set envelope = stack[0] %}
     {% import datetime %}
     {% set medialink = None %}
-    {% set permalink = serversettings.settings['web_url'] + '/attachment/' + attachment  %}
+    {% set permalink = serversettings.settings['webtav']['main_url'] + '/attachment/' + attachment  %}
     <h1> General information regarding {{attachment}} </h1>
 
     <br><br>
@@ -24,7 +24,7 @@
                     <i class="icon-twitter"></i></a>
                     <a href="https://plus.google.com/share?url={{permalink}}">
                     <i class="icon-gplus"></i></a>
-                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}">
+                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}">
                     <i class="icon-pinterest"></i></a>
                     </div>
     </ul>
@@ -42,12 +42,12 @@
                 <video id="my_video_1" class="video-js vjs-default-skin center" controls
                 preload="auto" width="640" height="264"
                 data-setup="{}">
-                    <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" type='{{myattach['detected_mime']}}'>
+                    <source src="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}/{{myattach['filename']}}" type='{{myattach['detected_mime']}}'>
                 </video>
             {% end %}
             {% if myattach['detected_mime'] in ['audio/mpeg'] %}
             <audio preload="auto" class="center">
-              <source src="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
+              <source src="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
             </audio>
             {% end %}
         {% end %}   
@@ -55,8 +55,8 @@
 
         {% if 'displayable' in myattach %}
             {% if myattach['displayable'] is not False %}
-                <a href="{{serversettings.settings['downloadsurl']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
-                <img class='center' src="{{serversettings.settings['downloadsurl']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
+                <a href="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
+                <img class='center' src="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
             {% end %} 
         {% end %} 
 

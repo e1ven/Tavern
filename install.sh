@@ -172,18 +172,14 @@ then
     make install
 fi
 echo "Linking nginx configs"
-mkdir -p $installroot/nginx/uploads
-chmod 777 $installroot/nginx/uploads/
-mkdir -p $installroot/nginx/cache/tmp
 
-mv $installroot/nginx/conf $installroot/nginx/original-unused-conf
-ln -s $installroot/datafiles/nginx-config $installroot/nginx/conf
+mkdir -p $installroot/tmp/uploads
+mkdir -p $installroot/tmp/nginxcache
 
-mkdir -p $installroot/utils/nginx/uploads
-chmod 777 $installroot/utils/nginx/uploads/
-mkdir -p $installroot/utils/nginx/cache/tmp
+rm -rf $installroot/utils/nginx/conf || true
+rm -rf $installroot/utils/nginx/logs || true
+rm -rf $installroot/utils/nginx/html || true
 
-mv $installroot/utils/nginx/conf $installroot/utils/nginx/original-unused-conf
 ln -s $installroot/datafiles/nginx-config $installroot/utils/nginx/conf
 
 
@@ -203,10 +199,12 @@ then
         mkdir -p $installroot/utils/mongodb
         mv mongodb-linux-x86_64-$MONGO_VER/* $installroot/utils/mongodb
     elif [ "$os" == "OSX" ]
+    then
         wget http://downloads.mongodb.org/osx/mongodb-osx-x86_64-$MONGO_VER.tgz
         tar -zxf mongodb-osx-x86_64-$MONGO_VER.tgz
         mkdir -p $installroot/utils/mongodb
         mv mongodb-osx-x86_64-$MONGO_VER/* $installroot/utils/mongodb
+    fi
 fi
 
 
@@ -215,7 +213,7 @@ fi
 
 echo "Installing Python dependencies"        
 cd $installroot
-python3 -m venv --upgrade $installroot/tmp/env
+python3 -m venv $installroot/tmp/env || true
 source $installroot/tmp/env/bin/activate
 if [ ! -f $installroot/tmp/env/bin/pip ]
 then
@@ -276,7 +274,7 @@ fi
 # # Start Tavern for real, and run in the background.
 # ./tavern.sh start
 
-
+echo "Tavern is now installed."
 # SETTINGS
 # Most settings should work automatically out of the box, but you may want to modify Domains to run things on your own.
 # For instance, the serversetting 'embedserver' sends users to embed.is for embedded iframes.

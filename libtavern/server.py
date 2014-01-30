@@ -29,13 +29,13 @@ import libtavern.keygen
 import libtavern.envelope
 
 class FakeMongo(libtavern.baseobj.Baseobj):
-
-    def __init2__(self, host, port, name):
+    #TODO http://initd.org/psycopg/docs/pool.html ??
+    def __init2__(self, host, port, name,connections):
 
         # Create a connection to Postgres.
         self.conn = psycopg2.connect(
             dbname=name,
-            user=self.server.serversettings.settings['postgres-user'],
+            user=self.server.serversettings.settings['postgres']['default']['user'],
             host=host,
             port=port,
             connection_factory=psycopg2.extras.RealDictConnection)
@@ -142,7 +142,7 @@ class FakeMongo(libtavern.baseobj.Baseobj):
 
 class MongoWrapper(libtavern.baseobj.Baseobj):
 
-    def __init2__(self, host, port, name,safe=True):
+    def __init2__(self, host, port, name,connections,safe=True):
         if safe:
             # Slower, more reliable mongo connection.
             self.safeconn = pymongo.MongoClient(
@@ -150,7 +150,7 @@ class MongoWrapper(libtavern.baseobj.Baseobj):
                 port,
                 safe=True,
                 journal=True,
-                max_pool_size=self.server.serversettings.settings['mongo-connections'])
+                max_pool_size=connections)
             self.mongo = self.safeconn[name]
         else:
             # Create a fast, unsafe mongo connection. Writes might get lost.
@@ -158,7 +158,7 @@ class MongoWrapper(libtavern.baseobj.Baseobj):
                 host,
                 port,
                 read_preference=pymongo.read_preferences.ReadPreference.SECONDARY_PREFERRED,
-                max_pool_size=self.server.serversettings.settings['mongo-connections'])
+                max_pool_size=connections)
             self.mongo = self.unsafeconn[name]
 
     def drop_collection(self, collection):
@@ -227,35 +227,26 @@ class MongoWrapper(libtavern.baseobj.Baseobj):
 
 class DBWrapper(libtavern.baseobj.Baseobj):
 
-    def __init2__(self, name, dbtype=None, host=None, port=None):
+    def __init2__(self, name, dbtype, host, port,connections):
 
         if dbtype == "mongo":
-            if host is None:
-                host = self.server.serversettings.settings['mongo-hostname']
-            if port is None:
-                port = self.server.serversettings.settings['mongo-port']
-
             self.safe = MongoWrapper(
                 safe=True,
                 host=host,
                 port=port,
                 name=name,
+                connections=connections,
                 server=self.server)
             self.unsafe = MongoWrapper(
                 safe=False,
                 host=host,
                 port=port,
                 name=name,
+                connections=connections,
                 server=self.server)
         elif dbtype == "postgres":
-            if host is None:
-                host = server.serversettings.settings['postgres-hostname']
-            if port is None:
-                port = server.serversettings.settings['postgres-port']
-
-            self.safe = FakeMongo(host=host, port=port, name=name,server=server)
-            self.unsafe = FakeMongo(host=host, port=port, name=name,server=server)
-
+            self.safe = FakeMongo(host=host, port=port, name=name,connections=connections,server=server)
+            self.unsafe = FakeMongo(host=host, port=port, name=name,conections=connections,server=server)
         else:
             raise Exception('DBError', 'Invalid type of database')
 
@@ -287,8 +278,6 @@ class Server(libtavern.utils.instancer):
 
         # Load in the most recent config file
         self.serversettings = libtavern.serversettings.ServerSettings(slot=slot)
-        if self.serversettings.updateconfig():
-            self.serversettings.saveconfig()
 
         # Restore our logger level to the version in our conf file.
         self.logger.setLevel(self.serversettings.settings['loglevel'])
@@ -311,24 +300,35 @@ class Server(libtavern.utils.instancer):
         # Create our Keygenerator
         self.keygen = libtavern.keygen.KeyGenerator(server=self)
 
+        # Find the DB-info
+        dbtype = self.serversettings.settings['DB']['default']['type']
         self.db = DBWrapper(
-            name=self.serversettings.settings['dbname'],
-            dbtype=self.serversettings.settings['dbtype'],
-            host=self.serversettings.settings['mongo-hostname'],
-            port=self.serversettings.settings['mongo-port'],
+            name=self.serversettings.settings[dbtype]['default']['name'],
+            dbtype=dbtype,
+            host=self.serversettings.settings[dbtype]['default']['hostname'],
+            port=self.serversettings.settings[dbtype]['default']['port'],
+            connections=self.serversettings.settings[dbtype]['default']['connections'],
             server=self)
+
+
+        dbtype = self.serversettings.settings['DB']['sessions']['type']
         self.sessions = DBWrapper(
-            name=self.serversettings.settings['sessions-db-name'],
-            dbtype=self.serversettings.settings['dbtype'],
-            host=self.serversettings.settings['sessions-db-hostname'],
-            port=self.serversettings.settings['sessions-db-port'],
+            name=self.serversettings.settings[dbtype]['sessions']['name'],
+            dbtype=dbtype,
+            host=self.serversettings.settings[dbtype]['sessions']['hostname'],
+            port=self.serversettings.settings[dbtype]['sessions']['port'],
+            connections=self.serversettings.settings[dbtype]['sessions']['connections'],
             server=self)
+
+        dbtype = self.serversettings.settings['DB']['binaries']['type']
         self.binaries = DBWrapper(
-            name=self.serversettings.settings['bin-mongo-db'],
-            dbtype='mongo',
-            host=self.serversettings.settings['bin-mongo-hostname'],
-            port=self.serversettings.settings['bin-mongo-port'],
+            name=self.serversettings.settings[dbtype]['binaries']['name'],
+            dbtype=dbtype,
+            host=self.serversettings.settings[dbtype]['binaries']['hostname'],
+            port=self.serversettings.settings[dbtype]['binaries']['port'],
+            connections=self.serversettings.settings[dbtype]['binaries']['connections'],
             server=self)
+
         self.bin_GridFS = GridFS(self.binaries.unsafe.mongo)
 
         # Ensure we have Proper indexes.
@@ -473,6 +473,7 @@ class Server(libtavern.utils.instancer):
             'author_wordhash'] = "Automatically generated message"
         e.dict['envelope']['local']['sorttopic'] = "error"
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
+        e.childmap = {}
         return e
 
     # Cache to failfast on receiving dups

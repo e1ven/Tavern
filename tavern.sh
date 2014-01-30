@@ -336,13 +336,12 @@ function start
     # Create necessary RamDisks
     cd tmp
     ramdisk start gpgfiles 5
-    ramdisk start Robohash 20
     ramdisk start static 15
     cd ..
 
     echo "Ensuring Python deps are up-to-date"
     # Ensure we have the expected Python deps
-    pip install -qr requirements.txt
+    pip install -qr datafiles/python-requirements.txt
 
     echo "Ensuring fontello directory compliance"
     for i in webtav/static/css/fontello*.css
@@ -442,12 +441,12 @@ function start
     else
         # If we're in DEBUG mode, we want to directly include the files, rather than inlinine them.
         # This makes it MUCH easier to find/fix errors.
-        echo "" > themes/default/header-debug-JS.html
+        echo "" > webtav/themes/default/header-debug-JS.html
         for script in $JSFILES
         do 
             # Get the basename, to avoid getting the webtav/static/tmp dir
             bn=`basename $script`
-            echo "<script defer src=\"/static/scripts/$bn\"></script>" >> themes/default/header-debug-JS.html
+            echo "<script defer src=\"/static/scripts/$bn\"></script>" >> webtav/themes/default/header-debug-JS.html
         done
     fi
 
@@ -524,15 +523,14 @@ function start
 
     echo "Updating Ramdisk"
     rsync -a --delete webtav/static/* tmp/static
-    rsync -a --delete libs/Robohash/* tmp/Robohash
     cp conf/gpg.conf tmp/gpgfiles
     if [ $(sinceArg onStartLastRun) -gt 3600 ]
     then
         # Run the various functions to ensure DB caches and whatnot
         echo "Running onStart functions."
-        ./TopicList.py
-        ./ModList.py
-        ./DiskTopics.py -l
+        ./utils/TopicList.py || true
+        ./utils/ModList.py || true
+        ./utils/DiskTopics.py -l || true
         writearg onStartLastRun $DATE
     else
         echo "It's only been $(($(sinceArg onStartLastRun)/60)) minutes.. Not running onStart functions again until the hour mark."

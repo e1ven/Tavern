@@ -6,7 +6,9 @@ map $uri $basename {
 
 server 
 {
-  listen 0.0.0.0:80;
+
+  # Include the file in tmp that has the addresses/port to listen on.
+  include listen.conf;
 
   proxy_http_version 1.1;
   proxy_set_header Connection "";
@@ -22,20 +24,22 @@ server
   # to run them on multiple servers if you so desire.
   # For instance, binaries.myserver.com, static.myserver.com, etc
 
+  # The paths are relative to nginx.conf, which runs in tmp
+  
   # 404, 405, etc
-  import loc-errors.conf;
+  include ../conf/nginx/loc-errors.conf;
 
   # Static files, like images, fonts, etc  
-  import loc-static.conf;
+  include ../conf/nginx/loc-static.conf;
   
   # Uploaded Binaries
-  import loc-binaries.conf;
+  include ../conf/nginx/loc-binaries.conf;
 
   # Uploads to this server
-  import loc-uploads.conf;
+  include ../conf/nginx/loc-uploads.conf;
 
   # Most pages go here
-  import loc-default.conf
+  include ../conf/nginx/loc-default.conf;
 
 }
 

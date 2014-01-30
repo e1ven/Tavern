@@ -14,7 +14,11 @@
             "name": "Documentation"
         },
         {
-            "path": "data",
+            "path": "utils",
+            "name": "Utilities"
+        },
+        {
+            "path": "datafiles",
             "name": "Data files"
         },
         {
@@ -46,7 +50,9 @@
         "python_interpreter_path": "tmp/env/bin/python",
         "python_package_paths": [
             "libs",
-            "libtavern"
+            "libtavern",
+            "webtav",
+            "utils"
             ]
     },
     "build_systems":
