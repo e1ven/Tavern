@@ -1,0 +1,4 @@
+Tavern uses Fontello to create a custom icon font. (Fontello.com)
+The .zip file in this directory is the save file from Fontello, so it can be re-uploaded to be edited/changed.
+
+Eventually it may be better to move to SVG images, or another method of creating icon fonts, but this works well for now.

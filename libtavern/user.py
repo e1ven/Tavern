@@ -6,134 +6,67 @@ import libtavern.baseobj
 import libtavern.lockedkey
 import libtavern.utils
 
+            # if self.has_unique_key:
+            #     # This user is registered, they may have posted here before...
+            #     posts = self.server.get_all_user_posts(self.Keys['master'].pubkey)
+            #     if len(posts) > 0:
+            #         self.friendlyname = posts[0].dict['envelope']['local']['author']['friendlyname']
+            #
+            #
+
 class User(libtavern.baseobj.Baseobj):
 
-    def __init2__(self):
-        self.username = None
-        self.has_unique_key = False
-        self.has_set_password = False
-        self.has_login = False
-        self.friendlyname = None
-
-        self.emails = {}
-
-        self.passkey = None
-        self.lastauth = 0
-
-        self.Keys = {}
-        self.Keys['posted'] = [] # These keys are posted, either in a PM or a Message.
-        self.Keys['master'] = None # This is the master key for the acct. Used to sign.
-
-
-        # Only things that are changable settings
-        # About the Tavern interface. Not Tavern-core stuff.
-        self.UserSettings = {}
-        self.UserSettings['followed_topics'] = []
-
-    def generate(self, AllowGuestKey=True, password=None, email=None, username=None):
+    def __init2__(self,password=None,email=None,username=None,AllowGuestKey=True):
         """
-        Create a Tavern user for this server.
-        Add things like username/password/etc that aren't needed for ALL tavern users.
+        Create a Tavern user.
 
         Only creates keys if asked to.
         """
-        # Create a string/immutable version of UserSettings that we can compare
-        # against later to see if anything changed.
+        self.username = None
+        self.emails = {}
+        self.has_set_password = False
+        self.has_login = False
 
-        tmpsettings = str(self.UserSettings) + str(self.Keys)
+        self.passkey = None
+        self.lastauth = 0
+        self.friendlyname = 'Anonymous'
 
-        # Only overwrite values if they aren't already set.
-        if self.username is None:
-             self.UserSettings['username'] = username
+        # We can only login if we have some sort of username (username/oauth/email) + password
 
-        if self.emails == {} and email is not None:
-            self.emails[email] = {}
-            self.emails[email]['confirmed'] = False
-            self.emails[email]['added'] = libtavern.utils.inttime()
+        # Load in the default values for a user -
+        # Normally, we'll pull these from the server's default user.
+        # If it doesn't exist (such as when we're making it!), use the ones specified here.
 
-        if password is not None and self.passkey is None:
-            self.passkey = self.Keys['master'].get_passkey(password=password)
+        if hasattr(self.server,'defaultuser'):
+            defaults = dict(self.server.defaultuser.__dict__)
+        else:
+            defaults = {}
+        self.followed_topics = defaults.get('followed_topics',['StarTrek','Python','World Politics','Funny'])
+        self.maxposts = defaults.get('maxposts',100)
+        self.maxrepies = defaults.get('maxreplies',100)
+        self.include_location = defaults.get('include_location', False)
+        self.ignore_edits = defaults.get('ignore_edits', False)
+        # None says allow_embed hasn't been set, versus explicit T/F
+        self.allow_embed = defaults.get('allow_embed', None)
+        self.display_useragent = defaults.get('display_useragent',False)
+        self.theme = defaults.get('theme','default')
+        self.followed_topics = []
 
-        # Assign default user settings values
-        if not 'followed_topics' in self.UserSettings:
-            self.UserSettings['followed_topics'] = []
-            for topic in self.server.serversettings.settings['usersettings']['followed_topics']:
-                self.follow_topic(topic)
+        self.Keys = {}
+        if AllowGuestKey:
+            self.Keys = self.server.guestuser.Keys
+            self.has_unique_key = False
+        else:
+            pulledkey = self.server.unusedkeycache.get(block=True)
+            self.Keys['master'] = libtavern.lockedkey.LockedKey()
+            self.Keys['master'].from_dict(pulledkey,passkey=pulledkey['passkey'])
+            self.Keys['posted'] = {}
+            self.passkey = self.Keys['master'].passkey
+            self.has_unique_key = True
 
-        if not 'maxposts' in self.UserSettings:
-            self.UserSettings['maxposts'] = self.server.serversettings.settings['usersettings']['maxposts']
-
-        if not 'maxreplies' in self.UserSettings:
-            self.UserSettings['maxreplies'] = self.server.serversettings.settings['usersettings']['maxreplies']
-
-
-        if not 'include_location' in self.UserSettings:
-            self.UserSettings['include_location'] = self.server.serversettings.settings['usersettings']['include_location']
-
-        if not 'ignore_edits' in self.UserSettings:
-            self.UserSettings['ignore_edits'] = self.server.serversettings.settings['usersettings']['ignore_edits']
-
-        if not 'allow_embed' in self.UserSettings:
-            self.UserSettings['allow_embed'] = self.server.serversettings.settings['usersettings']['allow_embed']
-
-        if not 'display_useragent' in self.UserSettings:
-            self.UserSettings['allow_embed'] = self.server.serversettings.settings['usersettings']['display_useragent']
-
-        if not 'theme' in self.UserSettings:
-            self.UserSettings['theme'] = self.server.serversettings.settings['usersettings']['theme']
-
-        # Set to none by default. T/F one user-set
-        if not 'datauri' in self.UserSettings:
-            self.UserSettings['datauri'] = None
-
-        # Ensure we have valid master keys.
-        # This will either be generated, or shared with the Server (Guest)
-
-        if self.Keys['master'] is None:
-            if AllowGuestKey:
-                self.Keys = self.server.guestacct.Keys
-                self.has_unique_key = False
-                self.logger.debug("Set a user to the guest key")
-            else:
-                pulledkey = self.server.unusedkeycache.get(block=True)
-                self.Keys['master'] = libtavern.lockedkey.LockedKey()
-                self.Keys['master'].from_dict(pulledkey,passkey=pulledkey['passkey'])
-                self.passkey = self.Keys['master'].passkey
-                self.has_unique_key = True
-
-
-        # The 'friendlyname' is a convienience for showing who they are.
-        # It's appended before the wordhash.
-        # If they have one, use it. If not, use Anonymous.
-        # Set Friendlyname to most recent post, or Anonymous for lurkers
-
-        if self.friendlyname is None:
-            if self.has_unique_key:
-                # This user is registered, they may have posted here before...
-                posts = self.server.get_all_user_posts(self.Keys['master'].pubkey)
-                if len(posts) > 0:
-                    self.friendlyname = posts[0].dict['envelope']['local']['author']['friendlyname']
-
-        # Ensure we have hashes based on the master key.
         self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
         self.author_sha512 = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
 
-        # We can only login if we have some sort of username (username/oauth/email) + password
-        if not self.has_login:
-            for email in self.emails:
-                if email is not None:
-                    if email['confirmed'] is True:
-                        self.has_login = True
-            if self.username is not None:
-                self.has_login = True
-
-            # if self.facebooktoken is true..
-
-        # Determine if we changed anything without an explicit dirty flag.
-        if tmpsettings == str(self.UserSettings) + str(self.Keys):
-            return False
-        else:
-            return True
 
     def new_posted_key(self):
         """
@@ -164,7 +97,7 @@ class User(libtavern.baseobj.Baseobj):
             tmp_passkey = self.Keys['master'].get_passkey(password)
             if self.Keys['master'].unlock(tmp_passkey):
                 # We've successfully unlocked.
-                self.lastauth = libtavern.utils.inttime()
+                self.lastauth = libtavern.utils.gettime(format='timestamp')
                 successful = True
         except:
             pass
@@ -422,16 +355,24 @@ class User(libtavern.baseobj.Baseobj):
 
         return combinedrating
 
+    def add_email(self,email):
+        self.emails[email] = {}
+        self.emails[email]['confirmed'] = False
+        self.emails[email]['added'] = libtavern.utils.gettime(format='timestamp')
+
+    def remove_email(self,email):
+        del(self.emails[email])
+
     def follow_topic(self, topic):
-        if topic not in self.UserSettings['followed_topics']:
+        if topic not in self.followed_topics:
             sorted_version = self.server.sorttopic(topic)
-            self.UserSettings['followed_topics'].append(sorted_version)
+            self.followed_topics.append(sorted_version)
 
     def unfollow_topic(self, topic):
         # Compare the lowercase/sorted values
-        for followedtopic in self.UserSettings['followed_topics']:
+        for followedtopic in self.followed_topics:
             if self.server.sorttopic(followedtopic) == self.server.sorttopic(topic):
-                self.UserSettings['followed_topics'].remove(followedtopic)
+                self.followed_topics.remove(followedtopic)
 
     def decrypt(self, text, passkey=None):
         """Decrypt a message sent to me, using one of my communication keys.
@@ -474,7 +415,7 @@ class User(libtavern.baseobj.Baseobj):
 
         if self.Keys['master'].changepass(oldpasskey=oldpasskey, newpassword=newpassword):
             self.passkey = self.Keys['master'].get_passkey(newpassword)
-            self.lastauth = libtavern.utils.inttime()
+            self.lastauth = libtavern.utils.gettime(format='timestamp')
             self.has_set_password = True
 
             for key in self.Keys['posted']:
@@ -490,15 +431,13 @@ class User(libtavern.baseobj.Baseobj):
         Marshall out the user obj a dictionary.
         """
 
-        userdict = {}
-        userdict['usersettings'] = self.UserSettings
-        userdict['local']= {}
-        userdict['local']['username'] = self.username
-        userdict['local']['has_unique_key'] = self.has_unique_key
-        userdict['local']['has_set_password'] = self.has_set_password
-        userdict['local']['has_login'] = self.has_login
-        userdict['local']['friendlyname'] = self.friendlyname
-        userdict['local']['emails'] = self.emails
+        # Start with a dump of the current obj
+        userdict = dict(self.__dict__)
+
+        # Delete the non-value settings_
+        del(userdict['server'])
+        del(userdict['logger'])
+        del(userdict['Keys'])
 
         # Dump master key
         userdict['keys'] = {}
@@ -508,7 +447,7 @@ class User(libtavern.baseobj.Baseobj):
         userdict['keys']['posted'] = []
         for key in self.Keys['posted']:
             keydict = key.to_dict()
-            if key.expires > libtavern.utils.inttime():
+            if key.expires > libtavern.utils.gettime(format='timestamp'):
                 userdict['keys']['posted'].append(keydict)
 
         userdict['_id'] = self.Keys['master'].pubkey
@@ -520,14 +459,12 @@ class User(libtavern.baseobj.Baseobj):
         Demarshall a user obj from a dictionary.
         """
 
-        self.UserSettings = userdict['usersettings']
-        self.username = userdict['local']['username']
-        self.has_unique_key = userdict['local']['has_unique_key']
-        self.has_set_password = userdict['local']['has_set_password']
-        self.has_login = userdict['local']['has_login']
-        self.friendlyname = userdict['local']['friendlyname']
-        self.emails = userdict['local']['emails']
+        # Save in the stored values
+        for key in userdict:
+            setattr(self,key,userdict[key])
 
+        # Don't restore keys normally.
+        del(self.keys)
         self.Keys = {}
 
         # Restore our master key
@@ -543,7 +480,6 @@ class User(libtavern.baseobj.Baseobj):
             self.Keys['posted'].append(lk)
 
         self.Keys['posted'].sort(key=lambda e: (e.expires), reverse=True)
-        self.generate()
 
     def load_string(self, incomingstring):
         userdict = json.loads(
@@ -588,14 +524,15 @@ class User(libtavern.baseobj.Baseobj):
         session = self.server.sessions.safe.find_one('sessions',{"sessionid":sessionid})
         if session is None:
             return None
-        elif session['expires'] < libtavern.utils.inttime():
+        elif session['expires'] < libtavern.utils.gettime(format='timestamp'):
             return None
         return self.load_mongo_by_pubkey(session['pubkey'])
 
 
     def save_file(self, filename=None):
+
         if filename is None:
-            filename = self.UserSettings['username'] + ".TavernUser"
+            filename = self.author_sha512 + ".TavernUser"
 
         userdict = self.to_dict()
         filehandle = open(filename, 'w')
@@ -605,11 +542,11 @@ class User(libtavern.baseobj.Baseobj):
     def save_mongo(self,overwriteguest=False):
         userdict = self.to_dict()
 
-        if self.has_unique_key is True and self.Keys['master'].pubkey != self.server.guestacct.Keys['master'].pubkey or overwriteguest is True:
-            self.logger.debug("Saving User to mongo ")
-            self.server.db.safe.save('users', userdict)
+        if not overwriteguest:
+            if self.Keys['master'].pubkey != self.server.guestuser.Keys['master'].pubkey:
+                self.server.db.safe.save('users', userdict)
         else:
-            self.logger.debug("Cowardly refusing to overwrite Guest user")
+            self.server.db.safe.save('users', userdict)
 
     def save_session(self):
         """
@@ -617,7 +554,7 @@ class User(libtavern.baseobj.Baseobj):
         """
         sessiondict = {}
         sessiondict['sessionid'] = libtavern.utils.randstr(100)
-        sessiondict['expires'] = libtavern.utils.inttime() + self.server.serversettings.settings['webtav']['session_lifetime']
+        sessiondict['expires'] = libtavern.utils.gettime(format='timestamp') + self.server.serversettings.settings['webtav']['session_lifetime']
         sessiondict['pubkey'] = self.Keys['master'].pubkey
         self.server.sessions.safe.save('sessions', sessiondict)
         return sessiondict['sessionid']

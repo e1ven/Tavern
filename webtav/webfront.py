@@ -23,15 +23,17 @@ from robohash import Robohash
 import libtavern.server
 import libtavern.envelope
 import libtavern.utils
-import webtav.webbase as webbase
+import libtavern.key
 
+import webtav.webbase as webbase
+from webtav.webbase import weberror
+import webtav.uimodules
 
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.escape
-from tornado.options import define, options
 
 
 
@@ -50,13 +52,18 @@ class EntryHandler(webbase.BaseHandler):
         
 
 class MessageHandler(webbase.BaseHandler):
-    def get(self, messageid, topic=None, short_name=None):
+    def get(self,*args):
         """Retrieve and display a message."""
+
+        # The messageid should always be the last thing passed in.
+        if len(args) > 4:
+            raise weberror(short='Too many directories',long='The URL you are trying to load is too many directories deep. Perhaps a copy/paste error?',code=404)
+        messageid = args[-1]
 
         messagesenvelope = self.server.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': messageid})
 
         if messagesenvelope is None:
-            raise Exception("Can't find that message.", "I'm sorry, but we just can't find the message you're looking for. ;(")
+            raise weberror(short="Can't find that message.", long="I'm sorry, but we just can't find the message you're looking for. ;(",code=404,log='Looking for ' + str(messageid))
 
         self.displayenvelope = libtavern.envelope.Envelope()
         self.displayenvelope.loaddict(messagesenvelope)
@@ -70,54 +77,55 @@ class MessageHandler(webbase.BaseHandler):
 
         self.displayenvelope.load_children()
         
-        body = self.render_string('partial-showmessage.html', handler=self)
-        self.write(body)
+        self.render('View-showmessage.html', handler=self)
 
-def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
-    """Display the various edits to a message."""
+class MessageHistoryHandler(webbase.BaseHandler):
+    def get(self, messageid, topic=None, short_name=None):
+        """Display the various edits to a message."""
 
-    e = libtavern.envelope.Envelope()
-    e.loadmongo(messageid)
-    if not e.loadmongo(messageid):
-        raise TavernException(self, subject="That message's history can't be found :(",
-                              body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
-
-    if isinstance(e.payload, libtavern.envelope.Envelope.Message):
-        original = e
-    elif isinstance(e.payload, libtavern.envelope.Envelope.MessageRevision):
-        original = e.get_original()
-    else:
-        raise TavernException(self, subject="That message's history can't be found :(",
-                              body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
-
-    # Create a list of unique message ids, and the time we first saw it.
-    edits = []
-
-    # Append in the original message's information
-    edits.append(original)
-
-    # Loop through all the messages we've received.
-    for editdict in original.dict['envelope']['local']['edits']:
         e = libtavern.envelope.Envelope()
-        e.loaddict(editdict)
-        if e not in edits:
-            edits.append(e)
+        if not e.loadmongo(messageid):
+            raise weberror(short="That message's history can't be found :(",
+                                  long="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
-    # Sort the edits
-    edits.sort(key=lambda e: (e.dict['envelope']['local']['priority'], (e.dict['envelope']['local']['time_added'])))
+        # Get the original message
+        if isinstance(e.payload, libtavern.envelope.Envelope.Message):
+            original = e
+        elif isinstance(e.payload, libtavern.envelope.Envelope.MessageRevision):
+            original = e.get_original()
+        else:
+            raise TavernException(self, subject="That message's history can't be found :(",
+                                  body="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
-    self.edits = edits
-    self.displayenvelope = original
-    self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
-    self.canon = self.server.url_for(envelope=self.displayenvelope)
-    self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
+        # Create a list of unique message ids, and the time we first saw it.
+        edits = []
 
-    return template('partial-messagehistory.html', handler=self)
+        # Append in the original message's information
+        edits.append(original)
+
+        # Loop through all the messages we've received, add to list.
+        if 'edits' in original.dict['envelope']['local']:
+            for editdict in original.dict['envelope']['local']['edits']:
+                e = libtavern.envelope.Envelope()
+                e.loaddict(editdict)
+                if e not in edits:
+                    edits.append(e)
+
+        # Sort the edits.
+        edits.sort(key=lambda e: (e.dict['envelope']['local']['priority'], (e.dict['envelope']['local']['time_added'])))
+
+        self.edits = edits
+        self.displayenvelope = original
+        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.canon = self.server.url_for(envelope=self.displayenvelope)
+        self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
+
+        self.render('View-messagehistory.html', handler=self)
 
 
 # @memorise(parent_keys=['fullcookies', 'request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
 
-
+#class TopicHandler()
 # def TopicHandler_get(topic='all'):
 #     """The Topic Handler displays a topic, and the messages that are in it."""
 
@@ -196,7 +204,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     toptopics = topictool.toptopics()
 
 #     subjects = []
-#     for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.UserSettings['maxposts']):
+#     for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.maxposts):
 #         subjects.append(envelope)
 
 #     title = "Properties for " + topic
@@ -315,10 +323,10 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 # Generate the user
 #         self.user.generate(AllowGuestKey=False,
 #                            username=client_newuser.lower(), password=client_newpass)
-#         self.user.UserSettings['lastauth'] = int(time.time())
+#         self.user.lastauth = int(time.time())
 
 #         if client_email is not None:
-#             self.user.UserSettings['email'] = client_email.lower()
+#             self.user.email = client_email.lower()
 
 #         self.user.savemongo()
 
@@ -367,7 +375,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #                 self.user.Keys['master'].get_passkey(client_password),
 #                 httponly=True,
 #                 expires_days=999)
-#             self.user.UserSettings['lastauth'] = int(time.time())
+#             self.user.lastauth = int(time.time())
 
 #             self.setvars()
 #             self.server.logger.debug("Login Successful.")
@@ -423,24 +431,25 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     bottle.redirect("/")
 
 
-# def UserHandler_get(pubkey):
-#     self.getvars()
+class UserHandler(webbase.BaseHandler):
+    """
+    Print the User's information
 
-# Unquote it, then convert it to a TavernKey object so we can rebuild it.
-# Quoting destroys the newlines.
-#     pubkey = urllib.parse.unquote(pubkey)
-#     pubkey = Key(pub=pubkey).pubkey
+    If this is your account, also shows an UI to change settings.
+    """
+    def get(self,pubkey):
+        pubkey = urllib.parse.unquote(pubkey)
 
-# Generate a clean user obj with that pubkey and nothing else.
-#     u = User()
-#     u.load_pubkey_only(pubkey)
-#     self.write(self.render_string('header.html', title="User page",
-#                                   rsshead=None, type=None))
+        # Generate a new user, using the pubkey we just received.
+        # We do this rather than doing load_mongo_by_pubkey since we don't want to
+        # pull in any privileged information.
 
-#     self.write(self.render_string(
-#         'userpage.html', thatguy=u, topic=None))
+        pubkey = libtavern.key.Key(pub=pubkey)
+        u = libtavern.user.User()
+        u.Keys['master'] = pubkey
 
-#     self.write(self.render_string('footer.html'))
+        self.write(self.render_string(
+            'View-showuser.html', handler=self,thatguy=u))
 
 
 # def ChangeManySettingsHandler_post():
@@ -468,14 +477,14 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     if 'theme' in self.request.arguments:
 #         newtheme = tornado.escape.xhtml_escape(self.get_argument('theme'))
 #         if newtheme in self.server.availablethemes:
-#             self.user.UserSettings['theme'] = newtheme
+#             self.user.theme = newtheme
 
-#     self.user.UserSettings['display_useragent'] = display_useragent
-#     self.user.UserSettings['friendlyname'] = friendlyname
-#     self.user.UserSettings['maxposts'] = maxposts
-#     self.user.UserSettings['maxreplies'] = maxreplies
-#     self.user.UserSettings['include_location'] = include_location
-#     self.user.UserSettings['allowembed'] = allowembed
+#     self.user.display_useragent = display_useragent
+#     self.user.friendlyname = friendlyname
+#     self.user.maxposts = maxposts
+#     self.user.maxreplies = maxreplies
+#     self.user.include_location = include_location
+#     self.user.allowembed = allowembed
 
 #     self.user.savemongo()
 #     self.setvars()
@@ -499,12 +508,12 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #         self.user.unfollow_topic(
 #             self.get_argument("topic"))
 #     elif setting == "showembeds":
-#         self.user.UserSettings['allowembed'] = 1
+#         self.user.allowembed = 1
 #         if option == 'ajax':
 #             self.write('Tavern will now display all external media.')
 #             redirect = False
 #     elif setting == "dontshowembeds":
-#         self.user.UserSettings['allowembed'] = -1
+#         self.user.allowembed = -1
 #         self.server.logger.debug("forbidding embeds")
 #     else:
 #         self.server.logger.debug("Warning, you didn't do anything!")
@@ -551,9 +560,9 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     e.payload.dict['author'] = OrderedDict()
 #     e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 #     e.payload.dict['author'][
-#         'friendlyname'] = self.user.UserSettings['friendlyname']
+#         'friendlyname'] = self.user.friendlyname
 
-#     if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
+#     if self.user.include_location or 'include_location' in self.request.arguments:
 #         gi = pygeoip.GeoIP('datafiles/GeoLiteCity.dat')
 #         ip = self.request.remote_ip
 
@@ -569,7 +578,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 # server
 #     e.addStamp(
 #         stampclass='author',
-#         friendlyname=self.user.UserSettings['friendlyname'],
+#         friendlyname=self.user.friendlyname,
 #         keys=self.user.Keys['master'],
 #         passkey=self.user.passkey)
 #     if self.server.serversettings.settings['mark-origin']:
@@ -635,9 +644,9 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     e.payload.dict['author'] = OrderedDict()
 #     e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 #     e.payload.dict['author'][
-#         'friendlyname'] = self.user.UserSettings['friendlyname']
+#         'friendlyname'] = self.user.friendlyname
 
-#     if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
+#     if self.user.include_location or 'include_location' in self.request.arguments:
 #         gi = pygeoip.GeoIP('datafiles/GeoLiteCity.dat')
 #         ip = self.request.remote_ip
 
@@ -653,7 +662,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 # server
 #     e.addStamp(
 #         stampclass='author',
-#         friendlyname=self.user.UserSettings['friendlyname'],
+#         friendlyname=self.user.friendlyname,
 #         keys=self.user.Keys['master'],
 #         passkey=self.user.passkey)
 #     if self.server.serversettings.settings['mark-origin']:
@@ -903,11 +912,11 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #         e.payload.dict['author'] = OrderedDict()
 #         e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 #         e.payload.dict['author'][
-#             'friendlyname'] = self.user.UserSettings['friendlyname']
+#             'friendlyname'] = self.user.friendlyname
 
 #         e.addStamp(
 #             stampclass='author',
-#             friendlyname=self.user.UserSettings['friendlyname'],
+#             friendlyname=self.user.friendlyname,
 #             keys=self.user.Keys['master'],
 #             passkey=self.user.passkey)
 
@@ -935,11 +944,11 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #         e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 
 #         e.payload.dict['author'][
-#             'friendlyname'] = self.user.UserSettings['friendlyname']
+#             'friendlyname'] = self.user.friendlyname
 
 #         e.addStamp(
 #             stampclass='author',
-#             friendlyname=self.user.UserSettings['friendlyname'],
+#             friendlyname=self.user.friendlyname,
 #             keys=self.user.Keys['master'],
 #             passkey=self.user.passkey)
 
@@ -962,7 +971,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #                 'subject']
 #         e.addStamp(
 #             stampclass='author',
-#             friendlyname=self.user.UserSettings['friendlyname'],
+#             friendlyname=self.user.friendlyname,
 #             keys=self.user.Keys['master'],
 #             passkey=self.user.passkey)
 
@@ -1010,9 +1019,9 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #         encrypted_msg.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 
 #         encrypted_msg.payload.dict['author'][
-#             'friendlyname'] = self.user.UserSettings['friendlyname']
+#             'friendlyname'] = self.user.friendlyname
 
-#         if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
+#         if self.user.include_location or 'include_location' in self.request.arguments:
 #             gi = pygeoip.GeoIP('datafiles/GeoLiteCity.dat')
 #             ip = self.request.remote_ip
 
@@ -1028,7 +1037,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 # origin server
 #         encrypted_msg.addStamp(
 #             stampclass='author',
-#             friendlyname=self.user.UserSettings['friendlyname'],
+#             friendlyname=self.user.friendlyname,
 #             keys=self.user.Keys['master'],
 #             passkey=self.user.passkey)
 #         if self.server.serversettings.settings['mark-origin']:
@@ -1046,7 +1055,7 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #             encryptstring=encrypted_pmstr)
 
 # For all classses of messages-
-#     if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
+#     if self.user.include_location or 'include_location' in self.request.arguments:
 #         gi = pygeoip.GeoIP('datafiles/GeoLiteCity.dat')
 #         ip = self.request.remote_ip
 
@@ -1167,36 +1176,48 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)
 #     self.write(req.read())
 
+class CatchallHandler(webbase.BaseHandler):
+    """
+    Handler for any requests that aren't handled anywhere else.
+    Returns 404.
+    """
+    def get(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def post(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def put(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def delete(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
 
-# def AvatarHandler_get(avatar):
-#     """Create Avatars using Robohashes.
+class AvatarHandler(webbase.BaseHandler):
+    """Create Avatars using Robohashes.
+    You should cache these on disk using nginx.
+    """
+    def get(self, avatar):
+        format = 'png'
+        self.set_header("Content-Type", "image/" + format)
 
-#     You should cache these on disk using nginx.
-
-#     """
-#     format = 'png'
-#     self.set_header("Content-Type", "image/" + format)
-
-# Ensure proper sizing
-#     sizex, sizey = self.get_argument('size', '40x40').split("x")
-#     sizex = int(sizex)
-#     sizey = int(sizey)
-#     if sizex > 4096 or sizex < 0:
-#         sizex = 40
-#     if sizey > 4096 or sizey < 0:
-#         sizey = 40
-#     robo = Robohash(avatar)
-#     robo.assemble(
-#         roboset=self.get_argument(
-#             'set',
-#             'any'),
-#         format=format,
-#         bgset=self.get_argument(
-#             'bgset',
-#             'any'),
-#         sizex=sizex,
-#         sizey=sizey)
-#     robo.img.save(self, format='png')
+        # Ensure proper sizing
+        sizex, sizey = self.get_argument('size', '40x40').split("x")
+        sizex = int(sizex)
+        sizey = int(sizey)
+        if sizex > 4096 or sizex < 0:
+            sizex = 40
+        if sizey > 4096 or sizey < 0:
+            sizey = 40
+        robo = Robohash(avatar)
+        robo.assemble(
+            roboset=self.get_argument(
+                'set',
+                'any'),
+            format=format,
+            bgset=self.get_argument(
+                'bgset',
+                'any'),
+            sizex=sizex,
+            sizey=sizey)
+        robo.img.save(self, format='png')
 
 
 # def RssHandler(self,action,topic):
@@ -1224,16 +1245,6 @@ def MessageHistoryHandler(self, messageid, topic=None, short_name=None, ):
 #                             envelope['envelope']['local']['formattedbody'])
 #             channel.additem(item)
 #         self.write(channel.toprettyxml())
-def server_static(self, filepath):
-    if os.path.isfile('tmp/static/scripts/default.js'):
-        root = os.path.join(
-            os.path.dirname(__file__),
-            "tmp/static/")
-    else:
-        root = os.path.join(os.path.dirname(__file__), "static/")
-
-    self.server.logger.info("Serving static file out of Bottle/Python. This is not recommended for production deployments.")
-    return bottle.static_file(filepath, root=root)
 
 
 
@@ -1243,8 +1254,6 @@ def main():
     parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
     parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
                       help="Set loglevel. Use more than once to log extra stuff (5 max)")
-    parser.add_option("--initonly", action="store_true", dest="initonly", default=False,
-                      help="Creates config files, but then immediately exit")
     parser.add_option("-p", "--port", action="store", dest="port", default=8080,
                       help="Port to listen on (defaults to 8080)")
     parser.add_option("-l", "--listen", action="store", dest="listen", default='0.0.0.0',
@@ -1253,16 +1262,23 @@ def main():
     parser.add_option("-?", "--help", action="help",
                       help="Show this helpful message.")
 
-    group = optparse.OptionGroup(parser, "Very Dangerous Options",
-                                 "Caution: These options will let attackers take over your machine.     "
-                                 "Do not use these on any machine that other people can access!")
-    group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
-                     help="Enable the debugger in the web interface.")
-
-    parser.add_option_group(group)
-
-    global options
+    # group = optparse.OptionGroup(parser, "Very Dangerous Options",
+    #                              "Caution: These options will let attackers take over your machine.     "
+    #                              "Do not use these on any machine that other people can access!")
+    # group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
+    #                  help="Enable the debugger in the web interface.")
+    #parser.add_option_group(group)
     (options, args) = parser.parse_args()
+
+
+    tornado_settings = {
+        "login_url": "/login",
+        "template_path": "webtav/themes/default",
+        "autoescape": "xhtml_escape",
+        "ui_modules": webtav.uimodules,
+    }
+
+    tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
 
     # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
     if options.verbose > 0:
@@ -1271,105 +1287,94 @@ def main():
             loglevel = 1
         server.logger.setLevel(loglevel)
 
+        # Debug
+        if loglevel <= 20:
+            tornado_settings['compiled_template_cache'] = False
+            tornado_settings['autoreload'] = True
+        # Info
+        if loglevel <= 40:
+            tornado_settings['serve_traceback=True'] = True
 
 
 
-    # timeout in seconds
-    timeout = 10
-    socket.setdefaulttimeout(timeout)
-    server.logger.info(
-        "Starting Web Frontend for " + server.serversettings.settings['hostname'])
-
-    server.debug = options.debug
-    # Tell the server process to fire up and run for a while.
+    # Start the Server processing
+    # Creates DB connections, fires up threads to create keys, etc.
     server.start()
 
-    settings = {
-        "cookie_secret": server.serversettings.settings['webtav']['cookie_secret'],
-        "login_url": "/login",
-        "xsrf_cookies": True,
-        "template_path": "webtav/themes/default",
-        "autoescape": "xhtml_escape"
-    }
+    paths = [(r"/", EntryHandler),
+            (r"/m/(\w+)/(\w+)/(\w+)", MessageHandler),
+            (r"/m/(\w+)/(\w+)", MessageHandler),
+            (r"/m/(\w+)", MessageHandler),
 
-    # Detect if we have the ramdisk setup for static files
-    staticopts = {}
-    if os.path.isfile('tmp/static/scripts/default.js'):
-        staticopts['path'] = os.path.join(
-            os.path.dirname(__file__),
-            "tmp/static/")
-    else:
-        staticopts['path'] = os.path.join(os.path.dirname(__file__), "static/")
+            (r"/mh/(.*)", MessageHistoryHandler),
 
-    application = tornado.web.Application([
-        (r"/", EntryHandler),
-        (r"/message/(.*)/(.*)/(.*)", MessageHandler),
-        (r"/message/(.*)/(.*)", MessageHandler),
-        (r"/message/(.*)", MessageHandler),
-        (r"/m/(.*)/(.*)/(.*)", MessageHandler),
-        (r"/m/(.*)/(.*)", MessageHandler),
-        (r"/m/(.*)", MessageHandler),
+            # (r"/topic/(.*)", TopicHandler),
+            # (r"/t/(.*)", TopicHandler),
 
-        # (r"/topic/(.*)", TopicHandler),
-        # (r"/t/(.*)", TopicHandler),
+            # (r"/sitecontent/(.*)", SiteContentHandler),
 
-        # (r"/sitecontent/(.*)", SiteContentHandler),
+            # (r"/showtopics", ShowTopicsHandler),
+            # (r"/showprivates", ShowPrivatesHandler),
+            # (r"/privatemessage/(.*)", ShowPrivatesHandler),
 
-        # (r"/showtopics", ShowTopicsHandler),
-        # (r"/showprivates", ShowPrivatesHandler),
-        # (r"/privatemessage/(.*)", ShowPrivatesHandler),
-
-        # (r"/topicinfo/(.*)", TopicPropertiesHandler),
-        # (r"/attachment/(.*)", AttachmentHandler),
+            # (r"/topicinfo/(.*)", TopicPropertiesHandler),
+            # (r"/attachment/(.*)", AttachmentHandler),
 
 
-        # (r"/messagehistory/(.*)", MessageHistoryHandler),
-        # (r"/user/(.*)", UserHandler),
-
-        # (r"/newmessage/(.*)", NewmessageHandler),
-        # (r"/newmessage", NewmessageHandler),
-
-        # (r"/edit/(.*)", EditMessageHandler),
-        # (r"/reply/(.*)/(.*)", ReplyHandler),
-        # (r"/reply/(.*)", ReplyHandler),
-        # (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
-
-        # (r"/upload/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
-        # (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
-        # (r"/uploadfile/(.*)", ReceiveEnvelopeHandler),
-
-        # (r"/register", RegisterHandler),
-        # (r"/login/(.*)", LoginHandler),
-        # (r"/login", LoginHandler),
-        # (r"/changepassword", ChangepasswordHandler),
-        # (r"/logout", LogoutHandler),
 
 
-        # (r"/vote", RatingHandler),
-        # (r"/usertrust", UserTrustHandler),
-        # (r"/usernote", UserNoteHandler),
+            (r"/u/(.*)", UserHandler),
 
-        # (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),
-        # (r"/changesetting/(.*)", ChangeSingleSettingHandler),
-        # (r"/changesettings", ChangeManySettingsHandler),
+            # (r"/newmessage/(.*)", NewmessageHandler),
+            # (r"/newmessage", NewmessageHandler),
 
-        # (r"/rss/(.*)/(.*)", RSSHandler),
+            # (r"/edit/(.*)", EditMessageHandler),
+            # (r"/reply/(.*)/(.*)", ReplyHandler),
+            # (r"/reply/(.*)", ReplyHandler),
+            # (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
 
-        # (r"/avatar/(.*)", AvatarHandler),
-        # (r"/binaries/(.*)/(.*)", BinariesHandler),
-        # (r"/binaries/(.*)", BinariesHandler),
-        (r"/static/(.*)", tornado.web.StaticFileHandler, staticopts)
-    ], **settings)
+            # (r"/upload/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
+            # (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
+            # (r"/uploadfile/(.*)", ReceiveEnvelopeHandler),
+
+            # (r"/register", RegisterHandler),
+            # (r"/login/(.*)", LoginHandler),
+            # (r"/login", LoginHandler),
+            # (r"/changepassword", ChangepasswordHandler),
+            # (r"/logout", LogoutHandler),
+
+
+            # (r"/vote", RatingHandler),
+            # (r"/usertrust", UserTrustHandler),
+            # (r"/usernote", UserNoteHandler),
+
+            # (r"/changesetting/(.*)/(.*)", ChangeSingleSettingHandler),
+            # (r"/changesetting/(.*)", ChangeSingleSettingHandler),
+            # (r"/changesettings", ChangeManySettingsHandler),
+
+            # (r"/rss/(.*)/(.*)", RSSHandler),
+
+            (r"/avatar/(.*)", AvatarHandler),
+            # (r"/binaries/(.*)/(.*)", BinariesHandler),
+            # (r"/binaries/(.*)", BinariesHandler)
+            (r".*", CatchallHandler),
+
+            ]
+
+    application = tornado.web.Application(handlers=paths,**tornado_settings)
+
+    # socket timeout 10s
+    socket.setdefaulttimeout(10)
 
     http_server = tornado.httpserver.HTTPServer(application)
     http_server.listen(options.port)
 
-    server.logger.info(
-        server.serversettings.settings['hostname'] + ' is ready for requests on port ' + str(options.port))
-    if options.initonly is False:
-        tornado.ioloop.IOLoop.instance().start()
-    else:
-        server.logger.info("Exiting immediatly as requested")
+    server.logger.debug("Webtav worker started on port " + str(options.port))
+    server.logger.info("Tavern web interface is ready on port " + str(server.serversettings.settings['webtav']['port']))
+
+    tornado.ioloop.IOLoop.instance().start()
+    print("Donkey!")
+
 
 if __name__ == "__main__":
     main()

@@ -5,14 +5,14 @@
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
             <div id="scrollablediv1" class="fullscroller">
                 {% block column1 %}
-                    {% include 'partial-globalmenu.html' %}
+                    {% module ShowGlobalmenu(handler=handler) %}
                 {% end column1 %}
             </div>
         </td>
         <td id="column2in3col" valign="top" >
             <div id="scrollablediv2" class="fullscroller">
                 {% block column2 %}
-                    {% include 'partial-messagelist.html' %}
+                    {% module ShowMessagelist(handler=handler) %}
                 {% end column2 %}
             </div>
         </td>
@@ -20,7 +20,7 @@
             <div id="scrollablediv3" class="fullscroller">
                 <hr id="TopHR">
                 {% block column3 %}
-                    {% include 'partial-showmessage.html' %}
+                    {% module ShowMessage(envelope=handler.displayenvelope,handler=handler,top=True,childmap=handler.displayenvelope.childmap) %}
                 {% end column3 %}
             </div>
         </td>

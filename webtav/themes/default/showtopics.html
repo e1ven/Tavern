@@ -12,7 +12,7 @@
 			{% set topic = topictag['_id']  %}
 		
 		<li><b><a href="/topic/{{topic}}" <bdi>{{topic}}</bdi></a></b>  - 
-			{% if topic in user.UserSettings['followedTopics'] %}
+			{% if topic in user.followed_topics %}
 						<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe"' class="textbutton topicpref"></form>
 
 			{% else %}

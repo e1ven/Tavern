@@ -1,12 +1,16 @@
 {# Get the messages for the middle column #}
 
 {% set _ = handler.topicfilter.set_topic(handler.topic) %}
-{% set subjects = handler.topicfilter.messages(maxposts=handler.user.UserSettings['maxposts'],before=handler.before,after=handler.after,include_replies=False) %}
+{% set subjects = handler.topicfilter.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False) %}
 
 {# Calcuate the forward/next buttons #}
-{% if subjects[0] is defined %}
+{% if len(subjects) > 0 %}
     {% set number_of_messages_before_displayed = handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']) %}
     {% set number_of_messages_after_displayed = handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']) %}
+{% else %}
+    {% set number_of_messages_before_displayed = None %}
+    {% set number_of_messages_after_displayed = None %}
+
 {% end %}
 
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
@@ -26,7 +30,7 @@
     </tr>
     <tr>
         <td colspan=2>
-            {% if handler.server.sorttopic('topic') in handler.user.UserSettings['followed_topics'] %}
+            {% if handler.server.sorttopic('topic') in handler.user.followed_topics %}
                 <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
             {% else %}
                 <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
@@ -77,7 +81,7 @@
         <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
             <tr>
                  <td>
-                    {% if number_of_messages_before_displayed is defined %}
+                    {% if number_of_messages_before_displayed %}
                     <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
                        <button id="older_messages" class="column2Buttons" type="button">
                         Older Messages
@@ -87,7 +91,7 @@
                     {% end %}
                 </td>
                 <td>
-                    {% if number_of_messages_after_displayed is defined %}
+                    {% if number_of_messages_after_displayed %}
                     <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
                        <button id="newer_messages" class="column2Buttons" type="button">
                         Newer Messages

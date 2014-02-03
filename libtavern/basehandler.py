@@ -60,7 +60,6 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             self.browser = server.browserdetector.parse("Unknown")
 
-    # @memorise(parent_keys=['fullcookies', 'user.UserSettings'], ttl=server.serversettings.settings['cache']['templates']['seconds'], maxsize=server.serversettings.settings['cache']['templates']['size'])
     def render_string(self, template_name, **kwargs):
         """Overwrite the default render_string to ensure the "server" variable
         is always available to templates."""
@@ -74,9 +73,8 @@ class BaseHandler(tornado.web.RequestHandler):
         arguments.update(kwargs)
         theme = 'default'
         # Only accept valid templates
-        if 'theme' in self.user.UserSettings:
-            if self.user.UserSettings['theme'] in server.availablethemes:
-                theme = self.user.UserSettings['theme']
+        if self.user.theme in server.availablethemes:
+            theme = self.user.theme
         return super().render_string(theme + '/' + template_name, **arguments)
 
     def write(self, html):
@@ -274,13 +272,13 @@ class BaseHandler(tornado.web.RequestHandler):
         """
         currenttime = int(time.time())
 
-        if 'lastauth' in self.user.UserSettings:
-            if currenttime - self.user.UserSettings['lastauth'] > seconds:
+        if 'lastauth' in self.user.lastauth
+            if currenttime - self.user.lastauth > seconds:
                 print("User has not logged in recently. ;( ")
                 return False
             else:
                 print("Last login - " + str(currenttime -
-                      self.user.UserSettings['lastauth']) + " seconds ago")
+                      self.user.lastauth) + " seconds ago")
                 return True
         else:
             # The user has NEVER logged in.
@@ -309,17 +307,17 @@ class BaseHandler(tornado.web.RequestHandler):
         else:
             print(self.user.has_unique_key)
 
-        if self.user.UserSettings['author_sha512'] is not True:
+        if self.user.author_sha512 is not True:
             # Delete our sensetive data before saving out.
             self.user.save_mongo()
             self.set_secure_cookie(
                 "tavern_settings",
-                self.user.UserSettings['author_sha512'],
+                self.user.author_sha512,
                 httponly=True,
                 expires_days=999)
 
         else:
-            print(self.user.UserSettings['author_sha512'])
+            print(self.user.author_sha512)
 
     def write_error(self, status_code, **kwargs):
         """Errors?

@@ -70,16 +70,10 @@ for i in range(sitemapcount):
     a = server.db.unsafe.find('envelopes',
                               {"envelope.local.short_subject": {"$exists": True}})[start:end]
     for envelope in a:
-        url = serverprefix + '/message/' + envelope[
-            'envelope'][
-            'local'][
-            'sorttopic'] + '/' + envelope[
-            'envelope'][
-            'local'][
-            'short_subject'] + "/" + envelope[
-            'envelope'][
-            'local'][
-            'payload_sha512']
+        e = libtavern.envelope.Envelope()
+        e.loaddict(a):
+        url = server.url_for(e)
+
         date = datetime.datetime.utcfromtimestamp(
             envelope['envelope']['stamps'][0]['time_added'])
         datestr = date.strftime('%Y-%m-%d')

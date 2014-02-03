@@ -2,43 +2,43 @@
     "folders":
     [
         {
-            "path": "libtavern",
+            "path": "../../libtavern",
             "name": "Core Tavern functionality"
         },
         {
-            "path": "webtav",
+            "path": "../../webtav",
             "name": "Tavern Web Interface"
         },
         {
-            "path": "docs",
+            "path": "../../docs",
             "name": "Documentation"
         },
         {
-            "path": "utils",
+            "path": "../../utils",
             "name": "Utilities"
         },
         {
-            "path": "datafiles",
+            "path": "../../datafiles",
             "name": "Data files"
         },
         {
-            "path": "logs",
+            "path": "../../logs",
             "name": "Logs"
         },
         {
-            "path": "libs",
+            "path": "../../libs",
             "name": "External Libs"
         },
         {
-            "path": "Vagrant",
+            "path": "../../Vagrant",
             "name": "Vagrant"
         },
         {
-            "path": "expermiments",
+            "path": "../../expermiments",
             "name": "Experiments"
         },
         {
-            "path": ".",
+            "path": "../../",
             "name": "Tavern Project Root Dir",
             "folder_exclude_patterns": ["*"]
         }
@@ -59,9 +59,9 @@
     [
         {
         "name": "Tavweb-Debug",
-        "working_dir":"$project_path",
+        "working_dir":"$project_path/../../",
         "shell":true,
-        "cmd": ["$project_path/tavern.sh debug"]
+        "cmd": ["../../$project_path/tavern.sh debug"]
         }
     ]
 }

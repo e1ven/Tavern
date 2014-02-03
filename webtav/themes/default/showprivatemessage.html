@@ -1,9 +1,5 @@
 {% import datetime %}
-
 {% set note = user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
-{% set trust = user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey']) %}
-
-
 <div id="firstMessage" class="comment">
     <ul>
         <li>
@@ -22,9 +18,15 @@
                     {% end %}
                 </h6>
             </a>
-            {% include 'UserDetails.html' %}
+            {% module ShowUserdetails(handler=handler,envelope=envelope,note=note) %}
+
             <p class="firstMessageDate">
-                Received <abbr title="{{datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope.dict['parent']['envelope']['local']['time_added']))).format() }}</time></abbr>.
+                Received
+                <abbr title="{{libtavern.utils.gettime(format='printable')}}">
+                    <time datetime="{{libtavern.utils.gettime(format='iso')}}">
+                        {{  libtavern.utils.gettime(format='relative',timestamp=envelope['envelope']['local']['time_added']) }}
+                    </time>
+                </abbr>
             </p>
             <br>
             <div id="firstMessageBody" class="MessageBody">
@@ -40,7 +42,7 @@
             </div>
             <Br><br>
             <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}" class='iconLabelColorLight'></div>
-            {% raw handler.render_string('attachmentsandembeds.html',envelope=envelope) %}            
+            {% module ShowAttachments(envelope=envelope,handler=handler) %}
         </li>
     </ul>     
 </div>

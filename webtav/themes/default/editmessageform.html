@@ -20,7 +20,7 @@
 
 			<div id="filelist">
 			</div>
-			<input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}/>Include Location<br/>
+			<input type="checkbox" name="include_location" {% if user.include_location %}checked{% end %}/>Include Location<br/>
 			<input type="submit" value="Submit Edit"/>
 		</form>
 {% end %}

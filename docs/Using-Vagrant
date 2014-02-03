@@ -1,35 +1,36 @@
-We've setup a Vagrant Image to make Developent faster and easier.
+Tavern includes a Vagrant virtual machine, which should make it easy to run Tavern with minimal setup.
 
-You'll only need a few pieces to make it work. 
-If you've done dev work on other projects, you may already have them.
+Before you run the virtual machine, make sure you have Virtualbox installed. (https://virtualbox.org/wiki/Downloads)
+You will also need Vagrant installed (http://downloads.vagrantup.com)
 
-	1) Install VirtualBox, https://virtualbox.org/wiki/Downloads
-	2) Install Vagrant, via http://downloads.vagrantup.com
-	3) cd the Vagrant directory, and run "vagrant up"
+Then, just cd to the Vagrant directory ( Tavern/datafiles/Vagrant) and run "vagrant up"
+The VM should install everything it needs, and then fire up Tavern.
 
-You should be all set!
-If everything went smoothly, you should be able to connect to Tavern at 
+If everything went smoothly, you should be able to connect to Vagrant at:
+    http://127.0.0.1:8080/
 
-http://127.0.0.1:8080/
+To administrate the machine, cd to the Vagrant directory, and run "vagrant ssh"
 
-To administer it, cd to the Vagrant directory, and run "vagrant ssh"
+Creating your own Vagrant base image.
+=====================================
 
----
+The standard Tavern Vagrant box will download a basic Ubuntu install,
+and then install Tavern onto it using the normal install.sh script.
 
-This will download a baseimage, and apply the Tavern settings using install.sh.
-If you don't trust the base image, it's easy to make your own, using Veewee.
-Alternatively, install it manually using Virtualbox and an a iso, and name it tavern-minimal
+If you don't trust this base image (And frankly, you probably shouldn't..),
+you can make your own using veewee.
 
-To create your own image-
-	1) First, install veewee:
-		git clone https://github.com/jedi4ever/veewee.git
+To create your own image, first install veewee-
+
+    1) git clone https://github.com/jedi4ever/veewee.git
 	2) cd veewee
 	3) rvm install ruby-1.9.2-p320
 	4) rvm use ruby-1.9.2-p320
 	5) gem install bundler
 	6) bundle install
 
-Now, let's create an image for Tavern
+Then, use veewee to create a base image.
+
 	1) veewee vbox define 'tavern-minimal' 'ubuntu-13.10-server-amd64'
 	2) bundle exec veewee vbox build 'tavern-minimal'
 	3) bundle exec veewee vbox export 'tavern-minimal'

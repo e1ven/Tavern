@@ -1,25 +1,27 @@
-    {% set permalink = '' %}
-    {% set messagerating = 5 %}
-    {% set note = '' %}
-    {% set medialink = '' %}
+{% import libtavern.utils %}
+{% set permalink = '' %}
+{% set messagerating = 5 %}
+{% set note = '' %}
+{% set medialink = '' %}
 
-    {% if top %}
-        {% set avatarsize = 80 %}
-    {% else %}
-        {% set avatarsize = 40 %}
+{% if top %}
+    {% set avatarsize = 80 %}
+{% else %}
+    {% set avatarsize = 40 %}
 
-    {% end %}
+{% end %}
 
-    {% if top %}
+{% if top %}
+    <div id="allreplies">
     <div class="first_message">
-    {% end %}
+{% end %}
         <ul>
             <li>
                  {% if not top %}
                     <div class="message rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
                     <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}" rel="author">
-                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{1}}" />
+                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=40,height=40)}}" />
                     </a>
                     {% if top %}
                     <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
@@ -33,9 +35,15 @@
                         {% end %}
                     </h6>
                     </a>
-                    {% include 'UserDetails.html' %}
+                    {% module ShowUserdetails(handler=handler,envelope=envelope,note=note) %}
+
                     <p class="message_date">
-                        Received <abbr title="{{envelope.dict['envelope']['local']['time_added'] }}"><time datetime="{{envelope.dict['envelope']['local']['time_added']  }}">{{envelope.dict['envelope']['local']['time_added']}}</time></abbr>.
+                        Received
+                             <abbr title="{{libtavern.utils.gettime(format='printable')}}">
+                                <time datetime="{{libtavern.utils.gettime(format='iso')}}">
+                                    {{  libtavern.utils.gettime(format='relative',timestamp=envelope.dict['envelope']['local']['time_added']) }}
+                                </time>
+                             </abbr>
                         {% if 'edits' in envelope.dict['envelope']['local'] %}
                             <abbr title="This message has been edited."><a href="/messagehistory/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
                         {% end %}
@@ -171,23 +179,21 @@
                     </div>
                     <Br><br>
                     <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}"></div>
-                    {% include 'attachmentsandembeds.html' %}
-
+                    {% module ShowAttachments(envelope=envelope,handler=handler) %}
 
                     {% if not top %}
                         </div> <!-- End message div -->
                     {% end %}
                     {% if 'citedby' in envelope.dict['envelope']['local'] %}
                         {% for cite in envelope.dict['envelope']['local']['citedby'] %}
-                            AAABBBCCC
-                            {% raw handler.render_string('macro-showmessage.html', envelope=childmap[cite],handler=handler,top=False,childmap=childmap)  %}
-                       
+                            {% module ShowMessage(envelope=childmap[cite],handler=handler,top=False,childmap=childmap) %}
                         {% end %}
                     {% end %}
             </li>
 
         </ul>
 
-    {% if top %}
-    </div>
-    {% end %}
+{% if top %}
+</div>
+</div>
+{% end %}

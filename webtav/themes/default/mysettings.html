@@ -2,25 +2,25 @@
 <form enctype="multipart/form-data" action="/changesettings" method="post">
     {% raw xsrf_form_html() %}
 
-    {% if user.UserSettings['status']['hasuniquekey'] is True %}
-        <p>Your username (for logging in) is {{user.UserSettings['username']}}</p>
+    {% if user.hasuniquekey %}
+        <p>Your username (for logging in) is {{user.username}}</p>
     {% else %}
         <p>You have not registered yet. Your settings will be saved, but you will not be able to log in from any other browsers or devices until you register.</p>
     {% end %}
-    <p>Your messages will display the alias: <input type="text" size=25 name="friendlyname" value="{{user.UserSettings['friendlyname']}}">@{{user.UserSettings['author_wordhash']}} </p> 
+    <p>Your messages will display the alias: <input type="text" size=25 name="friendlyname" value="{{user.friendlyname}}">@{{user.author_wordhash}} </p>
     <br><p>
-    Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{user.UserSettings['maxposts']}}"><br>
-    Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{user.UserSettings['maxreplies']}}"><br>
+    Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{user.maxposts}}"><br>
+    Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{user.maxreplies}}"><br>
     <br><p>
 
     <a href='/changepassword'>Set Password</a>
     <br><p>
     Show images and video from external sources:
-    <input type='checkbox' name='allowembed' {% if user.UserSettings['allowembed'] == 1 %} checked {% end %} >
+    <input type='checkbox' name='allowembed' {% if user.allowembed == 1 %} checked {% end %} >
     <br><p>
-    Include location with posts by default : <input type="checkbox" name="include_location" {% if user.UserSettings['include_location'] == True %}checked{% end %}>
+    Include location with posts by default : <input type="checkbox" name="include_location" {% if user.include_location %}checked{% end %}>
     <br><p>
-    Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if user.UserSettings['display_useragent'] == True %}checked{% end %}>
+    Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if user.display_useragent %}checked{% end %}>
 
     {# 
     The following block of code shows the available themes, if there are any, and lets you choose one.
@@ -29,8 +29,8 @@
 
     {% if len(server.availablethemes) > 1 %}
     {% set themelist = server.availablethemes %}
-    {% if user.UserSettings['theme'] in themelist %}
-        {% set current = themelist.pop(themelist.index(user.UserSettings['theme']))   %}
+    {% if user.theme in themelist %}
+        {% set current = themelist.pop(themelist.index(user.theme))   %}
         {% set themelist.insert(0,current) %}
     {% end %}
     <br>

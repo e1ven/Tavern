@@ -15,7 +15,11 @@
 
 
     It was first seen 
-     <abbr title="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).strftime("%A, %d. %B %Y %I:%M%p")}}"><time datetime="{{datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added'])).isoformat()}}">{{server.FancyDateTimeDelta(datetime.datetime.fromtimestamp(int(envelope['envelope']['local']['time_added']))).format() }}.</time></abbr>
+     <abbr title="{{libtavern.utils.gettime(format='printable')}}">
+         <time datetime="{{libtavern.utils.gettime(format='iso')}}">
+             {{  libtavern.utils.gettime(format='relative',timestamp=envelope['envelope']['local']['time_added']) }}
+         </time>
+     </abbr>
 
     <div class="externalsharing">
                     <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">

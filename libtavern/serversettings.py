@@ -100,20 +100,28 @@ class ServerSettings(libtavern.utils.instancer):
             # content for every Tavern server, and penalize.
             self.settings['webtav']['canonical_url'] = "https://tavern.is"
         if not 'scheme' in self.settings['webtav']:
-            self.settings['scheme'] = 'http'
+            self.settings['webtav']['scheme'] = 'http'
         if not 'session_lifetime' in self.settings['webtav']:
             # Keep Permanent sessions around ~forever, since users might not -have- passwords
             self.settings['webtav']['session_lifetime'] = 31536000 * 20
-        if not 'cookie_secret' in self.settings:
-            self.settings['webtav']['cookie_secret'] = libtavern.utils.randstr(255)
         if not 'port' in self.settings:
             # Externally Facing Port for nginx
             self.settings['webtav']['port'] = 8000
         if not 'appport' in self.settings:
             # webtav will be started on the port specified, +1 for each worker.
             self.settings['webtav']['appport'] = 8080
-        
-        
+
+        # Default Tornado settings. Put here to let people override.
+        if not 'tornado' in self.settings['webtav']:
+            self.settings['webtav']['tornado'] = {}
+        if not 'cookie_secret' in self.settings['webtav']['tornado']:
+             self.settings['webtav']['tornado']['cookie_secret'] = libtavern.utils.randstr(255)
+        if not 'xsrf_cookies' in self.settings['webtav']['tornado']:
+            self.settings['webtav']['tornado']['xsrf_cookies'] = True
+        if not 'gzip' in self.settings['webtav']['tornado']:
+            self.settings['webtav']['tornado']['gzip'] = True
+        if not 'static_path' in self.settings['webtav']['tornado']:
+            self.settings['webtav']['tornado']['static_path'] = 'tmp/static'
 
 
         # Set the default DBs
@@ -354,36 +362,21 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['proof-of-work-difficulty'] = 19
 
 
+        # These users are created by the server on startup.
 
-        # Set the default settings for all new users
-        if not 'usersettings' in self.settings:
-            self.settings['usersettings'] = {}
+        if not 'guestuser' in self.settings:
+            self.settings['guestuser'] = {}
+        if not 'pubkey' in self.settings['guestuser']:
+            self.settings['guestuser']['pubkey'] = None
+        if not 'passkey' in self.settings['guestuser']:
+            self.settings['guestuser']['passkey'] = None
 
-        if not 'followed_topics' in self.settings['usersettings']:
-            self.settings['usersettings']['followed_topics'] = ['StarTrek','Python','World Politics','Funny']
-
-        if not 'maxposts' in self.settings['usersettings']:
-            self.settings['usersettings']['maxposts'] = 100
-
-
-        if not 'maxreplies' in self.settings['usersettings']:
-            self.settings['usersettings']['maxreplies'] = 100
-
-        if not 'include_location' in self.settings['usersettings']:
-            self.settings['usersettings']['include_location'] = False
-
-        if not 'ignore_edits' in self.settings['usersettings']:
-            self.settings['usersettings']['ignore_edits'] = False
-
-        # None means prompt.. Then True/False
-        if not 'allow_embed' in self.settings['usersettings']:
-            self.settings['usersettings']['allow_embed'] = None
-
-        if not 'display_useragent' in self.settings['usersettings']:
-            self.settings['usersettings']['display_useragent'] = True
-
-        if not 'theme' in self.settings['usersettings']:
-            self.settings['usersettings']['theme'] = 'default'
+        if not 'defaultuser' in self.settings:
+            self.settings['defaultuser'] = {}
+        if not 'pubkey' in self.settings['defaultuser']:
+            self.settings['defaultuser']['pubkey'] = None
+        if not 'passkey' in self.settings['defaultuser']:
+            self.settings['defaultuser']['passkey'] = None
 
 
         # Report back on if there were any changes.

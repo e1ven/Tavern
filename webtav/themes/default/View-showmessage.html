@@ -1,0 +1,10 @@
+{#
+   This file does very little right now.
+   It is here so that we can consistantly call Views, rather than layouts directly.
+   This allows the tripane layout to be called by multiple Views without confusion.
+#}
+
+{% extends "Layout-tripane.html" %}
+{% block column3 %}
+        {% module ShowMessage(envelope=handler.displayenvelope,handler=handler,top=True,childmap=handler.displayenvelope.childmap) %}
+{% end column3 %}

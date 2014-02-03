@@ -10,7 +10,7 @@
 				<p>
 
 
-				{% set sortedtopic =  [ server.sorttopic(x) for x in user.UserSettings['followedTopics'] ] %}
+				{% set sortedtopic =  [ server.sorttopic(x) for x in user.followed_topics ] %}
 	
 
 				{% if server.sorttopic(topic) in sortedtopic %}

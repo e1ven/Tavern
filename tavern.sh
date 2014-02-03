@@ -5,11 +5,36 @@
 
 function usage 
 {
-    echo "Usage: $0 {start|stop|restart} [debug/initonly]"
-    echo "initonly will startup, create config files, then exit"
+    echo "Usage: $0 {start|stop|restart} [debug]"
     echo "debug will run a single process without backgrounding"
 }
 
+function verify_tavern_dir
+{
+    # Verify if we're currently in a Tavern directory,
+    # Check for required subdirs, abort if not found.
+
+    SAFE=0
+    SAFE=$((SAFE+`ls | grep 'tavern.sh' > /dev/null; echo $?`))
+    SAFE=$((SAFE+`ls | grep 'logs' > /dev/null; echo $?`))
+    SAFE=$((SAFE+`ls | grep 'utils' > /dev/null; echo $?`))
+    SAFE=$((SAFE+`ls | grep 'conf' > /dev/null; echo $?`))
+    SAFE=$((SAFE+`ls | grep 'tmp' > /dev/null; echo $?`))
+    SAFE=$((SAFE+`ls | grep 'webtav' > /dev/null; echo $?`))
+    if [ "$SAFE" -gt 0 ]
+    then
+        echo "This script was not run from a valid Tavern installation"
+        exit 2
+    fi
+    SAFE=$((SAFE+`utils/mongodb/bin/mongod --help > /dev/null; echo $?`))
+    SAFE=$((SAFE+`utils/nginx/sbin/nginx -? >/dev/null 2>&1; echo $?`))
+
+    if [ "$SAFE" -gt 0 ]
+    then
+        echo -e "Tavern does not have all dependencies in place.\nDid you run install.sh?"
+        exit 2
+    fi
+}
 
 function getarg 
 {
@@ -152,6 +177,14 @@ then
             hdiutil detach -force $device
         fi
     done
+    echo "Stopping any disk images from previous unclean exits"
+    for device in `diskutil list | grep '/dev/disk'`
+    do
+         if [ `diskutil info $device | grep TavernRamDisk; echo $?` -eq 0 ]
+         then
+            hdiutil detach -force $device
+         fi
+    done
     # We're done here.
     mv tmp/mounted tmp/mounted-old
 fi
@@ -174,8 +207,10 @@ function stop
         kill $i
     done
     
-    echo "Stopping Mongo"
-    pkill -F conf/mongod.pid 
+
+    echo "Terminating Required services"
+    python -m utils.subservers stop
+
     # Remove ramdisks
     ramdisk stop
     exit
@@ -322,12 +357,6 @@ function start
     else
         DEBUG=0
     fi
-    if [ "$1" == "initonly" ]
-    then
-        INITONLY=1
-    else
-        INITONLY=0
-    fi
 
     # Load in the StartScript settings
     loadargs
@@ -465,7 +494,7 @@ function start
 
     echo "Validating code correctness.."
     # Run our manual validations. 
-    ./validate.sh
+    ./utils/validate.sh
     if [ "$?" -ne 0 ]
         then
         echo "Aborting due to code issue."
@@ -537,19 +566,16 @@ function start
         writearg onStartLastRun
     fi
 
-    echo "Starting Mongo"
-    ./utils/mongodb/bin/mongod --config conf/mongodb.conf 
+    echo "Starting Required services"
+    python -m utils.subservers start
 
 
     writearg lastrun `date +%s`
     echo "Starting Tavern..."
     if [ $DEBUG -eq 1 ]
     then
-        python -m webtav.webfront --debug -vvvv
-    elif [ $INITONLY -eq 1 ]
-    then
-        python -m webtav.webfront --initonly=True
-    else    
+        python -m webtav.webfront -vvvv
+    else
         # -1 in the line below, since we start the count at 0, so we can be starting on 8080
         for ((i=0;i<=$((numservers -1));i++))
         do            
@@ -582,6 +608,9 @@ then
     exit 1
 fi
 
+# Verify this is a valid location to run the script from.
+verify_tavern_dir
+
 case "$1" in
         start)
             start $2
@@ -593,7 +622,7 @@ case "$1" in
             stop
             start
             ;;
-        debug|initonly)
+        debug)
             if [ $# -eq 1 ]
             then
                 start $1

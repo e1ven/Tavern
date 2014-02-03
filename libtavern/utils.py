@@ -68,14 +68,50 @@ def checkWork(input, proof, difficulty):
         print("Work fails to verify")
         return False
 
+def gettime(format='timestamp',timestamp=None):
+    """
+    Get the time in various formats.
+    """
+    if timestamp is None:
+        timestamp = time.time()
 
-def inttime():
-    """Force 1 sec precision, so multiple requests per second cache."""
-    return int(time.time())
+    if format == 'timestamp':
+        return int(timestamp)
+    elif format == 'longstr':
+        return str(timestamp).translate(str.maketrans('', '', '.'))
+    elif format == 'relative':
+        now = datetime.datetime.now()
+        then = datetime.datetime.fromtimestamp(timestamp)
 
+        delta = now - then
+        year = round(delta.days / 365)
+        month = round(delta.days / 30 - (12 * year))
+        if year > 0:
+            day = 0
+        else:
+            day = delta.days % 30
+        hour = round(delta.seconds / 3600)
+        minute = round(delta.seconds / 60 - (60 * hour))
+        second = delta.seconds - (hour * 3600) - \
+                                      (60 * minute)
+        millisecond = delta.microseconds / 1000
 
-def longtime():
-    return str(time.time()).translate(str.maketrans('', '', '.'))
+        # Round down. People don't want the exact time.
+        # For exact time, reverse array.
+        fmt = ""
+        for period in ['second', 'minute', 'hour', 'day', 'month', 'year']:
+            value = locals().get(period,None)
+            if value:
+                if value > 1:
+                    period += "s"
+                fmt = str(value) + " " + period
+        return fmt + " ago"
+    elif format == 'iso':
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        return dt.isoformat()
+    elif format == 'printable':
+        dt = datetime.datetime.fromtimestamp(timestamp)
+        return dt.strftime("%A, %B %d, %Y at %I:%M%p")
 
 
 class randomWords(libtavern.baseobj.Baseobj):
@@ -179,36 +215,29 @@ class instancer(object):
 
         self.__dict__ = self._shared_state[cn][slot]
 
-def FancyDateTimeDelta(dt):
-    """
-    Format the date / time difference between the supplied date and the
-    current time using approximate measurement boundaries.
-    """
-    now = datetime.datetime.today()
-    delta = now - dt
-    year = round(delta.days / 365)
-    month = round(delta.days / 30 - (12 * year))
-    if year > 0:
-        day = 0
-    else:
-        day = delta.days % 30
-    hour = round(delta.seconds / 3600)
-    minute = round(delta.seconds / 60 - (60 * hour))
-    second = delta.seconds - (hour * 3600) - \
-                                  (60 * minute)
-    millisecond = delta.microseconds / 1000
+def config_jinja():
+    """Setup the custom Jinja2 filters."""
+    # I prefer to use Jinja2 templates, rather than SimpleTemplate.
+    Jinja2Template.settings = {
+        'autoescape': True,
+    }
+    bottle.TEMPLATE_PATH.insert(0, 'themes/default')
 
-    # Round down. People don't want the exact time.
-    # For exact time, reverse array.
-    fmt = ""
-    for period in ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year']:
-        value = locals().get(period,None)
-        if value:
-            if value > 1:
-                period += "s"
+    # Custom Date filters
+    def format_timestamp(value, format='medium', tzinfo=None, locale='en_US'):
+        dt = datetime.datetime.fromtimestamp(value)
+        if format.lower() == "iso":
+            return dt.isoformat()
+        elif format.lower() == "delta":
+            return libtavern.utils.FancyDateTimeDelta(dt)
+        else:
+            return dt.strftime('%c')
 
-            fmt = str(value) + " " + period
-    return fmt + " ago"
+    # Add in our new filters
+    if not 'filters' in Jinja2Template.settings:
+        Jinja2Template.settings['filters'] = {}
+
+    Jinja2Template.settings['filters']['timestamp'] = format_timestamp
 
 
 

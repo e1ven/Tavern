@@ -269,7 +269,7 @@ class Server(libtavern.utils.instancer):
             return
         else:
             self.set = True
-        
+
         # Save our instance name
         self.slot = slot
 
@@ -284,7 +284,7 @@ class Server(libtavern.utils.instancer):
 
         # Define the console logging options.
         formatter = logging.Formatter('[%(levelname)s] %(message)s')
-        
+
         self.consolehandler = logging.StreamHandler()
         self.consolehandler.setFormatter(formatter)
         self.logger.addHandler(self.consolehandler)
@@ -359,7 +359,7 @@ class Server(libtavern.utils.instancer):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 
-        self.serversettings.settings['static-revision'] = libtavern.utils.longtime()
+        self.serversettings.settings['static-revision'] = libtavern.utils.gettime(format='longstr')
 
         self.fortune = libtavern.utils.randomWords(fortunefile="datafiles/header-fortunes")
         self.wordlist = libtavern.utils.randomWords(fortunefile="datafiles/wordlist")
@@ -381,38 +381,33 @@ class Server(libtavern.utils.instancer):
         self.keygen.start()
 
 
-        # Create a Guest account.
-        # This account can be loaded by people until they create their own account
-        # Consider it the equivalent of the 'nobody' user.
+        # Create a Default acct.
+        # All new users inherit settings from this user.
 
-        self.guestacct = libtavern.user.User(server=self)    
-        if not 'guestacct' in self.serversettings.settings:
-            self.logger.info("Generating a Guest user acct.")
-            self.guestacct.generate(AllowGuestKey=False)
-            self.serversettings.settings['guestacct'] = self.guestacct.to_dict()
+        if self.serversettings.settings['defaultuser']['pubkey'] is not None:
+            self.defaultuser = libtavern.user.User()
+            self.defaultuser.load_mongo_by_pubkey(self.serversettings.settings['defaultuser']['pubkey'])
+            self.defaultuser.passkey = self.serversettings.settings['defaultuser']['passkey']
+        else:
+            self.defaultuser = libtavern.user.User(AllowGuestKey=False)
+            self.defaultuser.save_mongo(overwriteguest=True)
+            self.serversettings.settings['defaultuser']['pubkey'] = self.defaultuser.Keys['master'].pubkey
+            self.serversettings.settings['defaultuser']['passkey'] =  self.defaultuser.passkey
             self.serversettings.saveconfig()
-            self.guestacct.save_mongo(overwriteguest=True)
+
+        # Create a Guest account.
+        # This account controls settings for users who haven't created an acct yet.
+        # It is separate from the Default user so that we can customize the settings for non-logged in users.
+
+        if self.serversettings.settings['guestuser']['pubkey'] is not None:
+            self.guestuser = libtavern.user.User()
+            self.guestuser.load_mongo_by_pubkey(self.serversettings.settings['guestuser']['pubkey'])
+            self.guestuser.passkey = self.serversettings.settings['guestuser']['passkey']
         else:
-            self.logger.info("Loading the Guest user acct.")
-            self.guestacct = libtavern.user.User(server=self)
-            self.guestacct.from_dict(self.serversettings.settings['guestacct'])
-
-        # Create and/or restore a Server User.
-        # This 'User' is used to sign stamps, etc.
-        # Don't do this anywhere else.
-        self.serveruser = libtavern.user.User(server=self)
-        if 'serveruser' in self.serversettings.settings and 'serverpasskey' in self.serversettings.settings:
-            self.serveruser.passkey = self.serversettings.settings['serverpasskey']
-            self.serveruser.from_dict(self.serversettings.settings['serveruser'])
-        else:
-            self.logger.info("Generating new server useracct.")
-            self.serveruser.generate(AllowGuestKey=False)
-
-            # We can't effectively encrypt this info without prompting
-            # For a username/password before starting the server.
-            self.serversettings.settings['serveruser'] = self.serveruser.to_dict()
-            self.serversettings.settings['serverpasskey'] = self.serveruser.passkey
-
+            self.guestuser = libtavern.user.User(AllowGuestKey=False)
+            self.guestuser.save_mongo(overwriteguest=True)
+            self.serversettings.settings['guestuser']['pubkey'] = self.guestuser.Keys['master'].pubkey
+            self.serversettings.settings['guestuser']['passkey'] =  self.guestuser.passkey
             self.serversettings.saveconfig()
 
         self.logger.info("Tavern Server is now running, using logging level : " +
@@ -522,7 +517,7 @@ class Server(libtavern.utils.instancer):
 
         # Store the time, in full UTC (with precision). This is used to skip
         # pages in the viewer later.
-        c.dict['envelope']['local']['time_added'] = libtavern.utils.longtime()
+        c.dict['envelope']['local']['time_added'] = libtavern.utils.gettime(format='longstr')
 
         if c.dict['envelope']['payload']['class'] == "message":
 
@@ -746,21 +741,27 @@ class Server(libtavern.utils.instancer):
                           html)
         return html
 
-    def url_for(self,envelope=None,topic=None,fqdn=False):
+    def url_for(self,envelope=None,topic=None,user=None,fqdn=False):
         """
         Return the canonical URL for a given token
         :param message: Optional messageid
         :param topic: optional topic
         :return string: URL
         """
-        if envelope is None and topic is None:
-            raise Exception('Nothing to get URL for')
-        elif topic is not None:
-            return '/t/' + topic
+        if topic is not None:
+            url =  '/t/' + topic
         elif envelope is not None:
             if isinstance(envelope, libtavern.envelope.Envelope):
-                return "/m/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
+                url =  "/m/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
                              envelope.dict['envelope']['local']['short_subject'] + "/" + \
                              envelope.dict['envelope']['local']['payload_sha512']
             else:
-                raise Exception("url_for must receive Topic or Envelope")
+                raise Exception("url_for must be given an Envelope object.")
+        elif user is not None:
+            url =  "/u/" + user.Keys['master'].pubkey
+        else:
+            raise Exception('Nothing to get URL for.')
+        if fqdn is True:
+            prefix = self.serversettings.settings['webtav']['scheme'] + self.serversettings.settings['webtav']['main_url']
+            url = url + prefix
+        return urls

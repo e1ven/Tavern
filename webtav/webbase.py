@@ -119,17 +119,17 @@ class BaseHandler(tornado.web.RequestHandler):
         # better, if you're a recurrent reader
         # If a URL explicltly asks for datauri on or off, disregard prior.
 
-        if 'datauri' in self.request.query:
-            if self.request.query["datauri"].lower() == 'true':
+        if self.get_argument("datauri",None):
+            if self.get_argument("datauri").lower() == 'true':
                 self.datauri = True
-            elif self.request.query["datauri"].lower() == 'false':
+            elif self.get_argument("datauri").lower() == 'false':
                 self.datauri = False
 
-        elif self.user.UserSettings['datauri'] is not None:
-            self.datauri = self.user.UserSettings['datauri']
+        elif self.user.datauri is not None:
+            self.datauri = self.user.datauri
 
         elif random.SystemRandom().randrange(1, 10) == 5:
-                self.user.UserSettings['datauri'] = False
+                self.user.datauri = False
                 self.datauri = False
                 self.user.save_mongo()
 
@@ -139,40 +139,86 @@ class BaseHandler(tornado.web.RequestHandler):
             self.datauri = True
 
         # Do we want to show the original, ignoring edits?
-        if 'showoriginal' in self.request.query:
+        if self.get_argument('showoriginal',None):
             # Convert the string to a bool.
-            self.showoriginal = (self.request.query['showoriginal'].lower() == "true")
+            self.showoriginal = (self.get_argument('showoriginal').lower() == "true")
         else:
-            self.showoriginal = self.user.UserSettings['ignore_edits']
+            self.showoriginal = self.user.ignore_edits
 
         # To move forward and backward in the results, we specify a time.
         # We then move this backward/forward, and search with it.
         # This is cheaper than skip() http://docs.mongodb.org/manual/reference/method/cursor.skip/
 
-        if 'before' in self.request.query:
-            self.before = float(self.request.query['before'])
-        else:
-            self.before = None
-
-        if 'after' in self.request.query:
-            self.after = float(self.request.query['after'])
-        else:
-            self.after = None
+        self.before = self.get_argument('before',None)
+        if self.before:
+            self.before = float(self.before)
+        self.after = self.get_argument('after',None)
+        if self.after:
+            self.after = float(self.after)
 
         self.topicfilter = libtavern.topicfilter.TopicFilter()
 
+        # Set default values for variables we look for.
+        self.canon = None
+        self.title = None
+        self.topic = None
 
-    def write_error(self,status_code, **kwargs):
-        # Create a pretty error emessage
-        if "exc_info" in kwargs:
-            args = kwargs["exc_info"][1].args
-        else:
-            args = []
-            args.append("That was unexpected")
-            args.append("Something has gone wrong, and we're not quite sure what it was yet.")
+    def write_error(self, status_code, **kwargs):
+        # Catch exceptions and print out an error message using a template.
 
-        self.displayenvelope = self.server.error_envelope(topic='Error',subject=args[0], body=args[1])
+        # Return our exception objects to normal objs
+        exc = kwargs['exc_info'][1]
+        exccls = kwargs['exc_info'][0]
+        exctrc = kwargs['exc_info'][2]
+
+        # Ensure we have something to print, even if we have to assign it here.
+        try:
+            subject = exc.short
+        except AttributeError:
+            subject = 'Something rather unexpected has happened :/'
+        try:
+            body = exc.long
+        except AttributeError:
+            body =  """
+        It looks like something rather unexpected has happened -
+        It's not clear what went wrong, but clearly something did.
+        Dreadfully sorry about that..."""
+
+        # Try using the value in the exception if possible.
+        try:
+            code = exc.status_code
+        except AttributeError:
+            code = status_code
+
+        self.set_status(code)
+
+        self.displayenvelope = self.server.error_envelope(topic='Error',subject=subject, body=body)
         self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
         self.canon = None
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
-        self.write(self.render_string('partial-showmessage.html', handler=self))
+        self.render('View-showmessage.html', handler=self)
+
+
+class weberror(Exception):
+    """A generic http error message that supports subject/body.
+
+    Raising the exception is preferred to calling write_error directly,
+    This way we can log, look up errors in translation, etc.
+    """
+    def __init__(self, code=500, short=None,long=None,log=None, *args, **kwargs):
+
+        self.status_code = code
+        self.log_message = log
+        self.args = args
+        self.short = short
+        self.long = long
+
+    def __str__(self):
+        # Look up the HTTP status code if possible.
+        # If not, use the description passed in.
+        message = "HTTP " + str(self.status_code) + " " + tornado.httputil.responses.get(self.status_code, self.short)
+        if self.log_message:
+            return message + " (" + (self.log_message % self.args) + ")"
+        else:
+            return message
+

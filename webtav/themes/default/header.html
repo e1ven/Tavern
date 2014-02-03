@@ -14,8 +14,8 @@
     <meta name="robots" content="noindex">
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-	{% if handler.canon is defined %}
-		<link rel=canonical href="{{handler.server.serversettings.settings['['webtav']['canonical_url']']}}/{{handler.canon}}"/>
+	{% if handler.canon %}
+		<link rel=canonical href="{{handler.server.serversettings.settings['webtav']['canonical_url']}}/{{handler.canon}}"/>
 		<meta property="og:url" content="{{handler.server.serversettings.settings['webtav']['canonical_url']}}/{{handler.canon}}"/>
 		<meta property="og:blog" content="article"/>
 	{% end %}
@@ -23,41 +23,31 @@
 
 
 
-	{% if handler.title is defined %}
-		<meta NAME="Description" CONTENT="Tavern ;) - {{handler.title}}">
-	{% else %}
-		<meta NAME="Description" CONTENT="A shared discussion about the topics that matter.">
-	{% end %}
+    <meta NAME="Description" CONTENT="Tavern ;) - {{handler.title}}">
 
 	<meta http-equiv="X-Frame-Options" content="deny">
 	<meta property="og:site_name" content="Tavern"/>
 
 	<title>
-		{% if handler.title is defined %}
+		{% if handler.title %}
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{ handler.title }}
 		{% else %}
 		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Discuss what matters.
 		{% end %}
 	</title>
-	<meta property="og:title" content="
-	{% if handler.title is defined %}
-	Tavern :: {{ handler.title }}
-	{% else %}
-	Tavern :: Discuss what matters
-	{% end %}
-	"/>
+	<meta property="og:title" content="	Tavern :: {{ handler.title }}"/>
 
 	<link rel="alternate" type="application/rss+xml" title="Updates on {{ handler.topic }}" href="/rss/topic/{{ handler.topic }}" /> 
 
 	{% if handler.useragent['ua_family'] != 'Netscape Navigator' or handler.useagent['ua_versions'][0] > 4 %}
-			<link href="/static/css/unified-{{ handler.user.UserSettings['theme'] }}.min.css?v={{ handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+			<link href="/static/css/unified-{{ handler.user.theme }}.min.css?v={{ handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 		    <!--[if IE 7]>
     			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
     		<![end]-->	
 	{% end %}
 	
 
-    <link rel="icon" href="/static/icons/32x32Icon.png?v={{ handler.server.serversettings.settings['static-revision'] }}" type="image/png" />
+    <link rel="icon" href="{{ static_url('icons/32x32Icon.png') }}" type="image/png" />
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
 	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
 	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
@@ -78,6 +68,10 @@
 		  <script defer src="/static/scripts/unified.min.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>
 		{% end %}
 	{% end %}
+
+    {% block extraJS %}
+        {# Any extra JS files can be loaded in this block #}
+    {% end extraJS %}
 
 </head>
 <body link="#000000" visited="#000000" text="#000000" background="#CCCCCC" id="body">

@@ -256,7 +256,7 @@ class Key(libtavern.baseobj.Baseobj):
     def isValid(self):
         """Does this key have an 'expires' variable set in the past?"""
         if vars(self).get('expires') is not None:
-            return libtavern.utils.inttime() < self.expires
+            return libtavern.utils.gettime(format='timestamp') < self.expires
         else:
             print("Does not expire")
             return True
@@ -276,7 +276,7 @@ class Key(libtavern.baseobj.Baseobj):
         self.fingerprint = key.fingerprint
         self._format_keys()
         self._setKeyDetails()
-        self.generated = libtavern.utils.inttime()
+        self.generated = libtavern.utils.gettime(format='timestamp')
 
         if autoexpire:
             # We want the key to expire on the last second of NEXT month.
@@ -388,8 +388,6 @@ class Key(libtavern.baseobj.Baseobj):
         decrypted_string = decrypted.data.decode('utf-8')
         return decrypted_string
     
-    def testius(self):
-        print(libtavern.utils.longtime)
 
     @privatekeyaccess
     def encrypt_file(self, newfile):
@@ -401,8 +399,7 @@ class Key(libtavern.baseobj.Baseobj):
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
-        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
-        ) + libtavern.utils.randstr(50)
+        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.gettime(format='longstr') + libtavern.utils.randstr(50)
 
         self.gpg.encrypt_file(
             stream=oldfile,
@@ -416,8 +413,7 @@ class Key(libtavern.baseobj.Baseobj):
     @privatekeyaccess
     def decrypt_file(self, tmpfile):
 
-        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.longtime(
-        ) + libtavern.utils.randstr(50)
+        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.gettime(format='longstr') + libtavern.utils.randstr(50)
         self.gpg.decrypt_file(tmpfile, output=tmpfilename)
         return tmpfilename
 

@@ -1,0 +1,5 @@
+This directory contains the files used by Tavern to run in Vagrant.
+Full Documentation on how to use Tavern with Vagrant is found in docs/Using-Vagrant
+
+Vagrantfile             - Tells Vagrant where to download the base image, and how to start Tavern.
+bootstrap.sh            - Run when Vagrant starts. Fires up install.sh, then tavern.sh

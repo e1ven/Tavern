@@ -1,5 +1,5 @@
 <a href="/"><img id="logo" src="/static/images/logo.png" alt="TAVERN"/></a>
-<ul class="accordion">      
+<ul class="accordion">
 
     {% if handler.user.has_unique_key %}
         <li id="two" class="mainheader"><a href="#">Your Account</a>
@@ -57,7 +57,7 @@
     </li>
     <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
         <ul class="sub-element sub-menu">
-            {% for quicktopic in handler.user.UserSettings['followedTopics'] %}
+            {% for quicktopic in handler.user.followed_topics %}
                 <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% end %} >
                     <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
                         <bdi>{{ quicktopic }}</bdi>

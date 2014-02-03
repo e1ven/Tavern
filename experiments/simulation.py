@@ -84,8 +84,7 @@ class Simulation():
                 e.payload.dict['topic'] = "testmessage"
                 e.payload.dict['subject'] = "Test from server: " + str(node.servernum)
 
-                user = User()
-                user.generate(AllowGuestKey=False)
+                user = User(AllowGuestKey=False)
 
                 e.payload.dict['author'] = OrderedDict()
                 e.payload.dict['author']['replyto'] = user.new_posted_key().pubkey

@@ -1,8 +1,8 @@
-{% extends "dualpane.html" %}
+{% extends "Layout-dualpane.html" %}
 
 {% block column2 %}
 
-    {% set hisname = thatguy.UserSettings['friendlyname'] + "@" + thatguy.UserSettings['author_wordhash'] %}
+    {% set hisname = thatguy.friendlyname + "@" + thatguy.author_wordhash %}
     <h1> Details about {{hisname}} </h1>
 
 
@@ -13,8 +13,7 @@
         {% include 'mysettings.html' %}
     {% else %}
         {# See if he's posted a communication Key #}
-        {% for post in handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) %}
-            {% if post.
+        {# for post in handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) #}
         {% if thatguy.find_commkey() is not None %}
             <p><a href="/newprivatemessage/{{thatguy.find_commkey()}}">Send {{hisname}} a private message</a></p>
         {% end %}
@@ -41,4 +40,4 @@
 
     {% include 'showuserposts.html' %}
 
-{% end %}
+{% end block2 %}

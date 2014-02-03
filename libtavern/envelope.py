@@ -531,7 +531,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         fullstamp['keyformat'] = keys.keydetails['format']
         fullstamp['pubkey'] = keys.pubkey
         fullstamp['signature'] = signature
-        fullstamp['time_added'] = libtavern.utils.inttime()
+        fullstamp['time_added'] = libtavern.utils.gettime(format='timestamp')
 
         # Copy in any passed values
         for key in kwargs.keys():

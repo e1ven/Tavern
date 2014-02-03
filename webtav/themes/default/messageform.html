@@ -4,7 +4,7 @@
 {% import TavernUtils %}
 
 	{# TimeID is set here, so it is consistent everywhere in this msg #}
-	{% set timeid = TavernUtils.longtime() %}
+	{% set timeid = libtavern.utils.gettime(format='longstr') %}
 
 	<div id='formwrapper' class="padder">
 		{% block submitblock %}

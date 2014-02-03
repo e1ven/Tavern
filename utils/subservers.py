@@ -112,6 +112,7 @@ class Nginx(process):
             
             # 10 minutes, 100Mb.
             proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/binaries-cache levels=1:2 keys_zone=default-cache:90m max_size=8000m;
+            proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/avatar-cache levels=1:2 keys_zone=avatar-cache:9000m max_size=700m;
             proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/default-cache levels=1:2 keys_zone=binaries-cache:10m max_size=100m;
             proxy_temp_path """ + self.serversettings.settings['path'] + """/tmp/nginxcache;
 
@@ -153,12 +154,17 @@ class Nginx(process):
         os.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
         os.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
         os.makedirs(self.serversettings.settings['path'] + '/tmp/nginxcache',exist_ok=True)
-        os.makedirs(self.serversettings.settings['path'] + '/tmp/nginxcachetmp',exist_ok=True)
 
     def start(self):
         """
         Start the version of mongo bundled with Tavern
         """
+
+        self.get_pid_status()
+        if self.pid is not None:
+            print("Nginx is already running on pid " + str(self.pid))
+            return
+
         subprocess.Popen([self.binpath,"-c",self.configpath])
 
 
@@ -234,6 +240,11 @@ class MongoDB(process):
         """
         Start the version of mongo bundled with Tavern
         """
+        self.get_pid_status()
+        if self.pid is not None:
+            print("Mongo is already running on pid " + str(self.pid))
+            return
+
         subprocess.Popen([self.binpath,"--config",self.configpath])
         print("Mongo started with pid " + str(self.pid))
 

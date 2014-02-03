@@ -8,7 +8,7 @@
 {% if 'ignoreedits' in request.arguments %}
     {% set showedit = False %}
 {% end %}
-{% if user.UserSettings['ignoreedits'] == True %}
+{% if user.ignoreedits == True %}
     {% set showedit = False %}
 {% end %}
 

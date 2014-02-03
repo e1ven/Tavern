@@ -7,7 +7,7 @@
 # It'll almost certainly work on other systems, but the docs are yet to be written.
 # 
 #                               IMPORTANT!
-#           This is not the recomended way for testing out Tavern.
+#           This is not the recommended way for testing out Tavern.
 #           There is a Vagrant Virtual Machine, which will be -MUCH- Easier.
 #
 #           If you want to check out Tavern, you should almost certainly use the Vagrant box, at least at first.
@@ -240,7 +240,7 @@ fi
 if [ ! -f "$installroot/datafiles/useragent.ini" ]
 then
     echo "Retrieving UserAgent data."
-    wget "http://user-agent-string.info/rpc/get_data.php?key=free&format=ini&download=y" -O "$installroot/datafiles/useragent.ini"
+    wget "http://user-aglent-string.info/rpc/get_data.php?key=free&format=ini&download=y" -O "$installroot/datafiles/useragent.ini"
 fi
 
 
@@ -250,35 +250,6 @@ fi
 #     echo "/usr/bin/python $taverndir/TopicList.py" > /etc/cron.hourly/generatetopics
 #     echo "/usr/bin/python $taverndir/ModList.py" > /etc/cron.daily/findmods
 
-# # Make sure your DB is running.
-# if [ $os == 'LINUX' ]
-# then
-#     /etc/init.d/mongodb start
-# elif [ $os == 'OSX' ]
-# then
-#     cd $taverndir/tmp
-#     wget https://github.com/remysaissy/mongodb-macosx-prefspane/raw/master/download/MongoDB.prefPane.zip
-#     unzip -f MongoDB.prefPane.zip
-#     open MongoDB.prefPane &
-
-#     cd $taverndir
-#     ./start-dev-servers.sh
-# fi
-
-
-
-
-# # Start Tavern in Config mode, to generate all needed config files
-# ./tavern start initonly
-
-# # Start Tavern for real, and run in the background.
-# ./tavern.sh start
-
 echo "Tavern is now installed."
-# SETTINGS
-# Most settings should work automatically out of the box, but you may want to modify Domains to run things on your own.
-# For instance, the serversetting 'embedserver' sends users to embed.is for embedded iframes.
-# Feel free to run your own embed server, and change this setting to use it.
-
-# Also, for production, you should change probably run a separate binaries server from / to a new domain.
-# This will prevent some cookie reading attacks.
+echo "This setup should be sufficent for testing and dev."
+echo "Reminder - Tavern is NOT ready to be used outside of development. It's -not- safe!"

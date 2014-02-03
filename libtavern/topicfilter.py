@@ -119,7 +119,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
             else:
                 ret = subjects[-1]['envelope']['local']['time_added']
         else:
-            ret = libtavern.utils.inttime()
+            ret = libtavern.utils.gettime(format='timestamp')
 
         return ret
 

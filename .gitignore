@@ -1,19 +1,35 @@
-*.pyc
-*.swp
-*.swo
-.DS_Store
+# OS tmp files
 Thumbs.db
 ehthumbs.db
 Desktop.ini
-*.Tavern*Settings*
 nohup.out
+.DS_Store
+
+# Python tmp files
+*.pyc
+*.swp
+*.swo
 __pycache__
-tmp
+
+# Preprocessing tmp files
+.sass-cache
 *.min.js
 *.min.css
+*.gz
+
+# Tavern tmp files/logs/conf/etc
+tmp
 logs
-.sass-cache
-*.box
 Libs/virtualenv*
+*.Tavern*Settings*
+
+# IDE tmp files
 tavern.sublime-workspace
+workspace.xml
+e1ven.xml
 .idea
+
+# Big Tavern files - These would bloat the repo, since they're big and change :/
+GeoLiteCity.dat
+useragent.ini
+*.box
