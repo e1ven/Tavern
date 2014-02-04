@@ -6,12 +6,12 @@
 <p></p>
 <ul>
 
-{% set envelopes = server.get_all_user_posts(thatguy.Keys['master'].pubkey) %}
+{% set envelopes = handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) %}
 
-{% if len(envelopes) != 0 %}
+{% if envelopes %}
     {% for envelope in envelopes %}
         {% if envelope.dict['envelope']['payload']['class'] == 'message' %}
-            <li><a href="/message/{{envelope.dict['envelope']['local']['sorttopic']}}/{{envelope.dict['envelope']['local']['short_subject']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">{{envelope.dict['envelope']['payload']['subject']}}</a></li>
+            <li><a href="{{handler.server.url_for(envelope)}}">{{envelope.dict['envelope']['payload']['subject']}}</a></li>
         {% end %}
     {% end %}
 {% else %}

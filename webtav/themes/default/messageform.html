@@ -16,7 +16,7 @@
 			<div class='uploadbox'>
 				<i class='icon-up-circled2'></i>
 			</div>
-			{% raw xsrf_form_html() %}
+			{% module xsrf_form_html() %}
 			<input  class='uploadonly' id="1234" type="file" name="files[]" multiple/>
 			<p class='hiddenupload' id='dragdroptext'></p>
 		</form>

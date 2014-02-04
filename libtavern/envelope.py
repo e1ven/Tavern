@@ -490,11 +490,11 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         # Check for a medialink for FBOG, Pinterest, etc.
         # Leave off if it doesn't exist
-        if len(attachmentList) > 0:
+        if attachmentList:
             medialink = None
             for attachment in attachmentList:
                 if attachment['displayable'] is not False:
-                    self.dict['envelope']['local']['medialink'] = medialink
+                    self.dict['envelope']['local']['medialink'] = attachment['sha_512']
                     break
 
     #@libtavern.utils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])

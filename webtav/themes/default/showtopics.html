@@ -13,10 +13,10 @@
 		
 		<li><b><a href="/topic/{{topic}}" <bdi>{{topic}}</bdi></a></b>  - 
 			{% if topic in user.followed_topics %}
-						<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe"' class="textbutton topicpref"></form>
+						<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Unsubscribe"' class="textbutton topicpref"></form>
 
 			{% else %}
-						<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe"' class="textbutton topicpref"></form>
+						<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Subscribe"' class="textbutton topicpref"></form>
 			{% end %}
 		</li>
 

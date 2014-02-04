@@ -45,7 +45,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
             self.user = libtavern.user.User()
 
-        if self.user.generate(AllowGuestKey=AllowGuestKey):
+        if self.user.ensure_keys(AllowGuestKey=AllowGuestKey):
             self.user.save_mongo()
             self.save_session()
 
@@ -73,7 +73,7 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.set_secure_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2)
 
         # Before we save out the sessionid, make sure the user is valid
-        if self.user.generate():
+        if self.user.ensure_keys():
             self.user.save_mongo()
         self.set_secure_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True, max_age=31556952 * 2)
 

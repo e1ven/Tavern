@@ -14,9 +14,9 @@
 	
 
 				{% if server.sorttopic(topic) in sortedtopic %}
-					<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
+					<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
 					{% else %}
-					<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% raw xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
+					<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>
 				{% end %}
 				<p>
 				The following users are popular moderators, you might want to consider adding them:<br>
@@ -24,10 +24,10 @@
 				{% for mod in mods %}
 					<li>
 					<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
-						<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+						<a href="{{handler.server.url_for(pubkey=mod['_id']['moderator'])}}">
 		    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
 		    			</a>
-		    			<a href="/user/{{''.join(mod['_id']['moderator'].split())}}">
+		    			<a href="{{handler.server.url_for(pubkey=mod['_id']['moderator'])}}">
 		    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
 						</a>
 					</abbr>

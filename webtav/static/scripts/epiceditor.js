@@ -1317,7 +1317,7 @@
   }
 
   /**
-   * Will take the markdown and generate a preview view based on the theme
+   * Will take the markdown and ensure_keys a preview view based on the theme
    * @returns {object} EpicEditor will be returned
    */
   EpicEditor.prototype.preview = function () {

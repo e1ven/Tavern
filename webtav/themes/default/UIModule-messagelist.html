@@ -1,18 +1,5 @@
 {# Get the messages for the middle column #}
 
-{% set _ = handler.topicfilter.set_topic(handler.topic) %}
-{% set subjects = handler.topicfilter.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False) %}
-
-{# Calcuate the forward/next buttons #}
-{% if len(subjects) > 0 %}
-    {% set number_of_messages_before_displayed = handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']) %}
-    {% set number_of_messages_after_displayed = handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']) %}
-{% else %}
-    {% set number_of_messages_before_displayed = None %}
-    {% set number_of_messages_after_displayed = None %}
-
-{% end %}
-
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
 	<tr height="10px">
 		<td colspan=2>
@@ -31,9 +18,9 @@
     <tr>
         <td colspan=2>
             {% if handler.server.sorttopic('topic') in handler.user.followed_topics %}
-                <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
+                <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
             {% else %}
-                <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {# raw xsrf_form_html() #} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
+                <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
             {% end %}
     </td>
     </tr>
@@ -65,7 +52,7 @@
         {% for subject in subjects %}
             <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
                 <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
-                <a class='internal messagelink' href="/message/{{handler.topic}}/{{subject.dict['envelope']['local']['short_subject']}}/{{subject.dict['envelope']['local']['payload_sha512']}}">
+                <a class='internal messagelink' href="{{handler.server.url_for(envelope=subject)}}">
                   <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
                   <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span>
                 </a>
@@ -81,7 +68,7 @@
         <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
             <tr>
                  <td>
-                    {% if number_of_messages_before_displayed %}
+                    {% if show_older %}
                     <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
                        <button id="older_messages" class="column2Buttons" type="button">
                         Older Messages
@@ -91,7 +78,7 @@
                     {% end %}
                 </td>
                 <td>
-                    {% if number_of_messages_after_displayed %}
+                    {% if show_newer %}
                     <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
                        <button id="newer_messages" class="column2Buttons" type="button">
                         Newer Messages

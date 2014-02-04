@@ -378,6 +378,13 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'passkey' in self.settings['defaultuser']:
             self.settings['defaultuser']['passkey'] = None
 
+        if not 'serveruser' in self.settings:
+            self.settings['serveruser'] = {}
+        if not 'pubkey' in self.settings['serveruser']:
+            self.settings['serveruser']['pubkey'] = None
+        if not 'passkey' in self.settings['serveruser']:
+            self.settings['serveruser']['passkey'] = None
+
 
         # Report back on if there were any changes.
         if str(self.settings) == tmpsettings:

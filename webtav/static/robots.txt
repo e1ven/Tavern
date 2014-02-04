@@ -23,16 +23,16 @@ Disallow: /followtopic
 Disallow: /showprivates/
 Disallow: /showprivates
 
-Disallow: /newmessage/
+Disallow: /newm/
 Disallow: /newmessage
 
-Disallow: /uploadnewmessage/
+Disallow: /uploadnewm/
 Disallow: /uploadnewmessage
 
-Disallow: /uploadprivatemessage/
+Disallow: /uploadprivatem/
 Disallow: /uploadprivatemessage
 
-Disallow: /privatemessage/
+Disallow: /privatem/
 Disallow: /privatemessage
 
 Disallow: /changepassword/

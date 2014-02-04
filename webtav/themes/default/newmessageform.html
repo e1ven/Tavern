@@ -2,7 +2,7 @@
 
 {% block submitblock %}
 <form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/message" method="post" class="messageform" id='{{timeid}}'>
-	{% raw xsrf_form_html() %}
+	{% module xsrf_form_html() %}
 	
 	{% if topic is None %}
 		Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />

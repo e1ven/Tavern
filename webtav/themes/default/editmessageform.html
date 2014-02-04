@@ -2,7 +2,7 @@
 
 {% block submitblock %}
 		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/messagerevision" method="post" class="messageform" id='{{timeid}}'>
-			{% raw xsrf_form_html() %}
+			{% module xsrf_form_html() %}
 			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
 
 			<p>

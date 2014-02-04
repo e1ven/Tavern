@@ -4,7 +4,7 @@
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{''.join(envelope.dict['envelope']['local']['author']['pubkey'].split())}}" rel="author">
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{handler.server.url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
 
                 <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 

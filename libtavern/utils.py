@@ -163,7 +163,10 @@ class randomWords(libtavern.baseobj.Baseobj):
 
 
 def chunks(s, n):
-    """Produce `n`-character chunks from `s`."""
+    """
+    Produce `n`-character chunks from `s`.
+    Used in the hashes above.
+    """
     for start in range(0, len(s), n):
         yield s[start:start + n]
 
@@ -177,20 +180,14 @@ def randstr(length):
 
 
 class TavernCache(object):
-
+        """
+        Generic in-memory cache object to store values in.
+        """
         def __init__(self):
             self.mc = OrderedDict()
             self.cache = {}
             self.queues = {}
 TavernCache = TavernCache()
-
-
-def getNext(typeofthing='general'):
-    if typeofthing in TavernCache.queues:
-        TavernCache.queues[typeofthing] = TavernCache.queues[typeofthing] + 1
-    else:
-        TavernCache.queues[typeofthing] = 0
-    return TavernCache.queues[typeofthing]
 
 
 def objresolve(obj, attrspec):
@@ -214,32 +211,6 @@ class instancer(object):
             self._shared_state[cn][slot] = {}
 
         self.__dict__ = self._shared_state[cn][slot]
-
-def config_jinja():
-    """Setup the custom Jinja2 filters."""
-    # I prefer to use Jinja2 templates, rather than SimpleTemplate.
-    Jinja2Template.settings = {
-        'autoescape': True,
-    }
-    bottle.TEMPLATE_PATH.insert(0, 'themes/default')
-
-    # Custom Date filters
-    def format_timestamp(value, format='medium', tzinfo=None, locale='en_US'):
-        dt = datetime.datetime.fromtimestamp(value)
-        if format.lower() == "iso":
-            return dt.isoformat()
-        elif format.lower() == "delta":
-            return libtavern.utils.FancyDateTimeDelta(dt)
-        else:
-            return dt.strftime('%c')
-
-    # Add in our new filters
-    if not 'filters' in Jinja2Template.settings:
-        Jinja2Template.settings['filters'] = {}
-
-    Jinja2Template.settings['filters']['timestamp'] = format_timestamp
-
-
 
 
 class memorise(object):

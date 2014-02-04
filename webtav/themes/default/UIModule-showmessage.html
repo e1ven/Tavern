@@ -1,16 +1,3 @@
-{% import libtavern.utils %}
-{% set permalink = '' %}
-{% set messagerating = 5 %}
-{% set note = '' %}
-{% set medialink = '' %}
-
-{% if top %}
-    {% set avatarsize = 80 %}
-{% else %}
-    {% set avatarsize = 40 %}
-
-{% end %}
-
 {% if top %}
     <div id="allreplies">
     <div class="first_message">
@@ -20,8 +7,8 @@
                  {% if not top %}
                     <div class="message rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
-                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}" rel="author">
-                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=40,height=40)}}" />
+                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{handler.server.url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
+                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
                     </a>
                     {% if top %}
                     <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
@@ -39,9 +26,9 @@
 
                     <p class="message_date">
                         Received
-                             <abbr title="{{libtavern.utils.gettime(format='printable')}}">
-                                <time datetime="{{libtavern.utils.gettime(format='iso')}}">
-                                    {{  libtavern.utils.gettime(format='relative',timestamp=envelope.dict['envelope']['local']['time_added']) }}
+                             <abbr title="{{utils.gettime(format='printable')}}">
+                                <time datetime="{{utils.gettime(format='iso')}}">
+                                    {{utils.gettime(format='relative',timestamp=envelope.dict['envelope']['local']['time_added']) }}
                                 </time>
                              </abbr>
                         {% if 'edits' in envelope.dict['envelope']['local'] %}
@@ -61,15 +48,15 @@
                     <br>
                     <div class="message_body">
                             {% if not handler.showoriginal and 'edits' in envelope.dict['envelope']['local'] %}
-                                {{ envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] }}
+                                {% raw envelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] %}
                             {% else %}
-                                {{ envelope.dict['envelope']['local']['formattedbody'] }}
+                                {% raw envelope.dict['envelope']['local']['formattedbody'] %}
                             {% end %}
                     </div>
 
                     <hr class="clear message_separator_line">
                     <form action="/vote" method="post" class="vote">
-                        {# raw xsrf_form_html() #}
+                        {% module xsrf_form_html() %}
                         <input type="hidden" name="rating" value="1">
                         <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         <abbr title= "This post was helpful.">
@@ -79,7 +66,7 @@
                     </form>
 
                     <form action="/vote" method="post" class="vote">
-                        {# raw xsrf_form_html() #}
+                        {% module xsrf_form_html() %}
                         <input type="hidden" name="rating" value="-1" >
                         <input type="hidden" name="hash" value="{{envelope.dict['envelope']['local']['payload_sha512']}}">
                         <abbr title="This post was inappropriate.">

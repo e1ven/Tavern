@@ -78,7 +78,7 @@
     <br><br>
     <ul>
     {% for envelope in stack %}
-                <li><a href="/message/{{envelope['envelope']['local']['sorttopic']}}/{{envelope['envelope']['local']['short_subject']}}/{{envelope['envelope']['local']['payload_sha512']}}">{{envelope['envelope']['payload']['subject']}}</a>
+                <li><a href="{{handler.server.url_for(envelope=envelope)}}">{{envelope['envelope']['payload']['subject']}}</a>
                 </li>
     {% end %}
     </ul>

@@ -14,7 +14,7 @@
             <div class='DetailsOption'>
                 <i class="icon icon-plus-circled"></i>
                     <form action="/usertrust" method="post">
-                        {# raw xsrf_form_html() #}
+                        {% module xsrf_form_html() %}
                         <input type="hidden" name="trust" value="100">
                         {% if 'topic' in envelope.dict['envelope']['payload'] %}
                             <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
@@ -28,7 +28,7 @@
             <div class='DetailsOption'>
                 <i class="icon icon-minus-circled"></i>
                 <form action="/usertrust" method="post">
-                    {# raw xsrf_form_html() #}
+                    {% module xsrf_form_html() %}
                     <input type="hidden" name="trust" value="-100">
                     {% if 'topic' in envelope.dict['envelope']['payload'] %}
                         <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
@@ -39,7 +39,7 @@
             </div>
         {% end %}
         <form action="/usernote" method="post" class="usernote">
-             {# raw xsrf_form_html() #}
+             {% module xsrf_form_html() %}
             <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
             <input class="usernote" type="text" value="" name="note" 
             {% if note is None %}
@@ -51,6 +51,6 @@
         </form>
         <div class='DetailsOption'>
             <i class="icon icon-twitter-squared"></i>
-            <a href="/user/{{envelope.dict['envelope']['local']['author']['pubkey']}}">Full Details</a>
+            <a href="{{handler.server.url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}">Full Details</a>
         </div>
 </div>  

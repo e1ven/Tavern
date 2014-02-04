@@ -1,36 +1,36 @@
 <h3> Your user settings </h3>
 <form enctype="multipart/form-data" action="/changesettings" method="post">
-    {% raw xsrf_form_html() %}
+    {% module xsrf_form_html() %}
 
-    {% if user.hasuniquekey %}
-        <p>Your username (for logging in) is {{user.username}}</p>
+    {% if handler.user.has_login %}
+        <p>Your username (for logging in) is {{handler.user.username}}</p>
     {% else %}
         <p>You have not registered yet. Your settings will be saved, but you will not be able to log in from any other browsers or devices until you register.</p>
     {% end %}
-    <p>Your messages will display the alias: <input type="text" size=25 name="friendlyname" value="{{user.friendlyname}}">@{{user.author_wordhash}} </p>
+    <p>Your messages will display the alias: <input type="text" size=25 name="friendlyname" value="{{handler.user.friendlyname}}">@{{handler.user.author_wordhash}} </p>
     <br><p>
-    Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{user.maxposts}}"><br>
-    Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{user.maxreplies}}"><br>
+    Number of top-level posts per page : <input type="text" size=3 name="maxposts" value="{{handler.user.maxposts}}"><br>
+    Number of replies per page : <input type="text" size=3 name="maxreplies" value="{{handler.user.maxreplies}}"><br>
     <br><p>
 
     <a href='/changepassword'>Set Password</a>
     <br><p>
     Show images and video from external sources:
-    <input type='checkbox' name='allowembed' {% if user.allowembed == 1 %} checked {% end %} >
+    <input type='checkbox' name='allowembed' {% if handler.user.allow_embed == 1 %} checked {% end %} >
     <br><p>
-    Include location with posts by default : <input type="checkbox" name="include_location" {% if user.include_location %}checked{% end %}>
+    Include location with posts by default : <input type="checkbox" name="include_location" {% if handler.user.include_location %}checked{% end %}>
     <br><p>
-    Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if user.display_useragent %}checked{% end %}>
+    Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if handler.user.display_useragent %}checked{% end %}>
 
     {# 
     The following block of code shows the available themes, if there are any, and lets you choose one.
     The business with the popping is to pull the current theme, and put it at the top of the list, so it's the first-displayed choice.
     #}
 
-    {% if len(server.availablethemes) > 1 %}
-    {% set themelist = server.availablethemes %}
-    {% if user.theme in themelist %}
-        {% set current = themelist.pop(themelist.index(user.theme))   %}
+    {% if len(handler.server.availablethemes) > 1 %}
+    {% set themelist = handler.server.availablethemes %}
+    {% if handler.user.theme in themelist %}
+        {% set current = themelist.pop(themelist.index(handler.user.theme))   %}
         {% set themelist.insert(0,current) %}
     {% end %}
     <br>

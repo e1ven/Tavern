@@ -23,7 +23,7 @@
             {% for message in messages %}
                 <li class="message {%if message.dict['envelope']['local']['payload_sha512'] == envelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
                     <abbr title="{{message.dict['envelope']['payload']['subject']}}">
-                    <a class='internal messagelink' href="/privatemessage/{{message.dict['parent']['envelope']['local']['payload_sha512']}}">
+                    <a class='internal messagelink' href="/pm/{{message.dict['parent']['envelope']['local']['payload_sha512']}}">
                       <h2><bdi>{{message.dict['envelope']['payload']['subject']}}</bdi></h2>
                       <span class="bodypreview">{{message.dict['envelope']['local']['short_body']}}</span> 
                     </a>

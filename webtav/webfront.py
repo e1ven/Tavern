@@ -438,15 +438,11 @@ class UserHandler(webbase.BaseHandler):
     If this is your account, also shows an UI to change settings.
     """
     def get(self,pubkey):
-        pubkey = urllib.parse.unquote(pubkey)
 
         # Generate a new user, using the pubkey we just received.
-        # We do this rather than doing load_mongo_by_pubkey since we don't want to
-        # pull in any privileged information.
-
-        pubkey = libtavern.key.Key(pub=pubkey)
+        # We are careful not to retrieve anything secret.
         u = libtavern.user.User()
-        u.Keys['master'] = pubkey
+        u.load_publicinfo_by_pubkey(pubkey)
 
         self.write(self.render_string(
             'View-showuser.html', handler=self,thatguy=u))
@@ -484,7 +480,7 @@ class UserHandler(webbase.BaseHandler):
 #     self.user.maxposts = maxposts
 #     self.user.maxreplies = maxreplies
 #     self.user.include_location = include_location
-#     self.user.allowembed = allowembed
+#     self.user.allow_embed = allowembed
 
 #     self.user.savemongo()
 #     self.setvars()
@@ -494,8 +490,7 @@ class UserHandler(webbase.BaseHandler):
 #         self.finish(divs=['wrappertable'])
 
 #     else:
-#         keyurl = ''.join(self.user.Keys['master'].pubkey.split())
-#         bottle.redirect('/user/' + keyurl)
+#         bottle.redirect(self.server.url_for(user=self.user))
 
 
 # def ChangeSingleSettingHandler_post(setting, option=None):
@@ -1078,10 +1073,10 @@ class UserHandler(webbase.BaseHandler):
 #     if newmsgid:
 #         if client_to is None:
 #             if client_regarding is not None:
-#                 bottle.redirect('/message/' + self.server.getTopMessage(
+#                 bottle.redirect('/m/' + self.server.getTopMessage(
 #                     newmsgid) + "?jumpto=" + newmsgid, permanent=False)
 #             else:
-#                 bottle.redirect('/message/' + newmsgid, permanent=False)
+#                 bottle.redirect('/m/' + newmsgid, permanent=False)
 #         else:
 #             bottle.redirect('/showprivates')
 #     else:
@@ -1232,7 +1227,7 @@ class AvatarHandler(webbase.BaseHandler):
 #         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
 #             item = rss.Item(channel,
 #                             envelope['envelope']['payload']['subject'],
-#                             "http://GetTavern.com/message/" + envelope[
+#                             "http://GetTavern.com/m/" + envelope[
 #                                 'envelope'][
 #                                 'local'][
 #                                 'sorttopic'] + '/' + envelope[
@@ -1315,7 +1310,7 @@ def main():
 
             # (r"/showtopics", ShowTopicsHandler),
             # (r"/showprivates", ShowPrivatesHandler),
-            # (r"/privatemessage/(.*)", ShowPrivatesHandler),
+            # (r"/privatem/(.*)", ShowPrivatesHandler),
 
             # (r"/topicinfo/(.*)", TopicPropertiesHandler),
             # (r"/attachment/(.*)", AttachmentHandler),
@@ -1325,13 +1320,13 @@ def main():
 
             (r"/u/(.*)", UserHandler),
 
-            # (r"/newmessage/(.*)", NewmessageHandler),
+            # (r"/newm/(.*)", NewmessageHandler),
             # (r"/newmessage", NewmessageHandler),
 
             # (r"/edit/(.*)", EditMessageHandler),
             # (r"/reply/(.*)/(.*)", ReplyHandler),
             # (r"/reply/(.*)", ReplyHandler),
-            # (r"/newprivatemessage/(.*)", NewPrivateMessageHandler),
+            # (r"/pm/(.*)", NewPrivateMessageHandler),
 
             # (r"/upload/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
             # (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),

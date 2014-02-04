@@ -161,14 +161,14 @@ def main():
     application = tornado.web.Application([
         (r"/topics", ListActiveTopics),
         (r"/status", ServerStatus),
-        (r"/message/(.*)", MessageHandler),
-        (r"/message/(.*)/(.*)", MessageHandler),
+        (r"/m/(.*)", MessageHandler),
+        (r"/m/(.*)/(.*)", MessageHandler),
         (r"/newenvelope", SubmitEnvelopeHandler),
-        (r"/topic/(.*)/(.*)/(.*)/(.*)/(.*)", TopicHandler),
-        (r"/topic/(.*)/(.*)/(.*)/(.*)", TopicHandler),
-        (r"/topic/(.*)/(.*)/(.*)", TopicHandler),
-        (r"/topic/(.*)/(.*)", TopicHandler),
-        (r"/topic/(.*)", TopicHandler),
+        (r"/t/(.*)/(.*)/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/t/(.*)/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/t/(.*)/(.*)/(.*)", TopicHandler),
+        (r"/t/(.*)/(.*)", TopicHandler),
+        (r"/t/(.*)", TopicHandler),
         (r"/(.*)", NotFoundHandler)
     ], **settings)
 

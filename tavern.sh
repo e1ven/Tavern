@@ -151,6 +151,7 @@ then
             # nosuid for the same reason. Not needed, so disable by default.
             # noatime since atime isn't needed, and just slows things down slightly
             mount -t hfs -o union,noowners,noauto,noexec,nosuid,noatime,nobrowse $virt_disk $mntpt
+            chflags hidden $mntpt
             if [ $? -eq 0 ]
                 then
                 echo $mntpt >> mounted

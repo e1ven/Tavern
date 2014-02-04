@@ -2,7 +2,7 @@ Infrequently Asked Questions-
 
 
 
-What type of Keys does Tavern generate, and why?
+What type of Keys does Tavern ensure_keys, and why?
 	Tavern generates keys using GPG keys with RSA Encryption.
 	While earlier versions of Tavern used keys using crypto primitives directly, that introduces too many places for bugs to creep in.
 	Not only could there be bugs in our code, but in any of the client implementations, which would ALSO need to get it right, ever time.
@@ -89,7 +89,7 @@ Why not allow something to be posted into multiple topics?
 
 	
 How is my key stored?
-	When you create an account at Tavern, we generate a private and public keypair for each account. 
+	When you create an account at Tavern, we ensure_keys a private and public keypair for each account.
 	The public key is stored in the database, while the private key is encrypted, using a hashed version of your password as the encryption secret.
 
 	This hashed version of your password is different from the hashed version we use to authenticate you.

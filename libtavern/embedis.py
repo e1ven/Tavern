@@ -101,6 +101,10 @@ class Embedis:
     def getavatar(self, myid, datauri=True, width=40, height=40):
         """Retrieve the Avatar from Robohash.org, for use in the datauri
         embed."""
+
+        # Normalize the ID
+        myid = ''.join(myid.split())
+
         # If user.datauri is True, generate the image and hand it back.
         if datauri:
             format = 'png'

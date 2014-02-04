@@ -4,7 +4,10 @@ import hashlib
 import math
 import libtavern.baseobj
 import libtavern.lockedkey
+import libtavern.envelope
 import libtavern.utils
+import libtavern.key
+import enum
 
             # if self.has_unique_key:
             #     # This user is registered, they may have posted here before...
@@ -14,9 +17,14 @@ import libtavern.utils
             #
             #
 
+class keygen(enum.Enum):
+    useguest = 1  # use the Guest key
+    generate = 2  # Generate a new key for this user
+    skip = 3      # Do nothing
+
 class User(libtavern.baseobj.Baseobj):
 
-    def __init2__(self,password=None,email=None,username=None,AllowGuestKey=True):
+    def __init2__(self):
         """
         Create a Tavern user.
 
@@ -24,14 +32,16 @@ class User(libtavern.baseobj.Baseobj):
         """
         self.username = None
         self.emails = {}
+        self.Keys = {}
+        self.Keys['posted'] = []
+        self.Keys['master'] = None
+
         self.has_set_password = False
         self.has_login = False
+        self.has_unique_key = False
 
         self.passkey = None
         self.lastauth = 0
-        self.friendlyname = 'Anonymous'
-
-        # We can only login if we have some sort of username (username/oauth/email) + password
 
         # Load in the default values for a user -
         # Normally, we'll pull these from the server's default user.
@@ -41,32 +51,58 @@ class User(libtavern.baseobj.Baseobj):
             defaults = dict(self.server.defaultuser.__dict__)
         else:
             defaults = {}
+
+
+        self.friendlyname = defaults.get('friendlyname','Anonymous')
+        self.maxposts = defaults.get('maxposts',100)
+
         self.followed_topics = defaults.get('followed_topics',['StarTrek','Python','World Politics','Funny'])
         self.maxposts = defaults.get('maxposts',100)
-        self.maxrepies = defaults.get('maxreplies',100)
+        self.maxreplies = defaults.get('maxreplies',100)
         self.include_location = defaults.get('include_location', False)
         self.ignore_edits = defaults.get('ignore_edits', False)
-        # None says allow_embed hasn't been set, versus explicit T/F
-        self.allow_embed = defaults.get('allow_embed', None)
+
         self.display_useragent = defaults.get('display_useragent',False)
         self.theme = defaults.get('theme','default')
-        self.followed_topics = []
 
-        self.Keys = {}
-        if AllowGuestKey:
-            self.Keys = self.server.guestuser.Keys
-            self.has_unique_key = False
+        # None indicates that no preference has been set.
+        self.datauri = defaults.get('datauri',None)
+        self.allow_embed = defaults.get('allow_embed', None)
+
+        # Note - We're not running make_hashes here.
+        # After calling user(), you should always call a .generate() or .load() function.
+        # If you do neither, and try to retrieve these, we want an exception
+
+
+    def make_hashes(self):
+        if self.Keys['master'] is not None:
+            self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
+            self.author_sha512 = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
         else:
-            pulledkey = self.server.unusedkeycache.get(block=True)
-            self.Keys['master'] = libtavern.lockedkey.LockedKey()
-            self.Keys['master'].from_dict(pulledkey,passkey=pulledkey['passkey'])
-            self.Keys['posted'] = {}
-            self.passkey = self.Keys['master'].passkey
-            self.has_unique_key = True
+            self.author_wordhash = None
+            self.author_sha512 = None
 
-        self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
-        self.author_sha512 = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
 
+    def ensure_keys(self,AllowGuestKey=True):
+        """
+        Generate the Keys for a User()
+        """
+        if not isinstance(AllowGuestKey,bool) and not isinstance(AllowGuestKey,keygen):
+            raise Exception('AllowGuestKey must be either True, False or Enum')
+
+        # Exit out if we've already set a key
+        if not self.has_unique_key:
+            if AllowGuestKey in [True,keygen.useguest]:
+                self.Keys = self.server.guestuser.Keys
+                self.has_unique_key = False
+            elif AllowGuestKey in [False,keygen.generate]:
+                pulledkey = self.server.unusedkeycache.get(block=True)
+                self.Keys['master'] = libtavern.lockedkey.LockedKey()
+                self.Keys['master'].from_dict(pulledkey,passkey=pulledkey['passkey'])
+                self.passkey = self.Keys['master'].passkey
+                self.has_unique_key = True
+
+        self.make_hashes()
 
     def new_posted_key(self):
         """
@@ -480,6 +516,7 @@ class User(libtavern.baseobj.Baseobj):
             self.Keys['posted'].append(lk)
 
         self.Keys['posted'].sort(key=lambda e: (e.expires), reverse=True)
+        self.make_hashes()
 
     def load_string(self, incomingstring):
         userdict = json.loads(
@@ -527,6 +564,33 @@ class User(libtavern.baseobj.Baseobj):
         elif session['expires'] < libtavern.utils.gettime(format='timestamp'):
             return None
         return self.load_mongo_by_pubkey(session['pubkey'])
+
+    def load_publicinfo_by_pubkey(self,pubkey):
+        """
+        Retrieves publicly available information for a given user.
+        This does leak what messages the server has received.
+        But shouldn't give them anything about a user they couldn't get from another server.
+        """
+        pubkeyonly = libtavern.key.Key(pub=pubkey)
+        self.Keys['master'] = pubkeyonly
+        self.has_unique_key = True
+
+        _friendly = None
+
+        for envelope in self.server.db.safe.find('envelopes', {'envelope.local.author.pubkey': self.Keys['master'].pubkey, 'envelope.payload.class': 'message'}, limit=self.maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+            e = libtavern.envelope.Envelope()
+            e.loaddict(envelope)
+            if _friendly is None and 'friendlyname' in e.dict['envelope']['local']['author']:
+                # Take the newest name we see.
+                _friendly = e.dict['envelope']['local']['author']['friendlyname']
+            if 'replyto' in e.dict['envelope']['payload']['author']:
+                # Take the newest key we see.
+                key = libtavern.key.Key(pub=e.dict['envelope']['payload']['author']['replyto'])
+                self.Keys['posted'].append(key)
+        if _friendly:
+            self.friendlyname = _friendly
+
+        self.make_hashes()
 
 
     def save_file(self, filename=None):

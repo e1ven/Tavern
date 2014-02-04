@@ -32,7 +32,8 @@
             {% end %}
 
 
-            <a href="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}"><bdi>{{attachment['filename']}}</bdi></a> ({{ (round(attachment['filesize'] / 1024 / 1024),2) }} MB)
+            <a href="{{handler.server.serversettings.settings['webtav']['downloads_url']}}{{attachment['sha_512']}}/{{attachment['filename']}}" download="{{attachment['filename']}}">
+                <bdi>{{attachment['filename']}}</bdi></a>  ({{ round(attachment['filesize'] / 1024 / 1024,2) }} MB)
             <a href="/attachment/{{attachment['sha_512']}}"> <i class='icon-info-circled'></i></a>
             <br>
         {% end %}
@@ -40,14 +41,14 @@
 {% end %}
 
 {% if len(envelope.dict['envelope']['local']['embed']) > 0 %}
-    {% if handler.user.allowembed'] == 1 %}
+    {% if handler.user.allowembed is True %}
         <div class='embedded'>
         Linked Content:<Br>
             {% for embed in envelope.dict['envelope']['local']['embed'] %}
                 {{ embed }}
             {% end %}
         </div>
-    {% elif handler.user.allowembed == 0 %}
+    {% elif handler.user.allowembed is None %}
         <i class="icon-picture embeddedcontentnote"></i>
         <div id="embededcontent_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="embededwarning" stufftoshow="Linked Content:<br>
             {% for embed in envelope.dict['envelope']['local']['embed'] %}
@@ -59,13 +60,13 @@
             Tavern can automatically display a lot of linked content, but (like any webpage) the site it's loaded from will know you viewed it.<br>
             <br>
             <form action="/changesetting/showembeds" method="post" class='alwaysdisplay'> 
-                {# raw xsrf_form_html() #}
+                {% module xsrf_form_html() %}
                 <input type="submit" value='Always display external content' class="textbutton"> <br>
             </form>
             <br>
-            <p>You can always change this setting in <a href="/user/{{handler.user.Keys['master'].pubkey}}">your user preferences</a></p>
+            <p>You can always change this setting in <a href="{{handler.server.url_for(Keys['master'].pubkey)}}">your user preferences</a></p>
         </div>
-    {% elif handler.user.allowembed == -1 %}
+    {% elif handler.user.allowembed is False %}
         {# Pass. This is intentionally blank for users who have opted out of embeds #}
 
     {% end %}
