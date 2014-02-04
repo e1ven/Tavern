@@ -1,11 +1,7 @@
 #!/usr/bin/env python3
-from datetime import datetime, timedelta
-import bson
-import Envelope
-import Server
-server = Server.Server()
-import logging
 
+import libtavern.server
+server = libtavern.server.Server()
 
 def main():
 
@@ -46,8 +42,8 @@ def main():
     server.db.safe.map_reduce('envelopes',
                               map=MAP_FUNCTION, reduce=REDUCE_FUNCTION, out="topiclist")
 
-    a = server.db.safe.find('topiclist', {})
 
 # Run the main() function.
 if __name__ == "__main__":
     main()
+    print(server.db.safe.find('topiclist', {}))

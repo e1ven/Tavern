@@ -3,7 +3,6 @@
 {% block column2 %}
 
     {% set envelope = stack[0] %}
-    {% import datetime %}
     {% set medialink = None %}
     {% set permalink = serversettings.settings['webtav']['main_url'] + '/attachment/' + attachment  %}
     <h1> General information regarding {{attachment}} </h1>
@@ -11,12 +10,12 @@
     <br><br>
     <ul>
 
-    This file is estimated to be {{round(float(myattach['filesize'] / 1024.0 /1024.0 ),3) }} MB.<br>
+    This file is estimated to be {{round(myattach['filesize'] / 1024.0 /1024.0,3)}} MB.<br>
 
 
     It was first seen 
-     <abbr title="{{libtavern.utils.gettime(format='printable')}}">
-         <time datetime="{{libtavern.utils.gettime(format='iso')}}">
+     <abbr title="{{libtavern.utils.gettime(timestamp=envelope['envelope']['local']['time_added'],format='printable')}}">
+         <time datetime="{{libtavern.utils.gettime(timestamp=envelope['envelope']['local']['time_added',format='iso')}}">
              {{  libtavern.utils.gettime(format='relative',timestamp=envelope['envelope']['local']['time_added']) }}
          </time>
      </abbr>

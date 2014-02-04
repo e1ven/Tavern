@@ -26,8 +26,8 @@
 
                     <p class="message_date">
                         Received
-                             <abbr title="{{utils.gettime(format='printable')}}">
-                                <time datetime="{{utils.gettime(format='iso')}}">
+                             <abbr title="{{utils.gettime(format='printable',timestamp=envelope.dict['envelope']['local']['time_added'])}}">
+                                <time datetime="{{utils.gettime(format='iso',timestamp=envelope.dict['envelope']['local']['time_added'])}}">
                                     {{utils.gettime(format='relative',timestamp=envelope.dict['envelope']['local']['time_added']) }}
                                 </time>
                              </abbr>
@@ -171,9 +171,10 @@
                     {% if not top %}
                         </div> <!-- End message div -->
                     {% end %}
-                    {% if 'citedby' in envelope.dict['envelope']['local'] %}
-                        {% for cite in envelope.dict['envelope']['local']['citedby'] %}
-                            {% module ShowMessage(envelope=childmap[cite],handler=handler,top=False,childmap=childmap) %}
+
+                    {% if 'citeenvs' in envelope.dict['envelope']['local'] %}
+                        {% for cite in envelope.dict['envelope']['local']['citeenvs'] %}
+                            {% module ShowMessage(envelope=cite,handler=handler,top=False) %}
                         {% end %}
                     {% end %}
             </li>

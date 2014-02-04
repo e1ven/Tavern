@@ -39,6 +39,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         if topic is not None:
             st_ver = self.server.sorttopic(topic)
             self.topics.append(topic)
+            self.sorttopics.append(st_ver)
 
         self.filtered = not unfiltered
 
@@ -142,8 +143,14 @@ class TopicFilter(libtavern.baseobj.Baseobj):
                                        'envelope.local.time_added': {'$lt': before}}))
         return count
 
-    def toptopics(self, limit=10, skip=0):
+    def toptopics(self, limit=10, skip=0,counts=False):
+        """
+        Returns a tuple of (Topicname,messagecount)
+        """
         toptopics = []
         for quicktopic in self.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
-            toptopics.append(quicktopic['_id'])
+            if counts:
+                toptopics.append(  (quicktopic['_id'],int(quicktopic['value'])) )
+            else:
+                toptopics.append(quicktopic['_id'])
         return toptopics

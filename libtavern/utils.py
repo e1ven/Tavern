@@ -75,43 +75,42 @@ def gettime(format='timestamp',timestamp=None):
     if timestamp is None:
         timestamp = time.time()
 
+    def dt(x) : return datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc)
+
     if format == 'timestamp':
         return int(timestamp)
+    elif format == 'datetime':
+        return dt(timestamp)
     elif format == 'longstr':
-        return str(timestamp).translate(str.maketrans('', '', '.'))
+        return str(int(time.time() * 1000000))
     elif format == 'relative':
-        now = datetime.datetime.now()
-        then = datetime.datetime.fromtimestamp(timestamp)
-
-        delta = now - then
-        year = round(delta.days / 365)
-        month = round(delta.days / 30 - (12 * year))
-        if year > 0:
-            day = 0
+        delta = int(time.time() - timestamp)
+        if delta < 3:
+            return "just now"
+        elif delta < 60:
+            return str(int(delta)) + ' seconds ago'
+        elif delta >= 60 and delta < 180:
+            return 'a few minutes ago'
+        elif delta < 3600:
+            return str(delta//60) + ' minutes ago'
+        elif delta >= 3600 and delta < 7200:
+            return 'an hour ago'
+        elif delta < 86400:
+            return str(delta//3600) + ' hours ago'
+        elif delta >= 86400 < 172800:
+            return 'yesterday'
+        elif delta < 5184000:
+            return str(delta//86400) + ' days ago'
+        elif delta < 31536000:
+            return str(delta//2592000) + ' months ago'
+        elif delta >= 31536000 and delta < 63072000:
+            return 'last year'
         else:
-            day = delta.days % 30
-        hour = round(delta.seconds / 3600)
-        minute = round(delta.seconds / 60 - (60 * hour))
-        second = delta.seconds - (hour * 3600) - \
-                                      (60 * minute)
-        millisecond = delta.microseconds / 1000
-
-        # Round down. People don't want the exact time.
-        # For exact time, reverse array.
-        fmt = ""
-        for period in ['second', 'minute', 'hour', 'day', 'month', 'year']:
-            value = locals().get(period,None)
-            if value:
-                if value > 1:
-                    period += "s"
-                fmt = str(value) + " " + period
-        return fmt + " ago"
+            return str(delta/31536000) + ' years ago'
     elif format == 'iso':
-        dt = datetime.datetime.fromtimestamp(timestamp)
-        return dt.isoformat()
+        return dt(timestamp).isoformat()
     elif format == 'printable':
-        dt = datetime.datetime.fromtimestamp(timestamp)
-        return dt.strftime("%A, %B %d, %Y at %I:%M%p")
+        return dt(timestamp).strftime("%A, %B %d, %Y at %I:%M%p")
 
 
 class randomWords(libtavern.baseobj.Baseobj):

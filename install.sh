@@ -244,12 +244,6 @@ then
 fi
 
 
-
-# # If you're in prod, you may want to ensure_keys various things on a schedule.
-# # If not, they happen at startup anyway, so you can ignore ;)
-#     echo "/usr/bin/python $taverndir/TopicList.py" > /etc/cron.hourly/generatetopics
-#     echo "/usr/bin/python $taverndir/ModList.py" > /etc/cron.daily/findmods
-
 echo "Tavern is now installed."
 echo "This setup should be sufficent for testing and dev."
 echo "Reminder - Tavern is NOT ready to be used outside of development. It's -not- safe!"

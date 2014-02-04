@@ -22,8 +22,8 @@
 
             <p class="firstMessageDate">
                 Received
-                <abbr title="{{libtavern.utils.gettime(format='printable')}}">
-                    <time datetime="{{libtavern.utils.gettime(format='iso')}}">
+                <abbr title="{{libtavern.utils.gettime(format='printable',timestamp=envelope['envelope']['local']['time_added'])}}">
+                    <time datetime="{{libtavern.utils.gettime(format='iso',timestamp=envelope['envelope']['local']['time_added'])}}">
                         {{  libtavern.utils.gettime(format='relative',timestamp=envelope['envelope']['local']['time_added']) }}
                     </time>
                 </abbr>

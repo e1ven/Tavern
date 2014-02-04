@@ -10,7 +10,6 @@ import tempfile
 import shutil
 import time
 import functools
-import datetime
 import time
 import libtavern.utils
 import libtavern.baseobj
@@ -287,8 +286,8 @@ class Key(libtavern.baseobj.Baseobj):
             # Calculate this by advancing the date until the month changes 2x
             # then go to midnight, then back one second. 
 
-            tmpdate = datetime.datetime.today()
-            while tmpdate.month == datetime.datetime.today().month:
+            tmpdate = libtavern.utils.gettime(format='datetime')
+            while tmpdate.month == libtavern.utils.gettime(format='datetime').month:
                 tmpdate += datetime.timedelta(days=1)
             next_month = tmpdate
 

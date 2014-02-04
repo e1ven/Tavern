@@ -1,16 +1,19 @@
 import tornado.web
 import libtavern.utils as utils
+import libtavern.envelope
+
 
 class ShowMessage(tornado.web.UIModule):
+
     """
     Show a Tavern Message.
     """
-    def render(self, envelope,handler, childmap, top):
+    def render(self, envelope,handler, top):
+
         permalink = handler.server.url_for(envelope=envelope)
         messagerating = handler.user.getRatings(postInQuestion=envelope.dict['envelope']['local']['payload_sha512'])
         note = handler.user.get_note(noteabout=envelope.dict['envelope']['local']['author']['pubkey'])
         if envelope.dict['envelope']['local'].get('medialink',None):
-            print( envelope.dict['envelope']['local']['medialink'])
             medialink = handler.server.serversettings.settings['webtav']['downloads_url'] + envelope.dict['envelope']['local']['medialink']
         else:
             medialink = permalink
@@ -19,8 +22,16 @@ class ShowMessage(tornado.web.UIModule):
         else:
             avatarsize = 40
 
+        # Retrieve the children as objects.
+        if 'citedby' in envelope.dict['envelope']['local']:
+            envelope.dict['envelope']['local']['citeenvs'] = []
+            for cite in envelope.dict['envelope']['local']['citedby']:
+                e = libtavern.envelope.Envelope()
+                e.loadmongo(cite)
+                envelope.dict['envelope']['local']['citeenvs'].append(e)
+
         return self.render_string(
-            "UIModule-showmessage.html", envelope=envelope,handler=handler, top=top,childmap=childmap,avatarsize=avatarsize,medialink=medialink,permalink=permalink,messagerating=messagerating,note=note,utils=utils)
+            "UIModule-showmessage.html", envelope=envelope,handler=handler, top=top,avatarsize=avatarsize,medialink=medialink,permalink=permalink,messagerating=messagerating,note=note,utils=utils)
 
 class ShowGlobalmenu(tornado.web.UIModule):
     """
@@ -39,16 +50,15 @@ class ShowMessagelist(tornado.web.UIModule):
         _ = handler.topicfilter.set_topic(handler.topic)
         subjects = handler.topicfilter.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False)
 
+
         # Calculate the forward/back buttons
+        show_older = False
+        show_newer = False
         if subjects:
             if handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']):
                 show_older = True
-            else:
-                show_older = False
             if handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']):
                 show_newer = True
-            else:
-                show_newer = False
 
         return self.render_string(
             "UIModule-messagelist.html",handler=handler,subjects=subjects,show_older=show_older,show_newer=show_newer)

@@ -7,14 +7,16 @@
 # We shouldn't use the Python Random, since it doesn't use MT.
 # Instead, we should use tavern.utils.SystemRandom functions. 
 
-LEN=`awk '/random\./ && !/random.SystemRandom/' *.py themes/default/*.html | wc -l`
+DIRECTORIES='libtavern/*.py webtav/*.py utils/*.py'
+
+LEN=`awk '/random\./ && !/random.SystemRandom/' $DIRECTORIES webtav/themes/default/*.html | wc -l`
 if [ $LEN -gt 0 ] 
 	then
 	echo "Do not use the Python Random module."
 	exit 2
 fi
 
-LEN=`cat Server.py | grep serversettings | grep -v self | grep -v memor | grep -v 'default.TavernSettings' | grep -v 'server.serversett' | wc -l`
+LEN=`cat libtavern/Server.py | grep serversettings | grep -v self | grep -v memor | grep -v 'default.TavernSettings' | grep -v 'import' |  grep -v 'server.serversett' | wc -l`
 if [ $LEN -gt 0 ] 
 	then
 	echo "Server should use self.serversettings, not the root module."
@@ -22,32 +24,34 @@ if [ $LEN -gt 0 ]
 fi
 
 # Don't accidentily use comparisons to judge equality for non constants
-LEN=`grep "is not" *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#" | wc -l`
+LEN=`grep "is not" $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#" | wc -l`
 if [ $LEN -gt 0 ] 
     then
-    grep "is not" *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"
+    grep "is not" $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"
     echo "Ensure you are not using 'is not' when you mean !=  "
 
     exit 2
 fi
 
-LEN=`grep "is " *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"  | wc -l`
+LEN=`grep "is " $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"  | wc -l`
 if [ $LEN -gt 0 ] 
     then
-    grep "is " *.py | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#" 
+    grep "is " $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep "if " | grep -v "#"
     echo "Ensure you are not using 'is' when you mean == "
     
     exit 2
 fi
 
-LEN=`grep "datetime\.now()" *.py | wc -l`
-if [ $LEN -gt 0 ] 
+
+LEN=`grep "datetime" $DIRECTORIES | grep -v 'utc'| grep -v 'delta' wc -l`
+if [ $LEN -gt 0 ]
     then
-    echo "Ensure you use datetime.today, which is in UTC, not datetime.now, which is localtime"
+    echo "Make sure that you're using UTC for all dates"
     exit 2
 fi
 
-LEN=`grep "upper()" *.py | wc -l`
+
+LEN=`grep "upper()" $DIRECTORIES | wc -l`
 if [ $LEN -gt 0 ] 
     then
     echo "When possible, it's nicer to compare using lower() rather than upper()"

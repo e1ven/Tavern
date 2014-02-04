@@ -24,6 +24,7 @@ import libtavern.server
 import libtavern.envelope
 import libtavern.utils
 import libtavern.key
+import libtavern.topicfilter
 
 import webtav.webbase as webbase
 from webtav.webbase import weberror
@@ -75,8 +76,6 @@ class MessageHandler(webbase.BaseHandler):
         # These are the divs that will shift
         # self.divs = ['scrollablediv2', 'scrollablediv3']
 
-        self.displayenvelope.load_children()
-        
         self.render('View-showmessage.html', handler=self)
 
 class MessageHistoryHandler(webbase.BaseHandler):
@@ -123,74 +122,47 @@ class MessageHistoryHandler(webbase.BaseHandler):
         self.render('View-messagehistory.html', handler=self)
 
 
-# @memorise(parent_keys=['fullcookies', 'request.arguments'], ttl=self.server.serversettings.settings['cache']['topic-page']['seconds'], maxsize=self.server.serversettings.settings['cache']['topic-page']['size'])
+class TopicHandler(webbase.BaseHandler):
+    def get(self,topic):
+        """
+        Display the messages for a given topic
+        """
 
-#class TopicHandler()
-# def TopicHandler_get(topic='all'):
-#     """The Topic Handler displays a topic, and the messages that are in it."""
+        self.title = topic
+        self.topic = topic
+        self.canon = self.server.url_for(topic=topic)
 
-#     requestvars = setup()
-
-#     divs = ['scrollablediv2', 'scrollablediv3']
-#     requestvars['topic'] = html.escape(topic)
-
-# Used for multiple pages, because skip() is slow
-# Don't really need xhtml escape, since we're converting to a float
-#     if "before" in bottle.request.query:
-#         requestvars['before'] = float(bottle.request.query['before'])
-#     else:
-#         requestvars['before'] = None
-
-# Do we want to show the original, ignoring edits?
-#     if "showoriginal" in bottle.request.query:
-# Convert the string to a bool.
-#         requestvars['showoriginal'] = (bottle.request.query['showoriginal'] == "True")
-#     else:
-#         requestvars['showoriginal'] = False
-
-# TODO - Better custom handlers for this.
-#     if topic not in ['sitecontent', 'all', 'all-subscribed']:
-#         requestvars['canon'] = "topic/" + topic
-#         requestvars['title'] = topic
-#     else:
-#         requestvars['title'] = "Discuss what matters"
-#         requestvars['canon'] = None
-
-#     topicEnvelopes = topictool.messages(topic=topic, maxposts=1)
-#     if len(topicEnvelopes) > 0:
-#         requestvars['displayenvelope'] = topicEnvelopes[0]
-#     else:
-#         requestvars['displayenvelope'] = self.server.error_envelope(
-#             subject="That topic doesn't have any messages in it yet!",
-#             topic=topic,
-#             body="""The particular topic you're viewing doesn't have any posts in it yet.
-#             You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
-#             Don't be nervous. Breathe. You can do this.
-#             Click the "New Message" button, and get started.
-#             We're rooting you.""")
-
-#     return bottle.template('tripane.html', requestvars=requestvars)
-
-#     return resp
-# self.finish(divs=divs)
+        # Get the messages for this topic
+        self.topicfilter.set_topic(topic)
+        messages = self.topicfilter.messages(maxposts=self.user.maxposts,before=self.before,after=self.after,include_replies=False)
+        if messages:
+            self.displayenvelope = messages[0]
+        else:
+            self.displayenvelope = self.server.error_envelope(
+                subject="That topic doesn't have any messages in it yet!",
+                topic=topic,
+                body="""The particular topic you're viewing doesn't have any posts in it yet.
+                You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
+                Don't be nervous. Breathe. You can do this.
+                Click the "New Message" button, and get started.
+                We're rooting you.""")
+        self.render('View-showmessage.html', handler=self)
 
 
-# def ShowTopicsHandler_get(start=0):
-#     self.getvars()
 
-#     alltopics = topictool.toptopics(limit=start + 1000, skip=start)
-#     toptopics = topictool.toptopics()
+class ShowTopicsHandler(webbase.BaseHandler):
+    def get(self):
 
-#     self.write(
-#         self.render_string('header.html', title="List of all Topics",
-#                            rsshead=None, type=None))
+        if self.after is None:
+            limit = 1000
+            skip = 0
+        else:
+            limit = self.after + 1000
+            skip = self.after
 
-#     self.write(self.render_string('showtopics.html',
-#                topics=alltopics, toptopics=toptopics, topic='all'))
-
-#     self.write(self.render_string('footer.html'))
-# self.finish(divs=['column3'])
-
+        alltopics = self.topicfilter.toptopics(limit=limit, skip=skip,counts=True)
+        self.title = "List of all topics"
+        self.render('View-showtopics.html',topics=alltopics)
 
 # def TopicPropertiesHandler_get(topic):
 #     self.getvars()
@@ -1223,7 +1195,7 @@ class AvatarHandler(webbase.BaseHandler):
 #                               'http://GetTavern.com/rss/' + param,
 #                               'Tavern discussion about ' + param,
 #                               generator='Tavern',
-#                               pubdate=datetime.datetime.today())
+#                               pubdate=datetime.datetime.utcnow())
 #         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
 #             item = rss.Item(channel,
 #                             envelope['envelope']['payload']['subject'],
@@ -1303,12 +1275,14 @@ def main():
 
             (r"/mh/(.*)", MessageHistoryHandler),
 
-            # (r"/topic/(.*)", TopicHandler),
-            # (r"/t/(.*)", TopicHandler),
+            (r"/t/(.*)", TopicHandler),
+
+          #  (r"/sitemap", SitemapHandler),
+         #   (r"/sitemap/(.*)", SitemapHandler),
 
             # (r"/sitecontent/(.*)", SiteContentHandler),
 
-            # (r"/showtopics", ShowTopicsHandler),
+            (r"/showtopics", ShowTopicsHandler),
             # (r"/showprivates", ShowPrivatesHandler),
             # (r"/privatem/(.*)", ShowPrivatesHandler),
 

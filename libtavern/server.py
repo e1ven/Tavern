@@ -8,7 +8,6 @@ import pymongo.read_preferences
 from gridfs import GridFS
 import sys
 import markdown
-import datetime
 from libs import bbcodepy
 from bs4 import BeautifulSoup
 import psycopg2
@@ -491,7 +490,6 @@ class Server(libtavern.utils.instancer):
             'author_wordhash'] = "Automatically generated message"
         e.dict['envelope']['local']['sorttopic'] = "error"
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
-        e.childmap = {}
         return e
 
     # Cache to failfast on receiving dups

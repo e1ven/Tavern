@@ -5,17 +5,15 @@
         <h1>Message History</h1>
         <br>
         <ul>
-        {% for edit in handler.edits %}
+        {% for index,edit in enumerate(handler.edits) %}
         	<li class='editline'>
                 <a href={{handler.server.url_for(edit)}}
-                    <time datetime="{{edit.dict['envelope']['local']['time_added'] | timestamp('iso') }}">Version # {{loop.index}} - {{edit.dict['envelope']['local']['time_added'] | timestamp }}</time> - {{edit.dict['envelope']['payload']['subject']}}
+                    <time datetime="{{{utils.gettime(timestamp=edit.dict['envelope']['local']['time_added'],format='iso') }}">
+                        Version # {{index}} - {{utils.gettime(timestamp=edit.dict['envelope']['local']['time_added'],format='printable') }}
+                    </time> - {{edit.dict['envelope']['payload']['subject']}}
                 </a>
-                {# 
-                    Include all the edits using the normal post display. 
-                    It won't show children, since the revisions won't include any citedby.
-                #}   
 
-                {% module ShowMessage(envelope=edit,handler=handler,top=False,childmap=[]) %}
+                {% module ShowMessage(envelope=edit,handler=handler,top=False) %}
 
         	</li>
         {% end %}

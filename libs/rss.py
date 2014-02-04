@@ -11,14 +11,14 @@
 #                       'http://www.example.com/rss.xml',
 #                       'This is my news feed about...',
 #                       generator = 'rss.py',
-#                       pubdate = datetime.datetime.now(),
+#                       pubdate = datetime.datetime.utcnow(),
 #                       language = 'en-US')
 #
 # item = rss.Item(channel,
 #                 'What a sunny day',
 #                 'http://www.example.com/what-a-sunny-day.html',
 #                 'It\'s a sunny day, I\'m going for a walk.'
-#                 pubdate = datetime.datetime.now())
+#                 pubdate = datetime.datetime.utcnow())
 #
 # channel.additem(item)
 #
