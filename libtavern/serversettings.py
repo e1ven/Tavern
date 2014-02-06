@@ -32,10 +32,9 @@ class ServerSettings(libtavern.utils.instancer):
             directory = self.settingsdir
 
         try:
-            filehandle = open(directory + filename, 'r')
-            filecontents = filehandle.read()
-            self.settings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
-            filehandle.close()
+            with open(directory + filename, 'r') as filehandle:
+                filecontents = filehandle.read()
+                self.settings = json.loads(filecontents,object_pairs_hook=collections.OrderedDict,object_hook=collections.OrderedDict)
         except:
             self.updateconfig()
             self.saveconfig()
@@ -55,10 +54,8 @@ class ServerSettings(libtavern.utils.instancer):
 
         newsettings = self.settings
 
-        filehandle = open(directory + filename, 'w')
-        filehandle.write(
-            json.dumps(newsettings, separators=(',', ':')))
-        filehandle.close()
+        with open(directory + filename, 'w') as filehandle:
+            filehandle.write(json.dumps(newsettings, separators=(',', ':')))
 
     def updateconfig(self):
 

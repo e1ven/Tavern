@@ -52,7 +52,7 @@ class BaseHandler(tornado.web.RequestHandler):
     def save_session(self):
         """Saves the current user to a session cookie.
 
-        These are encrypted using the Bottle encryption system.
+        These are encrypted by Tornado.
 
         """
         
@@ -97,10 +97,10 @@ class BaseHandler(tornado.web.RequestHandler):
         #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
 
     def __init__(self, *args, **kwargs):
+        """Create the base object for all requests to our Tavern webserver."""
 
         print("Creating new init!")
-        """Create the base object for all requests to our Tavern webserver."""
-      
+
         self.server = server
 
         self.html = ""
@@ -113,6 +113,8 @@ class BaseHandler(tornado.web.RequestHandler):
         # Retrieve the User-Agent if possible.
         ua = self.request.headers.get('User-Agent', 'Unknown')
         self.useragent = self.server.browserdetector.parse(ua)
+
+
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be
@@ -124,15 +126,12 @@ class BaseHandler(tornado.web.RequestHandler):
                 self.datauri = True
             elif self.get_argument("datauri").lower() == 'false':
                 self.datauri = False
-
         elif self.user.datauri is not None:
             self.datauri = self.user.datauri
-
         elif random.SystemRandom().randrange(1, 10) == 5:
                 self.user.datauri = False
                 self.datauri = False
                 self.user.save_mongo()
-
         elif self.useragent['ua_family'] == 'IE' and self.useragent['ua_versions'][0] < 8:
             self.datauri = False
         else:
@@ -156,6 +155,11 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.after:
             self.after = float(self.after)
 
+        # If people are accessing a URL that isn't by the canonical URL,
+        # redirect them.
+        self.redirected = self.get_argument('redirected', False)
+
+
         self.topicfilter = libtavern.topicfilter.TopicFilter()
 
         # Set default values for variables we look for.
@@ -163,8 +167,11 @@ class BaseHandler(tornado.web.RequestHandler):
         self.title = None
         self.topic = None
 
+
     def write_error(self, status_code, **kwargs):
-        # Catch exceptions and print out an error message using a template.
+        """
+        Catch exceptions and print out an error message using a template.
+        """
 
         # Return our exception objects to normal objs
         exc = kwargs['exc_info'][1]
@@ -198,6 +205,18 @@ class BaseHandler(tornado.web.RequestHandler):
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
         self.render('View-showmessage.html', handler=self)
 
+    def get_template_path(self):
+        """Returns the correct template path for the current theme.
+
+        Currently this is using the chosen theme, but eventually we can default to mobile/etc here
+        Overwrite to force a handler to use a specific theme (such as SiteMap)
+        """
+        basepath = self.application.settings.get("template_path")
+
+        if self.user.theme in server.availablethemes:
+            return basepath + '/' + self.user.theme
+        else:
+            return 'default' + '/' + self.user.theme
 
 class weberror(Exception):
     """A generic http error message that supports subject/body.

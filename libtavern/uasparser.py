@@ -252,8 +252,7 @@ class UASparser(libtavern.baseobj.Baseobj):
         if self.cache_data:  # no need to load
             return self.cache_data
 
-        cache_file = open(self.ini_file, 'r', encoding='utf-8')
-        self.cache_data = self._parseIniFile(cache_file)
-        cache_file.close()
+        with open(self.ini_file, 'r', encoding='utf-8') as cache_file:
+            self.cache_data = self._parseIniFile(cache_file)
 
         return self.cache_data

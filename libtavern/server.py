@@ -175,8 +175,7 @@ class MongoWrapper(libtavern.baseobj.Baseobj):
                 direction = pymongo.ASCENDING
             else:
                 direction = pymongo.DESCENDING
-            res = self.mongo[collection].find(
-                query, skip=skip, limit=limit, sort=[(sortkey, direction)])
+            res = self.mongo[collection].find(query, skip=skip, limit=limit, sort=[(sortkey, direction)])
         else:
             res = self.mongo[collection].find(query, skip=skip, limit=limit)
 
@@ -353,8 +352,9 @@ class Server(libtavern.utils.instancer):
         # Get a list of all the valid web templates that can be used, to compare
         # against later on.
         self.availablethemes = []
-        for name in os.listdir('webtav/themes'):
-            if os.path.isdir(os.path.join('themes', name)):
+        basethemedir = 'webtav/themes'
+        for name in os.listdir(basethemedir):
+            if os.path.isdir(os.path.join(basethemedir, name)):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
 

@@ -4,14 +4,17 @@ import os
 import collections
 from collections import *
 import lzma
-import magic
-import imghdr
+
+# To detect/resize images
 from PIL import Image
+import magic
+
 import gridfs
 from bs4 import BeautifulSoup
 
 import libtavern.baseobj
 import libtavern.key
+import libtavern.utils
 
 
 class Envelope(libtavern.baseobj.Baseobj):
@@ -388,114 +391,30 @@ class Envelope(libtavern.baseobj.Baseobj):
             del(self.dict['_id'])
 
     def mungebins(self):
-        """Store detailed information for any binaries.
-
-        Create Thumbnails for all images.
-
         """
-        attachmentList = []
+        Store details for all binaries, and create thumbnails for images.
+        """
+
+        attachmentlist = []
         for binary in self.dict['envelope']['payload']['binaries']:
-            if 'sha_512' in binary:
-                fname = binary['sha_512']
-                try:
-                    attachment = self.server.bin_GridFS.get_last_version(
-                        filename=fname)
-                    if 'filename' not in binary:
-                        binary['filename'] = "unknown_file"
-                    # In order to display an image, it must be of the right MIME type, the right size, it must open in
-                    # Python and be a valid image.
-                    attachment.seek(0)
-                    detected_mime = magic.from_buffer(
-                        attachment.read(self.server.serversettings.settings['max-upload-preview-size']), mime=True).decode('utf-8')
-                    displayable = False
-                    # Don't try to make a preview if it's > 10M
-                    if attachment.length < self.server.serversettings.settings['max-upload-preview-size']:
-                        if 'content_type' in binary:
-                            if binary['content_type'].rsplit('/')[0].lower() == "image":
-                                attachment.seek(0)
-                                imagetype = imghdr.what(
-                                    'ignoreme', h=attachment.read())
-                                acceptable_images = [
-                                    'gif', 'jpeg', 'jpg', 'png', 'bmp']
-                                if imagetype in acceptable_images:
-                                    # If we pass -all- the tests, create a
-                                    # thumb once.
-                                    displayable = binary[
-                                        'sha_512'] + "-thumb"
-                                    if not self.server.bin_GridFS.exists(filename=displayable):
-                                        attachment.seek(0)
-                                        im = Image.open(attachment)
+            try:
+                with self.server.bin_GridFS.get_last_version(filename=binary['sha_512']) as attachment:
+                    desc = {}
+                    desc['sha_512'] = binary['sha_512']
+                    desc['filename'] = binary.get('filename','Unknown_File')
+                    desc['detected_mime'] = magic.from_buffer(attachment.read(), mime=True).decode('utf-8')
+                    desc['displayable'] = libtavern.utils.make_thumbnail(attachment,binary['sha_512'] + '-thumb',desc['detected_mime'])
+                    desc['filesize'] = attachment.length
+                    attachmentlist.append(attachmentdesc)
+            except:
+                continue
 
-                                        # Check to see if we need to rotate the image
-                                        # This is caused by iPhones saving the
-                                        # orientation
+            # Use the first displayable binary as a link for Pinterest and FB
+            if not self.dict['envelope']['local'].get('medialink') and desc['displayable']:
+                self.dict['envelope']['local']['medialink'] = desc['displayable']
 
-                                        # only present in JPEGs
-                                        if hasattr(im, '_getexif'):
-                                                # returns None if no EXIF data
-                                                e = im._getexif()
-                                                if e is not None:
-                                                    exif = dict(e.items())
-                                                    if 'Orientation' in exif:
-                                                        orientation = exif[
-                                                            'Orientation']
+        self.dict['envelope']['local']['attachmentlist'] = attachmentlist
 
-                                                        if orientation == 3:
-                                                            image = im.transpose(
-                                                                Image.ROTATE_180)
-                                                        elif orientation == 6:
-                                                            image = im.transpose(
-                                                                Image.ROTATE_270)
-                                                        elif orientation == 8:
-                                                            image = im.transpose(
-                                                                Image.ROTATE_90)
-
-                                        # resize if nec.
-                                        if im.size[0] > 640:
-                                            imAspect = float(
-                                                im.size[1]) / float(im.size[0])
-                                            newx = 640
-                                            newy = int(640 * imAspect)
-                                            im = im.resize(
-                                                (newx, newy), Image.ANTIALIAS)
-                                        if im.size[1] > 480:
-                                            imAspect = float(
-                                                im.size[0]) / float(im.size[1])
-                                            newy = 480
-                                            newx = int(480 * imAspect)
-                                            im = im.resize(
-                                                (newx, newy), Image.ANTIALIAS)
-
-                                        thumbnail = self.server.bin_GridFS.new_file(
-                                            filename=displayable)
-                                        im.save(thumbnail, format='png')
-                                        thumbnail.close()
-
-                    attachmentdesc = {
-                        'sha_512': binary[
-                            'sha_512'],
-                        'filename': binary[
-                            'filename'],
-                        'filesize': attachment.length,
-                        'displayable': displayable,
-                        'detected_mime': detected_mime}
-                    attachmentList.append(attachmentdesc)
-                except gridfs.errors.NoFile:
-                    self.logger.debug("Error, attachment gone ;(")
-
-        # Create an attachment list - Store the calculated filesize in it.
-        # We can't trust the one the client gives us, but since it's in the
-        # payload, we can't modify it.
-        self.dict['envelope']['local']['attachmentlist'] = attachmentList
-
-        # Check for a medialink for FBOG, Pinterest, etc.
-        # Leave off if it doesn't exist
-        if attachmentList:
-            medialink = None
-            for attachment in attachmentList:
-                if attachment['displayable'] is not False:
-                    self.dict['envelope']['local']['medialink'] = attachment['sha_512']
-                    break
 
     #@libtavern.utils.memorise(parent_keys=['dict.envelope.local.payload_sha512'], ttl=self.server.serversettings.settings['cache']['templates']['seconds'], maxsize=self.server.serversettings.settings['cache']['templates']['size'])
     def countChildren(self):
@@ -683,11 +602,9 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
-        filehandle = lzma.open(filename, 'rt', encoding='utf-8')
-        filecontents = filehandle.read()
-        print(filecontents)
-        filehandle.close()
-        self.loadstring(filecontents)
+        with lzma.open(filename, 'rt', encoding='utf-8') as filehandle:
+            filecontents = filehandle.read()
+            self.loadstring(filecontents)
 
     def loadmongo(self, mongo_id):
         env = self.server.db.unsafe.find_one('envelopes', {'_id': mongo_id})
@@ -727,10 +644,8 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         # We want to name this file to the SHA512 of the payload contents, so
         # it is consistant across servers.
-        filehandle = lzma.open(filename=
-                               directory + "/" + self.payload.hash() + ".7zTavernEnvelope", mode='w', encoding='utf-8')
-        filehandle.write(self.text())
-        filehandle.close()
+        with lzma.open(filename= directory + "/" + self.payload.hash() + ".7zTavernEnvelope", mode='w', encoding='utf-8') as filehandle:
+            filehandle.write(self.text())
 
     def saveMongo(self):
         self.flatten()

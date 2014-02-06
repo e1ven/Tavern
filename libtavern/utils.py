@@ -15,6 +15,7 @@ import random
 import libtavern.baseobj
 import datetime
 import string
+from PIL import Image
 
 def proveWork(input, difficulty):
     """
@@ -117,15 +118,14 @@ class randomWords(libtavern.baseobj.Baseobj):
 
     def __init2__(self, fortunefile="datafiles/fortunes"):
         self.fortunes = []
-        fortunes = open(fortunefile, "r", encoding='utf-8')
-        line = fortunes.readline()
-        lines = 0
-        while line:
-            lines += 1
-            self.fortunes.append(line.rstrip().lstrip())
+        with open(fortunefile, "r", encoding='utf-8') as fortunes:
             line = fortunes.readline()
+            lines = 0
+            while line:
+                lines += 1
+                self.fortunes.append(line.rstrip().lstrip())
+                line = fortunes.readline()
         self.server.logger.debug(str(lines) + " fortunes loaded.")
-        fortunes.close()
 
     def random(self):
         """Return a Random Fortune from the stack."""
@@ -370,3 +370,74 @@ class memcache_none:
         entries.
         """
         pass
+
+def fix_rotation(img):
+    """
+    Uses exif data from an image to rotate it to viewing configuration.
+    This is useful since we're going to later strip out exif info, otherwise it would be sideways.
+    This is typically seen on images uploaded from phones.
+    """
+
+    if not isinstance(img,Image):
+        raise Exception("Can't remove exif data from non-image object")
+
+    # Most image formats have no exif data
+    if not hasattr(im,'_getexif'):
+        return img
+
+    exif=im._getexif()
+
+    # Rotate the image if nec, since without the EXIF data,
+    # Browsers/etc won't know how to display it.
+
+    orientation = exif.get(247)
+    if orientation == 1:
+        pass
+    elif orientation == 2:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT)
+    elif orientation == 3:
+        img = img.transpose(Image.ROTATE_180)
+    elif orientation == 4:
+        img = img.transpose(Image.FLIP_TOP_BOTTOM)
+    elif orientation == 5:
+        img = img.transpose(Image.FLIP_TOP_BOTTOM).transpose(Image.ROTATE_270)
+    elif orientation == 6:
+        img = img.transpose(Image.ROTATE_270)
+    elif orientation == 7:
+        img = img.transpose(Image.FLIP_LEFT_RIGHT).transpose(Image.ROTATE_270)
+    elif orientation == 8:
+        img = img.transpose(Image.ROTATE_90)
+
+    return img
+
+def make_thumbnail(fileobj,filename,mime):
+    """
+    Make a thumbnail version of the passed in image.
+    """
+    try:
+        # Ensure it's an image
+        images = ['image/jpeg','image/gif','image/png','image/x-ms-bmp','image/bmp','image/x-bmp']
+        if not mime in images:
+            return None
+
+        # Ensure it's not too big
+        if fileobj.length > self.server.serversettings.settings['max-upload-preview-size']:
+            return None
+
+        # Ensure we don't already have a thumnail
+        if self.server.bin_GridFS.exists(filename=filename):
+            return filename
+
+        fileobj.seek(0)
+        im = Image.open(fileobj)
+        im = fix_rotation(im)
+
+        size= (640,480)
+        im.thumbnail(size,Image.ANTIALIAS)
+
+        thumbnail = self.server.bin_GridFS.new_file(filename=filename)
+        im.save(thumbnail, format='png')
+        thumbnail.close()
+        return filename
+    except:
+        return None

@@ -82,7 +82,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
 
         subjects = []
         self._create_filter(before=before,after=after,include_replies=include_replies)
-        for envelope in self.server.db.unsafe.find('envelopes', self.search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in self.server.db.unsafe.find('envelopes', self.search, limit=maxposts, sortkey='envelope.local.time_added', sortdirection='ascending'):
             e = libtavern.envelope.Envelope()
             e.loaddict(envelope)
             subjects.append(e)
@@ -148,7 +148,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         Returns a tuple of (Topicname,messagecount)
         """
         toptopics = []
-        for quicktopic in self.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending'):
+        for quicktopic in self.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending',limit=limit):
             if counts:
                 toptopics.append(  (quicktopic['_id'],int(quicktopic['value'])) )
             else:

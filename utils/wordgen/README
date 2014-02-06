@@ -1,0 +1,9 @@
+Wordgen generates a list of unique words, and subtracts various words which people dislike.
+This uses the wordlist from http://dreamsteep.com/projects/53-the-english-open-word-list-eowl.html
+
+It isn't in any way optimized, or even very efficient. 
+Luckily, it doesn't need to be run very often. 
+
+
+The wordlist is offered with the following copyright notice-
+Copyright © J Ross Beresford 1993-1999. All Rights Reserved. The following restriction is placed on the use of this publication: if the UK Advanced Cryptics Dictionary is used in a software package or redistributed in any form, the copyright notice must be prominently displayed and the text of this document must be included verbatim.

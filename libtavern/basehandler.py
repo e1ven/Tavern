@@ -21,9 +21,6 @@ class BaseHandler(tornado.web.RequestHandler):
         # Ensure we don't run finish() twice.
         self._basefinish = False
 
-        # If people are accessing a URL that isn't by the canonical URL,
-        # redirect them.
-        self.redirected = self.get_argument('redirected', False)
 
         # Is this necessary EVERY time? It's quick, I suppose...
         if server.serversettings.settings['webtav']['main_url'] is None:
@@ -334,3 +331,5 @@ class BaseHandler(tornado.web.RequestHandler):
                 rsshead=None))
         self.write(self.render_string('error.html', topic='sitecontent'))
         self.write(self.render_string('footer.html'))
+
+

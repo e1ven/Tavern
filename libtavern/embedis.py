@@ -83,17 +83,15 @@ class Embedis:
         full_url = api_url + self.url
         req = urllib.request.Request(full_url)
         try:
-            f = urllib.request.urlopen(req)
-            if f.getcode() == 200:
-                response = f.read().decode('utf-8')
-                f.close()
-                self.server.logger.info("Embedis gave us - " + response)
-                return response
-            else:
-                self.server.logger.info(
-                    "No good from " + self.server.serversettings.settings['embedserver'])
-                f.close()
-                return None
+            with urllib.request.urlopen(req) as f:
+                if f.getcode() == 200:
+                    response = f.read().decode('utf-8')
+                    self.server.logger.info("Embedis gave us - " + response)
+                    return response
+                else:
+                    self.server.logger.info(
+                        "No good from " + self.server.serversettings.settings['embedserver'])
+                    return None
         except:
             return None
 

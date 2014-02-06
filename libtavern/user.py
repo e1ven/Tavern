@@ -526,10 +526,9 @@ class User(libtavern.baseobj.Baseobj):
         self.from_dict(userdict)
 
     def load_file(self, filename):
-        filehandle = open(filename, 'r')
-        filecontents = filehandle.read()
-        self.load_string(filecontents)
-        filehandle.close()
+        with open(filename, 'r') as filehandle:
+            filecontents = filehandle.read()
+            self.load_string(filecontents)
 
 
     def load_mongo_by_pubkey(self, pubkey):
@@ -599,9 +598,8 @@ class User(libtavern.baseobj.Baseobj):
             filename = self.author_sha512 + ".TavernUser"
 
         userdict = self.to_dict()
-        filehandle = open(filename, 'w')
-        filehandle.write(json.dumps(userdict, separators=(',', ':')))
-        filehandle.close()
+        with open(filename, 'w') as filehandle:
+            filehandle.write(json.dumps(userdict, separators=(',', ':')))
 
     def save_mongo(self,overwriteguest=False):
         userdict = self.to_dict()

@@ -1214,6 +1214,74 @@ class AvatarHandler(webbase.BaseHandler):
 #         self.write(channel.toprettyxml())
 
 
+class SitemapHandler(webbase.BaseHandler):
+    def get(self,category=None,iteration=None):
+        """
+        Return a sitemap file, as defined at http://www.sitemaps.org/protocol.html
+
+        We return a sitemap index file, based on the number of known messages.
+        Then we generate the specific files on-the-fly.
+        TODO: Cache this!
+        """
+        max_posts = 5
+
+        self.topicfilter.set_topic(unfiltered=True)
+
+        if iteration is None and category is None:
+            # Without a number, we want the index, which lists the other xml files.
+            # - Each one can contain up to 50K URLs
+            count = self.topicfilter.count(include_replies=True)
+            messagecount = int(count / max_posts) + 1
+
+            self.render('View-siteindex.html',handler=self,messagecount=messagecount,utils=libtavern.utils)
+            return
+
+        # This should never occur. Error out, but use a txt-only error message.
+        if category is not None and iteration is None:
+            self.set_status(404)
+            self.write("That sitemap does not exist." u)
+            return
+
+        if category == 'messages':
+
+            # If we've come in with a iteration, such as /1
+            # We want to skip forward 50K * that number.
+            #
+            # This is complicated by wanting to avoid using .skip() -
+            # Instead, when this function finishes, we store the newest date for each sitemap
+            # Then, we can skip forward to one message past that.
+
+            # Get newest message for sitemap one lower than us
+            previous_sitemap = 'messages_' + str(int(iteration) - 1)
+            results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
+            if results:
+                after = results.get('last_message_date',0)
+            else:
+                after = 0
+
+            messages = self.topicfilter.messages(maxposts=max_posts,after=after,include_replies=True)
+            if not messages:
+                self.set_status(404)
+                self.write("That sitemap does not exist.")
+                return
+
+            # Save our highest value out to the DB
+            results = {}
+            results['_id'] = 'messages_' + iteration
+            results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
+            server.db.unsafe.save('sitemap',results)
+
+
+        self.render('View-sitemap.html',handler=self,messages=messages,utils=libtavern.utils)
+
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
 
 def main():
     # Define our App
@@ -1240,7 +1308,7 @@ def main():
 
     tornado_settings = {
         "login_url": "/login",
-        "template_path": "webtav/themes/default",
+        "template_path": "webtav/themes",
         "autoescape": "xhtml_escape",
         "ui_modules": webtav.uimodules,
     }
@@ -1269,16 +1337,17 @@ def main():
     server.start()
 
     paths = [(r"/", EntryHandler),
-            (r"/m/(\w+)/(\w+)/(\w+)", MessageHandler),
-            (r"/m/(\w+)/(\w+)", MessageHandler),
-            (r"/m/(\w+)", MessageHandler),
+            (r"/m/(.*)/(.*)/(.*)", MessageHandler),
+            (r"/m/(.*)/(.*)", MessageHandler),
+            (r"/m/(.*)", MessageHandler),
 
             (r"/mh/(.*)", MessageHistoryHandler),
 
             (r"/t/(.*)", TopicHandler),
 
-          #  (r"/sitemap", SitemapHandler),
-         #   (r"/sitemap/(.*)", SitemapHandler),
+            (r"/sitemap/(.*)/(\d+)", SitemapHandler),
+            (r"/sitemap/(.*)", SitemapHandler),
+            (r"/sitemap", SitemapHandler),
 
             # (r"/sitecontent/(.*)", SiteContentHandler),
 

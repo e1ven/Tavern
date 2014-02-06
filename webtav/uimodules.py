@@ -47,9 +47,8 @@ class ShowMessagelist(tornado.web.UIModule):
     """
     def render(self, handler):
 
-        _ = handler.topicfilter.set_topic(handler.topic)
+        handler.topicfilter.set_topic(handler.topic)
         subjects = handler.topicfilter.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False)
-
 
         # Calculate the forward/back buttons
         show_older = False
