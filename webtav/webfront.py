@@ -1239,7 +1239,7 @@ class SitemapHandler(webbase.BaseHandler):
         # This should never occur. Error out, but use a txt-only error message.
         if category is not None and iteration is None:
             self.set_status(404)
-            self.write("That sitemap does not exist." u)
+            self.write("That sitemap does not exist.")
             return
 
         if category == 'messages':
