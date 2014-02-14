@@ -104,9 +104,11 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'port' in self.settings:
             # Externally Facing Port for nginx
             self.settings['webtav']['port'] = 8000
-        if not 'appport' in self.settings:
-            # webtav will be started on the port specified, +1 for each worker.
-            self.settings['webtav']['appport'] = 8080
+
+        if not 'urls_per_sitemap' in self.settings['webtav']:
+            # Sitemaps can have up to 50K URLs per file, and must be under 10M
+            self.settings['webtav']['urls_per_sitemap'] = 40000
+
 
         # Default Tornado settings. Put here to let people override.
         if not 'tornado' in self.settings['webtav']:
@@ -119,7 +121,6 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['webtav']['tornado']['gzip'] = True
         if not 'static_path' in self.settings['webtav']['tornado']:
             self.settings['webtav']['tornado']['static_path'] = 'tmp/static'
-
 
         # Set the default DBs
         if not 'DB' in self.settings:

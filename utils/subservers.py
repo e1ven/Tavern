@@ -101,9 +101,12 @@ class Nginx(process):
                 upstream  tornados {
             """,file=f)
 
-        baseport = self.serversettings.settings['webtav']['appport']
-        for port in range(baseport,baseport+self.serversettings.settings['webtav']['workers']):
-            print("\t\t\t\tserver 127.0.0.1:" + str(port) + ";",file=f)
+
+        # Define the upstream listeners.
+        # This is where nginx hands off to Tornado, using Unix domain sockets
+        for instance in range(0,self.serversettings.settings['webtav']['workers']):
+            socketfile = self.serversettings.settings['path'] + "/tmp/webtav-worker-" + str(instance) + ".sock"
+            print("\t\t\t\tserver unix:" + socketfile + ";",file=f)
         
         print("""
                 }

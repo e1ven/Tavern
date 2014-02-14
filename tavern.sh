@@ -36,6 +36,13 @@ function verify_tavern_dir
     fi
 }
 
+function getsetting
+{
+    # Gets a setting from the default settingsfile
+    key=$1
+    python -c "import libtavern.serversettings;settings=libtavern.serversettings.ServerSettings();print(settings.settings$key)"
+}
+
 function getarg 
 {
     # Get an argument.. Or if it doesn't exist, echo 0
@@ -114,8 +121,7 @@ then
     if [ -z "$3" ]
     then
         echo "Bad call to ramdisk"
-        stop
-        # Using exit, not return here, since this should abort the script.
+        stop 2
     fi
     # Determine if we should use OSX or Linux style ramdisks
     which diskutil > /dev/null
@@ -138,7 +144,7 @@ then
         if [ "$actual_size" != "$disksize" ]
         then
             echo "Error creating Ramdisk! - $actual_size + $disksize"
-            stop
+            stop 2
         else
             diskutil erasevolume HFS+ "TavernRamDisk-$mntpt" $virt_disk
             umount $virt_disk
@@ -192,7 +198,6 @@ fi
 }
 
 
-
 function stop 
 {
 # Stop the Tavern servers
@@ -214,7 +219,12 @@ function stop
 
     # Remove ramdisks
     ramdisk stop
-    exit
+
+    # If we called stop with a value, like stop 2, then exit the program.
+    if [ "$#" -gt 0 ]
+    then
+        exit $1
+    fi
 }
 
 function findcommands
@@ -326,12 +336,13 @@ function findcommands
 
 function start 
 {
-# Start up Tavern.
+# Start up the Tavern Web Interface.
 
     # Save the current dir, so we can return at the end of the script
     CURDIR=`pwd`
 
-    numservers=2
+    # Find the number of workers we should start.
+    numservers=$(getsetting '["webtav"]["workers"]')
 
     # Set the current date, so it's consistant
     DATE=`date +%s`
@@ -339,7 +350,9 @@ function start
     # First, create working directories for the functions below.
     mkdir -p tmp/checked
     mkdir -p tmp/unchecked
+
     mkdir -p tmp/gpgfiles
+    rm -rf tmp/gpgfiles/*
 
     mkdir -p tmp/gzipchk
     mkdir -p tmp/unchecked-gzipchk
@@ -572,21 +585,30 @@ function start
 
 
     writearg lastrun `date +%s`
-    echo "Starting Tavern..."
+    echo "Starting Tavern with $numservers worker processes."
+    for ((servernum = 0 ; servernum < numservers ; servernum++ ))
+        do
+            socketfile="tmp/webtav-worker-$servernum.sock"
+            echo "Starting webtav worker with socket $socketfile"
+
+            if [ $DEBUG -eq 1 ]
+            then
+                ARGS="-vvvv"
+            else
+                ARGS=""
+            fi
+
+            nohup python -m webtav.webfront --socket=$socketfile > logs/webtav-worker-$servernum.log $ARGS 2>&1 &
+            LOGS="$LOGS logs/webtav-worker-$servernum.log"
+        done
+
+    # If we're in debug mode, watch the logs
     if [ $DEBUG -eq 1 ]
     then
-        python -m webtav.webfront -vvvv
+        tail -f $LOGS
     else
-        # -1 in the line below, since we start the count at 0, so we can be starting on 8080
-        for ((i=0;i<=$((numservers -1));i++))
-        do            
-            port=$((8080 +i))
-            echo "Starting on port $port"
-            nohup python -m webtav.webfront --port=$port > logs/webfront-$port.log &
-        done
-        tail -n 10 logs/*
+        ARGS=""
     fi
-    # Write out the last successful start
 
     cd $CURDIR
 
@@ -624,8 +646,16 @@ case "$1" in
             start
             ;;
         debug)
+
             if [ $# -eq 1 ]
             then
+
+                # Stop any old processes
+                for i in `ps aux | grep [w]ebfront | awk {'print $2'}`
+                do
+                    kill $i
+                done
+
                 start $1
             else
                 usage

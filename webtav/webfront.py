@@ -14,6 +14,7 @@ import io
 import pygeoip
 import urllib.parse
 import hashlib
+import sys
 import optparse
 import socket
 
@@ -1214,63 +1215,72 @@ class AvatarHandler(webbase.BaseHandler):
 #         self.write(channel.toprettyxml())
 
 
-class SitemapHandler(webbase.BaseHandler):
-    def get(self,category=None,iteration=None):
+class SiteIndexHandler(webbase.BaseHandler):
+    def get(self):
         """
-        Return a sitemap file, as defined at http://www.sitemaps.org/protocol.html
+        Return a sitemap index file, which includes all other sitemap files.
+        Since each sitemap.xml file can only contain 50K urls, we need to split these.
+        """
 
-        We return a sitemap index file, based on the number of known messages.
-        Then we generate the specific files on-the-fly.
-        TODO: Cache this!
-        """
-        max_posts = 5
+        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
 
         self.topicfilter.set_topic(unfiltered=True)
 
-        if iteration is None and category is None:
-            # Without a number, we want the index, which lists the other xml files.
-            # - Each one can contain up to 50K URLs
-            count = self.topicfilter.count(include_replies=True)
-            messagecount = int(count / max_posts) + 1
+        # Without a number, we want the index, which lists the other xml files.
+        # - Each one can contain up to 50K URLs
+        count = self.topicfilter.count(include_replies=True)
+        messagecount = int(count / max_posts) + 1
 
-            self.render('View-siteindex.html',handler=self,messagecount=messagecount,utils=libtavern.utils)
-            return
+        # Get the base URL for the server
+        prefix=self.server.url_for(base=True,fqdn=True)
+        prefix += "/sitemap/m/"
 
-        # This should never occur. Error out, but use a txt-only error message.
-        if category is not None and iteration is None:
+        self.render('View-siteindex.html',handler=self,messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
+class SitemapMessagesHandler(webbase.BaseHandler):
+    def get(self,iteration):
+        """
+        Create a sitemap.xml file to show a slice of messages.
+        """
+
+        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
+
+        # We want to figure out how many messages to skip.
+        # We do this by multiplying the number of messages per file (max_posts) * which file we're on.
+        # For aesthetic reasons, I think the sitemaps should start at 1, not 0.
+        iteration = int(iteration) - 1
+
+        # The skip is complicated because we want to avoid using .skip()
+        # Instead, every time this function finishes, we store the newest date in it's slot.
+        # Then, we can skip forward to date+1 millisecond for the next slot.
+
+
+        # Get the highest date for one slot lower than us.
+        previous_sitemap = 'messages_' + str(iteration - 1)
+        results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
+        if results:
+            after = results.get('last_message_date',0)
+        else:
+            after = 0
+
+        messages = self.topicfilter.messages(maxposts=max_posts,after=after,include_replies=True)
+        if not messages:
             self.set_status(404)
             self.write("That sitemap does not exist.")
             return
 
-        if category == 'messages':
-
-            # If we've come in with a iteration, such as /1
-            # We want to skip forward 50K * that number.
-            #
-            # This is complicated by wanting to avoid using .skip() -
-            # Instead, when this function finishes, we store the newest date for each sitemap
-            # Then, we can skip forward to one message past that.
-
-            # Get newest message for sitemap one lower than us
-            previous_sitemap = 'messages_' + str(int(iteration) - 1)
-            results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
-            if results:
-                after = results.get('last_message_date',0)
-            else:
-                after = 0
-
-            messages = self.topicfilter.messages(maxposts=max_posts,after=after,include_replies=True)
-            if not messages:
-                self.set_status(404)
-                self.write("That sitemap does not exist.")
-                return
-
-            # Save our highest value out to the DB
-            results = {}
-            results['_id'] = 'messages_' + iteration
-            results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
-            server.db.unsafe.save('sitemap',results)
-
+        # Save our highest value out to the DB
+        results = {}
+        results['_id'] = 'messages_' + str(iteration)
+        results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
+        server.db.unsafe.save('sitemap',results)
 
         self.render('View-sitemap.html',handler=self,messages=messages,utils=libtavern.utils)
 
@@ -1284,15 +1294,19 @@ class SitemapHandler(webbase.BaseHandler):
 
 
 def main():
+    """
+    Starts and runs the Python component of the Tavern web interface.
+    You are NOT supposed to connect to Tornado directly, connections MUST go through Nginx.
+    Nginx will connect to tornado through a domain socket.
+    """
+
     # Define our App
     # Set up Command Line Parsing
     parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
     parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
                       help="Set loglevel. Use more than once to log extra stuff (5 max)")
-    parser.add_option("-p", "--port", action="store", dest="port", default=8080,
-                      help="Port to listen on (defaults to 8080)")
-    parser.add_option("-l", "--listen", action="store", dest="listen", default='0.0.0.0',
-                      help="IP address to listen on (defaults to 0.0.0.0)")
+    parser.add_option("-s", "--socket", action="store", dest="socket", default=None,
+                      help="Location of Unix Domain Socket to listen on")
 
     parser.add_option("-?", "--help", action="help",
                       help="Show this helpful message.")
@@ -1305,6 +1319,9 @@ def main():
     #parser.add_option_group(group)
     (options, args) = parser.parse_args()
 
+    if options.socket is None:
+        print("Requires Unix Socket file destination :/ ")
+        sys.exit(0)
 
     tornado_settings = {
         "login_url": "/login",
@@ -1312,7 +1329,6 @@ def main():
         "autoescape": "xhtml_escape",
         "ui_modules": webtav.uimodules,
     }
-
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
 
     # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
@@ -1345,9 +1361,8 @@ def main():
 
             (r"/t/(.*)", TopicHandler),
 
-            (r"/sitemap/(.*)/(\d+)", SitemapHandler),
-            (r"/sitemap/(.*)", SitemapHandler),
-            (r"/sitemap", SitemapHandler),
+            (r"/siteindex", SiteIndexHandler),
+            (r"/sitemap/m/(\d+)", SitemapMessagesHandler),
 
             # (r"/sitecontent/(.*)", SiteContentHandler),
 
@@ -1405,14 +1420,11 @@ def main():
     socket.setdefaulttimeout(10)
 
     http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(options.port)
+    unix_socket = tornado.netutil.bind_unix_socket(options.socket)
+    http_server.add_socket(unix_socket)
 
-    server.logger.debug("Webtav worker started on port " + str(options.port))
-    server.logger.info("Tavern web interface is ready on port " + str(server.serversettings.settings['webtav']['port']))
-
+    server.logger.debug("Started a webtav worker using socket on port " + str(options.socket))
     tornado.ioloop.IOLoop.instance().start()
-    print("Donkey!")
-
 
 if __name__ == "__main__":
     main()

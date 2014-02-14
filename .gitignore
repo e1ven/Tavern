@@ -21,7 +21,7 @@ __pycache__
 tmp
 logs
 Libs/virtualenv*
-*.Tavern*Settings*
+*.serversettings
 
 # IDE tmp files
 tavern.sublime-workspace

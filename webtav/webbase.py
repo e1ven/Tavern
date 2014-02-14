@@ -115,6 +115,15 @@ class BaseHandler(tornado.web.RequestHandler):
         self.useragent = self.server.browserdetector.parse(ua)
 
 
+        # Get the URL for the server if we didn't set it.
+        # We're pulling this from the request, since we can't auto-detect our own URL.
+        # We don't re-save serversettings, since we only want it saved if it was intentionally set.
+        # TODO: Find some other way of finding this out without checking every request.
+        if self.server.serversettings.settings['webtav']['main_url'] is None:
+            server.serversettings.settings['webtav']['main_url'] = self.request.protocol + "://" + self.request.host
+            print("Detected URL as " + server.serversettings.settings['webtav']['main_url'])
+
+
         # Check to see if we have support for datauris in our browser.
         # If we do, send the first ~10 pages with datauris.
         # After that switch back, since caching the images is likely to be

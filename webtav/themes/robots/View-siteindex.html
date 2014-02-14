@@ -2,7 +2,7 @@
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     {% for loop in range(1,messagecount+1) %}
         <sitemap>
-            <loc>/sitemap/messages/{{loop}}</loc>
+            <loc>{{prefix}}{{loop}}</loc>
             <lastmod>{{utils.gettime(format='iso')}}</lastmod>
         </sitemap>
     {% end %}

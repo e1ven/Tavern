@@ -22,12 +22,6 @@ class BaseHandler(tornado.web.RequestHandler):
         self._basefinish = False
 
 
-        # Is this necessary EVERY time? It's quick, I suppose...
-        if server.serversettings.settings['webtav']['main_url'] is None:
-            server.serversettings.settings['webtav']['main_url'] = self.request.protocol + "://" + \
-                (self.request.host or socket.gethostbyaddr(
-                    socket.gethostbyname(socket.gethostname())))
-            server.serversettings.saveconfig()
 
         # Add in a random fortune
         self.set_header("X-Fortune", str(server.fortune.random()))

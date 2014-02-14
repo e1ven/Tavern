@@ -43,7 +43,7 @@ if [ $LEN -gt 0 ]
 fi
 
 
-LEN=`grep "datetime" $DIRECTORIES | grep -v 'utc'| grep -v 'delta' wc -l`
+LEN=`grep "datetime" $DIRECTORIES | grep -v 'utc'| grep -v 'delta'| grep -v 'import' | grep -v 'format'| wc -l`
 if [ $LEN -gt 0 ]
     then
     echo "Make sure that you're using UTC for all dates"

@@ -762,34 +762,40 @@ class Server(libtavern.utils.instancer):
                           html)
         return html
 
-    def url_for(self,envelope=None,topic=None,user=None,pubkey=None,fqdn=False):
+    def url_for(self,envelope=None,topic=None,user=None,pubkey=None,base=True,fqdn=False):
         """
         Return the canonical URL for a given token
         :param message: Optional messageid
         :param topic: optional topic
         :return string: URL
         """
-        if topic is not None:
+        if topic:
             url =  '/t/' + topic
-        elif envelope is not None:
+        elif envelope:
             if isinstance(envelope, libtavern.envelope.Envelope):
                 url =  "/m/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
                              envelope.dict['envelope']['local']['short_subject'] + "/" + \
                              envelope.dict['envelope']['local']['payload_sha512']
             else:
                 raise Exception("url_for must be given an Envelope object.")
-        elif user is not None:
+        elif user:
             if isinstance(user,libtarvern.user.User):
                 url =  "/u/" + ''.join(user.Keys['master'].pubkey.split())
             else:
                 raise Exception("User must be user object")
-        elif pubkey is not None:
+        elif pubkey:
             if isinstance(pubkey,str):
                 key = libtavern.key.Key(pub=pubkey)
                 url =  "/u/" + ''.join(key.pubkey.split())
+        elif base:
+            url = "/"
         else:
             raise Exception('Nothing to get URL for.')
-        if fqdn is True:
-            prefix = self.serversettings.settings['webtav']['scheme'] + self.serversettings.settings['webtav']['main_url']
-            url = url + prefix
+
+        if fqdn:
+            url = self.serversettings.settings['webtav']['main_url'] + url
+
+        # Don't allow a trailing slash. This is for resources, not dirs!
+        url.rstrip('\\')
+
         return url
