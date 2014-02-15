@@ -30,9 +30,8 @@ class process(object):
     def get_pid_status(self):
         self.pid = None
         if os.path.isfile(self.pidpath):
-            f = open(self.pidpath,'r')
-            self.pid = int(f.read())
-            f.close()
+            with open(self.pidpath,'r') as f:
+                self.pid = int(f.read())
             if not process_running(self.pid):
                 os.remove(self.pidpath)
                 self.pid = None
@@ -59,6 +58,18 @@ class process(object):
         else:
             print(str(self.__class__.__name__) + " is not running.")
 
+    def makedirs(self,path,exist_ok):
+        """
+        Calls os.makedirs.
+
+        Added because os.makedirs will complain if the directory already exists, but has different perms.
+        Even if I don't specify any perms ;( It will default to umask, then complain.
+        See http://bugs.python.org/issue13498
+        """
+        try:
+            os.makedirs(path,exist_ok)
+        except FileExistsError:
+            pass
 
 class Nginx(process):
 
@@ -81,13 +92,12 @@ class Nginx(process):
         # Write out the config file which says which port/ip to listen on.
         # This has to be a separate file, since it is dynamic, 
         # whereas the .site file is static
-        f = open(self.config2path,'w')
-        print("listen " + self.serversettings.settings['ip_listen_on'] + ":" + str(self.serversettings.settings['webtav']['port']) + ";",file=f)
-        f.close()
+        with open(self.config2path,'w') as f:
+            print("listen " + self.serversettings.settings['ip_listen_on'] + ":" + str(self.serversettings.settings['webtav']['port']) + ";",file=f)
 
         # Write out the main nginx.conf file
-        f = open(self.configpath, 'w')
-        print("""
+        with open(self.configpath, 'w') as f:
+            print("""
             worker_processes """ + str(self.serversettings.settings['nginx']['workers']) + """;
             events {
                 worker_connections """ + str(self.serversettings.settings['nginx']['worker_connections']) + """;
@@ -102,61 +112,46 @@ class Nginx(process):
             """,file=f)
 
 
-        # Define the upstream listeners.
-        # This is where nginx hands off to Tornado, using Unix domain sockets
-        for instance in range(0,self.serversettings.settings['webtav']['workers']):
-            socketfile = self.serversettings.settings['path'] + "/tmp/webtav-worker-" + str(instance) + ".sock"
-            print("\t\t\t\tserver unix:" + socketfile + ";",file=f)
-        
-        print("""
-                }
-            server_name_in_redirect off;
-            server_tokens off;
-            
-            # 10 minutes, 100Mb.
-            proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/binaries-cache levels=1:2 keys_zone=default-cache:90m max_size=8000m;
-            proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/avatar-cache levels=1:2 keys_zone=avatar-cache:9000m max_size=700m;
-            proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/default-cache levels=1:2 keys_zone=binaries-cache:10m max_size=100m;
-            proxy_temp_path """ + self.serversettings.settings['path'] + """/tmp/nginxcache;
+            # Define the upstream listeners.
+            # This is where nginx hands off to Tornado, using Unix domain sockets
+            for instance in range(0,self.serversettings.settings['webtav']['workers']):
+                socketfile = self.serversettings.settings['path'] + "/tmp/webtav-worker-" + str(instance) + ".sock"
+                print("\t\t\t\tserver unix:" + socketfile + ";",file=f)
 
-            proxy_buffer_size   128k;
-            proxy_buffers   4 256k;
-            proxy_busy_buffers_size   256k;
+            print("""
+                    }
+                server_name_in_redirect off;
+                server_tokens off;
 
-            open_file_cache           max=1000 inactive=20s;
-            open_file_cache_valid     30s;
-            open_file_cache_min_uses  2;
-            open_file_cache_errors    on;
-            default_type  application/octet-stream;
+                # 10 minutes, 100Mb.
+                proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/default-cache levels=1:2 keys_zone=default-cache:10m max_size=100m;
+                proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/avatar-cache levels=1:2 keys_zone=avatar-cache:9000m max_size=700m;
+                proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/binaries-cache levels=1:2 keys_zone=binaries-cache:90m max_size=2000m;
+                proxy_temp_path """ + self.serversettings.settings['path'] + """/tmp/nginxcache;
 
-            sendfile        on;
-            tcp_nopush     on;
+                proxy_buffer_size   128k;
+                proxy_buffers   4 256k;
+                proxy_busy_buffers_size   256k;
 
-            keepalive_timeout  65;
-            gzip  on;
-            gzip_http_version 1.0;
-            gzip_comp_level 9;
-            gzip_proxied any;
+                open_file_cache           max=1000 inactive=20s;
+                open_file_cache_valid     30s;
+                open_file_cache_min_uses  2;
+                open_file_cache_errors    on;
+                default_type  application/octet-stream;
 
-            # gzip_types doesn't include 'text/html' since it's included by default
-            # and explicitly adding it generates warnings.
+                sendfile        on;
+                tcp_nopush     on;
 
-            gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript application/javascript;
-            gzip_buffers 16 8k;
-            gzip_min_length 0;
-            gzip_vary on;
-            gzip_static on;
-            add_header Vary Accept-Encoding;
-            include """ +  self.serversettings.settings['path'] + """/conf/nginx/mime.types;
-            include """ + self.serversettings.settings['path'] + "/conf/nginx/" + self.serversettings.settings['nginx']['sitefile'] + """;
-            }""",file=f)
-
-        f.close()
+                keepalive_timeout  65;
+                gzip  off;
+                include """ +  self.serversettings.settings['path'] + """/conf/nginx/mime.types;
+                include """ + self.serversettings.settings['path'] + "/conf/nginx/" + self.serversettings.settings['nginx']['sitefile'] + """;
+                }""",file=f)
 
         # Ensure we have the dirs necessary to run mongo.
-        os.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
-        os.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
-        os.makedirs(self.serversettings.settings['path'] + '/tmp/nginxcache',exist_ok=True)
+        self.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
+        self.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
+        self.makedirs(self.serversettings.settings['path'] + '/tmp/nginxcache',exist_ok=True)
 
     def start(self):
         """
@@ -168,6 +163,7 @@ class Nginx(process):
             print("Nginx is already running on pid " + str(self.pid))
             return
 
+        print(self.configpath)
         subprocess.Popen([self.binpath,"-c",self.configpath])
 
 
@@ -210,7 +206,7 @@ class MongoDB(process):
 
         # Get a list of DBs that we should start locally.
         for key in self.serversettings.settings['DB']:
-            if self.serversettings.settings['DB'][key]['local'] == True and self.serversettings.settings['DB'][key]['type'] == 'mongo':
+            if self.serversettings.settings['DB'][key]['local'] and self.serversettings.settings['DB'][key]['type'] == 'mongo':
                 hostname = self.serversettings.settings['mongo'][key]['hostname']
                 ip = socket.gethostbyname(hostname)
                 ips.add(ip)
@@ -224,21 +220,22 @@ class MongoDB(process):
 
         ipscsv = ",".join(ips)
 
-        f = open(self.configpath, 'w')
-        print('port='+str(finalport),file=f)
-        print('bind_ip='+ipscsv,file=f)
-        print('logpath='+self.serversettings.settings['path'] + '/logs/mongod.log',file=f)
-        print('pidfilepath='+self.pidpath,file=f)
-        print('dbpath='+self.serversettings.settings['path'] + '/datafiles/mongodb',file=f)
-        print('nounixsocket=true',file=f)
-        print('fork=true',file=f)
-        f.close()
+        with open(self.configpath, 'w') as f:
+            print('port='+str(finalport),file=f)
+            print('bind_ip='+ipscsv,file=f)
+            print('logpath='+self.serversettings.settings['path'] + '/logs/mongod.log',file=f)
+            print('pidfilepath='+self.pidpath,file=f)
+            print('dbpath='+self.serversettings.settings['path'] + '/datafiles/mongodb',file=f)
+            print('nounixsocket=true',file=f)
+            print('fork=true',file=f)
+
 
         # Ensure we have the dirs necessary to run mongo.
-        os.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
-        os.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
-        os.makedirs(self.serversettings.settings['path'] + '/datafiles/mongodb',exist_ok=True)
-    
+        self.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
+        self.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
+        self.makedirs(self.serversettings.settings['path'] + '/datafiles/mongodb',exist_ok=True)
+
+
     def start(self):
         """
         Start the version of mongo bundled with Tavern

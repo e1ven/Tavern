@@ -69,7 +69,7 @@ class Key(libtavern.baseobj.Baseobj):
         else:
             verbose = False
 
-        self.gpg = gnupg.GPG(verbose=verbose, gnupghome=self.gnuhome, options='--options tmp/gpgfiles/gpg.conf -vv')
+        self.gpg = gnupg.GPG(verbose=verbose, gnupghome=self.gnuhome, options=['--options=tmp/gpgfiles/gpg.conf','-vv'])
         self.gpg.encoding = 'utf-8'
 
         self._format_keys()

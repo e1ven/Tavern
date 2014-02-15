@@ -25,6 +25,7 @@ bitarray
 # Images
 pillow
 robohash
+python-magic
 
 # Security
 python-gnupg>=0.3.5

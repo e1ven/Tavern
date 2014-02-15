@@ -36,14 +36,13 @@ class BaseHandler(tornado.web.RequestHandler):
 
         # Ensure we have a user that is valid
         # If not, clear cookies, delete user, treat as not-logged-in.
-        try:
-            if self.user.Keys['master'].pubkey is None:
-                raise
-        except:
-            self.clear_cookie('passkey')
-            self.clear_cookie('sessionid')
-
-            self.user = libtavern.user.User()
+            try:
+                if self.user.Keys['master'].pubkey is None:
+                    raise
+            except:
+                self.clear_cookie('passkey')
+                self.clear_cookie('sessionid')
+                self.user = libtavern.user.User()
 
         if self.user.ensure_keys(AllowGuestKey=AllowGuestKey):
             self.user.save_mongo()

@@ -187,7 +187,8 @@ then
     echo "Stopping any disk images from previous unclean exits"
     for device in `diskutil list | grep '/dev/disk'`
     do
-         if [ `diskutil info $device | grep TavernRamDisk; echo $?` -eq 0 ]
+        echo $device
+         if [ `diskutil info $device | grep TavernRamDisk >/dev/null; echo $?` -eq 0 ]
          then
             hdiutil detach -force $device
          fi
@@ -341,9 +342,6 @@ function start
     # Save the current dir, so we can return at the end of the script
     CURDIR=`pwd`
 
-    # Find the number of workers we should start.
-    numservers=$(getsetting '["webtav"]["workers"]')
-
     # Set the current date, so it's consistant
     DATE=`date +%s`
 
@@ -361,7 +359,10 @@ function start
 
     mkdir -p logs
     mkdir -p conf
-    
+
+    # Ensure we're not leaking info to other system users.
+    chmod -R og-rwx *
+
     # Python
     source tmp/env/bin/activate
 
@@ -585,6 +586,16 @@ function start
 
 
     writearg lastrun `date +%s`
+
+    # If we're in debug mode, watch the logs
+    if [ $DEBUG -eq 1 ]
+    then
+        numservers=1
+    else
+        # Find the number of workers we should start.
+        numservers=$(getsetting '["webtav"]["workers"]')
+    fi
+
     echo "Starting Tavern with $numservers worker processes."
     for ((servernum = 0 ; servernum < numservers ; servernum++ ))
         do

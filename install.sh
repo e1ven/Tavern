@@ -64,14 +64,31 @@ function prompt
     fi
 }
 
-# Make sure only root can run our script
-if [ "$(id -u)" != "0" ]; then
-   echo "This script must be run as root, or with sudo."
-   echo "Try sudo ./install.sh"
-   exit 1
+# Determine the User to run under
+if [ "$(id -u)" != "0" ]
+then
+    prompt "user" "What user should Tavern run under?" `whoami`
+else
+    prompt "user" "What user should Tavern run under?" "$SUDO_USER"
 fi
 
-prompt "installroot" "Where would you like to install to?" "/opt/tavern"
+# Determine if that user exists
+if [ `sudo -u $user -n uptime >/dev/null 2>&1; echo $?` -ne 0 ]
+then
+    echo "That user does not currently exist, and the install script is not yet smart enough to create users. :("
+    echo "Aborting."
+    exit 1
+fi
+
+# Determine if we are able to sudo to that user
+if [ `sudo -n $user uptime 2>/dev/null | wc -l` -gt 0 ]
+then
+    echo "Sure thing - We'll install as user $user."
+else
+    echo "Please note, you may be prompted for your computer password in order to switch to $user"
+fi
+
+prompt "installroot" "Where would you like to install to?" `pwd`
 echo "Installing to - $installroot"
 
 # OSX or Linux?
@@ -85,8 +102,6 @@ then
     os='LINUX'
 fi
 echo "OS is $os."
-
-prompt "user" "What user should Tavern run under?" "$SUDO_USER"
 
 echo "Installing System Packages..."
 if [ "$os" == "LINUX" ]
@@ -159,14 +174,15 @@ then
     mkdir -p $nginxinstall
     cd $nginxinstall
 
-    wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz   
+    wget http://nginx.org/download/nginx-$NGINX_VER.tar.gz
     tar xfz nginx-$NGINX_VER.tar.gz
     cd $nginxinstall/nginx-$NGINX_VER
+
 
     wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
     unzip 2.2.zip
 
-    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module 
+    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_addition_module  --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module
 
     make
     make install
@@ -243,6 +259,11 @@ then
     wget "http://user-aglent-string.info/rpc/get_data.php?key=free&format=ini&download=y" -O "$installroot/datafiles/useragent.ini"
 fi
 
+# Create
+mkdir "$installroot/logs"
+
+
+chown -R "$user" "$installroot"
 
 echo "Tavern is now installed."
 echo "This setup should be sufficent for testing and dev."

@@ -50,8 +50,18 @@ class EntryHandler(webbase.BaseHandler):
         Eventually, it may give a different experience for first-time visitors.
 
         """
-        self.write("I love you!")
-        
+
+        #self.write('<!--#echo var="HTTP_COOKIE" -->')
+        self.write('<!--#echo var="$scheme" -->')
+        #self.write('<!--#set var="HTTP_COOKIE" value="foo" -->')
+        #self.write('<!--#cookie get="C1" alt="hello" -->')
+        # # Tell nginx to get the xsrf via loopback.
+        #self.write('<!--# include virtual="/__xsrf" set="HTTP_COOKIE" wait="yes" -->')
+        # #
+        # # # Now include a page using this variable, which sets it as a cookie.
+        #self.write('<!--# include virtual="/__cookie/xsrf2/$xsrf" wait="yes"-->')
+        self.write("foo2!")
+        self.finish()
 
 class MessageHandler(webbase.BaseHandler):
     def get(self,*args):
@@ -1293,6 +1303,30 @@ class SitemapMessagesHandler(webbase.BaseHandler):
         return basepath + '/robots'
 
 
+class XSRFHandler(webbase.BaseHandler):
+    def get(self):
+        """
+        Internal only handler that returns the xsrf token.
+        This is called by nginx, not accessible to the outside world.
+        """
+        print("Dolphin!!")
+        self.write(self.xsrf_token)
+
+        if self.server.serversettings.settings['webtav']['scheme'].lower() == 'https':
+            secure = True
+        else:
+            secure = False
+
+        self.set_cookie("_xsrf2",self.xsrf_token, secure=secure,httponly=True, max_age=31556952 * 2)
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
+
 def main():
     """
     Starts and runs the Python component of the Tavern web interface.
@@ -1328,9 +1362,10 @@ def main():
         "template_path": "webtav/themes",
         "autoescape": "xhtml_escape",
         "ui_modules": webtav.uimodules,
+        "gzip": False,
     }
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
-
+    tornado_settings['gzip'] = False
     # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
     if options.verbose > 0:
         loglevel = 100 - (options.verbose * 20)
@@ -1353,6 +1388,8 @@ def main():
     server.start()
 
     paths = [(r"/", EntryHandler),
+            (r"/__xsrf", XSRFHandler),
+
             (r"/m/(.*)/(.*)/(.*)", MessageHandler),
             (r"/m/(.*)/(.*)", MessageHandler),
             (r"/m/(.*)", MessageHandler),
@@ -1365,6 +1402,7 @@ def main():
             (r"/sitemap/m/(\d+)", SitemapMessagesHandler),
 
             # (r"/sitecontent/(.*)", SiteContentHandler),
+
 
             (r"/showtopics", ShowTopicsHandler),
             # (r"/showprivates", ShowPrivatesHandler),
