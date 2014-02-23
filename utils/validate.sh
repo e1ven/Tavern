@@ -23,26 +23,6 @@ if [ $LEN -gt 0 ]
 	exit 2
 fi
 
-# Don't accidentily use comparisons to judge equality for non constants
-LEN=`grep "is not" $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep " if " | grep -v "#" | wc -l`
-if [ $LEN -gt 0 ] 
-    then
-    grep "is not" $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep " if " | grep -v "#"
-    echo "Ensure you are not using 'is not' when you mean !=  "
-
-    exit 2
-fi
-
-LEN=`grep "is " $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep " if " | grep -v "#"  | wc -l`
-if [ $LEN -gt 0 ] 
-    then
-    grep "is " $DIRECTORIES | grep -v None | grep -v True | grep -v False | grep " if " | grep -v "#"
-    echo "Ensure you are not using 'is' when you mean == "
-    
-    exit 2
-fi
-
-
 LEN=`grep "datetime" $DIRECTORIES | grep -v 'utc'| grep -v 'delta'| grep -v 'import' | grep -v 'format'| wc -l`
 if [ $LEN -gt 0 ]
     then

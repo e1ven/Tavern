@@ -96,8 +96,6 @@ class ServerSettings(libtavern.utils.instancer):
             # The Canonical URL is specified so that Google won't detect duplicate
             # content for every Tavern server, and penalize.
             self.settings['webtav']['canonical_url'] = "https://tavern.is"
-        if not 'scheme' in self.settings['webtav']:
-            self.settings['webtav']['scheme'] = 'http'
         if not 'session_lifetime' in self.settings['webtav']:
             # Keep Permanent sessions around ~forever, since users might not -have- passwords
             self.settings['webtav']['session_lifetime'] = 31536000 * 20
@@ -115,10 +113,6 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['webtav']['tornado'] = {}
         if not 'cookie_secret' in self.settings['webtav']['tornado']:
              self.settings['webtav']['tornado']['cookie_secret'] = libtavern.utils.randstr(255)
-        if not 'xsrf_cookies' in self.settings['webtav']['tornado']:
-            self.settings['webtav']['tornado']['xsrf_cookies'] = True
-        if not 'gzip' in self.settings['webtav']['tornado']:
-            self.settings['webtav']['tornado']['gzip'] = True
         if not 'static_path' in self.settings['webtav']['tornado']:
             self.settings['webtav']['tornado']['static_path'] = 'tmp/static'
 

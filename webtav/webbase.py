@@ -8,107 +8,62 @@ import tornado.ioloop
 import tornado.options
 import tornado.web
 import tornado.escape
-from tornado.options import define, options
+import tornado.httputil
 
 server = libtavern.server.Server()
 
-
-class BaseHandler(tornado.web.RequestHandler):
-
-    def load_session(self, AllowGuestKey=True):
-        """Load into memory the User class by way of the session cookie.
-
-        Generates a new user (usually guest) if it can't find one.
-
+class XSRFBaseHandler(tornado.web.RequestHandler):
+    """
+    A version of the Tornado RequestHandler with additional security in the XSRF token.
+    """
+    @property
+    def xsrf_token(self):
         """
-        
-        # Create a user obj - We'll either make this into a new user, the default user, or an empty user.
-        self.user = libtavern.user.User()
+        The XSRF value is a randomly generated string that is set in both POST requests and cookies.
 
-        # Load in our saved passkey if it's available.
-        if self.get_secure_cookie('passkey'):
-            self.user.passkey = self.get_secure_cookie('passkey')
-
-        # Load in our session token if we have one.
-        if self.get_secure_cookie('sessionid'):
-            result = self.user.load_mongo_by_sessionid(
-                self.get_secure_cookie('sessionid'))
-
-        # Ensure we have a user that is valid
-        # If not, clear cookies, delete user, treat as not-logged-in.
-            try:
-                if self.user.Keys['master'].pubkey is None:
-                    raise
-            except:
-                self.clear_cookie('passkey')
-                self.clear_cookie('sessionid')
-                self.user = libtavern.user.User()
-
-        if self.user.ensure_keys(AllowGuestKey=AllowGuestKey):
-            self.user.save_mongo()
-            self.save_session()
-
-    def save_session(self):
-        """Saves the current user to a session cookie.
-
-        These are encrypted by Tornado.
-
+        Overwritten from the Tornado default to use systemrandom rather than uuid.
+        Like tornado, this method will set a cookie with the xsrf value if it does not currently exist.
         """
-        
-        # Note - We're using a sessionid lookup table, not storing a key from the User.
-        # This abstraction is useful for 2-factor auth, API lookups, and the like.
-        # It does cause a second DB hit, but for now it's worth the tradeoff.
+        # Only generate once/session
+        if hasattr(self, "_xsrf_token"):
+            return self._xsrf_token
+        # Use cookie one if it exists, otherwise random str.
+        token = self.get_secure_cookie('_xsrf')
+        if not token:
+            # Generate a token, save it to a cookie.
+            if self.request.protocol == 'https':
+                secure = True
+            else:
+                secure = False
+            token = libtavern.utils.randstr(16)
+            self.set_secure_cookie("_xsrf",token, secure=secure,httponly=True, max_age=31556952 * 2)
+        self._xsrf_token = token
+        return self._xsrf_token
 
-        # If we're over https, ensure the cookie can't be read over HTTP
-        if self.server.serversettings.settings['webtav']['scheme'].lower() == 'https':
-            secure = True
-        else:
-            secure = False
 
-        # Save our Passkey. This is the key which allows the user to decrypt their keys.
-        # This passkey is never stored serverside.
-        if self.user.has_unique_key:
-            if self.user.passkey is not None:
-                self.set_secure_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2)
-
-        # Before we save out the sessionid, make sure the user is valid
-        if self.user.ensure_keys():
-            self.user.save_mongo()
-        self.set_secure_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True, max_age=31556952 * 2)
-
-    def setheaders(self):
-        """Set various headers that each HTTP response should have."""
-        # Add in a random fortune
-        self.set_header("X-Fortune", self.server.fortune.random().encode('iso-8859-1', errors='ignore'))
-        # Do not allow the content to load in a frame.
-        # Should help prevent certain attacks
-        self.set_header("X-FRAME-OPTIONS", "DENY")
-        # Don't try to guess content-type.
-        # This helps avoid JS sent in an image.
-        self.set_header("X-Content-Type-Options", "nosniff")
-
-        # http://cspisawesome.com/content_security_policies
-        # bottle.response.set_header(
-        #     "Content-Security-Policy-Report-Only",
-        #     "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " +
-        #     self.server.serversettings.settings[
-        #         'embedserver'] +
-        #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+class BaseHandler(XSRFBaseHandler):
+    """
+    The default HTTPHandler for webtavern.
+    """
 
     def __init__(self, *args, **kwargs):
         """Create the base object for all requests to our Tavern webserver."""
-
-        print("Creating new init!")
 
         self.server = server
 
         self.html = ""
         super().__init__(*args, **kwargs)
+        self.server.logger.info("Loading page - " + self.request.uri)
+
+        # Before we do anything, see if we have a XSRF cookie set.
+        # If not, either set it or abort, depending on the HTTP verb.
+        if not self.get_secure_cookie('_xsrf',None) and not self.get_argument('skipxsrf',None):
+            self._rewrite_verbs()
+            return
 
 
         self.setheaders()
         self.load_session()
-
         # Retrieve the User-Agent if possible.
         ua = self.request.headers.get('User-Agent', 'Unknown')
         self.useragent = self.server.browserdetector.parse(ua)
@@ -175,6 +130,85 @@ class BaseHandler(tornado.web.RequestHandler):
         self.title = None
         self.topic = None
 
+    def load_session(self, AllowGuestKey=True):
+        """Load into memory the User class by way of the session cookie.
+
+        Generates a new user (usually guest) if it can't find one.
+        """
+
+        # Create a user obj - We'll either make this into a new user, the default user, or an empty user.
+        self.user = libtavern.user.User()
+
+        # Load in our saved passkey if it's available.
+        if self.get_secure_cookie('passkey'):
+            self.user.passkey = self.get_secure_cookie('passkey')
+
+        # Load in our session token if we have one.
+        if self.get_secure_cookie('sessionid'):
+            result = self.user.load_mongo_by_sessionid(
+                self.get_secure_cookie('sessionid'))
+
+        # Ensure we have a user that is valid
+        # If not, clear cookies, delete user, treat as not-logged-in.
+            try:
+                if self.user.Keys['master'].pubkey is None:
+                    raise
+            except:
+                self.clear_cookie('passkey')
+                self.clear_cookie('sessionid')
+                self.user = libtavern.user.User()
+
+        if self.user.ensure_keys(AllowGuestKey=AllowGuestKey):
+            self.user.save_mongo()
+            self.save_session()
+
+    def save_session(self):
+        """Saves the current user to a session cookie.
+
+        These are encrypted by Tornado.
+
+        """
+
+        # Note - We're using a sessionid lookup table, not storing a key from the User.
+        # This abstraction is useful for 2-factor auth, API lookups, and the like.
+        # It does cause a second DB hit, but for now it's worth the tradeoff.
+
+        # If we're over https, ensure the cookie can't be read over HTTP
+        if self.request.protocol == 'https':
+            secure = True
+        else:
+            secure = False
+
+        # Save our Passkey. This is the key which allows the user to decrypt their keys.
+        # This passkey is never stored serverside.
+        if self.user.has_unique_key:
+            if self.user.passkey is not None:
+                self.set_secure_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2)
+
+        # Before we save out the sessionid, make sure the user is valid
+        if self.user.ensure_keys():
+            self.user.save_mongo()
+        self.set_secure_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True, max_age=31556952 * 2)
+
+    def setheaders(self):
+        """Set various headers that each HTTP response should have."""
+        # Add in a random fortune
+        self.set_header("X-Fortune", self.server.fortune.random().encode('iso-8859-1', errors='ignore'))
+        # Do not allow the content to load in a frame.
+        # Should help prevent certain attacks
+        self.set_header("X-FRAME-OPTIONS", "DENY")
+        # Don't try to guess content-type.
+        # This helps avoid JS sent in an image.
+        self.set_header("X-Content-Type-Options", "nosniff")
+
+        # http://cspisawesome.com/content_security_policies
+        # bottle.response.set_header(
+        #     "Content-Security-Policy-Report-Only",
+        #     "default-src 'self'; script-src 'unsafe-inline' 'unsafe-eval' data 'self'; object-src 'none'; style-src 'self'; img-src *; media-src mediaserver; frame-src " +
+        #     self.server.serversettings.settings[
+        #         'embedserver'] +
+        #     " https://www.youtube.com https://player.vimeo.com; font-src 'self'; connect-src 'self'")
+
 
     def write_error(self, status_code, **kwargs):
         """
@@ -220,11 +254,37 @@ class BaseHandler(tornado.web.RequestHandler):
         Overwrite to force a handler to use a specific theme (such as SiteMap)
         """
         basepath = self.application.settings.get("template_path")
-
         if self.user.theme in server.availablethemes:
             return basepath + '/' + self.user.theme
         else:
             return 'default' + '/' + self.user.theme
+
+
+    def _rewrite_verbs(self):
+        """
+        Replaces all verbs is a handler with safe values in the case where a XSRF token is missing.
+
+        Note - This does not overwrite the protection against POST request without matching XSRF tokens.
+        That is defined in check_xsrf_cookie()
+        """
+        print("rewriting verbs!")
+        def retryget(*args,**kwargs):
+            _ = self.xsrf_token
+            argsdict = {'skipxsrf' : True}
+            newurl = tornado.httputil.url_concat(self.request.uri, argsdict)
+            self.write('<!--# include virtual="' + newurl + '" wait="yes" -->')
+            print('<!--# include virtual="' + newurl + '" wait="yes" -->')
+        def errorpost(*args,**kwargs):
+            raise weberror(short="You're not supposed to do that ;)",long="The URL you that you tried to load requires authentication, but we didn't receive any. <br> This could be due to a coding error, a network problem such as a proxy server, or someone trying to trick you into clicking a link. ",code=403)
+        def notimplemented(*args,**kwargs):
+            raise HTTPError(405)
+        setattr(self,'get',retryget)
+        setattr(self,'post',errorpost)
+        setattr(self,'head',notimplemented)
+        setattr(self,'delete',notimplemented)
+        setattr(self,'patch',notimplemented)
+        setattr(self,'put',notimplemented)
+        setattr(self,'options',notimplemented)
 
 class weberror(Exception):
     """A generic http error message that supports subject/body.

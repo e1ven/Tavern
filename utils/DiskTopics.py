@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
-from Envelope import Envelope
-import Server
-server = Server.Server()
+
+import libtavern.envelope as envelope
+from libtavern.server import Server
+
+server = Server()
+
 import sys
 import os
 import argparse
 import tempfile
 import shutil
 
-msgsdir = "data/messages/topics/"
+msgsdir = "datafiles/messages/topics/"
 
 parser = argparse.ArgumentParser(
     description='Save/Load messages from the filesystem.')
@@ -35,7 +38,7 @@ args = parser.parse_args()
 
 def writetopic(topic, since=0, limit=0, skip=0, directory=None):
     """Write a topic out to .7z files."""
-    e = Envelope()
+    e = envelope.Envelope()
     if topic == 'all':
         envelopes = server.db.safe.find('envelopes')
     else:
@@ -68,7 +71,7 @@ def writetopic(topic, since=0, limit=0, skip=0, directory=None):
         if not os.path.isdir(topicdir):
             os.makedirs(topicdir)
 
-        if not os.path.exists(topicdir + "/" + e.payload.hash() + ".7zTavernEnvelope"):
+        if not os.path.exists(topicdir + "/" + e.payload.hash() + ".7zTavernenvelope.Envelope"):
             e.savefile(topicdir)
 
 
@@ -79,7 +82,7 @@ def loaddir(directory=None, topic='sitecontent'):
     print("Using directory: " + directory)
 
     listing = os.listdir(directory)
-    e = Envelope()
+    e = envelope.Envelope()
     for infile in listing:
         print(infile)
         e.loadfile(directory + "/" + infile)
@@ -87,7 +90,7 @@ def loaddir(directory=None, topic='sitecontent'):
             print(e.text())
         # Send to the server. Don't bother to validate it first, the server
         # will do it.
-        server.receiveEnvelope(env=e)
+        server.receiveenvelope.Envelope(env=e)
 
 
 def main():
@@ -100,7 +103,7 @@ def main():
 
     print("Starting server for message-processing...")
     server.start()
-    server.keygenerator.stop()
+    server.keygen.stop()
 
     # server.logger.setLevel("DEBUG")
     # server.logger.addHandler(server.consolehandler)

@@ -602,27 +602,17 @@ function start
             socketfile="tmp/webtav-worker-$servernum.sock"
             echo "Starting webtav worker with socket $socketfile"
 
+            # Set pre/post conditions depenn
             if [ $DEBUG -eq 1 ]
             then
-                ARGS="-vvvv"
+                # Run in debug mode
+                python -m webtav.webfront --socket=$socketfile
             else
-                ARGS=""
+                # Store the log to a file instead of stdout.
+                nohup python -m webtav.webfront --socket=$socketfile > logs/webtav-worker-$servernum.log 2>&1 &
             fi
-
-            nohup python -m webtav.webfront --socket=$socketfile > logs/webtav-worker-$servernum.log $ARGS 2>&1 &
-            LOGS="$LOGS logs/webtav-worker-$servernum.log"
         done
-
-    # If we're in debug mode, watch the logs
-    if [ $DEBUG -eq 1 ]
-    then
-        tail -f $LOGS
-    else
-        ARGS=""
-    fi
-
     cd $CURDIR
-
 }
 
 

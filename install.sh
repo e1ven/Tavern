@@ -166,7 +166,17 @@ chown -R "$user" "$installroot"
 
 # INSTALL NGINX
 
-NGINX_VER=1.4.4
+NGINX_VER=1.5.7
+if [ -f $installroot/utils/nginx/sbin/nginx ]
+then
+    # If it's installed, remove if it's an old version.
+    CURRENT_VER=`$installroot/utils/nginx/sbin/nginx -v 2>&1| awk -F/ {'print $2'}`
+    if [ "$CURRENT_VER" != "$NGINX_VER" ]
+    then
+      rm $installroot/utils/nginx/sbin/nginx
+    fi
+fi
+
 if [ ! -f $installroot/utils/nginx/sbin/nginx ]
 then
     echo "Installing nginx $NGINX_VER"
@@ -182,7 +192,7 @@ then
     wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
     unzip 2.2.zip
 
-    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_addition_module  --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module
+    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module
 
     make
     make install
@@ -260,7 +270,7 @@ then
 fi
 
 # Create
-mkdir "$installroot/logs"
+mkdir -p "$installroot/logs"
 
 
 chown -R "$user" "$installroot"

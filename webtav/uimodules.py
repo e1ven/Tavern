@@ -92,3 +92,10 @@ class ShowAttachments(tornado.web.UIModule):
         return self.render_string(
             "UIModule-attachments.html",handler=handler,envelope=envelope)
 
+class xsrf_form_html(tornado.web.UIModule):
+    """
+    Includes the XSRF token as a hidden variable.
+    This overwrites the default tornado xsrf_form_html, with a version that includes via SSI.
+    """
+    def render(self):
+        return """<input type="hidden" name="_xsrf" value="<!--# echo var='xsrftoken' default='no' -->"/>"""

@@ -50,18 +50,7 @@ class EntryHandler(webbase.BaseHandler):
         Eventually, it may give a different experience for first-time visitors.
 
         """
-
-        #self.write('<!--#echo var="HTTP_COOKIE" -->')
-        self.write('<!--#echo var="$scheme" -->')
-        #self.write('<!--#set var="HTTP_COOKIE" value="foo" -->')
-        #self.write('<!--#cookie get="C1" alt="hello" -->')
-        # # Tell nginx to get the xsrf via loopback.
-        #self.write('<!--# include virtual="/__xsrf" set="HTTP_COOKIE" wait="yes" -->')
-        # #
-        # # # Now include a page using this variable, which sets it as a cookie.
-        #self.write('<!--# include virtual="/__cookie/xsrf2/$xsrf" wait="yes"-->')
-        self.write("foo2!")
-        self.finish()
+        self.write("This is a triumph")
 
 class MessageHandler(webbase.BaseHandler):
     def get(self,*args):
@@ -1303,21 +1292,25 @@ class SitemapMessagesHandler(webbase.BaseHandler):
         return basepath + '/robots'
 
 
-class XSRFHandler(webbase.BaseHandler):
+class XSRFHandler(webbase.XSRFBaseHandler):
+    """
+    The XSRF handler returns a xsrf token
+
+    This handler's output is included into the header via nginx SSI.
+    By importing via SSI, nginx can cache the output from other handlers.
+
+    Otherwise, each request from a non-logged in user would do a full page-load,
+    since the Set-Cookie would bypass the cache.
+
+    We do need a separate token for each request, since the site contains a login form.
+    Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.
+    """
     def get(self):
         """
         Internal only handler that returns the xsrf token.
         This is called by nginx, not accessible to the outside world.
         """
-        print("Dolphin!!")
-        self.write(self.xsrf_token)
-
-        if self.server.serversettings.settings['webtav']['scheme'].lower() == 'https':
-            secure = True
-        else:
-            secure = False
-
-        self.set_cookie("_xsrf2",self.xsrf_token, secure=secure,httponly=True, max_age=31556952 * 2)
+        self.write(str(self.xsrf_token))
 
     def get_template_path(self):
         """
@@ -1325,7 +1318,6 @@ class XSRFHandler(webbase.BaseHandler):
         """
         basepath = self.application.settings.get("template_path")
         return basepath + '/robots'
-
 
 def main():
     """
@@ -1357,15 +1349,18 @@ def main():
         print("Requires Unix Socket file destination :/ ")
         sys.exit(0)
 
+    # Specify the settings which are not designed to be overwritten.
     tornado_settings = {
         "login_url": "/login",
         "template_path": "webtav/themes",
         "autoescape": "xhtml_escape",
         "ui_modules": webtav.uimodules,
+        "xsrf_cookies": True,
+        # SSI requires that gzip is disabled.
         "gzip": False,
     }
+
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
-    tornado_settings['gzip'] = False
     # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
     if options.verbose > 0:
         loglevel = 100 - (options.verbose * 20)
@@ -1381,12 +1376,9 @@ def main():
         if loglevel <= 40:
             tornado_settings['serve_traceback=True'] = True
 
-
-
     # Start the Server processing
     # Creates DB connections, fires up threads to create keys, etc.
     server.start()
-
     paths = [(r"/", EntryHandler),
             (r"/__xsrf", XSRFHandler),
 

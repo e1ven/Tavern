@@ -123,7 +123,8 @@ class Nginx(process):
                 server_name_in_redirect off;
                 server_tokens off;
 
-                # 10 minutes, 100Mb.
+                # Removed after at most, 10 minutes, or 100MB.
+                # Note, the actual cache length is controlled by proxy_cache in settings-defaultcache.conf
                 proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/default-cache levels=1:2 keys_zone=default-cache:10m max_size=100m;
                 proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/avatar-cache levels=1:2 keys_zone=avatar-cache:9000m max_size=700m;
                 proxy_cache_path """ + self.serversettings.settings['path'] + """/tmp/binaries-cache levels=1:2 keys_zone=binaries-cache:90m max_size=2000m;
@@ -163,7 +164,6 @@ class Nginx(process):
             print("Nginx is already running on pid " + str(self.pid))
             return
 
-        print(self.configpath)
         subprocess.Popen([self.binpath,"-c",self.configpath])
 
 

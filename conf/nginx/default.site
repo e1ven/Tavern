@@ -37,7 +37,7 @@ server
   # Uploads to this server
   include ../conf/nginx/loc-uploads.conf;
 
-  # Internal only pages
+  # Settings for pages that start with __
   include ../conf/nginx/loc-internal.conf;
 
   # Most pages go here

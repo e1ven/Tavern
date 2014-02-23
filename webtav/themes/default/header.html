@@ -1,5 +1,4 @@
 <!doctype html>
-
 	<!-- Hey, Source Reader!
 	Welcome to Tavern. I know my coding skills are somewhat sub-par, but if you have any suggestions, I'd love to hear them.
 	This project is Open Source - You can help change it - Check out our Github - https://github.com/e1ven/Tavern
@@ -7,14 +6,14 @@
 	Anyway, Enjoy the site, and I'd love any thoughts.
 
 	You are browsing this in - {{handler.useragent['ua_family']}}
-	Also, fwiw -
-	-->
-
-<!--# include virtual="/__xsrf" set="xsrf" -->
-
-
+    -->
 <html lang="en">
 <head>
+
+    {# Use SSI to set the xsrftoken variable AFTER the page is rendered (for caching).
+       For details, see the XSRFHandler #}
+    <!--# include virtual="/__xsrf" set="xsrftoken" wait="yes" -->
+
     <meta name="robots" content="noindex">
 	<meta name="viewport" content="width=device-width, initial-scale=.5, maximum-scale=1">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
