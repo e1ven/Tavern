@@ -1,48 +1,23 @@
 User-agent: *
-Sitemap: /static/sitemaps/sitemap_index.xml 
-Crawl-delay: 1
+Sitemap: http://127.0.0.1:8000/siteindex 
+Crawl-delay: 4
+
 Disallow: /register
 Disallow: /login
 Disallow: /logout
 
 Disallow: /reply/
-Disallow: /reply
-
 Disallow: /vote/
-Disallow: /vote
-
 Disallow: /usertrust/
-Disallow: /usertrust
-
 Disallow: /followuser/
-Disallow: /followuser
-
 Disallow: /followtopic/
-Disallow: /followtopic
-
 Disallow: /showprivates/
-Disallow: /showprivates
-
 Disallow: /newm/
-Disallow: /newmessage
-
 Disallow: /uploadnewm/
-Disallow: /uploadnewmessage
-
 Disallow: /uploadprivatem/
-Disallow: /uploadprivatemessage
-
 Disallow: /privatem/
-Disallow: /privatemessage
-
 Disallow: /changepassword/
-Disallow: /changepassword
-
 Disallow: /uploadfile/
-Disallow: /uploadfile
-
 Disallow: /usernote/
-Disallow: /usernote
-
 Disallow: /changesetting/
-Disallow: /changesetting
+Disallow: /avatar/

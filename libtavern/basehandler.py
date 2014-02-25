@@ -301,11 +301,7 @@ class BaseHandler(tornado.web.RequestHandler):
         if self.user.author_sha512 is not True:
             # Delete our sensetive data before saving out.
             self.user.save_mongo()
-            self.set_secure_cookie(
-                "tavern_settings",
-                self.user.author_sha512,
-                httponly=True,
-                expires_days=999)
+            self.set_secure_cookie("tavern_settings",self.user.author_sha512,httponly=True,expires_days=999)
 
         else:
             print(self.user.author_sha512)

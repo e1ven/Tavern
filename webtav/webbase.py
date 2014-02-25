@@ -26,20 +26,32 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         """
         # Only generate once/session
         if hasattr(self, "_xsrf_token"):
+            print("Token Already assigned.")
             return self._xsrf_token
         # Use cookie one if it exists, otherwise random str.
-        token = self.get_secure_cookie('_xsrf')
+        token = self.get_secure_cookie('_xsrf',None)
         if not token:
+            print("No cookie, no _xsrf_token value")
             # Generate a token, save it to a cookie.
-            if self.request.protocol == 'https':
-                secure = True
-            else:
-                secure = False
             token = libtavern.utils.randstr(16)
-            self.set_secure_cookie("_xsrf",token, secure=secure,httponly=True, max_age=31556952 * 2)
+            self.set_secure_cookie(name="_xsrf",value=token,httponly=True, max_age=31556952 * 2)
         self._xsrf_token = token
         return self._xsrf_token
 
+    def set_secure_cookie(self,name,value,**kwargs):
+
+        # Set secure flag when connecting over HTTPS
+        # If so, set secure flag on cookie by default.
+        if self.request.protocol == 'https':
+            kwargs['secure'] = True
+        else:
+            # If the 'secure' key is set, even set to False, it will count.
+            try:
+                del kwargs['secure']
+            except KeyError:
+                pass
+
+        self.set_cookie(name, self.create_signed_value(name, value), **kwargs)
 
 class BaseHandler(XSRFBaseHandler):
     """
@@ -53,7 +65,8 @@ class BaseHandler(XSRFBaseHandler):
 
         self.html = ""
         super().__init__(*args, **kwargs)
-        self.server.logger.info("Loading page - " + self.request.uri)
+
+        print("Loading page - " + self.request.uri)
 
         # Before we do anything, see if we have a XSRF cookie set.
         # If not, either set it or abort, depending on the HTTP verb.
@@ -173,22 +186,16 @@ class BaseHandler(XSRFBaseHandler):
         # This abstraction is useful for 2-factor auth, API lookups, and the like.
         # It does cause a second DB hit, but for now it's worth the tradeoff.
 
-        # If we're over https, ensure the cookie can't be read over HTTP
-        if self.request.protocol == 'https':
-            secure = True
-        else:
-            secure = False
-
         # Save our Passkey. This is the key which allows the user to decrypt their keys.
         # This passkey is never stored serverside.
         if self.user.has_unique_key:
             if self.user.passkey is not None:
-                self.set_secure_cookie('passkey', user.passkey, secure=secure, httponly=True, max_age=31556952 * 2)
+                self.set_secure_cookie('passkey', user.passkey, httponly=True, max_age=31556952 * 2)
 
         # Before we save out the sessionid, make sure the user is valid
         if self.user.ensure_keys():
             self.user.save_mongo()
-        self.set_secure_cookie('sessionid', self.user.save_session(), secure=secure, httponly=True, max_age=31556952 * 2)
+        self.set_secure_cookie('sessionid', self.user.save_session(), httponly=True, max_age=31556952 * 2)
 
     def setheaders(self):
         """Set various headers that each HTTP response should have."""
@@ -273,7 +280,6 @@ class BaseHandler(XSRFBaseHandler):
             argsdict = {'skipxsrf' : True}
             newurl = tornado.httputil.url_concat(self.request.uri, argsdict)
             self.write('<!--# include virtual="' + newurl + '" wait="yes" -->')
-            print('<!--# include virtual="' + newurl + '" wait="yes" -->')
         def errorpost(*args,**kwargs):
             raise weberror(short="You're not supposed to do that ;)",long="The URL you that you tried to load requires authentication, but we didn't receive any. <br> This could be due to a coding error, a network problem such as a proxy server, or someone trying to trick you into clicking a link. ",code=403)
         def notimplemented(*args,**kwargs):

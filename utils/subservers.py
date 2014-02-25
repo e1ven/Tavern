@@ -122,6 +122,8 @@ class Nginx(process):
                     }
                 server_name_in_redirect off;
                 server_tokens off;
+                proxy_connect_timeout 30s;
+                proxy_read_timeout 60s;
 
                 # Removed after at most, 10 minutes, or 100MB.
                 # Note, the actual cache length is controlled by proxy_cache in settings-defaultcache.conf
