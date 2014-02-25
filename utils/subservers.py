@@ -247,7 +247,7 @@ class MongoDB(process):
             print("Mongo is already running on pid " + str(self.pid))
             return
 
-        subprocess.Popen([self.binpath,"--config",self.configpath])
+        subprocess.Popen([self.binpath,"--config",self.configpath,'--nohttpinterface'])
         print("Mongo started with pid " + str(self.pid))
 
 

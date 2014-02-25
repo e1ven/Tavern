@@ -18,6 +18,8 @@ import multiprocessing
 import logging
 import os
 import re
+import bleach
+
 import libtavern.serversettings
 import libtavern.key
 import libtavern.utils
@@ -675,13 +677,28 @@ class Server(libtavern.utils.instancer):
                 output_format="html5",
                 safe_mode='escape',
                 enable_attributes=False,
+
+                # Enable linebreaks, tables, and ````fenced code similar to GFM
+                # Force all headers to be H3+ for SEO and styling.
                 extensions=['nl2br',
-                            'footnotes',
                             'tables',
+                            'fenced_code',
                             'headerid(level=3)'])
-            # We can't use tornado.escape.linkify to linkify, since it ALSO
-            # escapes everything.
-            formatted = self.autolink(formatted)
+
+            # Setup which tags, attributes, etc are allowed for our formatter.
+            # strip = False means that unknown tags should be encoded, such as &lt
+            # strip_comments is at the very least because of SSI
+            tags=['h1','h2','h3','p','br','strong','code','pre','ul','li','ol','a','em','table','thead','tr','th']
+            attributes = {'a': ['href']}
+            formatted = bleach.clean(text=formatted,tags=tags,attributes=attributes,styles=[],strip=False,strip_comments=True)
+
+            # We want to linkify the text.
+            def set_rel(attrs, new=False):
+                """Set all links to have nofollow and noreferrer"""
+                attrs['rel'] = 'nofollow noreferrer'
+                return attrs
+
+            formatted = bleach.linkify(text=formatted,skip_pre=True,parse_email=False,callbacks=[set_rel])
 
         return formatted
 
@@ -727,41 +744,6 @@ class Server(libtavern.utils.instancer):
         url = re.sub(r'[^\w-]', '', url)
         return url
 
-    # Autolink from http://greaterdebater.com/blog/gabe/post/4
-    def autolink(self, html):
-        # match all the urls
-        # this returns a tuple with two groups
-        # if the url is part of an existing link, the second element
-        # in the tuple will be "> or </a>
-        # if not, the second element will be an empty string
-        urlre = re.compile(
-            "(\(?https?://[-A-Za-z0-9+&@#/%?=~_()|!:,.;]*[-A-Za-z0-9+&@#/%=~_()|])(\">|</a>)?")
-        urls = urlre.findall(html)
-        clean_urls = []
-
-        # remove the duplicate matches
-        # and replace urls with a link
-        for url in urls:
-            # ignore urls that are part of a link already
-            if url[1]:
-                continue
-            c_url = url[0]
-            # ignore parens if they enclose the entire url
-            if c_url[0] == '(' and c_url[-1] == ')':
-                c_url = c_url[1:-1]
-
-            if c_url in clean_urls:
-                continue  # We've already linked this url
-
-            clean_urls.append(c_url)
-            # substitute only where the url is not already part of a
-            # link element.
-            html = re.sub("(?<!(=\"|\">))" + re.escape(c_url),
-                          "<a rel=\"noreferrer nofollow\" href=\"" +
-                          c_url + "\">" + c_url + "</a>",
-                          html)
-        return html
-
     def url_for(self,envelope=None,topic=None,user=None,pubkey=None,base=True,fqdn=False):
         """
         Return the canonical URL for a given token
@@ -773,7 +755,7 @@ class Server(libtavern.utils.instancer):
             url =  '/t/' + topic
         elif envelope:
             if isinstance(envelope, libtavern.envelope.Envelope):
-                url =  "/m/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
+                url =  "/t/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \
                              envelope.dict['envelope']['local']['short_subject'] + "/" + \
                              envelope.dict['envelope']['local']['payload_sha512']
             else:

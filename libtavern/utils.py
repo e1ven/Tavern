@@ -90,21 +90,21 @@ def gettime(format='timestamp',timestamp=None):
             return "just now"
         elif delta < 60:
             return str(int(delta)) + ' seconds ago'
-        elif delta >= 60 and delta < 180:
+        elif 60 <= delta < 180:
             return 'a few minutes ago'
         elif delta < 3600:
             return str(delta//60) + ' minutes ago'
-        elif delta >= 3600 and delta < 7200:
+        elif 3600 <= delta < 7200:
             return 'an hour ago'
         elif delta < 86400:
             return str(delta//3600) + ' hours ago'
-        elif delta >= 86400 < 172800:
+        elif 86400 <= delta < 172800:
             return 'yesterday'
         elif delta < 5184000:
             return str(delta//86400) + ' days ago'
         elif delta < 31536000:
             return str(delta//2592000) + ' months ago'
-        elif delta >= 31536000 and delta < 63072000:
+        elif 31536000 <= delta < 63072000:
             return 'last year'
         else:
             return str(delta/31536000) + ' years ago'

@@ -102,11 +102,19 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'port' in self.settings:
             # Externally Facing Port for nginx
             self.settings['webtav']['port'] = 8000
-
         if not 'urls_per_sitemap' in self.settings['webtav']:
             # Sitemaps can have up to 50K URLs per file, and must be under 10M
             self.settings['webtav']['urls_per_sitemap'] = 40000
 
+        # By default the Strict-Transport-Security will be sent if https.
+        # This flag forces it one way or the other.
+        if not 'force_sts' in self.settings['webtav']:
+            self.settings['webtav']['force_sts'] = None
+
+        # Default STS to 1 month. This could be a bit long if a site is swapping from https->http
+        # But we want to ensure that people don't try to force it to do exactly that ;(
+        if not 'sts_time' in self.settings['webtav']:
+            self.settings['webtav']['sts_time'] = 2629743
 
         # Default Tornado settings. Put here to let people override.
         if not 'tornado' in self.settings['webtav']:

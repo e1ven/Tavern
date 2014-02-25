@@ -48,16 +48,17 @@ class EntryHandler(webbase.BaseHandler):
 
         Currently, this redirects everyone.
         Eventually, it may give a different experience for first-time visitors.
-
         """
-        self.write("This is a triumph")
+        self.redirect('/t/sitecontent',permanent=False)
+
 
 class MessageHandler(webbase.BaseHandler):
     def get(self,*args):
         """Retrieve and display a message."""
 
         # The messageid should always be the last thing passed in.
-        if len(args) > 4:
+        # We can get here either via /m/uuid or /t/topic/subject/uuid
+        if len(args) > 3:
             raise weberror(short='Too many directories',long='The URL you are trying to load is too many directories deep. Perhaps a copy/paste error?',code=404)
         messageid = args[-1]
 
@@ -138,13 +139,15 @@ class TopicHandler(webbase.BaseHandler):
         if messages:
             self.displayenvelope = messages[0]
         else:
+            newmessageurl = self.server.url_for(topic=self.topic) + '/newmessage'
+
             self.displayenvelope = self.server.error_envelope(
                 subject="That topic doesn't have any messages in it yet!",
                 topic=topic,
                 body="""The particular topic you're viewing doesn't have any posts in it yet.
                 You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
                 Don't be nervous. Breathe. You can do this.
-                Click the "New Message" button, and get started.
+                Click the [New Message]("""+newmessageurl+""" "Post Something!") button, and get started.
                 We're rooting you.""")
         self.render('View-showmessage.html', handler=self)
 
@@ -1232,7 +1235,7 @@ class SiteIndexHandler(webbase.BaseHandler):
 
         # Get the base URL for the server
         prefix=self.server.url_for(base=True,fqdn=True)
-        prefix += "/sitemap/m/"
+        prefix += "sitemap/m/"
 
         self.render('View-siteindex.html',handler=self,messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
 
@@ -1304,6 +1307,8 @@ class XSRFHandler(webbase.XSRFBaseHandler):
 
     We do need a separate token for each request, since the site contains a login form.
     Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.
+
+    This inherits from XSRFBaseHandler so that it bypasses the regular login/session path.
     """
     def get(self):
         """
@@ -1337,12 +1342,6 @@ def main():
     parser.add_option("-?", "--help", action="help",
                       help="Show this helpful message.")
 
-    # group = optparse.OptionGroup(parser, "Very Dangerous Options",
-    #                              "Caution: These options will let attackers take over your machine.     "
-    #                              "Do not use these on any machine that other people can access!")
-    # group.add_option("-d", "--debug", dest="debug", action="store_true", default=False,
-    #                  help="Enable the debugger in the web interface.")
-    #parser.add_option_group(group)
     (options, args) = parser.parse_args()
 
     if options.socket is None:
@@ -1351,12 +1350,11 @@ def main():
 
     # Specify the settings which are not designed to be overwritten.
     tornado_settings = {
-        "login_url": "/login",
         "template_path": "webtav/themes",
         "autoescape": "xhtml_escape",
         "ui_modules": webtav.uimodules,
         "xsrf_cookies": True,
-        # SSI requires that gzip is disabled.
+        # SSI requires that gzip is disabled in Tornado.
         "gzip": False,
     }
 
@@ -1379,16 +1377,18 @@ def main():
     # Start the Server processing
     # Creates DB connections, fires up threads to create keys, etc.
     server.start()
-    paths = [(r"/", EntryHandler),
+    paths = [
+            (r"/", EntryHandler),
             (r"/__xsrf", XSRFHandler),
 
-            (r"/m/(.*)/(.*)/(.*)", MessageHandler),
-            (r"/m/(.*)/(.*)", MessageHandler),
-            (r"/m/(.*)", MessageHandler),
+            # Typical URLs will take the form of
+            # /t/opic/shot-name/message-id
+            # /m/message-id will go straight to the message.
 
-            (r"/mh/(.*)", MessageHistoryHandler),
-
+            (r"/t/(.*)/(.*)/(.*)", MessageHandler),
             (r"/t/(.*)", TopicHandler),
+            (r"/m/(.*)", MessageHandler),
+            (r"/mh/(.*)", MessageHistoryHandler),
 
             (r"/siteindex", SiteIndexHandler),
             (r"/sitemap/m/(\d+)", SitemapMessagesHandler),

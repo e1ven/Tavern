@@ -16,6 +16,19 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
     """
     A version of the Tornado RequestHandler with additional security in the XSRF token.
     """
+
+    @property
+    def secure(self):
+        """Returns if the connection is loaded over https"""
+        if hasattr(self, "_secure"):
+            return self._secure
+
+        if self.request.protocol == 'https':
+            self._secure = True
+        else:
+            self._secure = False
+        return self._secure
+
     @property
     def xsrf_token(self):
         """
@@ -26,7 +39,6 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         """
         # Only generate once/session
         if hasattr(self, "_xsrf_token"):
-            print("Token Already assigned.")
             return self._xsrf_token
         # Use cookie one if it exists, otherwise random str.
         token = self.get_secure_cookie('_xsrf',None)
@@ -42,10 +54,10 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
 
         # Set secure flag when connecting over HTTPS
         # If so, set secure flag on cookie by default.
-        if self.request.protocol == 'https':
+        if self.secure:
             kwargs['secure'] = True
         else:
-            # If the 'secure' key is set, even set to False, it will count.
+            # If the 'secure' key exists, even if it's set to False, the flag will get sent/used.
             try:
                 del kwargs['secure']
             except KeyError:
@@ -66,7 +78,6 @@ class BaseHandler(XSRFBaseHandler):
         self.html = ""
         super().__init__(*args, **kwargs)
 
-        print("Loading page - " + self.request.uri)
 
         # Before we do anything, see if we have a XSRF cookie set.
         # If not, either set it or abort, depending on the HTTP verb.
@@ -201,12 +212,27 @@ class BaseHandler(XSRFBaseHandler):
         """Set various headers that each HTTP response should have."""
         # Add in a random fortune
         self.set_header("X-Fortune", self.server.fortune.random().encode('iso-8859-1', errors='ignore'))
+
         # Do not allow the content to load in a frame.
         # Should help prevent certain attacks
         self.set_header("X-FRAME-OPTIONS", "DENY")
+        self.set_header("FRAME-OPTIONS", "DENY")
+
         # Don't try to guess content-type.
         # This helps avoid JS sent in an image.
         self.set_header("X-Content-Type-Options", "nosniff")
+
+        # Disable prefetching of content. Since we allow offsite links, this avoids some leakage.
+        self.set_header("X-dns-prefetch-control", "off")
+
+        # IE has additional XSS protection.
+        # http://msdn.microsoft.com/en-us/library/dd565647%28v=vs.85%29.aspx
+        self.set_header("X-XSS-Protection","1; mode=block;")
+
+        # STS header says to always load over HTTPS
+        if self.secure or self.server.serversettings.settings['webtav']['force_sts'] is True:
+            self.set_header("Strict-Transport-Security","max-age=" + self.server.serversettings.settings['webtav']['sts_time'])
+
 
         # http://cspisawesome.com/content_security_policies
         # bottle.response.set_header(

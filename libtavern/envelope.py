@@ -1,15 +1,13 @@
 import json
 import hashlib
 import os
-import collections
 from collections import *
 import lzma
+import collections
 
 # To detect/resize images
-from PIL import Image
 import magic
 
-import gridfs
 from bs4 import BeautifulSoup
 
 import libtavern.baseobj
@@ -91,7 +89,7 @@ class Envelope(libtavern.baseobj.Baseobj):
                     print("Message Revisions must refer to a message.")
                     return False
             return True
-   
+
     def get_original(self):
         """
         Returns the original message, without any edits
@@ -319,7 +317,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         stamps = self.dict['envelope']['stamps']
 
         highestPOW = 0
-        
+
         for stamp in stamps:
 
             # Find the author of the message, save it where it's easy to find

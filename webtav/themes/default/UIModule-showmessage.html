@@ -32,7 +32,7 @@
                                 </time>
                              </abbr>
                         {% if 'edits' in envelope.dict['envelope']['local'] %}
-                            <abbr title="This message has been edited."><a href="/messagehistory/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
+                            <abbr title="This message has been edited."><a href="/mh/{{envelope.dict['envelope']['local']['payload_sha512']}}">*</a></abbr>
                         {% end %}
                     </p>
 
