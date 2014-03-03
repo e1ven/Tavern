@@ -2,8 +2,7 @@
 
 {% block column2 %}
 
-    {% set hisname = thatguy.friendlyname + "@" + thatguy.author_wordhash %}
-    <h1> Details about {{hisname}} </h1>
+    <h1> Details about <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} </h1>
 
     <img class="bigavatar" id="avatar_{{thatguy.Keys['master'].pubkey}}" class="portrait" width="200px" height="200px"
         alt="User Portrait" src="{{handler.server.external.getavatar(myid=thatguy.Keys['master'].pubkey,datauri=False,height=200,width=200)}}" /><br>
@@ -14,7 +13,7 @@
         {# See if he's posted a communication Key #}
         {# for post in handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) #}
         {% if thatguy.Keys['posted'] is not None %}
-            <p><a href="/pm/{{thatguy.Keys['posted'][0]}}">Send {{hisname}} a private message</a></p>
+            <p><a href="/pm/{{thatguy.Keys['posted'][0]}}">Send <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} a private message</a></p>
         {% end %}
     {% end %}
 

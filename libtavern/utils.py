@@ -4,10 +4,7 @@ import itertools
 from functools import wraps
 import inspect
 from collections import OrderedDict
-import time
 import json
-import os
-import hashlib
 import time
 from io import open
 import hashlib
@@ -16,6 +13,7 @@ import libtavern.baseobj
 import datetime
 import string
 from PIL import Image
+import zlib
 
 def proveWork(input, difficulty):
     """
@@ -68,6 +66,7 @@ def checkWork(input, proof, difficulty):
     else:
         print("Work fails to verify")
         return False
+
 
 def gettime(format='timestamp',timestamp=None):
     """

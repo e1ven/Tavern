@@ -13,7 +13,7 @@ from bs4 import BeautifulSoup
 import libtavern.baseobj
 import libtavern.key
 import libtavern.utils
-
+import libtavern.topic
 
 class Envelope(libtavern.baseobj.Baseobj):
 
@@ -123,11 +123,6 @@ class Envelope(libtavern.baseobj.Baseobj):
                 if len(self.dict['topic']) > 200:
                     self.server.logger.debug("Topic too long")
                     return False
-
-            if self.server.sorttopic(self.dict['topic']) in ['all', 'all-subscribed']:
-                self.server.logger.debug(
-                    "Topic in reserved topic list. Sorry. ")
-                return False
 
             if 'subject' in self.dict:
                 if len(self.dict['subject']) > 200:
@@ -337,7 +332,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         # Copy a lowercase/simplified version of the topic into 'local', so
         # StarTrek and startrek show up together.
         if 'topic' in self.dict['envelope']['payload']:
-            self.dict['envelope']['local']['sorttopic'] = self.server.sorttopic(
+            self.dict['envelope']['local']['sorttopic'] = libtavern.topic.sorttopic(
                 self.dict['envelope']['payload']['topic'])
 
         # Get a short version of the subject, for display.
@@ -600,6 +595,7 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         # Determine the file extension to see how to parse it.
         basename, ext = os.path.splitext(filename)
+        max_size = 102400
         with lzma.open(filename, 'rt', encoding='utf-8') as filehandle:
             filecontents = filehandle.read()
             self.loadstring(filecontents)

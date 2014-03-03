@@ -7,6 +7,8 @@ import libtavern.lockedkey
 import libtavern.envelope
 import libtavern.utils
 import libtavern.key
+import libtavern.topic
+
 import enum
 
             # if self.has_unique_key:
@@ -54,9 +56,13 @@ class User(libtavern.baseobj.Baseobj):
 
 
         self.friendlyname = defaults.get('friendlyname','Anonymous')
-        self.maxposts = defaults.get('maxposts',100)
 
-        self.followed_topics = defaults.get('followed_topics',['StarTrek','Python','World Politics','Funny'])
+        # Add the default topics
+        followed_topics = defaults.get('followed_topics',['StarTrek','Python','World Politics','Funny'])
+        self.followed_topics = []
+        for topic in followed_topics:
+            self.follow_topic(topic)
+
         self.maxposts = defaults.get('maxposts',100)
         self.maxreplies = defaults.get('maxreplies',100)
         self.include_location = defaults.get('include_location', False)
@@ -400,15 +406,28 @@ class User(libtavern.baseobj.Baseobj):
         del(self.emails[email])
 
     def follow_topic(self, topic):
-        if topic not in self.followed_topics:
-            sorted_version = self.server.sorttopic(topic)
-            self.followed_topics.append(sorted_version)
+        newtopic = libtavern.topic.Topic(topic)
+        matched = False
+        for tp in self.followed_topics:
+            if tp.sortname == newtopic.sortname:
+                matched = True
+        if not matched:
+            self.followed_topics.append(newtopic)
 
     def unfollow_topic(self, topic):
-        # Compare the lowercase/sorted values
-        for followedtopic in self.followed_topics:
-            if self.server.sorttopic(followedtopic) == self.server.sorttopic(topic):
-                self.followed_topics.remove(followedtopic)
+        newtopic = libtavern.topic.Topic(topic)
+        for tp in self.followed_topics:
+            if tp.sortname == newtopic.sortname:
+                self.followed_topics.remove(tp)
+
+    def follows_topic(self,topic):
+        """Does this user follow the topic?"""
+        newtopic = libtavern.topic.Topic(topic)
+        matched = False
+        for tp in self.followed_topics:
+            if tp.sortname == newtopic.sortname:
+                matched = True
+        return matched
 
     def decrypt(self, text, passkey=None):
         """Decrypt a message sent to me, using one of my communication keys.

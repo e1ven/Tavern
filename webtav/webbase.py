@@ -1,6 +1,6 @@
 import libtavern.user
 import libtavern.server
-import libtavern.topicfilter
+import libtavern.topic
 import random
 
 import tornado.httpserver
@@ -147,12 +147,16 @@ class BaseHandler(XSRFBaseHandler):
         self.redirected = self.get_argument('redirected', False)
 
 
-        self.topicfilter = libtavern.topicfilter.TopicFilter()
 
         # Set default values for variables we look for.
         self.canon = None
         self.title = None
-        self.topic = None
+        self.messages = None
+        self.newmessage = "/newmessage"
+        self.topic = libtavern.topic.Topic()
+        self.displayenvelope = None
+        self.sorttopic = libtavern.topic.sorttopic
+
 
     def load_session(self, AllowGuestKey=True):
         """Load into memory the User class by way of the session cookie.

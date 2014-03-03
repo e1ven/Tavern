@@ -44,12 +44,11 @@
     {% end %}
     <li id="tendingtopics" class="mainheader"><a href="#">Trending Topics<span>26</span></a>
         <ul class="sub-element sub-menu">
-            {% for quicktopic in handler.topicfilter.toptopics() %}
-                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% end %} >
-                    <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
-                        <bdi>{{ quicktopic }}</bdi>
-                        {% set _ = handler.topicfilter.set_topic(quicktopic) %}
-                        <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
+            {% for quicktopic in handler.topic.toptopics() %}
+                <li {% if quicktopic.sortname == handler.topic.sortname %} class="active" {% end %} >
+                    <a class="internal" href="{{handler.server.url_for(topic=quicktopic)}}">
+                        <bdi>{{ quicktopic.name }}</bdi>
+                        <span>{{ quicktopic.count(include_replies=False) }}</span>
                     </a>
                 </li>
             {% end %}
@@ -58,11 +57,10 @@
     <li id="savedtopics" class="mainheader"><a href="#">Saved Topics<span>495</span></a>
         <ul class="sub-element sub-menu">
             {% for quicktopic in handler.user.followed_topics %}
-                <li {% if handler.server.sorttopic(quicktopic) == handler.topic %} class="active" {% end %} >
-                    <a class="internal" href="/topic/handler.server'.sorttopic(quicktopic)}}">
-                        <bdi>{{ quicktopic }}</bdi>
-                        {%  set _ = handler.topicfilter.set_topic(quicktopic) %}
-                        <span>{{ handler.topicfilter.count(include_replies=False) }}</span>
+                <li {% if quicktopic.sortname == handler.topic.sortname %} class="active" {% end %} >
+                    <a class="internal" href="{{handler.server.url_for(topic=quicktopic)}}">
+                        <bdi>{{ quicktopic.name }}</bdi>
+                        <span>{{ quicktopic.count(include_replies=False) }}</span>
                     </a>
                 </li>
             {% end %}
@@ -70,8 +68,8 @@
     </li>
     <li id="four" class="mainheader"><a href="#">Special</a>
         <ul class="sub-element sub-menu">
-            <li><a href="/topic/all">All Messages</a></li>
-            <li><a href="/topic/all-subscribed">Subscribed Topics</a></li>
+            <li><a href="/all">All Messages</a></li>
+            <li><a href="/all/saved">Messages in all Saved Topics</a></li>
             <li><a href="/showtopics">All Topics</a></li>
             <li><a href="/showprivates">Private Messages</a></li>
             <li><a href="{{handler.server.url_for(pubkey=handler.user.Keys['master'].pubkey)}}">My Settings</a></li>

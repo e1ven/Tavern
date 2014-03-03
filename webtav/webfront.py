@@ -1,31 +1,17 @@
 # This file is the Web self.server.
 # It defines the routes, and the handlers which create those webpages.
 
-import pymongo
-import time
-import datetime
-import json
-import os
-import re
-from collections import OrderedDict
-from PIL import Image
-import imghdr
-import io
-import pygeoip
-import urllib.parse
-import hashlib
 import sys
 import optparse
 import socket
 
-from libs import rss
 from robohash import Robohash
 
 import libtavern.server
 import libtavern.envelope
 import libtavern.utils
 import libtavern.key
-import libtavern.topicfilter
+import libtavern.topic
 
 import webtav.webbase as webbase
 from webtav.webbase import weberror
@@ -70,7 +56,7 @@ class MessageHandler(webbase.BaseHandler):
         self.displayenvelope = libtavern.envelope.Envelope()
         self.displayenvelope.loaddict(messagesenvelope)
 
-        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.topic = libtavern.topic.Topic(topic=self.displayenvelope.dict['envelope']['payload']['topic'])
         self.canon = self.server.url_for(envelope=self.displayenvelope)
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
 
@@ -116,7 +102,7 @@ class MessageHistoryHandler(webbase.BaseHandler):
 
         self.edits = edits
         self.displayenvelope = original
-        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.topic = libtavern.topic.Topic(self.displayenvelope.dict['envelope']['payload']['topic'])
         self.canon = self.server.url_for(envelope=self.displayenvelope)
         self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
 
@@ -130,30 +116,68 @@ class TopicHandler(webbase.BaseHandler):
         """
 
         self.title = topic
-        self.topic = topic
+        self.topic = libtavern.topic.Topic(topic=topic)
         self.canon = self.server.url_for(topic=topic)
 
-        # Get the messages for this topic
-        self.topicfilter.set_topic(topic)
-        messages = self.topicfilter.messages(maxposts=self.user.maxposts,before=self.before,after=self.after,include_replies=False)
-        if messages:
-            self.displayenvelope = messages[0]
-        else:
-            newmessageurl = self.server.url_for(topic=self.topic) + '/newmessage'
-
+        if self.topic.count() < 1:
             self.displayenvelope = self.server.error_envelope(
                 subject="That topic doesn't have any messages in it yet!",
                 topic=topic,
                 body="""The particular topic you're viewing doesn't have any posts in it yet.
                 You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
                 Don't be nervous. Breathe. You can do this.
-                Click the [New Message]("""+newmessageurl+""" "Post Something!") button, and get started.
+                Click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage' +""" "Post Something!") button, and get started.
                 We're rooting you.""")
+
+        self.render('View-showmessage.html', handler=self)
+
+class AllMessagesHandler(webbase.BaseHandler):
+    def get(self):
+        """
+        Display all messages.
+        """
+        self.topic = libtavern.topic.Topic(unfiltered=True)
+        self.title = "Tavern - All Messages"
+        self.canon = "/all"
+        self.specialtopic = True
+
+        if self.topic.count() < 1:
+            self.displayenvelope = self.server.error_envelope(
+                subject="Welcome to Tavern!",
+                topic="None",
+                body="""This Tavern server has __NO__ messages posted yet.
+                If it's public, it should sync up with some other servers soon.
+                If not, click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage'+""" "Post Something!") button, and get things started.""")
+
+
+        self.render('View-showmessage.html', handler=self)
+
+class AllSavedHandler(webbase.BaseHandler):
+    def get(self):
+        """
+        Display all messages.
+        """
+
+        topics = []
+        for topic in self.user.followed_topics:
+            topics.append(topic.sortname)
+        self.topic = libtavern.topic.Topic(topics=topics)
+        self.title = "Tavern - Messages in all saved topics"
+        self.canon = "/all/saved"
+        self.specialtopic = True
+
+        if self.topic.count() < 1:
+            self.displayenvelope = self.server.error_envelope(
+                subject="Welcome to Tavern!",
+                topic="None",
+                body="""There are no messages in any topics you have saved.""")
+
         self.render('View-showmessage.html', handler=self)
 
 
 
-class ShowTopicsHandler(webbase.BaseHandler):
+
+class ShowAllTopicsHandler(webbase.BaseHandler):
     def get(self):
 
         if self.after is None:
@@ -163,7 +187,7 @@ class ShowTopicsHandler(webbase.BaseHandler):
             limit = self.after + 1000
             skip = self.after
 
-        alltopics = self.topicfilter.toptopics(limit=limit, skip=skip,counts=True)
+        alltopics = self.topic.toptopics(limit=limit, skip=skip,counts=True)
         self.title = "List of all topics"
         self.render('View-showtopics.html',topics=alltopics)
 
@@ -171,7 +195,7 @@ class ShowTopicsHandler(webbase.BaseHandler):
 #     self.getvars()
 
 #     mods = []
-#     for mod in self.server.db.unsafe.find('modlist', {'_id.topic': self.server.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
+#     for mod in self.server.db.unsafe.find('modlist', {'_id.topic': libtavern.topic.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
 #         mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
 #             mod['_id']['moderator'].encode('utf-8')).hexdigest()
 #         mods.append(mod)
@@ -179,7 +203,7 @@ class ShowTopicsHandler(webbase.BaseHandler):
 #     toptopics = topictool.toptopics()
 
 #     subjects = []
-#     for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.maxposts):
+#     for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': libtavern.topic.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.maxposts):
 #         subjects.append(envelope)
 
 #     title = "Properties for " + topic
@@ -1199,7 +1223,7 @@ class AvatarHandler(webbase.BaseHandler):
 #                               'Tavern discussion about ' + param,
 #                               generator='Tavern',
 #                               pubdate=datetime.datetime.utcnow())
-#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': self.server.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
+#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': libtavern.topic.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
 #             item = rss.Item(channel,
 #                             envelope['envelope']['payload']['subject'],
 #                             "http://GetTavern.com/m/" + envelope[
@@ -1226,11 +1250,11 @@ class SiteIndexHandler(webbase.BaseHandler):
 
         max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
 
-        self.topicfilter.set_topic(unfiltered=True)
+        self.topic = libtavern.topic.Topic(unfiltered=True)
 
         # Without a number, we want the index, which lists the other xml files.
         # - Each one can contain up to 50K URLs
-        count = self.topicfilter.count(include_replies=True)
+        count = self.topic.count(include_replies=True)
         messagecount = int(count / max_posts) + 1
 
         # Get the base URL for the server
@@ -1272,7 +1296,7 @@ class SitemapMessagesHandler(webbase.BaseHandler):
         else:
             after = 0
 
-        messages = self.topicfilter.messages(maxposts=max_posts,after=after,include_replies=True)
+        messages = self.topic.messages(maxposts=max_posts,after=after,include_replies=True)
         if not messages:
             self.set_status(404)
             self.write("That sitemap does not exist.")
@@ -1390,13 +1414,16 @@ def main():
             (r"/m/(.*)", MessageHandler),
             (r"/mh/(.*)", MessageHistoryHandler),
 
+            (r"/all/saved", AllSavedHandler),
+            (r"/all", AllMessagesHandler),
+
             (r"/siteindex", SiteIndexHandler),
             (r"/sitemap/m/(\d+)", SitemapMessagesHandler),
 
             # (r"/sitecontent/(.*)", SiteContentHandler),
 
 
-            (r"/showtopics", ShowTopicsHandler),
+            (r"/showtopics", ShowAllTopicsHandler),
             # (r"/showprivates", ShowPrivatesHandler),
             # (r"/privatem/(.*)", ShowPrivatesHandler),
 

@@ -8,25 +8,28 @@
 	</tr>
 	<tr>
     	<td>
-        	<h4><a id="column2Topic" href="/topic/{{handler.server.sorttopic(handler.topic)}}">{{handler.topic}}</a>
+        	<h4><a id="column2Topic" href="{{handler.server.url_for(topic=handler.topic)}}">{{handler.topic.name}}</a>
             </h4>
         </td>
         <td>
-    		<h4 id="column2MsgCount">{{ handler.topicfilter.count(include_replies=True)}} Messages</h4>
+    		<h4 id="column2MsgCount">{{ handler.topic.count(include_replies=False)}} Messages</h4>
     	</td>
     </tr>
     <tr>
         <td colspan=2>
-            {% if handler.server.sorttopic('topic') in handler.user.followed_topics %}
-                <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
-            {% else %}
-                <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
-            {% end %}
+            {% if not handler.specialtopic %}
+                {% if handler.user.follows_topic(handler.topic.sortname) %}
+                    <form id='followtopic' class="followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{handler.topic.sortname}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[This is a saved topic.]' class="textbutton topicpref"></form>
+                {% else %}
+                    <form id='followtopic' class="followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{handler.topic.sortname}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='[Save this topic]' class="textbutton topicpref"></form>
+                {% end %}
+            {% end if %}
     </td>
     </tr>
+    {% if not handler.specialtopic %}
     <tr>
     	<td>    
-            <a href="/topicinfo/{{handler.topic}}">
+            <a href="{{handler.server.url_for(topic=handler.topic)}}/settings">
     		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
                 Topic Setting
     			<span class="icon-wrench-circled navIcon"></span>
@@ -34,7 +37,7 @@
             </a>
     	</td>
     	<td>
-          <a href="/newmessage/{{handler.topic}}" class="internal">
+          <a href="{{handler.server.url_for(topic=handler.topic)}}/newmessage" class="internal">
                <button id="column2ButtonRight" class="column2Buttons" type="button">
                 New Message
                 <span class="icon-pencil-circled navIcon"></span>
@@ -42,6 +45,7 @@
             </a>
 			</td>
     </tr>
+    {% end if %}
 </table>
 
 
@@ -49,8 +53,14 @@
     <tr>
     <td valign="top">
         <ul class="messages">
-        {% for subject in subjects %}
-            <li class="message {%if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
+        {% for subject in handler.messages %}
+            {% set domclass = " " %}
+            {% if handler.displayenvelope is not None %}
+                {% if subject.dict['envelope']['local']['payload_sha512'] == handler.displayenvelope.dict['envelope']['local']['payload_sha512'] %}
+                    {% set domclass = "active" %}
+                {% end if %}
+            {% end %}
+            <li class="message  {{ domclass }}">
                 <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
                 <a class='internal messagelink' href="{{handler.server.url_for(envelope=subject)}}">
                   <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
@@ -69,7 +79,7 @@
             <tr>
                  <td>
                     {% if show_older %}
-                    <a href="/topic/{{handler.topic}}?before={{subjects[0].dict['envelope']['local']['time_added']}}" class="internal">
+                    <a href="{{handler.server.url_for(topic=handler.topic)}}?before={{handler.messages[0].dict['envelope']['local']['time_added']}}" class="internal">
                        <button id="older_messages" class="column2Buttons" type="button">
                         Older Messages
                         <span class="icon-left-circled navIcon"></span>
@@ -79,7 +89,7 @@
                 </td>
                 <td>
                     {% if show_newer %}
-                    <a href="/topic/{{handler.topic}}?after={{subjects[-1].dict['envelope']['local']['time_added']}}">
+                    <a href="{{handler.server.url_for(topic=handler.topic)}}?after={{handler.messages[-1].dict['envelope']['local']['time_added']}}">
                        <button id="newer_messages" class="column2Buttons" type="button">
                         Newer Messages
                         <span class="icon-right-circled navIcon"></span>

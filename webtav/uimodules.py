@@ -47,20 +47,24 @@ class ShowMessagelist(tornado.web.UIModule):
     """
     def render(self, handler):
 
-        handler.topicfilter.set_topic(handler.topic)
-        subjects = handler.topicfilter.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False)
+        # Ensure we messages
+        if not handler.messages:
+            handler.messages = handler.topic.messages(maxposts=handler.user.maxposts,before=handler.before,after=handler.after,include_replies=False)
+
+        if not hasattr(handler,'specialtopic'):
+            handler.specialtopic = False
 
         # Calculate the forward/back buttons
         show_older = False
         show_newer = False
-        if subjects:
-            if handler.topicfilter.count(before=subjects[0].dict['envelope']['local']['time_added']):
+        if handler.messages:
+            if handler.topic.count(before=handler.messages[0].dict['envelope']['local']['time_added'],include_replies=False):
                 show_older = True
-            if handler.topicfilter.count(after=subjects[-1].dict['envelope']['local']['time_added']):
+            if handler.topic.count(after=handler.messages[-1].dict['envelope']['local']['time_added'],include_replies=False):
                 show_newer = True
 
         return self.render_string(
-            "UIModule-messagelist.html",handler=handler,subjects=subjects,show_older=show_older,show_newer=show_newer)
+            "UIModule-messagelist.html",handler=handler,show_older=show_older,show_newer=show_newer)
 
 class ShowPrivateMessagelist(tornado.web.UIModule):
     """

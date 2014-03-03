@@ -10,10 +10,7 @@
 				<p>
 
 
-				{% set sortedtopic =  [ server.sorttopic(x) for x in user.followed_topics ] %}
-	
-
-				{% if server.sorttopic(topic) in sortedtopic %}
+				{% if handler.sorttopic(topic) in handler.user.followed_topics %}
 					<form class = "followtopic" action="/changesetting/unfollowtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Unsubscribe from "{{topic}}"' class="textbutton topicpref"></form>
 					{% else %}
 					<form class = "followtopic" action="/changesetting/followtopic" method="post"> <input type="hidden" value="{{topic}}" name="topic">   {% module xsrf_form_html() %} <input type="submit" value='Subscribe to "{{topic}}"' class="textbutton topicpref"></form>

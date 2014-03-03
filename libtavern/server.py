@@ -447,14 +447,6 @@ class Server(libtavern.utils.instancer):
             self.serversettings.settings, indent=2, separators=(', ', ': '))
         return newstr
 
-    def sorttopic(self, topic):
-        if topic is not None:
-            topic = topic.lower()
-            topic = self.urlize(topic)
-        else:
-            topic = None
-        return topic
-
  #   @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, subject="Error", topic="sitecontent", body=None):
 
@@ -752,7 +744,17 @@ class Server(libtavern.utils.instancer):
         :return string: URL
         """
         if topic:
-            url =  '/t/' + topic
+            if isinstance(topic,libtavern.topic.Topic):
+                if topic.filtered is False:
+                    url = '/t/'
+                else:
+                    url = '/t/' + topic.sortname
+            elif isinstance(topic,str):
+                topicobj = libtavern.topic.Topic(topic=topic)
+                url = self.url_for(topic=topicobj)
+            else:
+                raise Exception("url_for must be given a Topic object or str")
+
         elif envelope:
             if isinstance(envelope, libtavern.envelope.Envelope):
                 url =  "/t/" + envelope.dict['envelope']['local']['sorttopic'] + '/' + \

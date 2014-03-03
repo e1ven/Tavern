@@ -5,7 +5,7 @@
 from PIL import Image
 from collections import OrderedDict
 from hashlib import md5 as md5_func
-import libtavern
+import libtavern.topic
 
 
 define("port", default=8090, help="run on the given port", type=int)
@@ -88,7 +88,7 @@ class TopicHandler(BaseHandler):
         client_topic = tornado.escape.xhtml_escape(topic)
         since = int(tornado.escape.xhtml_escape(since))
         server.logger.info(server.serversettings.settings['pubkey'])
-        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': server.sorttopic(client_topic)}, limit=include, skip=offset):
+        for envelope in server.db.unsafe.find('envelopes', {'envelope.local.time_added': {'$gt': since}, 'envelope.local.sorttopic': libtavern.topic.sorttopic(client_topic)}, limit=include, skip=offset):
             if client_perspective is not None:
                 u = User()
                 u.load_mongo_by_pubkey(pubkey=client_perspective)

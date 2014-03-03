@@ -8,18 +8,18 @@
 	</p><br><Br><p>
 
 	<ul>
-		{% for topictag in topics %}
-		    <li><b><a href="/t/{{topictag[0]}}" <bdi>{{topictag[0]}} - {{topictag[1]}} posts</bdi></a></b>  -
-                {% if topictag[0] in handler.user.followed_topics %}
+		{% for topic in topics %}
+		    <li><b><a href="{{handler.server.url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
+                {% if user.follows_topic(topic.name) %}
                     <form class = "followtopic" action="/changesetting/unfollowtopic" method="post">
                         {% module xsrf_form_html() %}
-                        <input type="hidden" value="{{topictag[0]}}" name="topic">
+                        <input type="hidden" value="{{topic.sortname}}" name="topic">
                         <input type="submit" value='Remove from saved topics' class="textbutton topicpref">
                     </form>
                 {% else %}
                     <form class = "followtopic" action="/changesetting/followtopic" method="post">
                         {% module xsrf_form_html() %}
-                        <input type="hidden" value="{{topictag[0]}}" name="topic">
+                        <input type="hidden" value="{{topic.sortname}}" name="topic">
                         <input type="submit" value='Save this topic' class="textbutton topicpref">
                     </form>
                 {% end %}

@@ -6,5 +6,8 @@
 
 {% extends "Layout-tripane.html" %}
 {% block column3 %}
+        {% if handler.displayenvelope is None %}
+            {% set handler.displayenvelope = handler.topic.messages()[0] %}
+        {% end if %}
         {% module ShowMessage(envelope=handler.displayenvelope,handler=handler,top=True) %}
 {% end column3 %}

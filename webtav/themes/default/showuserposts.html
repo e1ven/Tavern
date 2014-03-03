@@ -1,7 +1,7 @@
 
 <div class="single">
 
-<h1> Posts for {{hisname}} </h1>
+<h1> Posts for <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} </h1>
 
 <p></p>
 <ul>
@@ -15,7 +15,7 @@
         {% end %}
     {% end %}
 {% else %}
-    {{hisname}} has not yet posted any messages.
+    <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} has not yet posted any messages.
 {% end %}
 
 </ul>

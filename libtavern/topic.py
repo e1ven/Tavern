@@ -1,28 +1,24 @@
-import json
-import pymongo
-import time
-from collections import OrderedDict
-import sys
 import libtavern.baseobj
 import libtavern.utils
 import libtavern.envelope
 
-class TopicFilter(libtavern.baseobj.Baseobj):
+def sorttopic(topic):
+    if topic is not None:
+        topic = Topic(topic)
+        return topic.sortname
+    else:
+        topic = None
+    return topic
 
-    """Break some of the common topic handling routines out into a tool, so
-    that they can be cached.
-
-    Shouldn't be instantiated directly.
-
+class Topic(libtavern.baseobj.Baseobj):
+    """
+    A Topic is a collection of messages with a common subject.
     """
 
-    def __init2__(self,topic=None,topics=None,unfiltered=False):
+    def __init2__(self,topic=None,topics=None,unfiltered=None):
         """
-        Create a TopicFilter. Called by __init__() automatically.
-        :param str topic: The topic we should be filtering on.
-        :param list topics: The topics we should filter on.
-        :param bool unfiltered: Show messages from all topics
-        :raise ('TopicError','Must Specify either a topic or a list of topics'):
+        Create a Topic.
+        Called by __init__() automatically.
         """
 
         # The list of all topics we received
@@ -31,25 +27,44 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         # The 'sorttopic' version, case-matched, etc.
         self.sorttopics = []
 
+        if unfiltered is not None:
+            self.filtered = not unfiltered
+
         if topics is not None:
             for tp in topics:
-                st_ver = self.server.sorttopic(tp)
-                self.sorttopics.append(st_ver)
-                self.topics.append(tp)
-        if topic is not None:
-            st_ver = self.server.sorttopic(topic)
-            self.topics.append(topic)
-            self.sorttopics.append(st_ver)
+                self.add(tp)
 
-        self.filtered = not unfiltered
+        if topic is not None:
+            self.add(topic)
 
         self.search = {}
 
-    def set_topic(self,topic=None,topics=None,unfiltered=False):
-        """Re-init the method.
-        Used so that the response can have an empty filter, then config it as-needed.
-        """
-        self.__init2__(topic,topics,unfiltered)
+    def _sorttopic(self,topic):
+        if topic is not None:
+            topic = topic.lower()
+            topic = self.server.urlize(topic)
+            return topic
+        else:
+            return None
+
+    def add(self,topic):
+        """Add a topic"""
+        st = self._sorttopic(topic)
+        self.sorttopics.append(st)
+        self.topics.append(topic)
+        self.filtered = True
+
+
+    @property
+    def name(self):
+        """Name of the topic"""
+        return "+".join(self.topics)
+
+    @property
+    def sortname(self):
+        """Name of the topic"""
+        return "+".join(self.sorttopics)
+
 
     def _create_filter(self,before=None,after=None,include_replies=True):
         """Internal method to create the search obj used by the rest of the class."""
@@ -68,7 +83,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
             self.search.update({'envelope.payload.regarding': {'$exists': False}})
 
 
-    def messages(self,maxposts,before=None,after=None,include_replies=True):
+    def messages(self,maxposts=100,before=None,after=None,include_replies=True):
         """Retrieve the messages in the specified topics.
 
         :param int maxposts: Max number of posts to return
@@ -101,7 +116,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         :type after: integer or float
 
         """
-        sorttopic = self.server.sorttopic(topic)
+        sorttopic = self._sorttopic(topic)
         subjects = []
         if topic != "all":
             for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': sorttopic, 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}, 'envelope.local.time_added': {'$gt': after}}, limit=maxposts + 1, sortkey='envelope.local.time_added', sortdirection='ascending'):
@@ -125,7 +140,7 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         return ret
 
     def moreafter(self, before, topic, maxposts):
-        sorttopic = self.server.sorttopic(topic)
+        sorttopic = self._sorttopic(topic)
         if topic != "all":
             count = len(
                 self.server.db.unsafe.find('envelopes',
@@ -149,8 +164,5 @@ class TopicFilter(libtavern.baseobj.Baseobj):
         """
         toptopics = []
         for quicktopic in self.server.db.unsafe.find('topiclist', skip=skip, sortkey='value', sortdirection='descending',limit=limit):
-            if counts:
-                toptopics.append(  (quicktopic['_id'],int(quicktopic['value'])) )
-            else:
-                toptopics.append(quicktopic['_id'])
+            toptopics.append(libtavern.topic.Topic(topic=quicktopic['_id']))
         return toptopics
