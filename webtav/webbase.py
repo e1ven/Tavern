@@ -1,6 +1,7 @@
 import libtavern.user
 import libtavern.server
 import libtavern.topic
+import libtavern.utils
 import random
 
 import tornado.httpserver
@@ -155,7 +156,6 @@ class BaseHandler(XSRFBaseHandler):
         self.newmessage = "/newmessage"
         self.topic = libtavern.topic.Topic()
         self.displayenvelope = None
-        self.sorttopic = libtavern.topic.sorttopic
 
 
     def load_session(self, AllowGuestKey=True):
@@ -282,7 +282,7 @@ class BaseHandler(XSRFBaseHandler):
         self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
         self.canon = None
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
-        self.render('View-showmessage.html', handler=self)
+        self.render('View-showmessage.html')
 
     def get_template_path(self):
         """Returns the correct template path for the current theme.
@@ -304,7 +304,6 @@ class BaseHandler(XSRFBaseHandler):
         Note - This does not overwrite the protection against POST request without matching XSRF tokens.
         That is defined in check_xsrf_cookie()
         """
-        print("rewriting verbs!")
         def retryget(*args,**kwargs):
             _ = self.xsrf_token
             argsdict = {'skipxsrf' : True}
@@ -321,6 +320,25 @@ class BaseHandler(XSRFBaseHandler):
         setattr(self,'patch',notimplemented)
         setattr(self,'put',notimplemented)
         setattr(self,'options',notimplemented)
+
+    def get_template_namespace(self):
+        """
+        Provides a dict of variables/functions that are available to templates.
+
+        :returns: dict
+        """
+        namespace = dict(
+            handler=self,
+            request=self.request,
+            locale=self.locale,
+            _=self.locale.translate,
+            xsrf_form_html=self.xsrf_form_html,
+            utils=libtavern.utils,
+            url_for=self.server.url_for,
+            Topic=libtavern.topic.Topic,
+        )
+        namespace.update(self.ui)
+        return namespace
 
 class weberror(Exception):
     """A generic http error message that supports subject/body.

@@ -37,7 +37,6 @@ class EntryHandler(webbase.BaseHandler):
         """
         self.redirect('/t/sitecontent',permanent=False)
 
-
 class MessageHandler(webbase.BaseHandler):
     def get(self,*args):
         """Retrieve and display a message."""
@@ -60,10 +59,7 @@ class MessageHandler(webbase.BaseHandler):
         self.canon = self.server.url_for(envelope=self.displayenvelope)
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
 
-        # These are the divs that will shift
-        # self.divs = ['scrollablediv2', 'scrollablediv3']
-
-        self.render('View-showmessage.html', handler=self)
+        self.render('View-showmessage.html')
 
 class MessageHistoryHandler(webbase.BaseHandler):
     def get(self, messageid, topic=None, short_name=None):
@@ -106,7 +102,7 @@ class MessageHistoryHandler(webbase.BaseHandler):
         self.canon = self.server.url_for(envelope=self.displayenvelope)
         self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
 
-        self.render('View-messagehistory.html', handler=self)
+        self.render('View-messagehistory.html')
 
 
 class TopicHandler(webbase.BaseHandler):
@@ -114,7 +110,6 @@ class TopicHandler(webbase.BaseHandler):
         """
         Display the messages for a given topic
         """
-
         self.title = topic
         self.topic = libtavern.topic.Topic(topic=topic)
         self.canon = self.server.url_for(topic=topic)
@@ -129,7 +124,7 @@ class TopicHandler(webbase.BaseHandler):
                 Click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage' +""" "Post Something!") button, and get started.
                 We're rooting you.""")
 
-        self.render('View-showmessage.html', handler=self)
+        self.render('View-showmessage.html')
 
 class AllMessagesHandler(webbase.BaseHandler):
     def get(self):
@@ -150,21 +145,22 @@ class AllMessagesHandler(webbase.BaseHandler):
                 If not, click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage'+""" "Post Something!") button, and get things started.""")
 
 
-        self.render('View-showmessage.html', handler=self)
+        self.render('View-showmessage.html')
 
 class AllSavedHandler(webbase.BaseHandler):
     def get(self):
         """
         Display all messages.
         """
-
-        topics = []
-        for topic in self.user.followed_topics:
-            topics.append(topic.sortname)
         self.topic = libtavern.topic.Topic(topics=topics)
         self.title = "Tavern - Messages in all saved topics"
         self.canon = "/all/saved"
         self.specialtopic = True
+
+        topics = []
+        for topic in self.user.followed_topics:
+            topics.append(topic.sortname)
+
 
         if self.topic.count() < 1:
             self.displayenvelope = self.server.error_envelope(
@@ -172,13 +168,15 @@ class AllSavedHandler(webbase.BaseHandler):
                 topic="None",
                 body="""There are no messages in any topics you have saved.""")
 
-        self.render('View-showmessage.html', handler=self)
+        self.render('View-showmessage.html')
 
 
 
 
 class ShowAllTopicsHandler(webbase.BaseHandler):
+    """Show every known topic"""
     def get(self):
+        self.title = "List of all topics"
 
         if self.after is None:
             limit = 1000
@@ -187,32 +185,20 @@ class ShowAllTopicsHandler(webbase.BaseHandler):
             limit = self.after + 1000
             skip = self.after
 
-        alltopics = self.topic.toptopics(limit=limit, skip=skip,counts=True)
-        self.title = "List of all topics"
+        alltopics = Topic.toptopics(limit=limit, skip=skip,counts=True)
         self.render('View-showtopics.html',topics=alltopics)
 
-# def TopicPropertiesHandler_get(topic):
-#     self.getvars()
+class TopicPropertiesHandler(webbase.BaseHandler):
+    """Show Properties for a topic"""
+    def get(self,topic):
+        self.topic = libtavern.topic.Topic(topic)
+        self.title = "Properties for " + self.topic.name
 
-#     mods = []
-#     for mod in self.server.db.unsafe.find('modlist', {'_id.topic': libtavern.topic.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
-#         mod['_id']['moderator_pubkey_sha512'] = hashlib.sha512(
-#             mod['_id']['moderator'].encode('utf-8')).hexdigest()
-#         mods.append(mod)
-
-#     toptopics = topictool.toptopics()
-
-#     subjects = []
-#     for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': libtavern.topic.sorttopic(topic), 'envelope.payload.class': 'message', 'envelope.payload.regarding': {'$exists': False}}, limit=self.user.maxposts):
-#         subjects.append(envelope)
-
-#     title = "Properties for " + topic
-#     self.write(self.render_string('header.html', title=title,
-#                                   rsshead=topic, type="topic"))
-#     self.write(self.render_string('topicprefs.html', topic=topic,
-#                toptopics=toptopics, subjects=subjects, mods=mods))
-#     self.write(self.render_string('footer.html'))
-# self.finish(divs=['scrollablediv3'])
+        # Get a list of the most popular mods
+        mods = []
+        for mod in self.server.db.unsafe.find('modlist', {'_id.topic': libtavern.topic.sorttopic(topic)}, sortkey='value.trust', sortdirection='descending'):
+            mods.append(mod)
+        self.render('View-topicprefs.html',mods=mods)
 
 
 # def SiteContentHandler_get(message):
@@ -444,7 +430,7 @@ class UserHandler(webbase.BaseHandler):
         u.load_publicinfo_by_pubkey(pubkey)
 
         self.write(self.render_string(
-            'View-showuser.html', handler=self,thatguy=u))
+            'View-showuser.html', thatguy=u))
 
 
 # def ChangeManySettingsHandler_post():
@@ -1261,7 +1247,7 @@ class SiteIndexHandler(webbase.BaseHandler):
         prefix=self.server.url_for(base=True,fqdn=True)
         prefix += "sitemap/m/"
 
-        self.render('View-siteindex.html',handler=self,messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
+        self.render('View-siteindex.html',messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
 
     def get_template_path(self):
         """
@@ -1308,7 +1294,7 @@ class SitemapMessagesHandler(webbase.BaseHandler):
         results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
         server.db.unsafe.save('sitemap',results)
 
-        self.render('View-sitemap.html',handler=self,messages=messages,utils=libtavern.utils)
+        self.render('View-sitemap.html',messages=messages,utils=libtavern.utils)
 
 
     def get_template_path(self):
@@ -1405,12 +1391,10 @@ def main():
             (r"/", EntryHandler),
             (r"/__xsrf", XSRFHandler),
 
-            # Typical URLs will take the form of
-            # /t/opic/shot-name/message-id
-            # /m/message-id will go straight to the message.
-
             (r"/t/(.*)/(.*)/(.*)", MessageHandler),
+            (r"/t/(.*)/settings", TopicPropertiesHandler),
             (r"/t/(.*)", TopicHandler),
+
             (r"/m/(.*)", MessageHandler),
             (r"/mh/(.*)", MessageHistoryHandler),
 
@@ -1427,7 +1411,6 @@ def main():
             # (r"/showprivates", ShowPrivatesHandler),
             # (r"/privatem/(.*)", ShowPrivatesHandler),
 
-            # (r"/topicinfo/(.*)", TopicPropertiesHandler),
             # (r"/attachment/(.*)", AttachmentHandler),
 
 

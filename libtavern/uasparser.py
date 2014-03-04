@@ -1,39 +1,20 @@
 """
-A python interface to http://user-agent-string.info/
 A python version of http://user-agent-string.info/download/UASparser
-Modified for use in Tavern.
+Customized to use Tavern primitives.
+Edited by Hicro Kee (http://hicrokee.com) and http://molhanec.net (Michal Molhanec) Colin Davis (E1ven.com)
 
-
-Originally by Hicro Kee (http://hicrokee.com)
-email: hicrokee AT gmail DOT com
-
-Modified by Michal Molhanec http://molhanec.net and Colin Davis (E1ven.com)
-
-
-Usage:
-from uasparser import UASparser
-uas_parser = UASparser('/path/to/your/cache/folder')
-result = uas_parser.parse('YOUR_USERAGENT_STRING',entire_url='ua_icon,os_icon') #only 'ua_icon' or 'os_icon' or both are allowed in entire_url
-
-Examples:
-
-from uasparser import UASparser
-uas = UASparser()
-test = ['SonyEricssonK750i/R1L Browser/SEMC-Browser/4.2 Profile/MIDP-2.0 Configuration/CLDC-1.1',
-        'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-GB; rv:1.8.1.18) Gecko/20081029 Firefox/2.0.0.18',
-        'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; en-us) AppleWebKit/525.26.2 (KHTML, like Gecko) Version/3.2 Safari/525.26.12',
-        'Mozilla/4.0 (compatible; MSIE 6.0; Windows XP 5.1) Lobo/0.98.4',
-        'Mozilla/4.0 (compatible; MSIE 7.0; Windows NT 5.1; )',
-        'Opera/9.80 (Windows NT 5.1; U; cs) Presto/2.2.15 Version/10.00',
-        'boxee (alpha/Darwin 8.7.1 i386 - 0.9.11.5591)',
-        'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 5.1; Trident/4.0; CSM-NEWUSER; GTB6; byond_4.0; .NET CLR 2.0.50727; .NET CLR 3.0.04506.30; .NET CLR 1.1.4322; .NET CLR 3.0.04506.648; .NET CLR 3.0.4506.2152; .NET CLR 3.5.30729; InfoPath.1)',
-        'Mozilla/5.0 (compatible; Yahoo! Slurp; http://help.yahoo.com/help/us/ysearch/slurp)',
-        ]
-
-for item in test:
-    res = uas.parse(item)
-    print "---%s: %s @ %s" % (res['typ'],res['ua_name'],res['os_name'])
-
+>>> import libtavern.uasparser
+>>> uas = libtavern.uasparser.UASparser()
+>>> test = ['SonyEricssonK750i/R1L Browser/SEMC-Browser/4.2 Profile/MIDP-2.0 Configuration/CLDC-1.1',
+... 'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-GB; rv:1.8.1.18) Gecko/20081029 Firefox/2.0.0.18',
+... 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; en-us) AppleWebKit/525.26.2 (KHTML, like Gecko) Version/3.2 Safari/525.26.12',
+... ]
+>>> for item in test:
+...    res = uas.parse(item)
+...    print(res['typ'] +" " + res['ua_name'] + " " + res['os_name'])
+Mobile Browser SEMC Browser 4.2 JVM (Java)
+Browser Firefox 2.0.0.18 Windows 2003 Server
+Browser Safari 3.2 OS X 10.5 Leopard
 """
 
 import os
@@ -61,7 +42,7 @@ class UASparser(libtavern.baseobj.Baseobj):
     # @libtavern.utils.memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=self.server.serversettings.settings['cache']['uasparser']['seconds'], maxsize=self.server.serversettings.settings['cache']['uasparser']['size'])
     def parse(self, useragent, entire_url=''):
         """
-        Get the information of an useragent string
+        Get the information of an useragent string.
         Args:
             useragent: String, an useragent string
             entire_url: String, write the key labels which you want to get an entire url split by comma, expected 'ua_icon' or 'os_icon'.

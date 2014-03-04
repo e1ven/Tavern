@@ -21,13 +21,13 @@
      </abbr>
 
     <div class="externalsharing">
-                    <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope['envelope']['local']['short_subject']}}">
+                    <a href="http://www.facebook.com/sharer.php?u={{url_for(envelope=envelope)}}&t={{envelope['envelope']['local']['short_subject']}}">
                     <i class="icon-facebook-squared"></i></a>
-                    <a href="http://twitter.com/home?status=Check out this post, via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                    <a href="http://twitter.com/home?status=Check out this post, via @Tavern - {{envelope['envelope']['local']['short_subject']}}%0A%0A%0A{{url_for(envelope=envelope)}}" >
                     <i class="icon-twitter"></i></a>
-                    <a href="https://plus.google.com/share?url={{permalink}}">
+                    <a href="https://plus.google.com/share?url={{url_for(envelope=envelope)}}">
                     <i class="icon-gplus"></i></a>
-                    <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}">
+                    <a href="http://pinterest.com/pin/create/button/?url={{url_for(envelope=envelope)}}&media={{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}">
                     <i class="icon-pinterest"></i></a>
                     </div>
     </ul>
@@ -77,7 +77,7 @@
     <br><br>
     <ul>
     {% for envelope in stack %}
-                <li><a href="{{handler.server.url_for(envelope=envelope)}}">{{envelope['envelope']['payload']['subject']}}</a>
+                <li><a href="{{url_for(envelope=envelope)}}">{{envelope['envelope']['payload']['subject']}}</a>
                 </li>
     {% end %}
     </ul>

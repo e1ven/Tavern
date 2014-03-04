@@ -35,3 +35,8 @@ scrypt
 
 # IP lookup
 pygeoip
+
+# Documentation and testing
+sphinx
+nose
+coverage

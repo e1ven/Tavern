@@ -736,14 +736,16 @@ class Server(libtavern.utils.instancer):
         url = re.sub(r'[^\w-]', '', url)
         return url
 
-    def url_for(self,envelope=None,topic=None,user=None,pubkey=None,base=True,fqdn=False):
+    def url_for(self,envelope=None,topic=None,user=None,pubkey=None,static=None,base=True,fqdn=False):
         """
         Return the canonical URL for a given token
         :param message: Optional messageid
         :param topic: optional topic
         :return string: URL
         """
-        if topic:
+        if static:
+            url = "/static/" + self.urlize(static)
+        elif topic:
             if isinstance(topic,libtavern.topic.Topic):
                 if topic.filtered is False:
                     url = '/t/'

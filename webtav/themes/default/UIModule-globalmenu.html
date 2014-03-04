@@ -5,14 +5,14 @@
         <li id="two" class="mainheader"><a href="#">Your Account</a>
             <ul  class="sub-element sub-menu">
                     <div id= "login">
-                            <a href="{{handler.server.url_for(Keys['master'].pubkey) }}">
+                            <a href="{{url_for(Keys['master'].pubkey) }}">
                                 <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{handler.user.Keys['master'].pubkey}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                             </a>
                             {% if handler.user.has_login %}
                                 <p>You are logged in as: <br>
-                                <a href="{{handler.server.url_for(pubkey=handler.user.Keys['master'].pubkey)}}">{{handler.user.username}}</a>.</p>
+                                <a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey)}}">{{handler.user.username}}</a>.</p>
                             {% else %}
-                                <p>You've using a <br><a href="{{handler.server.url_for(pubkey=handler.user.Keys['master'].pubkey)}}"> temporary account</a>.</p>
+                                <p>You've using a <br><a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey)}}"> temporary account</a>.</p>
                             {% end %}
                     </div>
                         <li>
@@ -46,7 +46,7 @@
         <ul class="sub-element sub-menu">
             {% for quicktopic in handler.topic.toptopics() %}
                 <li {% if quicktopic.sortname == handler.topic.sortname %} class="active" {% end %} >
-                    <a class="internal" href="{{handler.server.url_for(topic=quicktopic)}}">
+                    <a class="internal" href="{{url_for(topic=quicktopic)}}">
                         <bdi>{{ quicktopic.name }}</bdi>
                         <span>{{ quicktopic.count(include_replies=False) }}</span>
                     </a>
@@ -58,7 +58,7 @@
         <ul class="sub-element sub-menu">
             {% for quicktopic in handler.user.followed_topics %}
                 <li {% if quicktopic.sortname == handler.topic.sortname %} class="active" {% end %} >
-                    <a class="internal" href="{{handler.server.url_for(topic=quicktopic)}}">
+                    <a class="internal" href="{{url_for(topic=quicktopic)}}">
                         <bdi>{{ quicktopic.name }}</bdi>
                         <span>{{ quicktopic.count(include_replies=False) }}</span>
                     </a>
@@ -72,7 +72,7 @@
             <li><a href="/all/saved">Messages in all Saved Topics</a></li>
             <li><a href="/showtopics">All Topics</a></li>
             <li><a href="/showprivates">Private Messages</a></li>
-            <li><a href="{{handler.server.url_for(pubkey=handler.user.Keys['master'].pubkey)}}">My Settings</a></li>
+            <li><a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey)}}">My Settings</a></li>
 
         </ul>
     </li>

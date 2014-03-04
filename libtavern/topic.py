@@ -1,6 +1,7 @@
 import libtavern.baseobj
 import libtavern.utils
 import libtavern.envelope
+import copy
 
 def sorttopic(topic):
     if topic is not None:
@@ -20,6 +21,13 @@ class Topic(libtavern.baseobj.Baseobj):
         Create a Topic.
         Called by __init__() automatically.
         """
+
+        if isinstance(topic,Topic):
+            # If we receive a topic obj, absorb it.
+            self.topics = copy.deepcopy(topic.topics)
+            self.sorttopics = copy.deepcopy(topic.sorttopics)
+            self.filtered = copy.deepcopy(topic.filtered)
+            return
 
         # The list of all topics we received
         self.topics = []

@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
    {% for message in messages %}
    <url>
-      <loc>{{handler.server.url_for(message)}}</loc>
+      <loc>{{url_for(message)}}</loc>
       <lastmod>{{utils.gettime(timestamp=message.dict['envelope']['local']['time_added'],format='iso')}}</lastmod>
       <priority>0.5</priority>
    </url>

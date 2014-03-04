@@ -11,7 +11,7 @@
 {% if envelopes %}
     {% for envelope in envelopes %}
         {% if envelope.dict['envelope']['payload']['class'] == 'message' %}
-            <li><a href="{{handler.server.url_for(envelope)}}">{{envelope.dict['envelope']['payload']['subject']}}</a></li>
+            <li><a href="{{url_for(envelope)}}">{{envelope.dict['envelope']['payload']['subject']}}</a></li>
         {% end %}
     {% end %}
 {% else %}

@@ -8,7 +8,7 @@
 	</tr>
 	<tr>
     	<td>
-        	<h4><a id="column2Topic" href="{{handler.server.url_for(topic=handler.topic)}}">{{handler.topic.name}}</a>
+        	<h4><a id="column2Topic" href="{{url_for(topic=handler.topic)}}">{{handler.topic.name}}</a>
             </h4>
         </td>
         <td>
@@ -29,7 +29,7 @@
     {% if not handler.specialtopic %}
     <tr>
     	<td>    
-            <a href="{{handler.server.url_for(topic=handler.topic)}}/settings">
+            <a href="{{url_for(topic=handler.topic)}}/settings">
     		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
                 Topic Setting
     			<span class="icon-wrench-circled navIcon"></span>
@@ -37,7 +37,7 @@
             </a>
     	</td>
     	<td>
-          <a href="{{handler.server.url_for(topic=handler.topic)}}/newmessage" class="internal">
+          <a href="{{url_for(topic=handler.topic)}}/newmessage" class="internal">
                <button id="column2ButtonRight" class="column2Buttons" type="button">
                 New Message
                 <span class="icon-pencil-circled navIcon"></span>
@@ -62,7 +62,7 @@
             {% end %}
             <li class="message  {{ domclass }}">
                 <abbr title="{{subject.dict['envelope']['payload']['subject']}}">
-                <a class='internal messagelink' href="{{handler.server.url_for(envelope=subject)}}">
+                <a class='internal messagelink' href="{{url_for(envelope=subject)}}">
                   <h2><bdi>{{subject.dict['envelope']['payload']['subject']}}</bdi></h2>
                   <span class="bodypreview">{{subject.dict['envelope']['local']['short_body']}}</span>
                 </a>
@@ -79,7 +79,7 @@
             <tr>
                  <td>
                     {% if show_older %}
-                    <a href="{{handler.server.url_for(topic=handler.topic)}}?before={{handler.messages[0].dict['envelope']['local']['time_added']}}" class="internal">
+                    <a href="{{url_for(topic=handler.topic)}}?before={{handler.messages[0].dict['envelope']['local']['time_added']}}" class="internal">
                        <button id="older_messages" class="column2Buttons" type="button">
                         Older Messages
                         <span class="icon-left-circled navIcon"></span>
@@ -89,7 +89,7 @@
                 </td>
                 <td>
                     {% if show_newer %}
-                    <a href="{{handler.server.url_for(topic=handler.topic)}}?after={{handler.messages[-1].dict['envelope']['local']['time_added']}}">
+                    <a href="{{url_for(topic=handler.topic)}}?after={{handler.messages[-1].dict['envelope']['local']['time_added']}}">
                        <button id="newer_messages" class="column2Buttons" type="button">
                         Newer Messages
                         <span class="icon-right-circled navIcon"></span>

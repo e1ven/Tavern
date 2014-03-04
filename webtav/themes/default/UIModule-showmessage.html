@@ -7,7 +7,7 @@
                  {% if not top %}
                     <div class="message rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
-                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{handler.server.url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
+                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
                         <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
                     </a>
                     {% if top %}
@@ -22,7 +22,7 @@
                         {% end %}
                     </h6>
                     </a>
-                    {% module ShowUserdetails(handler=handler,envelope=envelope,note=note) %}
+                    {% module ShowUserdetails(envelope=envelope,note=note) %}
 
                     <p class="message_date">
                         Received
@@ -85,23 +85,23 @@
 
                         <div class="external_sharing" id="external_sharing_{{envelope.dict['envelope']['local']['payload_sha512']}}" >
                             <abbr title="Share via Facebook">
-                                <a href="http://www.facebook.com/sharer.php?u={{permalink}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
+                                <a href="http://www.facebook.com/sharer.php?u={{url_for(envelope=envelope)}}&t={{envelope.dict['envelope']['local']['short_subject']}}">
                                     <i class="icon-facebook-squared floatLeft"></i>
                                 </a>
                             </abbr>
                             <abbr title="Share via Twitter">
-                                <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{permalink}}" >
+                                <a href="http://twitter.com/home?status=via @Tavern - {{envelope.dict['envelope']['local']['short_subject']}}%0A%0A%0A{{url_for(envelope=envelope)}}" >
                                     <i class="icon-twitter floatLeft"></i>
                               </a>
                             </abbr>
                             <abbr title="Share via Google+">
-                                <a href="https://plus.google.com/share?url={{permalink}}" onclick="javascript:window.open(this.href,
+                                <a href="https://plus.google.com/share?url={{url_for(envelope=envelope)}}" onclick="javascript:window.open(this.href,
                         '', 'menubar=no,toolbar=no,resizable=yes,scrollbars=yes,height=600,width=600');return false;">
                                     <i class="icon-gplus floatLeft"></i>
                                 </a>
                             </abbr>
                             <abbr title="Pin this">
-                                <a href="http://pinterest.com/pin/create/button/?url={{permalink}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
+                                <a href="http://pinterest.com/pin/create/button/?url={{url_for(envelope=envelope)}}&media={{medialink}}&description={{envelope.dict['envelope']['local']['short_subject']}}">
                                     <i class="icon-pinterest floatLeft" ></i>
                                 </a>
                             </abbr>
@@ -118,7 +118,7 @@
                                 </a>
                             </abbr>
                             <abbr title="Permalink">
-                                <a href="{{permalink}}">
+                                <a href="{{url_for(envelope=envelope)}}">
                                     <i class="icon-link floatLeft"></i>
                                 </a>
                             </abbr>
@@ -166,7 +166,7 @@
                     </div>
                     <Br><br>
                     <div id="reply_{{envelope.dict['envelope']['local']['payload_sha512']}}"></div>
-                    {% module ShowAttachments(envelope=envelope,handler=handler) %}
+                    {% module ShowAttachments(envelope=envelope) %}
 
                     {% if not top %}
                         </div> <!-- End message div -->
@@ -174,7 +174,7 @@
 
                     {% if 'citeenvs' in envelope.dict['envelope']['local'] %}
                         {% for cite in envelope.dict['envelope']['local']['citeenvs'] %}
-                            {% module ShowMessage(envelope=cite,handler=handler,top=False) %}
+                            {% module ShowMessage(envelope=cite,top=False) %}
                         {% end %}
                     {% end %}
             </li>

@@ -33,3 +33,9 @@ e1ven.xml
 GeoLiteCity.dat
 useragent.ini
 *.box
+
+# Docs
+_build
+_static
+_templates
+.coverage

@@ -78,7 +78,7 @@ def gettime(format='timestamp',timestamp=None):
     def dt(x) : return datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc)
 
     if format == 'timestamp':
-        return int(timestamp)
+        return int(float(timestamp))
     elif format == 'datetime':
         return dt(timestamp)
     elif format == 'longstr':

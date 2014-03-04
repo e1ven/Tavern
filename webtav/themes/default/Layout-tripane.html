@@ -5,14 +5,14 @@
     	<td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
             <div id="scrollablediv1" class="fullscroller">
                 {% block column1 %}
-                    {% module ShowGlobalmenu(handler=handler) %}
+                    {% module ShowGlobalmenu() %}
                 {% end column1 %}
             </div>
         </td>
         <td id="column2in3col" valign="top" >
             <div id="scrollablediv2" class="fullscroller">
                 {% block column2 %}
-                    {% module ShowMessagelist(handler=handler) %}
+                    {% module ShowMessagelist() %}
                 {% end column2 %}
             </div>
         </td>
@@ -20,7 +20,7 @@
             <div id="scrollablediv3" class="fullscroller">
                 <hr id="TopHR">
                 {% block column3 %}
-                    {% module ShowMessage(envelope=handler.displayenvelope,handler=handler,top=True) %}
+                    {% module ShowMessage(envelope=handler.displayenvelope,top=True) %}
                 {% end column3 %}
             </div>
         </td>

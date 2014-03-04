@@ -9,7 +9,7 @@
 
 	<ul>
 		{% for topic in topics %}
-		    <li><b><a href="{{handler.server.url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
+		    <li><b><a href="{{url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
                 {% if user.follows_topic(topic.name) %}
                     <form class = "followtopic" action="/changesetting/unfollowtopic" method="post">
                         {% module xsrf_form_html() %}

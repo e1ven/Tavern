@@ -50,7 +50,7 @@
 	{% end %}
 	
 
-    <link rel="icon" href="{{ static_url('icons/32x32Icon.png') }}" type="image/png" />
+    <link rel="icon" href="{{ url_for(static='icons/32x32Icon.png') }}" type="image/png" />
 	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
 	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
 	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
