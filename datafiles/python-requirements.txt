@@ -40,3 +40,6 @@ pygeoip
 sphinx
 nose
 coverage
+
+# Python 3.4 Backport
+enum34

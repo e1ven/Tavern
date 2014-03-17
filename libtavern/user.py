@@ -19,7 +19,7 @@ import enum
             #
             #
 
-class keygen(enum.Enum):
+class pkeygen(enum.Enum):
     useguest = 1  # use the Guest key
     generate = 2  # Generate a new key for this user
     skip = 3      # Do nothing

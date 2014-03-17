@@ -67,7 +67,7 @@ class process(object):
         See http://bugs.python.org/issue13498
         """
         try:
-            os.makedirs(path,exist_ok)
+            os.makedirs(path,exist_ok=exist_ok)
         except FileExistsError:
             pass
 
@@ -151,7 +151,7 @@ class Nginx(process):
                 include """ + self.serversettings.settings['path'] + "/conf/nginx/" + self.serversettings.settings['nginx']['sitefile'] + """;
                 }""",file=f)
 
-        # Ensure we have the dirs necessary to run mongo.
+        # Ensure we have the dirs necessary to run nginx.
         self.makedirs(self.serversettings.settings['path'] + '/logs/',exist_ok=True)
         self.makedirs(self.serversettings.settings['path'] + '/conf/',exist_ok=True)
         self.makedirs(self.serversettings.settings['path'] + '/tmp/nginxcache',exist_ok=True)

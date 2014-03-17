@@ -29,7 +29,7 @@ function install_gem_if_nec
 
     if [ `gem list | grep "$1" >/dev/null; echo "$?"` -ne 0 ]
     then
-        gem install "$1"
+        sudo gem install "$1"
     fi
 }
 
@@ -131,7 +131,7 @@ then
         fi 
     fi
        
-    sudo -u "$user" brew install yuicompressor exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
+    sudo -u "$user" brew install git yuicompressor exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
     libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget
 fi
 
