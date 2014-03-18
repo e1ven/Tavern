@@ -16,7 +16,7 @@ class Topic(libtavern.baseobj.Baseobj):
     A Topic is a collection of messages with a common subject.
     """
 
-    def __init2__(self,topic=None,topics=None,unfiltered=None):
+    def __init2__(self,topic=None):
         """
         Create a Topic.
         Called by __init__() automatically.
@@ -26,7 +26,6 @@ class Topic(libtavern.baseobj.Baseobj):
             # If we receive a topic obj, absorb it.
             self.topics = copy.deepcopy(topic.topics)
             self.sorttopics = copy.deepcopy(topic.sorttopics)
-            self.filtered = copy.deepcopy(topic.filtered)
             return
 
         # The list of all topics we received
@@ -34,13 +33,6 @@ class Topic(libtavern.baseobj.Baseobj):
 
         # The 'sorttopic' version, case-matched, etc.
         self.sorttopics = []
-
-        if unfiltered is not None:
-            self.filtered = not unfiltered
-
-        if topics is not None:
-            for tp in topics:
-                self.add(tp)
 
         if topic is not None:
             self.add(topic)
@@ -57,10 +49,8 @@ class Topic(libtavern.baseobj.Baseobj):
 
     def add(self,topic):
         """Add a topic"""
-        st = self._sorttopic(topic)
-        self.sorttopics.append(st)
+        self.sorttopics.append(self._sorttopic(topic))
         self.topics.append(topic)
-        self.filtered = True
 
 
     @property
@@ -80,9 +70,8 @@ class Topic(libtavern.baseobj.Baseobj):
         # Create our search. First off, the obvious.
         self.search = {'envelope.payload.class': 'message'}
 
-        if self.filtered:
-            if len(self.sorttopics) > 0:
-                self.search.update({'envelope.local.sorttopic': {'$in': self.sorttopics}})
+        if len(self.sorttopics) > 0:
+            self.search.update({'envelope.local.sorttopic': {'$in': self.sorttopics}})
         if before:
             self.search.update({'envelope.local.time_added': {'$lt': before}})
         if after:

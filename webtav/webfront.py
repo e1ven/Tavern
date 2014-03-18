@@ -131,9 +131,10 @@ class AllMessagesHandler(webbase.BaseHandler):
         """
         Display all messages.
         """
-        self.topic = libtavern.topic.Topic(unfiltered=True)
+        self.topic = libtavern.topic.Topic()
         self.title = "Tavern - All Messages"
-        self.canon = "/all"
+        self.canon = self.server.url_for(topic=self.topic)
+
         self.specialtopic = True
 
         if self.topic.count() < 1:
@@ -152,7 +153,7 @@ class AllSavedHandler(webbase.BaseHandler):
         """
         Display all messages.
         """
-        self.topic = libtavern.topic.Topic(topics=topics)
+        self.topic = libtavern.topic.Topic()
         self.title = "Tavern - Messages in all saved topics"
         self.canon = "/all/saved"
         self.specialtopic = True
@@ -264,63 +265,61 @@ class TopicPropertiesHandler(webbase.BaseHandler):
 #         'showattachment.html', myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))
 #     self.write(self.render_string('footer.html'))
 
+class RegisterHandler(webbase.BaseHandler):
+    """
+    Register a new user for the site.
+    """
+    def get(self):
+        self.title = "Register for a new account"
+        self.render('registerform.html')
 
-# def RegisterHandler_get():
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title="Register for an Account", type=None, rsshead=None))
-#     self.write(self.render_string('registerform.html'))
-#     self.write(self.render_string('footer.html'))
+    def post(self):
+        self.getvars()
+        self.write(self.render_string('header.html',
+                   title='Register for an account', type=None, rsshead=None))
 
+        client_newuser = self.get_argument("username")
+        client_newpass = self.get_argument("pass")
+        client_newpass2 = self.get_argument("pass2")
+        if "email" in self.request.arguments:
+            client_email = self.get_argument("email")
+            if client_email == "":
+                client_email = None
+        else:
+            client_email = None
 
-# def RegisterHandler_post():
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title='Register for an account', type=None, rsshead=None))
+        if client_newpass != client_newpass2:
+            self.write("I'm sorry, your passwords don't match.")
+            return
 
-#     client_newuser = self.get_argument("username")
-#     client_newpass = self.get_argument("pass")
-#     client_newpass2 = self.get_argument("pass2")
-#     if "email" in self.request.arguments:
-#         client_email = self.get_argument("email")
-#         if client_email == "":
-#             client_email = None
-#     else:
-#         client_email = None
+        if client_email is not None:
+            users_with_this_email = self.server.db.safe.find('users',{"email": client_email.lower()})
+            if len(users_with_this_email) > 0:
+                self.write(
+                    "I'm sorry, this email address has already been used.")
+                return
 
-#     if client_newpass != client_newpass2:
-#         self.write("I'm sorry, your passwords don't match.")
-#         return
+        u = User()
+        if u.load_mongo_by_username(username=client_newuser) is not False:
+            self.write("I'm sorry, this username has already been taken.")
+            return
+        else:
+    #Generate the user
+            self.user.generate(AllowGuestKey=False,
+                               username=client_newuser.lower(), password=client_newpass)
+            self.user.lastauth = int(time.time())
 
-#     if client_email is not None:
-#         users_with_this_email = self.server.db.safe.find('users',
-#                                                          {"email": client_email.lower()})
-#         if len(users_with_this_email) > 0:
-#             self.write(
-#                 "I'm sorry, this email address has already been used.")
-#             return
+            if client_email is not None:
+                self.user.email = client_email.lower()
 
-#     u = User()
-#     if u.load_mongo_by_username(username=client_newuser) is not False:
-#         self.write("I'm sorry, this username has already been taken.")
-#         return
-#     else:
-# Generate the user
-#         self.user.generate(AllowGuestKey=False,
-#                            username=client_newuser.lower(), password=client_newpass)
-#         self.user.lastauth = int(time.time())
+            self.user.savemongo()
 
-#         if client_email is not None:
-#             self.user.email = client_email.lower()
+    #Save the passkey out to a separate cookie.
+            self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(
+                client_newpass), httponly=True, expires_days=999)
 
-#         self.user.savemongo()
-
-# Save the passkey out to a separate cookie.
-#         self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(
-#             client_newpass), httponly=True, expires_days=999)
-
-#         self.setvars()
-#         bottle.redirect("/")
+            self.setvars()
+            bottle.redirect("/")
 
 
 # def LoginHandler_get(slug=None):
@@ -1236,7 +1235,7 @@ class SiteIndexHandler(webbase.BaseHandler):
 
         max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
 
-        self.topic = libtavern.topic.Topic(unfiltered=True)
+        self.topic = libtavern.topic.Topic()
 
         # Without a number, we want the index, which lists the other xml files.
         # - Each one can contain up to 50K URLs
@@ -1431,7 +1430,7 @@ def main():
             # (r"/uploadenvelope/(.*)", ReceiveEnvelopeHandler),
             # (r"/uploadfile/(.*)", ReceiveEnvelopeHandler),
 
-            # (r"/register", RegisterHandler),
+            (r"/register", RegisterHandler),
             # (r"/login/(.*)", LoginHandler),
             # (r"/login", LoginHandler),
             # (r"/changepassword", ChangepasswordHandler),

@@ -31,6 +31,9 @@ class ShowMessage(tornado.web.UIModule):
         return self.render_string(
             "UIModule-showmessage.html", envelope=envelope, top=top,avatarsize=avatarsize,medialink=medialink,messagerating=messagerating,note=note)
 
+    def html_head(self):
+            return "This is a test."
+
 class ShowGlobalmenu(tornado.web.UIModule):
     """
     Show the Global Menu (generally the first pane on the left)

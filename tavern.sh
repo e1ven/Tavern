@@ -108,6 +108,11 @@ function writearg
     fi
 }
 
+function hash
+{
+    cksum $1 | cut -d" " -f 1
+}
+
 function ramdisk
 {
  # [start/stop] [dir] [size in mb]   
@@ -233,43 +238,39 @@ function findcommands
 # The system commands are often different between GNU and BSD ecosystems.
 # Find the versions to call.
 
-    if [ $DEBUG -eq 1 ]
+
+    if [ -z "$yui" ]
     then
-        echo "Avoiding compressing JS due to debug mode.."
-        yui='cat'
-    else
-        if [ -z "$yui" ]
+        # The yui-compressor will compress JS and CSS.
+        # The command to run it is different on OSX and Linux, however, so figure out which one we have
+        # If we don't have either, use 'cat' as an alternate 'compressor'
+
+        echo "Testing ability to Minimize"
+        yui-compressor -h > /dev/null 2>&1
+        if [ $? -eq 0 ]
         then
-            # The yui-compressor will compress JS and CSS.
-            # The command to run it is different on OSX and Linux, however, so figure out which one we have
-            # If we don't have either, use 'cat' as an alternate 'compressor'
-
-            echo "Testing ability to Minimize" 
-            yui-compressor -h > /dev/null 2>&1
-            if [ $? -eq 0 ]
-            then
-                yui='yui-compressor'
-            fi
-
-            yuicompressor -h  > /dev/null 2>&1
-            if [ $? -eq 0 ]
-            then
-                yui='yuicompressor'
-            fi
-
-            if [ -z $yui ]
-            then
-                # No minimization
-                yui='cat'
-            fi
-
-            if [ "$yui" != "cat" ]
-            then 
-                flags='--nomunge'
-            fi
+            yui='yui-compressor'
         fi
-        writearg yui $yui
+
+        yuicompressor -h  > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            yui='yuicompressor'
+        fi
+
+        if [ -z $yui ]
+        then
+            # No minimization
+            yui='cat'
+        fi
+
+        if [ "$yui" != "cat" ]
+        then
+            flags='--nomunge'
+        fi
     fi
+    writearg yui $yui
+
     # Find which version of sed we should use.
     if [ -z "$sed" ]
     then
@@ -284,37 +285,6 @@ function findcommands
         fi
     fi
     writearg sed $sed
-
-
-    # Test our ability to take a hash
-    # OSX uses md5, linux uses md5sum.
-    # We will use the identifier generated in the next section
-
-    if [ $DEBUG -eq 1 ]
-    then
-        echo "Using faster/less secure hashes for debug mode."
-        hash='cksum'
-    else
-        if [ -z "$hash" ]
-        then
-            echo "Testing ability to hash"
-            echo "foo" | md5 > /dev/null 2>&1
-            if [ $? -eq 0 ]
-            then
-                hash='md5'
-            fi
-            echo "foo" | md5sum > /dev/null 2>&1
-            if [ $? -eq 0 ]
-            then
-                hash='md5sum'
-            fi
-            if [ -z $hash ]
-            then
-                hash='cksum'
-            fi
-            writearg hash $hash
-        fi
-    fi
 
     # Find which version of stat we should use, OS X or GNU
     if [ -z "$stat" ]
@@ -345,15 +315,8 @@ function start
     # Set the current date, so it's consistant
     DATE=`date +%s`
 
-    # First, create working directories for the functions below.
-    mkdir -p tmp/checked
-    mkdir -p tmp/unchecked
-
     mkdir -p tmp/gpgfiles
     rm -rf tmp/gpgfiles/*
-
-    mkdir -p tmp/gzipchk
-    mkdir -p tmp/unchecked-gzipchk
 
     mkdir -p tmp/last-run/
 
@@ -373,6 +336,12 @@ function start
         DEBUG=0
     fi
 
+    # Ensure we have our git hooks in place.
+    if [ ! -f ".git/hooks/pre-commit" ]
+    then
+        ln -s "../../utils/pre-commit.sh" ".git/hooks/pre-commit"
+    fi
+    
     # Load in the StartScript settings
     loadargs
     findcommands
@@ -388,23 +357,17 @@ function start
     pip install -qr datafiles/python-requirements.txt
 
     echo "Ensuring fontello directory compliance"
-    for i in webtav/static/css/fontello*.css
+    for i in webtav/static/css/libs/fontello*.css
     do
         if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
         then
             # Update file to change ../font to ../fonts
             # This will show up when updating fontello
             "$sed" -i 's/\.\.\/font\//\.\.\/fonts\//g' $i
+            "$sed" -i 's/margin-right: 0.2em;//g' $i
         fi
         writearg lastrun_fontello_$i `date +%s`
     done
-
-    if [ $(sinceFileArg webtav/static/css/fontello.css lastrun_fontello2_$i) -gt 0 ]
-    then
-        # Update file to remove margin if it's there.
-        "$sed" -i 's/margin-right: 0.2em;//g' webtav/static/css/fontello.css
-    fi
-    writearg lastrun_fontello2_$i `date +%s`
 
     # Convert from SCSS to CSS.
     echo "Converting from SASS to CSS"
@@ -418,81 +381,49 @@ function start
             echo webtav/static/sass/css/$i
         fi
     done
+
     # Convert the SCSS to CSS and put in production folder
     compass compile webtav/static/sass/ -q -e production
     rsync -a webtav/static/sass/css/* webtav/static/css/
 
 
-    # Go through each JS file in the project, and check to see if we've minimized it already.
-    # If we haven't, minimize it. Otherwise, just skip forward, for speed.
-    echo "Minimizing JS"
-    for i in `find webtav/static/scripts -name "*.js"| grep -v '.min.js' | grep -v 'unified'`
-    do
-        if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
-        then
-            basename=`basename $i ".js"`
-            echo -e "\t $basename $(sinceFileArg $i lastrun)"
-            $yui $i > webtav/static/scripts/$basename.min.js $flags
-        fi
-        writearg lastrun_minjs_$i `date +%s`
-    done
-
-    echo "Minimizing CSS"
-    for i in `find webtav/static/css -name "*.css"| grep -v '.min.css'`
+    echo "Combining and minimizing css libs"
+    MINIMIZE=0
+    for i in `find webtav/static/css/libs -name "*.css"`
     do
         if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
         then
             basename=`basename $i ".css"`
             echo -e "\t $basename $(sinceFileArg $i lastrun)"
-            $yui $i > webtav/static/css/$basename.min.css
+            MINIMIZE=1
         fi
         writearg lastrun_mincss_$i `date +%s`
     done
-
-    echo "Combining CSS.."
-    for i in `ls webtav/static/css/style-*.min.css`
-    do  
-        # Find the basename we're working with, such as 'style-default.min.css'
-        STYLE=`echo $i | awk -F- {'print $2'} |  awk -F. {'print $1'}`
-        echo -e "\t $STYLE"
-        cat $i webtav/static/css/fontello.min.css webtav/static/css/video-js.min.css webtav/static/css/animation.min.css webtav/static/css/fonts.min.css  > webtav/static/css/unified-$STYLE.min.css
-    done
-
-    echo "Combining and further minimizing JS.."
-    # This uses hashes, rather than timestamps, for simplicity.
-    # By using hashes, we can always cat them, then compare one file for differences
-    # Otherwise, we'd need to compare dates N times.
-    JSFILES="webtav/static/scripts/json3.min.js webtav/static/scripts/jquery.min.js webtav/static/scripts/mousetrap.min.js webtav/static/scripts/jstorage.min.js webtav/static/scripts/jquery.json.min.js webtav/static/scripts/colresizable.min.js webtav/static/scripts/jquery-throttle.min.js webtav/static/scripts/garlic.min.js webtav/static/scripts/video.min.js webtav/static/scripts/audio.min.js webtav/static/scripts/jquery.unveil.min.js  webtav/static/scripts/default.min.js"
-    if [ $DEBUG -eq 0 ]
+    if [ $MINIMIZE -gt 0 ]
     then
-        echo '' > webtav/static/scripts/unified.js
-        for script in $JSFILES
-            do
-                cat $script >> webtav/static/scripts/unified.js
-                # Add a ; to cleanup after scripts which fail to do so.
-                echo ";" >> webtav/static/scripts/unified.js
-            done
-        # Check to see if we already have a hashed copy of this file.
-        # If we do, then don't minimize it.
-        filehash=`cat webtav/static/scripts/unified.js | $hash | cut -d" " -f 1`
-        if [ ! -f tmp/unchecked/$filehash.exists ]
-        then
-            $yui webtav/static/scripts/unified.js > webtav/static/scripts/unified.min.js
-        else
-            : # No Reformatting needed 
-        fi
-        touch tmp/checked/$filehash.exists
-    else
-        # If we're in DEBUG mode, we want to directly include the files, rather than inlinine them.
-        # This makes it MUCH easier to find/fix errors.
-        echo "" > webtav/themes/default/header-debug-JS.html
-        for script in $JSFILES
-        do 
-            # Get the basename, to avoid getting the webtav/static/tmp dir
-            bn=`basename $script`
-            echo "<script defer src=\"/static/scripts/$bn\"></script>" >> webtav/themes/default/header-debug-JS.html
-        done
+        ALL_LIBS=$(for i in `find webtav/static/css/libs -name "*.css"`; do echo -n "$i "; done)
+        $yui $ALL_LIBS -o webtav/static/css/libs.js
     fi
+
+
+    echo "Minimizing and combining JS libs"
+    MINIMIZE=0
+    do
+    for i in `find webtav/static/scripts/libs -name "*.js"`
+        if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
+        then
+            basename=`basename $i ".js"`
+            echo -e "\t $basename $(sinceFileArg $i lastrun)"
+            MINIMIZE=1
+        fi
+        writearg lastrun_minjs_$i `date +%s`
+    done
+    if [ $MINIMIZE -gt 0 ]
+    then
+        ALL_LIBS=$(for i in `find webtav/static/scripts/libs -name "*.js"`; do echo -n "$i "; done)
+        $yui $ALL_LIBS -o webtav/static/scripts/libs.js
+    fi
+
 
     echo "Ensuring Proper Python formatting.."
     # Use a hash as a secondary check, because these are slow.
@@ -507,29 +438,6 @@ function start
         writearg lastrun_autopep_$i `date +%s`
     done
 
-    echo "Validating code correctness.."
-    # Run our manual validations. 
-    ./utils/validate.sh
-    if [ "$?" -ne 0 ]
-        then
-        echo "Aborting due to code issue."
-        stop 2
-    fi
-    # Run automated tests against the code.
-    for i in `find . -maxdepth 1 -name "*.py"`
-    do
-        if [ $(sinceFileArg $i lastrun_validate_$i) -gt 0 ]
-        then
-            echo -e "\t $i"
-            pep8 --show-source --show-pep8 --ignore=E501,E303 $i
-            if [ "$?" -ne 0 ]
-            then
-                echo "Aborting due to unfixable style issue."
-                stop 2
-            fi
-        fi
-        writearg lastrun_validate_$i `date +%s`
-    done
 
     echo "Gzipping individual files"
     # Compress static files with gzip, so nginx can serve pre-compressed version of them (if so configured)

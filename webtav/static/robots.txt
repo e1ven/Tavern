@@ -1,5 +1,5 @@
 User-agent: *
-Sitemap: http://127.0.0.1:8000/siteindex 
+Sitemap: /siteindex
 Crawl-delay: 4
 
 Disallow: /register

@@ -747,10 +747,10 @@ class Server(libtavern.utils.instancer):
             url = "/static/" + self.urlize(static)
         elif topic:
             if isinstance(topic,libtavern.topic.Topic):
-                if topic.filtered is False:
-                    url = '/t/'
-                else:
+                if len(topic.topics):
                     url = '/t/' + topic.sortname
+                else:
+                    url = '/all'
             elif isinstance(topic,str):
                 topicobj = libtavern.topic.Topic(topic=topic)
                 url = self.url_for(topic=topicobj)
