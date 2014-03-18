@@ -44,10 +44,11 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         # Use cookie one if it exists, otherwise random str.
         token = self.get_secure_cookie('_xsrf',None)
         if not token:
-            print("No cookie, no _xsrf_token value")
             # Generate a token, save it to a cookie.
             token = libtavern.utils.randstr(16)
             self.set_secure_cookie(name="_xsrf",value=token,httponly=True, max_age=31556952 * 2)
+        else:
+            token = token.decode('utf-8')
         self._xsrf_token = token
         return self._xsrf_token
 
@@ -279,7 +280,8 @@ class BaseHandler(XSRFBaseHandler):
         self.set_status(code)
 
         self.displayenvelope = self.server.error_envelope(topic='Error',subject=subject, body=body)
-        self.topic = self.displayenvelope.dict['envelope']['payload']['topic']
+        self.topic = libtavern.topic.Topic(self.displayenvelope.dict['envelope']['payload']['topic'])
+
         self.canon = None
         self.title = self.displayenvelope.dict['envelope']['payload']['subject']
         self.render('View-showmessage.html')

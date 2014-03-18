@@ -19,7 +19,7 @@ import enum
             #
             #
 
-class pkeygen(enum.Enum):
+class keygen(enum.Enum):
     useguest = 1  # use the Guest key
     generate = 2  # Generate a new key for this user
     skip = 3      # Do nothing
@@ -489,10 +489,14 @@ class User(libtavern.baseobj.Baseobj):
         # Start with a dump of the current obj
         userdict = dict(self.__dict__)
 
-        # Delete the non-value settings_
+        # Delete the non-value settings
         del(userdict['server'])
         del(userdict['logger'])
         del(userdict['Keys'])
+        del(userdict['followed_topics'])
+
+        # Save Followed Topics by name, not obj
+        userdict['followed_topics'] = c = [t.name for t in self.followed_topics]
 
         # Dump master key
         userdict['keys'] = {}
@@ -518,8 +522,12 @@ class User(libtavern.baseobj.Baseobj):
         for key in userdict:
             setattr(self,key,userdict[key])
 
+        # Don't restore Followed_topics by str, restore by obj
+        self.followed_topics = []
+        for topic in userdict['followed_topics']:
+            self.follow_topic(topic)
+
         # Don't restore keys normally.
-        del(self.keys)
         self.Keys = {}
 
         # Restore our master key
@@ -622,7 +630,6 @@ class User(libtavern.baseobj.Baseobj):
 
     def save_mongo(self,overwriteguest=False):
         userdict = self.to_dict()
-
         if not overwriteguest:
             if self.Keys['master'].pubkey != self.server.guestuser.Keys['master'].pubkey:
                 self.server.db.safe.save('users', userdict)

@@ -1326,6 +1326,7 @@ class XSRFHandler(webbase.XSRFBaseHandler):
         This is called by nginx, not accessible to the outside world.
         """
         self.write(str(self.xsrf_token))
+        print("Sent token for __xsrf as " + str(self.xsrf_token))
 
     def get_template_path(self):
         """
