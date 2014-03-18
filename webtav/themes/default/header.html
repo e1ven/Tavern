@@ -42,33 +42,32 @@
 
 	<link rel="alternate" type="application/rss+xml" title="Updates on {{ handler.topic }}" href="/rss/topic/{{ handler.topic }}" /> 
 
+
 	{% if handler.useragent['ua_family'] != 'Netscape Navigator' or handler.useagent['ua_versions'][0] > 4 %}
-			<link href="/static/css/unified-{{ handler.user.theme }}.min.css?v={{ handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
-		    <!--[if IE 7]>
-    			<link rel="stylesheet" href="/static/css/fontello-ie7.min.css">
-    		<![end]-->	
+        <link href="/static/css/combined-{{handler.user.theme}}.css?v={{handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	{% end %}
 	
 
-    <link rel="icon" href="{{ url_for(static='icons/32x32Icon.png') }}" type="image/png" />
-	<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
-	<link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
-	<link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
-	<link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
+    <link rel="icon" href="/static/icons/32x32Icon.png" type="image/png" />
+    {% if handler.useragent['ua_family'] == 'Mobile Safari' %}
+	    <link rel="apple-touch-icon" href="/static/icons/apple-touch-icon-57x57.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
+	    <link rel="apple-touch-icon" sizes="72x72" href="/static/icons/apple-touch-icon-72x72.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
+	    <link rel="apple-touch-icon" sizes="114x114" href="/static/icons/apple-touch-icon-114x114.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
+	    <link rel="apple-touch-icon" sizes="144x144" href="/static/icons/apple-touch-icon-144x144.png?v={{ handler.server.serversettings.settings['static-revision'] }}" />
+    {% end if %}
 
 	{% if handler.useragent['ua_family'] == 'IE' and browser['ua_versions'][0] < 9 %}
-	  <script src="/static/scripts/IE9.min.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>  
+	  <script src="/static/scripts/IE9.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>
 	{% end %}
 
 
-
-	<!-- Include JS one-by-one if loaded in debug -->
 	{% if handler.server.logger.getEffectiveLevel() <= 20 %}
-		{% include 'header-debug-JS.html' %}
+	<!-- Include JS one-by-one if loaded in debug, so you can see the line of the JS error -->
+			{% include 'header-debug-JS.html' %}
 	{% else %}
 		<!-- No JS for IE < 8 -->
 		{% if handler.useragent['ua_family'] != 'IE' or requestvars['browser']['ua_versions'][0] >= 8 %}
-		  <script defer src="/static/scripts/unified.min.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>
+		  <script defer src="/static/scripts/combined.js?v={{ handler.server.serversettings.settings['static-revision'] }}"></script>
 		{% end %}
 	{% end %}
 

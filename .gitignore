@@ -13,9 +13,8 @@ __pycache__
 
 # Preprocessing tmp files
 .sass-cache
-*.min.js
-*.min.css
-*.gz
+libs.js
+libs.css
 
 # Tavern tmp files/logs/conf/etc
 tmp

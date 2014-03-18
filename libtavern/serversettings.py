@@ -230,7 +230,7 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['logfile'] = "logs/" + self.settings['hostname'] + '.log'
 
         if not 'loglevel' in self.settings:
-            self.settings['loglevel'] = "INFO"
+            self.settings['loglevel'] = "WARNING"
 
 
 

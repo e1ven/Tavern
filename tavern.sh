@@ -108,11 +108,6 @@ function writearg
     fi
 }
 
-function hash
-{
-    cksum $1 | cut -d" " -f 1
-}
-
 function ramdisk
 {
  # [start/stop] [dir] [size in mb]   
@@ -341,7 +336,7 @@ function start
     then
         ln -s "../../utils/pre-commit.sh" ".git/hooks/pre-commit"
     fi
-    
+
     # Load in the StartScript settings
     loadargs
     findcommands
@@ -357,7 +352,7 @@ function start
     pip install -qr datafiles/python-requirements.txt
 
     echo "Ensuring fontello directory compliance"
-    for i in webtav/static/css/libs/fontello*.css
+    for i in webtav/static/css/fontello*.css
     do
         if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
         then
@@ -383,13 +378,11 @@ function start
     done
 
     # Convert the SCSS to CSS and put in production folder
-    compass compile webtav/static/sass/ -q -e production
-    rsync -a webtav/static/sass/css/* webtav/static/css/
-
-
-    echo "Combining and minimizing css libs"
+    sass --compass --scss --update webtav/static/sass/scss/:webtav/static/css/
+    
+    echo "Combining and minimizing css"
     MINIMIZE=0
-    for i in `find webtav/static/css/libs -name "*.css"`
+    for i in `find webtav/static/css -name "*.css"`
     do
         if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
         then
@@ -399,29 +392,41 @@ function start
         fi
         writearg lastrun_mincss_$i `date +%s`
     done
-    if [ $MINIMIZE -gt 0 ]
-    then
-        ALL_LIBS=$(for i in `find webtav/static/css/libs -name "*.css"`; do echo -n "$i "; done)
-        $yui $ALL_LIBS -o webtav/static/css/libs.js
-    fi
-
+    # Ensure we have version of the combined css for each theme.
+    for theme in `ls webtav/themes/`
+    do
+        if [ $MINIMIZE -gt 0 ] || [ ! -f webtav/static/css/combined-$theme.css ]
+        then
+            rm webtav/static/css/combined-$theme.css
+            ALL_LIBS=$(for i in `find webtav/static/css -name "*.css" -not -name "combined-*" -not -name "theme-*"`; do echo -n "$i "; done)
+            ALL_LIBS="$ALL_LIBS webtav/static/css/theme-$theme.css"
+            $yui $ALL_LIBS -o webtav/static/css/combined-$theme.css
+        fi
+    done
 
     echo "Minimizing and combining JS libs"
     MINIMIZE=0
+    echo "" > webtav/themes/default/header-debug-JS.html
+    for i in `find webtav/static/scripts/combine -name "*.js"`
     do
-    for i in `find webtav/static/scripts/libs -name "*.js"`
+        basename=`basename $i`
+        echo "<script defer src=\"/static/scripts/combine/$basename\"></script>" >> webtav/themes/default/header-debug-JS.html
+
         if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
         then
-            basename=`basename $i ".js"`
             echo -e "\t $basename $(sinceFileArg $i lastrun)"
             MINIMIZE=1
         fi
+
         writearg lastrun_minjs_$i `date +%s`
     done
-    if [ $MINIMIZE -gt 0 ]
+    if [ $MINIMIZE -gt 0 ] || [ ! -f webtav/static/scripts/combined.js ]
     then
-        ALL_LIBS=$(for i in `find webtav/static/scripts/libs -name "*.js"`; do echo -n "$i "; done)
-        $yui $ALL_LIBS -o webtav/static/scripts/libs.js
+        rm webtav/static/scripts/combined.js
+        for i in `find webtav/static/scripts/combine -name "*.js"`
+        do
+            $yui $i >> webtav/static/scripts/combined.js
+        done
     fi
 
 
@@ -437,41 +442,6 @@ function start
         fi
         writearg lastrun_autopep_$i `date +%s`
     done
-
-
-    echo "Gzipping individual files"
-    # Compress static files with gzip, so nginx can serve pre-compressed version of them (if so configured)
-    for file in `find static -not -name "*.gz" -and -not -path "webtav/static/scripts/*" -and -not -path "webtav/static/css/*" -and -not -path "webtav/static/sass/*" -type f`
-    do 
-        if [ $(sinceFileArg $file lastrun_gzip_$i) -gt 0 ]
-        then
-            echo -e "\t $file"
-            gzip --best < $file > $file.gz
-        fi
-        writearg lastrun_gzip_$i `date +%s`
-
-    done
-
-    echo "Gzipping Unified files"
-    # Gzip CSS files which need it.
-    # This uses hashes rather than timestamps since Unified.min.js is created every time.
-    for file in `echo "webtav/static/css/unified-*.min.css webtav/static/scripts/unified.min.js" `
-    do 
-        filehash=`cat $file | $hash | cut -d" " -f 1`
-        if [ ! -f tmp/unchecked-gzipchk/$filehash.exists ]
-        then
-            echo -e "\t $file"
-            gzip --best < $file > $file.gz
-            # Compressed
-        else
-            : # No compressing needed 
-        fi
-        touch tmp/gzipchk/$filehash.exists
-    done
-
-    rm tmp/unchecked-gzipchk/*.exists > /dev/null 2>&1 
-    rm tmp/unchecked/*.exists > /dev/null 2>&1 
-
 
     echo "Updating Ramdisk"
     rsync -a --delete webtav/static/* tmp/static

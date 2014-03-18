@@ -1,8 +1,8 @@
 #!/bin/bash
-echo "Checking Code"
+echo "Checking Code before checkin. To skip use git commit --no-verify"
 
 source tmp/env/bin/activate
-echo "Validating code correctness.."
+echo "Validating code for project specific gotchas.."
 # Run our manual validations.
 ./utils/validate.sh
 if [ "$?" -ne 0 ]
@@ -11,6 +11,7 @@ if [ "$?" -ne 0 ]
     stop 2
 fi
 
+echo "Checking Code against Python standards.."
 # Run style tests against the code
 for i in `find . -maxdepth 1 -name "*.py"`
 do
@@ -27,14 +28,13 @@ do
     writearg lastrun_validate_$i `date +%s`
 done
 
-
-
 echo "Running unit tests"
 nosetests --with-doctest --with-coverage --cover-package=libtavern,webtav . tests/libtavern/
 if [ "$?" -ne 0 ]
 then
     exit 2
 fi
+
 echo "Generating docs"
 mkdir -p docs/html/
 sphinx-apidoc -f -H Tavern -T -o datafiles/documentation-generator/ .
