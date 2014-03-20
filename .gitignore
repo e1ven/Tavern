@@ -22,7 +22,6 @@ tmp
 logs
 libs/virtualenv*
 *.serversettings
-/webtav/static/
 
 # IDE tmp files
 tavern.sublime-workspace

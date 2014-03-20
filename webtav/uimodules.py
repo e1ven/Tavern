@@ -7,7 +7,7 @@ class ShowMessage(tornado.web.UIModule):
     """
     Show a Tavern Message.
     """
-    def render(self,envelope, top,showchildren=True):
+    def render(self,envelope, top):
 
         messagerating = self.handler.user.getRatings(postInQuestion=envelope.dict['envelope']['local']['payload_sha512'])
         note = self.handler.user.get_note(noteabout=envelope.dict['envelope']['local']['author']['pubkey'])
@@ -20,14 +20,13 @@ class ShowMessage(tornado.web.UIModule):
         else:
             avatarsize = 40
 
-        if showchildren:
-            # Retrieve the children as objects.
-            if 'citedby' in envelope.dict['envelope']['local']:
-                envelope.dict['envelope']['local']['citeenvs'] = []
-                for cite in envelope.dict['envelope']['local']['citedby']:
-                    e = libtavern.envelope.Envelope()
-                    e.loadmongo(cite)
-                    envelope.dict['envelope']['local']['citeenvs'].append(e)
+        # Retrieve the children as objects.
+        if 'citedby' in envelope.dict['envelope']['local']:
+            envelope.dict['envelope']['local']['citeenvs'] = []
+            for cite in envelope.dict['envelope']['local']['citedby']:
+                e = libtavern.envelope.Envelope()
+                e.loadmongo(cite)
+                envelope.dict['envelope']['local']['citeenvs'].append(e)
 
         return self.render_string(
             "UIModule-showmessage.html", envelope=envelope, top=top,avatarsize=avatarsize,medialink=medialink,messagerating=messagerating,note=note)

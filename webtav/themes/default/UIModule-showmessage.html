@@ -5,7 +5,7 @@
         <ul>
             <li>
                  {% if not top %}
-                    <div class="message rating_{{messagerating}}" rating={{messagerating}}>
+                    <div class="main rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
                     <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
                         <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />

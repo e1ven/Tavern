@@ -1,4 +1,26 @@
 {% extends "Layout-dualpane.html" %}
 {% block column2 %}
-        {% module ShowMessage(envelope=handler.displayenvelope,top=True,showchildren=False) %}
-{% end column3 %}
+    <div class="sitecontent">
+        <abbr title="{{handler.displayenvelope.dict['envelope']['payload']['subject']}}">
+            <h1>{{handler.displayenvelope.dict['envelope']['payload']['subject']}}</h1>
+        </abbr>
+
+        <div class="content_body">
+            {% if not handler.showoriginal and 'edits' in handler.displayenvelope.dict['envelope']['local'] %}
+                {% raw handler.displayenvelope.dict['envelope']['local']['edits'][-1]['envelope']['local']['formattedbody'] %}
+            {% else %}
+                {% raw handler.displayenvelope.dict['envelope']['local']['formattedbody'] %}
+            {% end %}
+        </div>
+
+        {% module ShowAttachments(envelope=handler.displayenvelope) %}
+        <h10>
+            Last Edit:
+            <abbr title="{{utils.gettime(format='printable',timestamp=handler.displayenvelope.dict['envelope']['local']['time_added'])}}">
+                <time datetime="{{utils.gettime(format='iso',timestamp=handler.displayenvelope.dict['envelope']['local']['time_added'])}}">
+                    {{utils.gettime(format='relative',timestamp=handler.displayenvelope.dict['envelope']['local']['time_added']) }}
+                </time>
+            </abbr>
+        </h10>
+    </div>
+{% end column2 %}

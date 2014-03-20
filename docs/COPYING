@@ -46,6 +46,13 @@ Tavern contains code from and/or uses libraries from the following projects:
 	python-hashes (MIT)
 		https://github.com/sangelone/python-hashes
 
+
+    Normalize (MIT)
+        https://github.com/necolas/normalize.css/
+
+    SASS
+    Bourbon
+
 	Robohash - http://Robohash.org (MIT)
 		"Robots lovingly delivered by Robohash.org"
 		

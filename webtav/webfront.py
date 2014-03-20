@@ -202,7 +202,7 @@ class SiteContentHandler(webbase.BaseHandler):
     """Displays site content, such as FAQ, Ettiquite, etc, without replies or other chrome."""
     def get(self,message):
         envelope = self.server.db.unsafe.find_one(
-            'envelopes', {'envelope.local.payload_sha512': client_message_id})
+            'envelopes', {'envelope.local.payload_sha512': message})
 
         if envelope is None:
             raise weberror(short="That page can't be found.", long="I'm sorry, but the page you're looking for doesn't seem to available on this site. ;(",code=404,log='Sitecontent - looking for ' + str(messageid))

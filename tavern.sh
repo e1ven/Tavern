@@ -164,7 +164,7 @@ then
         diskutil info $mntpt | grep "Volume Name" | grep TavernRamDisk > /dev/null
         if [ "$?" -eq 0 ]
         then
-            say "Ramdisk already exists!" "minor"
+            say "Using existing Ramdisk - $mntpt" "minor"
             return
         fi
         # Calculate the size, in blocks
@@ -402,7 +402,8 @@ function start
     say "Converting from SASS to CSS" "minor"
 
     # Convert the SCSS to CSS and put in production folder
-    sass --compass --scss --style compressed --update webtav/static/scss/:webtav/static/css
+    if [ $DEBUG -eq 1 ];then SASS_STYLE="expanded";else SASS_STYLE="compressed"; fi
+    sass --compass --scss --style "$SASS_STYLE" --update webtav/static/scss/:webtav/static/css
 
 
     say "Minimizing and combining JS libs" "minor"
