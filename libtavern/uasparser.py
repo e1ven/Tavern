@@ -1,7 +1,9 @@
 """
-A python version of http://user-agent-string.info/download/UASparser
-Customized to use Tavern primitives.
-Edited by Hicro Kee (http://hicrokee.com) and http://molhanec.net (Michal Molhanec) Colin Davis (E1ven.com)
+Converts a User Agent String into a dictionary describing the browser.
+This uses data from http://user-agent-string.info
+This is a python version of
+A python version of http://user-agent-string.info/download/UASparser, adapted to Tavern.
+Initially adapted to Python by Hicro Kee (http://hicrokee.com) and http://molhanec.net (Michal Molhanec)
 
 >>> import libtavern.uasparser
 >>> uas = libtavern.uasparser.UASparser()
@@ -40,12 +42,10 @@ class UASparser(libtavern.baseobj.Baseobj):
         self.ua_img_url = '/useragent/img/%s'
 
     # @libtavern.utils.memorise(parent_keys=['ua_img_url', 'os_img_url', 'info_url'], ttl=self.server.serversettings.settings['cache']['uasparser']['seconds'], maxsize=self.server.serversettings.settings['cache']['uasparser']['size'])
-    def parse(self, useragent, entire_url=''):
+    def parse(self, useragent):
         """
         Get the information of an useragent string.
-        Args:
-            useragent: String, an useragent string
-            entire_url: String, write the key labels which you want to get an entire url split by comma, expected 'ua_icon' or 'os_icon'.
+        param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)
         """
         ret = {
             'typ': 'unknown',
@@ -69,11 +69,6 @@ class UASparser(libtavern.baseobj.Baseobj):
                     'os_company_url', 'os_icon']
         ua_index = ['ua_family', 'ua_name', 'ua_url', 'ua_company',
                     'ua_company_url', 'ua_icon', '', 'ua_info_url']
-
-        if 'ua_icon' in entire_url:
-            ret['ua_icon'] = self.ua_img_url % ret['ua_icon']
-        if 'os_icon' in entire_url:
-            ret['os_icon'] = self.os_img_url % ret['os_icon']
 
         def toPythonReg(reg):
             reg_l = reg[1:reg.rfind('/')]  # modify the re into python format
@@ -102,7 +97,7 @@ class UASparser(libtavern.baseobj.Baseobj):
                         ret[ua_index[i - 1]] = test[i]
                     elif i == 6:
                         ret[ua_index[i - 1]] = (
-                            'ua_icon' in entire_url and self.ua_img_url or "%s") % test[i]
+                            "%s") % test[i]
                     elif i == 7:
                         if test[7]:  # OS detail
                             for j in range(1, len(data['os'][int(test[7])])):
@@ -135,7 +130,7 @@ class UASparser(libtavern.baseobj.Baseobj):
                         if i <= 4:
                             ret[_index[i - 1]] = data['browser'][id_browser][i]
                         elif i == 5:
-                            ret[_index[i - 1]] = ('ua_icon' in entire_url and self.ua_img_url or "%s") % data[
+                            ret[_index[i - 1]] = ("%s") % data[
                                 'browser'][id_browser][i]
                         else:
                             ret[_index[i - 1]] = "".join(
@@ -159,8 +154,7 @@ class UASparser(libtavern.baseobj.Baseobj):
                     if i < 5:
                         ret[os_index[i]] = data['os'][os_id][i]
                     else:
-                        ret[os_index[i]] = (
-                            'os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
+                        ret[os_index[i]] = ("%s") % data['os'][os_id][i]
                 return ret
             except:
                 pass
@@ -180,8 +174,7 @@ class UASparser(libtavern.baseobj.Baseobj):
                 if i < 5:
                     ret[os_index[i]] = data['os'][os_id][i]
                 else:
-                    ret[os_index[i]] = (
-                        'os_icon' in entire_url and self.os_img_url or "%s") % data['os'][os_id][i]
+                    ret[os_index[i]] = ("%s") % data['os'][os_id][i]
 
         # Clean up some stuff the root library doesn't detect
         if ret['ua_name'] is not None:

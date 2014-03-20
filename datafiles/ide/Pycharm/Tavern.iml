@@ -3,6 +3,7 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/.sass-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/docs/code_documentation" />
       <excludeFolder url="file://$MODULE_DIR$/logs" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/avatar-cache" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/binaries-cache" />
@@ -23,9 +24,11 @@
       <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-5.sock" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-6.sock" />
       <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-7.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/webtav/static/css" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="sass-stdlib" level="application" />
   </component>
 </module>
 

@@ -44,7 +44,7 @@
 
 
 	{% if handler.useragent['ua_family'] != 'Netscape Navigator' or handler.useagent['ua_versions'][0] > 4 %}
-        <link href="/static/css/combined-{{handler.user.theme}}.css?v={{handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
+        <link href="/static/css/theme-{{handler.user.theme}}.css?v={{handler.server.serversettings.settings['static-revision']}}" rel="stylesheet" type="text/css" media="screen" />
 	{% end %}
 	
 

@@ -383,8 +383,10 @@ function start
     # Ensure we have the expected Python deps
     pip install -qr datafiles/python-requirements.txt
 
+    # By default, fontello creates files which link to the wrong place
+    # This will fix, and remove an unnecessary margin.
     say "Ensuring fontello directory compliance" "minor"
-    for i in webtav/static/css/fontello*.css
+    for i in webtav/static/scss/fontello*.scss
     do
         if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
         then
@@ -399,41 +401,9 @@ function start
     # Convert from SCSS to CSS.
     say "Converting from SASS to CSS" "minor"
 
-    # Remove any old and no longer used generated css files
-    for i in `ls webtav/static/sass/css/`
-    do
-        base=`basename $i .css`
-        if [ ! -f webtav/static/sass/scss/$base.scss ]
-            then
-            say "webtav/static/sass/css/$i" "trivial"
-        fi
-    done
-
     # Convert the SCSS to CSS and put in production folder
-    sass --compass --scss --update webtav/static/sass/scss/:webtav/static/css/
+    sass --compass --scss --style compressed --update webtav/static/scss/:webtav/static/css
 
-    say "Combining and minimizing css" "minor"
-    MINIMIZE=0
-    for i in `find webtav/static/css -name "*.css" -not -name "combined-*"`
-    do
-        if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
-        then
-            basename=`basename $i ".css"`
-            say "$basename $(sinceFileArg $i lastrun)" "trivial"
-            MINIMIZE=1
-        fi
-        writearg lastrun_mincss_$i `date +%s`
-    done
-    # Ensure we have version of the combined css for each theme.
-    for theme in `ls webtav/themes/`
-    do
-        if [ $MINIMIZE -gt 0 ] || [ ! -f webtav/static/css/combined-$theme.css ]
-        then
-            ALL_LIBS=$(for i in `find webtav/static/css -name "*.css" -not -name "combined-*" -not -name "theme-*"`; do echo -n "$i "; done)
-            ALL_LIBS="$ALL_LIBS webtav/static/css/theme-$theme.css"
-            $yui $ALL_LIBS -o webtav/static/css/combined-$theme.css
-        fi
-    done
 
     say "Minimizing and combining JS libs" "minor"
     MINIMIZE=0
@@ -515,7 +485,7 @@ function start
             if [ $DEBUG -eq 1 ]
             then
                 # Run in debug mode
-                python -m webtav.webfront --socket=$socketfile
+                python -m webtav.webfront -vv --socket=$socketfile
             else
                 # Store the log to a file instead of stdout.
                 nohup python -m webtav.webfront --socket=$socketfile > logs/webtav-worker-$servernum.log 2>&1 &

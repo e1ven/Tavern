@@ -64,7 +64,7 @@ class Key(libtavern.baseobj.Baseobj):
 
     
         # If we are in debug mode, then pass debug to GPG
-        if self.logger.getEffectiveLevel() < 20:
+        if self.logger.getEffectiveLevel() < 10:
             verbose = True
         else:
             verbose = False

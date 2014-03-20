@@ -22,11 +22,13 @@ tmp
 logs
 libs/virtualenv*
 *.serversettings
-datafiles/ide/Pycharm/*.xml
+/webtav/static/
 
 # IDE tmp files
 tavern.sublime-workspace
 .idea
+datafiles/ide/Pycharm/*.xml
+
 
 # Big Tavern files - These would bloat the repo, since they're big and change :/
 GeoLiteCity.dat
@@ -34,7 +36,5 @@ useragent.ini
 *.box
 
 # Docs
-_build
-_static
-_templates
+datafiles/documentation-generator/_build
 .coverage

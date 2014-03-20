@@ -1332,7 +1332,7 @@ def main():
     # Set up Command Line Parsing
     parser = optparse.OptionParser(add_help_option=False, description="The Tavern web interface")
     parser.add_option("-v", "--verbose", dest="verbose", action="count", default=0,
-                      help="Set loglevel. Use more than once to log extra stuff (5 max)")
+                      help="Set loglevel. Use more than once to log extra stuff (3 max)")
     parser.add_option("-s", "--socket", action="store", dest="socket", default=None,
                       help="Location of Unix Domain Socket to listen on")
 
@@ -1361,19 +1361,19 @@ def main():
     server.start()
 
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
-    # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
+
+    # Parse -v, -vvv, etc for verbosity, starting with the level in settings.
+    # Parse -v for INFO, -vv for DEBUG, etc
     if options.verbose > 0:
-        loglevel = 100 - (options.verbose * 20)
+        loglevel = server.logger.getEffectiveLevel() - (options.verbose * 10)
         if loglevel < 1:
             loglevel = 1
         server.logger.setLevel(loglevel)
 
         # Debug
-        if loglevel <= 20:
+        if loglevel <= 10:
             tornado_settings['compiled_template_cache'] = False
             tornado_settings['autoreload'] = True
-        # Info
-        if loglevel <= 40:
             tornado_settings['serve_traceback=True'] = True
 
 
@@ -1454,8 +1454,8 @@ def main():
     http_server.add_socket(unix_socket)
 
     server.logger.debug("Started a webtav worker using socket on port " + str(options.socket))
+    server.logger.info("Tavern is ready. Connect to Tavern on port " + str(server.serversettings.settings['webtav']['port'])+  ".")
     tornado.ioloop.IOLoop.instance().start()
-
 if __name__ == "__main__":
     main()
 

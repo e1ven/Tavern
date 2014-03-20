@@ -3,49 +3,40 @@ If you have this Document, please help keep Tavern a secret for now.
 
 
 Tavern contains code from and/or uses libraries from the following projects:
-	
+
+	User-Agent.info (Creative Commons Attribution 3)
+	    http://user-agent-string.info/
+
 	Font Awesome!
 		http://fortawesome.github.com/Font-Awesome/
 
 	Beautiful Soup (Python License)
 		http://www.crummy.com/software/BeautifulSoup/
 
-	yENC (under LGPL, see email below)
-		For converting Binaries to Text.
-		Will possibly use for storing 'message' as binary, so people don't mess with it, and has stays constant.	
-			
 	jQuery.splitter.js (MIT)
 		http://methvin.com/splitter/ - The Image of the grabber is used.		
 
-	Mongo and the Mongo-Python-Driver (Apache)
+	Mongo and the Mongo-Python-Driver (AGPL)
+	    The AGPL only applies to mongo directly, and does not 'taint' Tavern.
+	    See the attached clarification from 10Gen.
+	    http://www.mongodb.org/display/DOCS/Licensing
 		https://github.com/mongodb/mongo-python-driver
 
 	Tornado (Apache)
 		http://www.tornadoweb.org/
-
-	Github-Flavored-Markdown (BSD)
-		http://gregbrown.co.nz/code/githib-flavoured-markdown-python-implementation/
-
-	Auto-linked Markdown (BSD)
-		http://greaterdebater.com/blog/gabe/post/4
 
 	PostMarkup (Politeness)
 		http://code.google.com/p/postmarkup/	
 		Python3 port at https://github.com/e1ven/py3-postmarkup
 
 	MaxMind GeoIP used for GeoLocation (LGPL)
+	    The code is LGPL - The Data is under CC-BY-SA3.
 		http://www.maxmind.com/app/c
 		http://www.maxmind.com/app/python/
-		
+
 	PyGeoIP (For Pure-Python reading of the Above)
 		http://code.google.com/p/pygeoip/
-		
-	10Gen's Mongo (AGPL) - Only applies to changes to MongoS and MongoD.
-		http://www.mongodb.org/display/DOCS/Licensing
 
-	YouTube Extractor (CC Sharealike) -
-		http://stackoverflow.com/a/7936523/396243
-	
 	Multifile.js ( Use this however/wherever you like )
 		http://the-stickman.com/web-development/javascript/upload-multiple-files-with-a-single-file-element/
 
@@ -141,7 +132,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 http://www.jsplugins.com/Scripts/Plugins/View/JavaScript-Vertical-Splitter/
 
 
---- yENC license ---
+--- yENC license --- (No longer used)
 
 Hi Colin,
 I apologize for my bad English. Actually It's been a very long time
