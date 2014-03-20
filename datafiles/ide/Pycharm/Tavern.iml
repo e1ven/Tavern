@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <excludeFolder url="file://$MODULE_DIR$/.sass-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/logs" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/avatar-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/binaries-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/default-cache" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/env" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/gpgfiles" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/last-run" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/mongo_install" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/nginx_install" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/nginxcache" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/static" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/uploads" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-0.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-1.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-2.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-3.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-4.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-5.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-6.sock" />
+      <excludeFolder url="file://$MODULE_DIR$/tmp/webtav-worker-7.sock" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>
+

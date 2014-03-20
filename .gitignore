@@ -15,17 +15,17 @@ __pycache__
 .sass-cache
 libs.js
 libs.css
+.coverage
 
 # Tavern tmp files/logs/conf/etc
 tmp
 logs
-Libs/virtualenv*
+libs/virtualenv*
 *.serversettings
+datafiles/ide/Pycharm/*.xml
 
 # IDE tmp files
 tavern.sublime-workspace
-workspace.xml
-e1ven.xml
 .idea
 
 # Big Tavern files - These would bloat the repo, since they're big and change :/

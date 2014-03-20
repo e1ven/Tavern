@@ -2,8 +2,40 @@
 # This is a wrapper script that fires up Tavern both on Linux and OSX.
 # This script is written in Bash, rather than Python, so that it can load Python in the correct env.
 
+function say
+{
+    # Prints a message to the screen
+    # Used to ensure that message is tabbed and colored.
+    # We could set specific colors here, but since people might have different terminals
+    # We should probably avoid that, unless there's a specific reason.
 
-function usage 
+    local format=""
+    if [ ! -z $2 ]
+    then
+        case $2 in
+            "heading")
+                echo -e "\033[0m$1"
+                ;;
+            "error")
+                echo -e "\033[1m $1"
+                ;;
+            "minor")
+                echo -e "\033[2m-    $1"
+                ;;
+            "trivial")
+                echo -e "\033[2m-         $1"
+                ;;
+            *) echo -e "$1"
+                ;;
+        esac
+    else
+        echo -e "$1"
+    fi
+    # Fix the color
+    echo -ne "\033[0m"
+}
+
+function usage
 {
     echo "Usage: $0 {start|stop|restart} [debug]"
     echo "debug will run a single process without backgrounding"
@@ -23,7 +55,7 @@ function verify_tavern_dir
     SAFE=$((SAFE+`ls | grep 'webtav' > /dev/null; echo $?`))
     if [ "$SAFE" -gt 0 ]
     then
-        echo "This script was not run from a valid Tavern installation"
+        say "This script was not run from a valid Tavern installation" "error"
         exit 2
     fi
     SAFE=$((SAFE+`utils/mongodb/bin/mongod --help > /dev/null; echo $?`))
@@ -31,7 +63,7 @@ function verify_tavern_dir
 
     if [ "$SAFE" -gt 0 ]
     then
-        echo -e "Tavern does not have all dependencies in place.\nDid you run install.sh?"
+        say "Tavern does not have all dependencies in place.\nDid you run install.sh?" "error"
         exit 2
     fi
 }
@@ -120,7 +152,7 @@ if [ "$control" == 'start' ]
 then
     if [ -z "$3" ]
     then
-        echo "Bad call to ramdisk"
+        say "Bad call to ramdisk" "error"
         stop 2
     fi
     # Determine if we should use OSX or Linux style ramdisks
@@ -129,10 +161,10 @@ then
     then #OSX
 
         # Make sure it's not ALREADY a ramdisk
-        diskutil info $mntpt | grep "Volume Name" | grep TavernRamDisk
+        diskutil info $mntpt | grep "Volume Name" | grep TavernRamDisk > /dev/null
         if [ "$?" -eq 0 ]
         then
-            echo "Ramdisk already exists!"
+            say "Ramdisk already exists!" "minor"
             return
         fi
         # Calculate the size, in blocks
@@ -143,7 +175,7 @@ then
         actual_size=`diskutil info $virt_disk | grep Total | awk -F'exactly ' {'print $2'} | awk {'print $1'}`
         if [ "$actual_size" != "$disksize" ]
         then
-            echo "Error creating Ramdisk! - $actual_size + $disksize"
+            say "Error creating Ramdisk! - $actual_size + $disksize" "error"
             stop 2
         else
             diskutil erasevolume HFS+ "TavernRamDisk-$mntpt" $virt_disk
@@ -171,7 +203,7 @@ then
     fi
 elif [ "$control" == "stop" ]
 then
-    echo "stopping disk images"
+    say "stopping disk images" "minor"
     for i in `cat tmp/mounted`
     do
         device=`mount | grep $(pwd) | grep $i|awk '{print $1}'`
@@ -184,10 +216,10 @@ then
             hdiutil detach -force $device
         fi
     done
-    echo "Stopping any disk images from previous unclean exits"
+    say "Stopping any disk images from previous unclean exits" "minor"
     for device in `diskutil list | grep '/dev/disk'`
     do
-        echo $device
+        say "$device" "minor"
          if [ `diskutil info $device | grep TavernRamDisk >/dev/null; echo $?` -eq 0 ]
          then
             hdiutil detach -force $device
@@ -215,7 +247,7 @@ function stop
     done
     
 
-    echo "Terminating Required services"
+    say "Terminating Required services" "heading"
     python -m utils.subservers stop
 
     # Remove ramdisks
@@ -233,6 +265,37 @@ function findcommands
 # The system commands are often different between GNU and BSD ecosystems.
 # Find the versions to call.
 
+    # Find which version of sed we should use.
+    if [ -z "$sed" ]
+    then
+        say "Setting Sed." "minor"
+        echo foo | gsed 's/foo/bar/' > /dev/null 2>&1
+        if [ $? -eq 0 ]
+        then
+            #Use Gnu sed
+            sed='gsed'
+        else
+            sed='sed'
+        fi
+    fi
+    writearg sed $sed
+
+    # Find which version of stat we should use, OS X or GNU
+    if [ -z "$stat" ]
+    then
+        say "Determining which version of stat to use." "minor"
+        touch tmp/delete-me-please
+        stat -f "%m"  tmp/delete-me-please > /dev/null
+        if [ $? -eq 0 ]
+        then
+            #Use OSX stat
+            stat='stat -f %m'
+        else
+            stat='stat -c %Y'
+        fi
+        rm tmp/delete-me-please
+    fi
+    writearg stat "$stat"
 
     if [ -z "$yui" ]
     then
@@ -240,7 +303,7 @@ function findcommands
         # The command to run it is different on OSX and Linux, however, so figure out which one we have
         # If we don't have either, use 'cat' as an alternate 'compressor'
 
-        echo "Testing ability to Minimize"
+        say "Testing ability to Minimize" "minor"
         yui-compressor -h > /dev/null 2>&1
         if [ $? -eq 0 ]
         then
@@ -266,37 +329,6 @@ function findcommands
     fi
     writearg yui $yui
 
-    # Find which version of sed we should use.
-    if [ -z "$sed" ]
-    then
-        echo "Setting Sed."
-        echo foo | gsed 's/foo/bar/' > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            #Use Gnu sed
-            sed='gsed'
-        else
-            sed='sed'
-        fi
-    fi
-    writearg sed $sed
-
-    # Find which version of stat we should use, OS X or GNU
-    if [ -z "$stat" ]
-    then
-        echo "Determining which version of stat to use."
-        touch tmp/delete-me-please
-        stat -f "%m"  tmp/delete-me-please > /dev/null
-        if [ $? -eq 0 ]
-        then
-            #Use OSX stat
-            stat='stat -f %m'
-        else
-            stat='stat -c %Y'
-        fi
-        rm tmp/delete-me-please
-    fi
-    writearg stat "$stat"
 }
 
 
@@ -304,6 +336,7 @@ function start
 {
 # Start up the Tavern Web Interface.
 
+    say "Starting Tavern..." "heading"
     # Save the current dir, so we can return at the end of the script
     CURDIR=`pwd`
 
@@ -319,7 +352,7 @@ function start
     mkdir -p conf
 
     # Ensure we're not leaking info to other system users.
-    chmod -R og-rwx *
+    chmod -R og-rwx * > /dev/null 2>&1
 
     # Python
     source tmp/env/bin/activate
@@ -347,11 +380,10 @@ function start
     ramdisk start static 15
     cd ..
 
-    echo "Ensuring Python deps are up-to-date"
     # Ensure we have the expected Python deps
     pip install -qr datafiles/python-requirements.txt
 
-    echo "Ensuring fontello directory compliance"
+    say "Ensuring fontello directory compliance" "minor"
     for i in webtav/static/css/fontello*.css
     do
         if [ $(sinceFileArg $i lastrun_fontello_$i) -gt 0 ]
@@ -365,7 +397,7 @@ function start
     done
 
     # Convert from SCSS to CSS.
-    echo "Converting from SASS to CSS"
+    say "Converting from SASS to CSS" "minor"
 
     # Remove any old and no longer used generated css files
     for i in `ls webtav/static/sass/css/`
@@ -373,21 +405,21 @@ function start
         base=`basename $i .css`
         if [ ! -f webtav/static/sass/scss/$base.scss ]
             then
-            echo webtav/static/sass/css/$i
+            say "webtav/static/sass/css/$i" "trivial"
         fi
     done
 
     # Convert the SCSS to CSS and put in production folder
     sass --compass --scss --update webtav/static/sass/scss/:webtav/static/css/
-    
-    echo "Combining and minimizing css"
+
+    say "Combining and minimizing css" "minor"
     MINIMIZE=0
-    for i in `find webtav/static/css -name "*.css"`
+    for i in `find webtav/static/css -name "*.css" -not -name "combined-*"`
     do
         if [ $(sinceFileArg $i lastrun_mincss_$i) -gt 0 ]
         then
             basename=`basename $i ".css"`
-            echo -e "\t $basename $(sinceFileArg $i lastrun)"
+            say "$basename $(sinceFileArg $i lastrun)" "trivial"
             MINIMIZE=1
         fi
         writearg lastrun_mincss_$i `date +%s`
@@ -397,14 +429,13 @@ function start
     do
         if [ $MINIMIZE -gt 0 ] || [ ! -f webtav/static/css/combined-$theme.css ]
         then
-            rm webtav/static/css/combined-$theme.css
             ALL_LIBS=$(for i in `find webtav/static/css -name "*.css" -not -name "combined-*" -not -name "theme-*"`; do echo -n "$i "; done)
             ALL_LIBS="$ALL_LIBS webtav/static/css/theme-$theme.css"
             $yui $ALL_LIBS -o webtav/static/css/combined-$theme.css
         fi
     done
 
-    echo "Minimizing and combining JS libs"
+    say "Minimizing and combining JS libs" "minor"
     MINIMIZE=0
     echo "" > webtav/themes/default/header-debug-JS.html
     for i in `find webtav/static/scripts/combine -name "*.js"`
@@ -414,7 +445,7 @@ function start
 
         if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
         then
-            echo -e "\t $basename $(sinceFileArg $i lastrun)"
+            say "$basename $(sinceFileArg $i lastrun)" "trivial"
             MINIMIZE=1
         fi
 
@@ -430,36 +461,36 @@ function start
     fi
 
 
-    echo "Ensuring Proper Python formatting.."
+    say "Ensuring Proper Python formatting.." "minor"
     # Use a hash as a secondary check, because these are slow.
     for i in `find . -maxdepth 1 -name "*.py"`
     do
         if [ $(sinceFileArg $i lastrun_autopep_$i) -gt 0 ]
         then
-            echo -e "\t $i"
+            say "$i" "trivial"
             autopep8 --in-place -p1 --max-line-length=160 $i
             docformatter --in-place $i
         fi
         writearg lastrun_autopep_$i `date +%s`
     done
 
-    echo "Updating Ramdisk"
+    say "Updating Ramdisk" "minor"
     rsync -a --delete webtav/static/* tmp/static
     cp conf/gpg.conf tmp/gpgfiles
     if [ $(sinceArg onStartLastRun) -gt 3600 ]
     then
         # Run the various functions to ensure DB caches and whatnot
-        echo "Running onStart functions."
+        say "Running onStart functions." "minor"
         ./utils/TopicList.py || true
         ./utils/ModList.py || true
         ./utils/DiskTopics.py -l || true
         writearg onStartLastRun $DATE
     else
-        echo "It's only been $(($(sinceArg onStartLastRun)/60)) minutes.. Not running onStart functions again until the hour mark."
+        say "It's only been $(($(sinceArg onStartLastRun)/60)) minutes.. Not running onStart functions again until the hour mark." "minor"
         writearg onStartLastRun
     fi
 
-    echo "Starting Required services"
+    say "Starting Required services" "minor"
     python -m utils.subservers start
 
 
@@ -474,11 +505,11 @@ function start
         numservers=$(getsetting '["webtav"]["workers"]')
     fi
 
-    echo "Starting Tavern with $numservers worker processes."
+    say "Starting Tavern with $numservers worker processes." "minor"
     for ((servernum = 0 ; servernum < numservers ; servernum++ ))
         do
             socketfile="tmp/webtav-worker-$servernum.sock"
-            echo "Starting webtav worker with socket $socketfile"
+            say "Starting webtav worker with socket $socketfile" "trivial"
 
             # Set pre/post conditions depenn
             if [ $DEBUG -eq 1 ]

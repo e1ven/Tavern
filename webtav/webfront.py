@@ -24,10 +24,6 @@ import tornado.web
 import tornado.escape
 
 
-
-server = libtavern.server.Server()
-
-
 class EntryHandler(webbase.BaseHandler):
     def get(self):
         """A simple redirect, that will redirect people from / to a FAQ.
@@ -202,31 +198,23 @@ class TopicPropertiesHandler(webbase.BaseHandler):
         self.render('View-topicprefs.html',mods=mods)
 
 
-# def SiteContentHandler_get(message):
-#     self.getvars()
-#     client_message_id = tornado.escape.xhtml_escape(message)
+class SiteContentHandler(webbase.BaseHandler):
+    """Displays site content, such as FAQ, Ettiquite, etc, without replies or other chrome."""
+    def get(self,message):
+        envelope = self.server.db.unsafe.find_one(
+            'envelopes', {'envelope.local.payload_sha512': client_message_id})
 
-#     envelope = self.server.db.unsafe.find_one(
-#         'envelopes', {'envelope.local.payload_sha512': client_message_id})
+        if envelope is None:
+            raise weberror(short="That page can't be found.", long="I'm sorry, but the page you're looking for doesn't seem to available on this site. ;(",code=404,log='Sitecontent - looking for ' + str(messageid))
 
-#     self.write(
-#         self.render_string('header.html',
-#                            title="Tavern :: " +
-#                            envelope['envelope']['payload']['subject'],
-#                            canon="sitecontent/" +
-#                            envelope['envelope']['local']['payload_sha512'],
-#                            rss="/rss/topic/" +
-#                            envelope['envelope']['payload']['topic'],
-#                            topic=envelope['envelope']['payload']['topic']))
-#     self.write(
-#         self.render_string(
-#             'sitecontent.html',
-#             formattedbody=envelope[
-#                 'envelope'][
-#                 'local'][
-#                 'formattedbody'],
-#             envelope=envelope))
-#     self.write(self.render_string('footer.html'))
+        self.displayenvelope = libtavern.envelope.Envelope()
+        self.displayenvelope.loaddict(envelope)
+
+        self.topic = libtavern.topic.Topic(topic=self.displayenvelope.dict['envelope']['payload']['topic'])
+        self.canon = self.server.url_for(envelope=self.displayenvelope)
+        self.title = self.displayenvelope.dict['envelope']['payload']['subject']
+
+        self.render('View-sitecontent.html')
 
 
 # def AttachmentHandler_get(attachment):
@@ -1367,6 +1355,11 @@ def main():
         "gzip": False,
     }
 
+    # Create the Tavern server. This is the main interop class for dealing with Tavern.
+    # We then start the server, which creates DB connections, fires up threads to create keys, etc.
+    server = libtavern.server.Server()
+    server.start()
+
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
     # Parse -vvvvv for DEBUG, -vvvv for INFO, etc
     if options.verbose > 0:
@@ -1383,9 +1376,7 @@ def main():
         if loglevel <= 40:
             tornado_settings['serve_traceback=True'] = True
 
-    # Start the Server processing
-    # Creates DB connections, fires up threads to create keys, etc.
-    server.start()
+
     paths = [
             (r"/", EntryHandler),
             (r"/__xsrf", XSRFHandler),
@@ -1403,7 +1394,7 @@ def main():
             (r"/siteindex", SiteIndexHandler),
             (r"/sitemap/m/(\d+)", SitemapMessagesHandler),
 
-            # (r"/sitecontent/(.*)", SiteContentHandler),
+            (r"/s/(.*)", SiteContentHandler),
 
 
             (r"/showtopics", ShowAllTopicsHandler),
