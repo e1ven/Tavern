@@ -106,7 +106,7 @@ def gettime(format='timestamp',timestamp=None):
         elif 31536000 <= delta < 63072000:
             return 'last year'
         else:
-            return str(delta/31536000) + ' years ago'
+            return str(delta//31536000) + ' years ago'
     elif format == 'iso':
         return dt(timestamp).isoformat()
     elif format == 'printable':

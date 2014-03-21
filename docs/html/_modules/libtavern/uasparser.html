@@ -1,0 +1,326 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.uasparser &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.uasparser</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Converts a User Agent String into a dictionary describing the browser.</span>
+<span class="sd">This uses data from http://user-agent-string.info</span>
+<span class="sd">This is a python version of</span>
+<span class="sd">A python version of http://user-agent-string.info/download/UASparser, adapted to Tavern.</span>
+<span class="sd">Initially adapted to Python by Hicro Kee (http://hicrokee.com) and http://molhanec.net (Michal Molhanec)</span>
+
+<span class="sd">&gt;&gt;&gt; import libtavern.uasparser</span>
+<span class="sd">&gt;&gt;&gt; uas = libtavern.uasparser.UASparser()</span>
+<span class="sd">&gt;&gt;&gt; test = [&#39;SonyEricssonK750i/R1L Browser/SEMC-Browser/4.2 Profile/MIDP-2.0 Configuration/CLDC-1.1&#39;,</span>
+<span class="sd">... &#39;Mozilla/5.0 (Windows; U; Windows NT 5.2; en-GB; rv:1.8.1.18) Gecko/20081029 Firefox/2.0.0.18&#39;,</span>
+<span class="sd">... &#39;Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; en-us) AppleWebKit/525.26.2 (KHTML, like Gecko) Version/3.2 Safari/525.26.12&#39;,</span>
+<span class="sd">... ]</span>
+<span class="sd">&gt;&gt;&gt; for item in test:</span>
+<span class="sd">...    res = uas.parse(item)</span>
+<span class="sd">...    print(res[&#39;typ&#39;] +&quot; &quot; + res[&#39;ua_name&#39;] + &quot; &quot; + res[&#39;os_name&#39;])</span>
+<span class="sd">Mobile Browser SEMC Browser 4.2 JVM (Java)</span>
+<span class="sd">Browser Firefox 2.0.0.18 Windows 2003 Server</span>
+<span class="sd">Browser Safari 3.2 OS X 10.5 Leopard</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">urllib.error</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+
+<div class="viewcode-block" id="UASException"><a class="viewcode-back" href="../../libtavern.html#libtavern.uasparser.UASException">[docs]</a><span class="k">class</span> <span class="nc">UASException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+
+</div>
+<div class="viewcode-block" id="UASparser"><a class="viewcode-back" href="../../libtavern.html#libtavern.uasparser.UASparser">[docs]</a><span class="k">class</span> <span class="nc">UASparser</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ini_file</span> <span class="o">=</span> <span class="s">&#39;datafiles/useragent.ini&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_data</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">info_url</span> <span class="o">=</span> <span class="s">&#39;/useragent/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">os_img_url</span> <span class="o">=</span> <span class="s">&#39;/useragent/img/</span><span class="si">%s</span><span class="s">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ua_img_url</span> <span class="o">=</span> <span class="s">&#39;/useragent/img/</span><span class="si">%s</span><span class="s">&#39;</span>
+
+    <span class="c"># @libtavern.utils.memorise(parent_keys=[&#39;ua_img_url&#39;, &#39;os_img_url&#39;, &#39;info_url&#39;], ttl=self.server.serversettings.settings[&#39;cache&#39;][&#39;uasparser&#39;][&#39;seconds&#39;], maxsize=self.server.serversettings.settings[&#39;cache&#39;][&#39;uasparser&#39;][&#39;size&#39;])</span>
+<div class="viewcode-block" id="UASparser.parse"><a class="viewcode-back" href="../../libtavern.html#libtavern.uasparser.UASparser.parse">[docs]</a>    <span class="k">def</span> <span class="nf">parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">useragent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get the information of an useragent string.</span>
+<span class="sd">        param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;typ&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_family&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_name&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_url&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_company&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_company_url&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_icon&#39;</span><span class="p">:</span> <span class="s">&#39;unknown.png&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_info_url&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_family&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_name&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_url&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_company&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_company_url&#39;</span><span class="p">:</span> <span class="s">&#39;unknown&#39;</span><span class="p">,</span>
+            <span class="s">&#39;os_icon&#39;</span><span class="p">:</span> <span class="s">&#39;unknown.png&#39;</span><span class="p">,</span>
+            <span class="s">&#39;ua_versions&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;unknown&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+        <span class="p">}</span>
+
+        <span class="n">os_index</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;os_family&#39;</span><span class="p">,</span> <span class="s">&#39;os_name&#39;</span><span class="p">,</span> <span class="s">&#39;os_url&#39;</span><span class="p">,</span> <span class="s">&#39;os_company&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;os_company_url&#39;</span><span class="p">,</span> <span class="s">&#39;os_icon&#39;</span><span class="p">]</span>
+        <span class="n">ua_index</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ua_family&#39;</span><span class="p">,</span> <span class="s">&#39;ua_name&#39;</span><span class="p">,</span> <span class="s">&#39;ua_url&#39;</span><span class="p">,</span> <span class="s">&#39;ua_company&#39;</span><span class="p">,</span>
+                    <span class="s">&#39;ua_company_url&#39;</span><span class="p">,</span> <span class="s">&#39;ua_icon&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;ua_info_url&#39;</span><span class="p">]</span>
+
+        <span class="k">def</span> <span class="nf">toPythonReg</span><span class="p">(</span><span class="n">reg</span><span class="p">):</span>
+            <span class="n">reg_l</span> <span class="o">=</span> <span class="n">reg</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">reg</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)]</span>  <span class="c"># modify the re into python format</span>
+            <span class="n">reg_r</span> <span class="o">=</span> <span class="n">reg</span><span class="p">[</span><span class="n">reg</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">flag</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="s">&#39;s&#39;</span> <span class="ow">in</span> <span class="n">reg_r</span><span class="p">:</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="n">flag</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">S</span>
+            <span class="k">if</span> <span class="s">&#39;i&#39;</span> <span class="ow">in</span> <span class="n">reg_r</span><span class="p">:</span>
+                <span class="n">flag</span> <span class="o">=</span> <span class="n">flag</span> <span class="o">|</span> <span class="n">re</span><span class="o">.</span><span class="n">I</span>
+            <span class="k">return</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">reg_l</span><span class="p">,</span> <span class="n">flag</span><span class="p">)</span>
+
+        <span class="c"># Check argument</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">useragent</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">UASException</span><span class="p">(</span><span class="s">&quot;Excepted argument useragent is not given.&quot;</span><span class="p">)</span>
+
+        <span class="c"># Load cache data</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadData</span><span class="p">()</span>
+
+        <span class="c"># Is it a spider?</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;robots&#39;</span><span class="p">][</span><span class="s">&#39;order&#39;</span><span class="p">]:</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;robots&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">test</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">useragent</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s">&#39;typ&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Robot&#39;</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">test</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c"># fill out the structure.</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span>
+                        <span class="n">ret</span><span class="p">[</span><span class="n">ua_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+                        <span class="n">ret</span><span class="p">[</span><span class="n">ua_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">test</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">test</span><span class="p">[</span><span class="mi">7</span><span class="p">]:</span>  <span class="c"># OS detail</span>
+                            <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">7</span><span class="p">])])):</span>
+                                <span class="n">ret</span><span class="p">[</span><span class="n">os_index</span><span class="p">[</span><span class="n">j</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">7</span><span class="p">])][</span><span class="n">j</span><span class="p">]</span>
+                    <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+                        <span class="n">ret</span><span class="p">[</span><span class="n">ua_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+                            <span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">info_url</span><span class="p">,</span> <span class="n">test</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span>
+
+                <span class="k">return</span> <span class="n">ret</span>
+
+        <span class="c"># A browser</span>
+        <span class="n">id_browser</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser_reg&#39;</span><span class="p">][</span><span class="s">&#39;order&#39;</span><span class="p">]:</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser_reg&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">test_rg</span> <span class="o">=</span> <span class="n">toPythonReg</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span>
+                <span class="n">useragent</span><span class="p">)</span>  <span class="c"># All regular expression should be in python format</span>
+            <span class="k">if</span> <span class="n">test_rg</span><span class="p">:</span>
+                <span class="n">id_browser</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>  <span class="c"># Bingo</span>
+                <span class="n">info</span> <span class="o">=</span> <span class="n">test_rg</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">break</span>
+
+        <span class="c"># Get broser detail</span>
+        <span class="k">if</span> <span class="n">id_browser</span><span class="p">:</span>
+            <span class="n">_index</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;ua_family&#39;</span><span class="p">,</span> <span class="s">&#39;ua_url&#39;</span><span class="p">,</span> <span class="s">&#39;ua_company&#39;</span><span class="p">,</span>
+                      <span class="s">&#39;ua_company_url&#39;</span><span class="p">,</span> <span class="s">&#39;ua_icon&#39;</span><span class="p">,</span> <span class="s">&#39;ua_info_url&#39;</span><span class="p">]</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># Any better method to figure out it?</span>
+                <span class="k">if</span> <span class="n">id_browser</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="mi">4</span><span class="p">:</span>
+                            <span class="n">ret</span><span class="p">[</span><span class="n">_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+                            <span class="n">ret</span><span class="p">[</span><span class="n">_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">data</span><span class="p">[</span>
+                                <span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">ret</span><span class="p">[</span><span class="n">_index</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="s">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">info_url</span><span class="p">,</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="n">i</span><span class="p">]])</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s">&#39;typ&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser_type&#39;</span><span class="p">][</span><span class="nb">int</span><span class="p">(</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="mi">0</span><span class="p">])][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                    <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="n">info</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c"># Get OS detail</span>
+        <span class="k">if</span> <span class="n">id_browser</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;browser_os&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">os_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;browser_os&#39;</span><span class="p">][</span><span class="n">id_browser</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">])):</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                        <span class="n">ret</span><span class="p">[</span><span class="n">os_index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">ret</span><span class="p">[</span><span class="n">os_index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">return</span> <span class="n">ret</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+        <span class="c"># Try to match an OS</span>
+        <span class="n">os_id</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">for</span> <span class="n">index</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os_reg&#39;</span><span class="p">][</span><span class="s">&#39;order&#39;</span><span class="p">]:</span>
+            <span class="n">test</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os_reg&#39;</span><span class="p">][</span><span class="n">index</span><span class="p">]</span>
+            <span class="n">test_rg</span> <span class="o">=</span> <span class="n">toPythonReg</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">useragent</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">test_rg</span><span class="p">:</span>
+                <span class="n">os_id</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">test</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">break</span>
+
+        <span class="c"># Get OS detail</span>
+        <span class="k">if</span> <span class="n">os_id</span> <span class="ow">and</span> <span class="n">os_id</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">])):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="mi">5</span><span class="p">:</span>
+                    <span class="n">ret</span><span class="p">[</span><span class="n">os_index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">ret</span><span class="p">[</span><span class="n">os_index</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">)</span> <span class="o">%</span> <span class="n">data</span><span class="p">[</span><span class="s">&#39;os&#39;</span><span class="p">][</span><span class="n">os_id</span><span class="p">][</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c"># Clean up some stuff the root library doesn&#39;t detect</span>
+        <span class="k">if</span> <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_name&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&quot;\d+\.?\d*&quot;</span><span class="p">,</span> <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_name&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_version&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0.0.0&#39;</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">&#39;[^\[\]]+&#39;</span><span class="p">,</span> <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_name&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_version&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">versions</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_version&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">versions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+                <span class="k">except</span><span class="p">:</span>
+                    <span class="k">pass</span>
+            <span class="n">ret</span><span class="p">[</span><span class="s">&#39;ua_versions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">versions</span>
+
+        <span class="k">return</span> <span class="n">ret</span>
+</div>
+    <span class="k">def</span> <span class="nf">_parseIniFile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">file</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Parse an ini file into a dictionary structure.&quot;&quot;&quot;</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">current_section</span> <span class="o">=</span> <span class="s">&#39;unknown&#39;</span>
+        <span class="n">section_pat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^\[(\S+)\]$&#39;</span><span class="p">)</span>
+        <span class="n">option_pat</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&#39;^(\d+)\[\]\s=\s&quot;(.*)&quot;$&#39;</span><span class="p">)</span>
+
+        <span class="c"># step by line</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">file</span><span class="p">:</span>
+            <span class="n">option</span> <span class="o">=</span> <span class="n">option_pat</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">option</span><span class="p">:</span>  <span class="c"># do something for option</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">option</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="n">current_section</span><span class="p">]:</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">current_section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">option</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">current_section</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">option</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span> <span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">current_section</span><span class="p">][</span><span class="s">&#39;order&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">section</span> <span class="o">=</span> <span class="n">section_pat</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>  <span class="c"># do something for section</span>
+                <span class="k">if</span> <span class="n">section</span><span class="p">:</span>
+                    <span class="n">current_section</span> <span class="o">=</span> <span class="n">section</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">data</span><span class="p">[</span><span class="n">current_section</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;order&#39;</span><span class="p">:</span> <span class="p">[]}</span>
+        <span class="k">return</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="UASparser.loadData"><a class="viewcode-back" href="../../libtavern.html#libtavern.uasparser.UASparser.loadData">[docs]</a>    <span class="k">def</span> <span class="nf">loadData</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load cache data.&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_data</span><span class="p">:</span>  <span class="c"># no need to load</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_data</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ini_file</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">cache_file</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parseIniFile</span><span class="p">(</span><span class="n">cache_file</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_data</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

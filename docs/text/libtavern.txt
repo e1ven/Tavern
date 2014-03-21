@@ -1,0 +1,740 @@
+
+libtavern package
+*****************
+
+
+Submodules
+==========
+
+
+libtavern.baseobj module
+========================
+
+class class libtavern.baseobj.Baseobj(*args, **kwargs)
+
+   Bases: "builtins.object"
+
+   A base object for all Tavern objects. This will create some
+   reasonable defaults in self that are really handy
+
+
+libtavern.embedis module
+========================
+
+class class libtavern.embedis.Embedis(server, x=640, y=480)
+
+   Bases: "builtins.object"
+
+   Embedis is a quick class/API for translating embeddable media.
+
+   embedis()
+
+      Embed.is integration.
+
+   getavatar(myid, datauri=True, width=40, height=40)
+
+      Retrieve the Avatar from Robohash.org, for use in the datauri
+      embed.
+
+   lookup(url)
+
+   vimeo()
+
+   youtube()
+
+
+libtavern.envelope module
+=========================
+
+class class libtavern.envelope.Envelope(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   class class Message(*args, **kwargs)
+
+      Bases: "libtavern.envelope.Payload"
+
+      validate()
+
+   class class Envelope.MessageRevision(*args, **kwargs)
+
+      Bases: "libtavern.envelope.Payload"
+
+      validate()
+
+   class class Envelope.Payload(*args, **kwargs)
+
+      Bases: "libtavern.baseobj.Baseobj"
+
+      alphabetizeAllItems(oldobj)
+
+         To ensure our messages are reconstructable, the message, and
+         all fields should be in alphabetical order.
+
+      format()
+
+      hash()
+
+      text()
+
+      validate()
+
+   class class Envelope.PrivateMessage(*args, **kwargs)
+
+      Bases: "libtavern.envelope.Payload"
+
+      validate()
+
+   class class Envelope.Rating(*args, **kwargs)
+
+      Bases: "libtavern.envelope.Payload"
+
+      validate()
+
+   class class Envelope.UserTrust(*args, **kwargs)
+
+      Bases: "libtavern.envelope.Payload"
+
+      validate()
+
+   Envelope.addAncestor(ancestorid)
+
+      A new Ancestor has been found (parent, parent's parent, etc) for
+      this message.
+
+      Set it locally, and tell all my children, if I have any
+
+   Envelope.addEdit(editid)
+
+      Another message has come in that says it's an edit of this one.
+
+      Note - This will NOT recurse. Ensure a edit is an edit to the
+      original, not an edit of an edit.
+
+   Envelope.addStamp(stampclass, keys, passkey=None, **kwargs)
+
+      Adds a stamp of type *class* to the current envelope.
+
+   Envelope.addcite(citedby)
+
+      Another message has referenced this one.
+
+      Mark it in the local area.
+
+   class class Envelope.binary(sha512)
+
+      Bases: "builtins.object"
+
+   Envelope.countChildren()
+
+   Envelope.flatten(striplocal=False)
+
+   Envelope.get_original()
+
+      Returns the original message, without any edits
+
+   Envelope.loaddict(importdict)
+
+   Envelope.loadfile(filename)
+
+   Envelope.loadmongo(mongo_id)
+
+   Envelope.loadstring(importstring)
+
+   Envelope.munge()
+
+      Set things in the local block of the message.
+
+   Envelope.mungebins()
+
+      Store details for all binaries, and create thumbnails for
+      images.
+
+   Envelope.prettytext(striplocal=False)
+
+   Envelope.registerpayload()
+
+   Envelope.reloadfile()
+
+   Envelope.reloadmongo()
+
+   Envelope.saveMongo()
+
+   Envelope.savefile(directory='.')
+
+   Envelope.text(striplocal=False)
+
+   Envelope.validate()
+
+      Ensures an envelope is valid, legal, and according to spec.
+
+
+libtavern.key module
+====================
+
+class class libtavern.key.Key(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   decrypt(decryptstring)
+
+   decrypt_file(tmpfile)
+
+   encrypt(encryptstring, encrypt_to)
+
+      Encrypt a string, to the gpg key of the specified recipient)
+
+   encrypt_file(newfile)
+
+      Encrypt a string, to the gpg key of the specified recipient)
+
+   from_dict(keydict)
+
+      Restores a key from a dictionary.
+
+   generate(autoexpire=False)
+
+      Replaces whatever keys currently might exist with new ones.
+
+   isValid()
+
+      Does this key have an 'expires' variable set in the past?
+
+   privatekeyaccess(fn)
+
+      privatekeyaccess is an wrapper decorator.
+
+      It will call the unlock() function in the obj if it has one.
+      This allows us to define a separate unlock for each type of key,
+      and call them from the parent.
+
+   signstring(signstring)
+
+      Sign a string, and return back the Base64 Signature.
+
+   test_encryption()
+
+   test_signing()
+
+      Verify the signing/verification engine works as expected.
+
+   to_dict(clean=True)
+
+      Saves the key objects as a python dictionary. If *clean* is
+      True, it removes private keys.
+
+   unlock(privkey=None)
+
+   verify_string(stringtoverify, signature)
+
+      Verify the passed in string matches the passed signature.
+
+      We're expanding the GPG signatures a bit, so that we can verify
+      the message matches Not just the signature.
+
+
+libtavern.keygen module
+=======================
+
+class class libtavern.keygen.KeyGenerator(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   Pre-generates GPG keys.
+
+   CreateUnusedLK()
+
+      Create a LockedKey with a random password.
+
+   GenerateAsNeeded()
+
+      Watch to see if the queue gets low, and then add users.
+
+   start()
+
+      Start up all subprocs.
+
+   stop()
+
+      Terminate all subprocs.
+
+
+libtavern.lockedkey module
+==========================
+
+class class libtavern.lockedkey.LockedKey(*args, **kwargs)
+
+   Bases: "libtavern.key.Key"
+
+   A securely locked away key, which uses a secret only stored in the
+   client to unlock. If our DB is ever compromised, this will prevent
+   bad guys from easily impersonating users. This also prevents us
+   from evesdropping on private messages.
+
+   Class is basically a wrapper around Keys.py
+
+   We aren't just using gpg passphrases because there is no easy way
+   to progratically change them.
+
+   changepass(oldpasskey, newpassword)
+
+   from_dict(keydict, passkey=None)
+
+      Restores a key from a dictionary.
+
+   generate(password=None, passkey=None, random=False, autoexpire=False)
+
+      Generate a new set of keys. Store only the encrypted version
+
+   get_passkey(password)
+
+      Returns the hashed version of the password.
+
+      Broken out into a method, so we can swap it if nec.
+
+   lock(passkey=None)
+
+      Remove the private key from Python obj.
+
+   to_dict()
+
+      Saves the key objects as a python dictionary. Does -not- save
+      out the privkey or passkey!
+
+   unlock(passkey=None)
+
+      Sets self.privkey to be the public key, if possible.
+
+
+libtavern.server module
+=======================
+
+class class libtavern.server.DBWrapper(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+class class libtavern.server.FakeMongo(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   count(collection, query={})
+
+   drop_collection(collection)
+
+   ensure_index(collection, index)
+
+   find(collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection='ascending')
+
+   find_one(collection, query={}, limit=-1, skip=0, sortkey=None, sortdirection='ascending')
+
+   insert(collection, query)
+
+   map_reduce(collection, map, reduce, out)
+
+   save(collection, query)
+
+class class libtavern.server.MongoWrapper(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   count(collection, query={})
+
+   drop_collection(collection)
+
+   ensure_index(collection, index)
+
+   find(collection, query={}, limit=0, skip=0, sortkey=None, sortdirection='ascending')
+
+   find_one(collection, query={}, skip=0, sortkey=None, sortdirection='ascending')
+
+   insert(collection, query)
+
+   map_reduce(collection, map, reduce, out)
+
+   save(collection, query)
+
+class class libtavern.server.Server(slot='default')
+
+   Bases: "libtavern.utils.instancer"
+
+   error_envelope(subject='Error', topic='sitecontent', body=None)
+
+   formatText(text=None, formatting='markdown')
+
+   getTopMessage(messageid)
+
+   get_all_user_posts(pubkey, limit=1000)
+
+   prettytext()
+
+   receiveEnvelope(envstr=None, env=None)
+
+      Receive an envelope for processing in the server.
+
+      Can take either a string, or an envelope obj.
+
+   start()
+
+      Stuff that should be done when the server is running as a
+      process, not just imported as a obj.
+
+   stop()
+
+      Stop all server procs.
+
+   url_for(envelope=None, topic=None, user=None, pubkey=None, static=None, base=True, fqdn=False)
+
+      Return the canonical URL for a given token
+
+   urlize(url)
+
+
+libtavern.serversettings module
+===============================
+
+class class libtavern.serversettings.ServerSettings(slot='default')
+
+   Bases: "libtavern.utils.instancer"
+
+   loadconfig(filename=None, directory=None)
+
+   saveconfig(filename=None, directory=None)
+
+   updateconfig()
+
+
+libtavern.topic module
+======================
+
+class class libtavern.topic.Topic(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   A Topic is a collection of messages with a common subject.
+
+   add(topic)
+
+      Add a topic
+
+   count(before=None, after=None, include_replies=True)
+
+      Count the messages in the current topic.
+
+      Parameters:
+         * **before** (*float*) -- Count only messages before this
+           timestamp
+
+         * **after** (*float*) -- Count only messages after this
+           timestamp
+
+         * **include_replies** (*bool*) -- Should replies be
+           included, or only top-level messages.
+
+      Return int:
+         Number of messages.
+
+   get_first_after(maxposts, after)
+
+      Get the earliest dated message, after *after* :param int
+      maxposts: Max number of posts to return :param after: Find only
+      messages after :type after: integer or float
+
+   messages(maxposts=100, before=None, after=None, include_replies=True)
+
+      Retrieve the messages in the specified topics.
+
+      Parameters:
+         * **maxposts** (*int*) -- Max number of posts to return
+
+         * **before** (*float*) -- Find only messages before this
+           timestamp
+
+         * **after** (*float*) -- Find only messages after this
+           timestamp
+
+      Return array:
+         List of messages
+
+   moreafter(before, topic, maxposts)
+
+   name
+
+      Name of the topic
+
+   sortname
+
+      Name of the topic
+
+   toptopics(limit=10, skip=0)
+
+      Returns a list of the Top topics on the server, as generated by
+      TopicList.py :param (int) limit: The maximum number of topics to
+      return. :param skip int: Skip N topics before returning. Used
+      for pagination. :return:Array: A list of Topic objects.
+
+libtavern.topic.sorttopic(topic)
+
+
+libtavern.uasparser module
+==========================
+
+Converts a User Agent String into a dictionary describing the browser.
+This uses data from http://user-agent-string.info This is a python
+version of A python version of http://user-agent-
+string.info/download/UASparser, adapted to Tavern. Initially adapted
+to Python by Hicro Kee (http://hicrokee.com) and http://molhanec.net
+(Michal Molhanec)
+
+>>> import libtavern.uasparser
+>>> uas = libtavern.uasparser.UASparser()
+>>> test = ['SonyEricssonK750i/R1L Browser/SEMC-Browser/4.2 Profile/MIDP-2.0 Configuration/CLDC-1.1',
+... 'Mozilla/5.0 (Windows; U; Windows NT 5.2; en-GB; rv:1.8.1.18) Gecko/20081029 Firefox/2.0.0.18',
+... 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; en-us) AppleWebKit/525.26.2 (KHTML, like Gecko) Version/3.2 Safari/525.26.12',
+... ]
+>>> for item in test:
+...    res = uas.parse(item)
+...    print(res['typ'] +" " + res['ua_name'] + " " + res['os_name'])
+Mobile Browser SEMC Browser 4.2 JVM (Java)
+Browser Firefox 2.0.0.18 Windows 2003 Server
+Browser Safari 3.2 OS X 10.5 Leopard
+
+exception exception libtavern.uasparser.UASException
+
+   Bases: "builtins.Exception"
+
+class class libtavern.uasparser.UASparser(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   loadData()
+
+      Load cache data.
+
+   parse(useragent)
+
+      Get the information of an useragent string. param str useragent:
+      A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)
+
+
+libtavern.user module
+=====================
+
+class class libtavern.user.User(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   add_email(email)
+
+   changepass(newpassword, oldpasskey=None)
+
+      Change the User's password. Since this password is used to
+      encrypt all of the keys, we need to re-encrypt them as well.
+
+   decrypt(text, passkey=None)
+
+      Decrypt a message sent to me, using one of my communication
+      keys.
+
+      Note - We don't try to decrypt using the master key, even though
+      it's technically possible. This is intentional, so that other
+      clients don't start sending PMs to the master key, and
+      compromise security.
+
+   ensure_keys(AllowGuestKey=True)
+
+      Generate the Keys for a User()
+
+   follow_topic(topic)
+
+   follows_topic(topic)
+
+      Does this user follow the topic?
+
+   from_dict(userdict)
+
+      Demarshall a user obj from a dictionary.
+
+   gatherTrust(askingabout, incomingtrust=250)
+
+      Return how much I trust a given ID, rather than a given post.
+      This is determined by several factors, but the base algorithm
+      is:
+
+         [Keys and Spam Ranking] [Have I rated this person] [Have any
+         friends rated this person] [Have any FOF or FOFOF rated this
+         person] [Each generation of friends gets their trust
+         multiplied by .4, since you trust them less and less]
+
+   getRatings(postInQuestion)
+
+      Get the ratings of a specific message.
+
+   get_note(noteabout)
+
+      Retrieve any note by user A about user B.
+
+   get_pubkeys()
+
+      Returns a list of all public keys for a user. Typically used to
+      search for messages belonging to that user. :return: A list of
+      all public keys.
+
+   load_file(filename)
+
+   load_mongo_by_pubkey(pubkey)
+
+      Returns a user object for a given pubkey.
+
+   load_mongo_by_sessionid(sessionid)
+
+      Load in a user, via their sessionid
+
+   load_mongo_by_username(username)
+
+   load_publicinfo_by_pubkey(pubkey)
+
+      Retrieves publicly available information for a given user. This
+      does leak what messages the server has received. But shouldn't
+      give them anything about a user they couldn't get from another
+      server.
+
+   load_string(incomingstring)
+
+   make_hashes()
+
+   new_posted_key()
+
+      Generate a new communication key. This key might be attached to
+      a forum message, or a private message.
+
+      By generating a new key for each message, even if our key does
+      eventually leak it will be difficult to decode old messages,
+      who's keys have been deleted.
+
+   remove_email(email)
+
+   save_file(filename=None)
+
+   save_mongo(overwriteguest=False)
+
+   save_note(noteabout, note='')
+
+      Save a note to mongo about a user
+
+   save_session()
+
+      Save a session out to the DB.
+
+   to_dict()
+
+      Marshall out the user obj a dictionary.
+
+   translateTrustToWords(trust)
+
+   unfollow_topic(topic)
+
+   verify_password(guessed_password, tryinverted=True)
+
+      Check a proposed password, to see if it's able to open and load
+      a user's account.
+
+class class libtavern.user.keygen
+
+   Bases: "enum.Enum"
+
+
+libtavern.utils module
+======================
+
+memorised module - container for the memorise python-memcache
+decorator
+
+libtavern.utils.checkWork(input, proof, difficulty)
+
+   Check a Proof-of-work calculation
+
+libtavern.utils.chunks(s, n)
+
+   Produce *n*-character chunks from *s*. Used in the hashes above.
+
+libtavern.utils.fix_rotation(img)
+
+   Uses exif data from an image to rotate it to viewing configuration.
+   This is useful since we're going to later strip out exif info,
+   otherwise it would be sideways. This is typically seen on images
+   uploaded from phones.
+
+libtavern.utils.gettime(format='timestamp', timestamp=None)
+
+   Get the time in various formats.
+
+class class libtavern.utils.instancer(slot='default')
+
+   Bases: "builtins.object"
+
+libtavern.utils.make_thumbnail(fileobj, filename, mime)
+
+   Make a thumbnail version of the passed in image.
+
+class class libtavern.utils.memcache_none
+
+   Bases: "builtins.object"
+
+   Stub class for storing None values in memcache, so we can
+   distinguish between None values and not-found entries.
+
+class class libtavern.utils.memorise(parent_keys=[], set=None, ttl=60, maxsize=None)
+
+   Bases: "builtins.object"
+
+   Decorate any function or class method/staticmethod with a memcace
+   enabled caching wrapper. Similar to the memoise pattern, this will
+   push mutator operators into memcache.Client.set(), and pull
+   accessor operations from memcache.Client.get().
+
+   Parameters:
+      *parent_keys* : list
+         A list of attributes in the parent instance or class to use
+         for key hashing.
+
+      *set* : string
+         An attribute present in the parent instance or class to set
+         to the same value as the cached return value. Handy for
+         keeping models in line if attributes are accessed directly in
+         other places, or for pickling instances.
+
+      *ttl* : integer
+         Tells memcached the time which this value should expire. We
+         default to 0 == cache forever. None is turn off caching.
+
+         If we pass a *taverncache* entry to the wrapped function,
+         memorise will intercept it. taverncache='invalidate' will
+         remove the entry from the cache, if it's there.
+         taverncache='bypass' will ignore the stored entry, re-run the
+         function, and re-store the result.
+
+libtavern.utils.objresolve(obj, attrspec)
+
+libtavern.utils.proveWork(input, difficulty)
+
+   Produces a Proof-of-work SHA collision based on HashCash. This is
+   useful for avoiding spam.
+
+class class libtavern.utils.randomWords(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   random()
+
+      Return a Random Fortune from the stack.
+
+   wordhash(st, slots=4)
+
+      Generate a WordHash, such as MinibarAvoureParapetedSlashings for
+      a string.
+
+libtavern.utils.randstr(length)
+
+
+Module contents
+===============

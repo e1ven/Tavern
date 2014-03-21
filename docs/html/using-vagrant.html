@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using Vagrant &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="index.html" />
+    <link rel="up" title="Tools for Developing Tavern" href="environment.html" />
+    <link rel="next" title="Using Postgresql" href="using-postgres.html" />
+    <link rel="prev" title="Tools for Developing Tavern" href="environment.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using-postgres.html" title="Using Postgresql"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="environment.html" title="Tools for Developing Tavern"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="environment.html" accesskey="U">Tools for Developing Tavern</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="using-vagrant">
+<h1>Using Vagrant<a class="headerlink" href="#using-vagrant" title="Permalink to this headline">¶</a></h1>
+<p>Tavern includes a Vagrant virtual machine, which should make it easy to run Tavern with minimal setup.</p>
+<p>Before you run the virtual machine, make sure you have Virtualbox installed. (<a class="reference external" href="https://virtualbox.org/wiki/Downloads">https://virtualbox.org/wiki/Downloads</a>)
+You will also need Vagrant installed (<a class="reference external" href="http://downloads.vagrantup.com">http://downloads.vagrantup.com</a>)</p>
+<p>Then, just cd to the Vagrant directory ( Tavern/datafiles/Vagrant) and run &#8220;vagrant up&#8221;
+The VM should install everything it needs, and then fire up Tavern.</p>
+<dl class="docutils">
+<dt>If everything went smoothly, you should be able to connect to Vagrant at:</dt>
+<dd><a class="reference external" href="http://127.0.0.1:8080/">http://127.0.0.1:8080/</a></dd>
+</dl>
+<p>To administrate the machine, cd to the Vagrant directory, and run &#8220;vagrant ssh&#8221;</p>
+</div>
+<div class="section" id="creating-your-own-vagrant-base-image">
+<h1>Creating your own Vagrant base image.<a class="headerlink" href="#creating-your-own-vagrant-base-image" title="Permalink to this headline">¶</a></h1>
+<p>The standard Tavern Vagrant box will download a basic Ubuntu install,
+and then install Tavern onto it using the normal install.sh script.</p>
+<p>If you don&#8217;t trust this base image (And frankly, you probably shouldn&#8217;t..),
+you can make your own using veewee.</p>
+<p>To create your own image, first install veewee-</p>
+<blockquote>
+<div><ol class="arabic">
+<li><dl class="first docutils">
+<dt>git clone <a class="reference external" href="https://github.com/jedi4ever/veewee.git">https://github.com/jedi4ever/veewee.git</a></dt>
+<dd><ol class="first last arabic simple" start="2">
+<li>cd veewee</li>
+<li>rvm install ruby-1.9.2-p320</li>
+<li>rvm use ruby-1.9.2-p320</li>
+<li>gem install bundler</li>
+<li>bundle install</li>
+</ol>
+</dd>
+</dl>
+</li>
+</ol>
+</div></blockquote>
+<p>Then, use veewee to create a base image.</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>veewee vbox define &#8216;tavern-minimal&#8217; &#8216;ubuntu-13.10-server-amd64&#8217;</li>
+<li>bundle exec veewee vbox build &#8216;tavern-minimal&#8217;</li>
+<li>bundle exec veewee vbox export &#8216;tavern-minimal&#8217;</li>
+<li>cp tavern-minimal.box ..</li>
+</ol>
+<p>5) cd ..
+6)</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>change the line in the Vagrantfile from</dt>
+<dd>config.vm.box_url = &#8220;<a class="reference external" href="https://www.dropbox.com/s/xnayxfshxobvrsu/tavern-minimal.box">https://www.dropbox.com/s/xnayxfshxobvrsu/tavern-minimal.box</a>&#8220;</dd>
+<dt>to</dt>
+<dd>config.vm.box_url = &#8220;tavern-minimal.box&#8221;</dd>
+</dl>
+</div></blockquote>
+</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Using Vagrant</a></li>
+<li><a class="reference internal" href="#creating-your-own-vagrant-base-image">Creating your own Vagrant base image.</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="environment.html"
+                        title="previous chapter">Tools for Developing Tavern</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="using-postgres.html"
+                        title="next chapter">Using Postgresql</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/using-vagrant.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="using-postgres.html" title="Using Postgresql"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="environment.html" title="Tools for Developing Tavern"
+             >previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="environment.html" >Tools for Developing Tavern</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

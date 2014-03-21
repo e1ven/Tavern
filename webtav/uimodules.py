@@ -101,3 +101,22 @@ class xsrf_form_html(tornado.web.UIModule):
     """
     def render(self):
         return """<input type="hidden" name="_xsrf" value="<!--# echo var='xsrftoken' default='no' -->"/>"""
+
+class NewMessage(tornado.web.UIModule):
+    """
+    Prints the form to submit a new message
+    """
+    def render(self,template,*args,**kwargs):
+        rendered = self.render_string(template,*args,**kwargs)
+
+    def javascript_files(self):
+        """
+        Add the JS files that are specific to newmessages
+        """
+        return [
+            '/static/scripts/epiceditor.min.js?v=' + serversettings.settings['static-revision'],
+            '/static/scripts/jquery.ui.widget.min.js?v=' + serversettings.settings['static-revision'],
+            '/static/scripts/jquery.iframe-transport.min.js' + serversettings.settings['static-revision'],
+            '/static/scripts/jquery.fileupload.min.js'  + serversettings.settings['static-revision'],
+            '/static/scripts/newmessage.min.js'  + serversettings.settings['static-revision']
+        ]

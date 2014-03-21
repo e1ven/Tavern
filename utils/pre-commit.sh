@@ -36,6 +36,12 @@ then
 fi
 
 echo "Generating docs"
-mkdir -p docs/html/
-sphinx-apidoc -f -H Tavern -T -o datafiles/documentation-generator/ .
-sphinx-build -b html -d datafiles/documentation-generator/_build/doctree datafiles/documentation-generator/ docs/code_documentation/
+sphinx-apidoc -f -H Tavern -T -o docs/documentation_sources/ .
+sphinx-build -b html -d docs/documentation_sources/_build/doctree docs/documentation_sources/ docs/html
+sphinx-build -b text -d docs/documentation_sources/_build/doctree docs/documentation_sources/ docs/text
+
+echo "Adding docs to git"
+find docs/ -exec git add {} \; > /dev/null 2>&1
+
+echo "Ignoring the following files-"
+git ls-files . --exclude-standard --other

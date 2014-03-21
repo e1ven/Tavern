@@ -11,6 +11,8 @@ lxml>=3.0.1
 MarkupSafe
 Markdown>=2.2.1
 bleach
+yuicompressor
+
 # BBCode - postmarkup
 
 # Formatting

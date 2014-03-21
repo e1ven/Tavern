@@ -1,0 +1,18 @@
+
+Tools for Developing Tavern
+***************************
+
+Tavern is built to be agnostic, and work with whatever platform you.
+We've added some tools to try to make it easier for you, however.
+
+* Using Vagrant
+
+* Creating your own Vagrant base image.
+
+* Using Postgresql
+
+* Developing Tavern using an IDE
+
+  * Using Sublime
+
+  * Using Pycharm

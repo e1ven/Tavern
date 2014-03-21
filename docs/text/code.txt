@@ -1,0 +1,48 @@
+
+Tavern Source Code
+******************
+
+The tavern source code is broken up into modules to make it easier to
+extend and use in various projects.
+
+* libtavern package
+
+  * Submodules
+
+  * libtavern.baseobj module
+
+  * libtavern.embedis module
+
+  * libtavern.envelope module
+
+  * libtavern.key module
+
+  * libtavern.keygen module
+
+  * libtavern.lockedkey module
+
+  * libtavern.server module
+
+  * libtavern.serversettings module
+
+  * libtavern.topic module
+
+  * libtavern.uasparser module
+
+  * libtavern.user module
+
+  * libtavern.utils module
+
+  * Module contents
+
+* webtav package
+
+  * Submodules
+
+  * webtav.uimodules module
+
+  * webtav.webbase module
+
+  * webtav.webfront module
+
+  * Module contents

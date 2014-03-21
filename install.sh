@@ -107,7 +107,7 @@ then
     # Package install for Ubuntu
     apt-get -y install g++ git-core gnupg java-common lib32z1 libfreetype6 libfreetype6-dev libjpeg8 libjpeg8-dev liblcms1-dev \
     libmagic-dev libmpc2 libpcre3-dev libpq-dev libssl-dev libtiff4-dev libwebp-dev libxml2-dev libxslt-dev libzzip-dev luajit make \
-    python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev yui-compressor zlib1g-dev libpq-dev libgmp-dev gpg
+    python-imaging python3 python3-dev scons swig tcl8.5-dev tk8.5-dev zlib1g-dev libpq-dev libgmp-dev default-jre
 
 elif [ "$os" == "OSX" ]
 then
@@ -129,7 +129,7 @@ then
         fi 
     fi
        
-    sudo -u "$user" brew install git yuicompressor exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
+    sudo -u "$user" brew install git exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
     libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget gpg
 fi
 

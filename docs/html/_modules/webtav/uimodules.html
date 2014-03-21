@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webtav.uimodules &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webtav.uimodules</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
+<span class="kn">import</span> <span class="nn">libtavern.envelope</span>
+
+
+<div class="viewcode-block" id="ShowMessage"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessage">[docs]</a><span class="k">class</span> <span class="nc">ShowMessage</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show a Tavern Message.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowMessage.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessage.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">envelope</span><span class="p">,</span> <span class="n">top</span><span class="p">):</span>
+
+        <span class="n">messagerating</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">getRatings</span><span class="p">(</span><span class="n">postInQuestion</span><span class="o">=</span><span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+        <span class="n">note</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_note</span><span class="p">(</span><span class="n">noteabout</span><span class="o">=</span><span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;medialink&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">):</span>
+            <span class="n">medialink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;downloads_url&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;medialink&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">medialink</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">top</span><span class="p">:</span>
+            <span class="n">avatarsize</span> <span class="o">=</span> <span class="mi">80</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">avatarsize</span> <span class="o">=</span> <span class="mi">40</span>
+
+        <span class="c"># Retrieve the children as objects.</span>
+        <span class="k">if</span> <span class="s">&#39;citedby&#39;</span> <span class="ow">in</span> <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citeenvs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">cite</span> <span class="ow">in</span> <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">cite</span><span class="p">)</span>
+                <span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citeenvs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-showmessage.html&quot;</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top</span><span class="p">,</span><span class="n">avatarsize</span><span class="o">=</span><span class="n">avatarsize</span><span class="p">,</span><span class="n">medialink</span><span class="o">=</span><span class="n">medialink</span><span class="p">,</span><span class="n">messagerating</span><span class="o">=</span><span class="n">messagerating</span><span class="p">,</span><span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ShowGlobalmenu"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowGlobalmenu">[docs]</a><span class="k">class</span> <span class="nc">ShowGlobalmenu</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowGlobalmenu.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowGlobalmenu.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-globalmenu.html&quot;</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ShowMessagelist"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessagelist">[docs]</a><span class="k">class</span> <span class="nc">ShowMessagelist</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the Message List (generally the middle pane)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowMessagelist.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessagelist.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c"># Ensure we messages</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">messages</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">messages</span><span class="p">(</span><span class="n">maxposts</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">maxposts</span><span class="p">,</span><span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">before</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">after</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="p">,</span><span class="s">&#39;specialtopic&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">specialtopic</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="c"># Calculate the forward/back buttons</span>
+        <span class="n">show_older</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="n">show_newer</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">messages</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">before</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">messages</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">],</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                <span class="n">show_older</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">after</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">],</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+                <span class="n">show_newer</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-messagelist.html&quot;</span><span class="p">,</span><span class="n">show_older</span><span class="o">=</span><span class="n">show_older</span><span class="p">,</span><span class="n">show_newer</span><span class="o">=</span><span class="n">show_newer</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ShowPrivateMessagelist"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowPrivateMessagelist">[docs]</a><span class="k">class</span> <span class="nc">ShowPrivateMessagelist</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowPrivateMessagelist.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowPrivateMessagelist.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">messages</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-privatemessagelist.html&quot;</span><span class="p">,</span><span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="ShowUserdetails"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowUserdetails">[docs]</a><span class="k">class</span> <span class="nc">ShowUserdetails</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowUserdetails.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowUserdetails.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">envelope</span><span class="p">,</span><span class="n">note</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="c"># Get the details on the guy we&#39;re looking up.</span>
+        <span class="n">trust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">gatherTrust</span><span class="p">(</span><span class="n">askingabout</span><span class="o">=</span><span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+        <span class="n">note</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_note</span><span class="p">(</span><span class="n">envelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-userdetails.html&quot;</span><span class="p">,</span><span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span><span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">,</span><span class="n">trust</span><span class="o">=</span><span class="n">trust</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="ShowAttachments"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowAttachments">[docs]</a><span class="k">class</span> <span class="nc">ShowAttachments</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="ShowAttachments.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowAttachments.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">envelope</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
+            <span class="s">&quot;UIModule-attachments.html&quot;</span><span class="p">,</span><span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="xsrf_form_html"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.xsrf_form_html">[docs]</a><span class="k">class</span> <span class="nc">xsrf_form_html</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Includes the XSRF token as a hidden variable.</span>
+<span class="sd">    This overwrites the default tornado xsrf_form_html, with a version that includes via SSI.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="xsrf_form_html.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.xsrf_form_html.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;&lt;input type=&quot;hidden&quot; name=&quot;_xsrf&quot; value=&quot;&lt;!--# echo var=&#39;xsrftoken&#39; default=&#39;no&#39; --&gt;&quot;/&gt;&quot;&quot;&quot;</span>
+</div></div>
+<div class="viewcode-block" id="NewMessage"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage">[docs]</a><span class="k">class</span> <span class="nc">NewMessage</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints the form to submit a new message</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NewMessage.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">template</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="n">rendered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span><span class="n">template</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="NewMessage.javascript_files"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage.javascript_files">[docs]</a>    <span class="k">def</span> <span class="nf">javascript_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add the JS files that are specific to newmessages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="s">&#39;/static/scripts/epiceditor.min.js?v=&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
+            <span class="s">&#39;/static/scripts/jquery.ui.widget.min.js?v=&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
+            <span class="s">&#39;/static/scripts/jquery.iframe-transport.min.js&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
+            <span class="s">&#39;/static/scripts/jquery.fileupload.min.js&#39;</span>  <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
+            <span class="s">&#39;/static/scripts/newmessage.min.js&#39;</span>  <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">]</span>
+        <span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

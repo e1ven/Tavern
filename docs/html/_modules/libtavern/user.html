@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.user &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.user</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+<span class="kn">import</span> <span class="nn">libtavern.lockedkey</span>
+<span class="kn">import</span> <span class="nn">libtavern.envelope</span>
+<span class="kn">import</span> <span class="nn">libtavern.utils</span>
+<span class="kn">import</span> <span class="nn">libtavern.key</span>
+<span class="kn">import</span> <span class="nn">libtavern.topic</span>
+
+<span class="kn">import</span> <span class="nn">enum</span>
+
+            <span class="c"># if self.has_unique_key:</span>
+            <span class="c">#     # This user is registered, they may have posted here before...</span>
+            <span class="c">#     posts = self.server.get_all_user_posts(self.Keys[&#39;master&#39;].pubkey)</span>
+            <span class="c">#     if len(posts) &gt; 0:</span>
+            <span class="c">#         self.friendlyname = posts[0].dict[&#39;envelope&#39;][&#39;local&#39;][&#39;author&#39;][&#39;friendlyname&#39;]</span>
+            <span class="c">#</span>
+            <span class="c">#</span>
+
+<div class="viewcode-block" id="keygen"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.keygen">[docs]</a><span class="k">class</span> <span class="nc">keygen</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
+    <span class="n">useguest</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># use the Guest key</span>
+    <span class="n">generate</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># Generate a new key for this user</span>
+    <span class="n">skip</span> <span class="o">=</span> <span class="mi">3</span>      <span class="c"># Do nothing</span>
+</div>
+<div class="viewcode-block" id="User"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User">[docs]</a><span class="k">class</span> <span class="nc">User</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a Tavern user.</span>
+
+<span class="sd">        Only creates keys if asked to.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emails</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_set_password</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_login</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastauth</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># Load in the default values for a user -</span>
+        <span class="c"># Normally, we&#39;ll pull these from the server&#39;s default user.</span>
+        <span class="c"># If it doesn&#39;t exist (such as when we&#39;re making it!), use the ones specified here.</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">,</span><span class="s">&#39;defaultuser&#39;</span><span class="p">):</span>
+            <span class="n">defaults</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">defaultuser</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">defaults</span> <span class="o">=</span> <span class="p">{}</span>
+
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">friendlyname</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;friendlyname&#39;</span><span class="p">,</span><span class="s">&#39;Anonymous&#39;</span><span class="p">)</span>
+
+        <span class="c"># Add the default topics</span>
+        <span class="n">followed_topics</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;followed_topics&#39;</span><span class="p">,[</span><span class="s">&#39;StarTrek&#39;</span><span class="p">,</span><span class="s">&#39;Python&#39;</span><span class="p">,</span><span class="s">&#39;World Politics&#39;</span><span class="p">,</span><span class="s">&#39;Funny&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">followed_topics</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">follow_topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxposts</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;maxposts&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">maxreplies</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;maxreplies&#39;</span><span class="p">,</span><span class="mi">100</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">include_location</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;include_location&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ignore_edits</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;ignore_edits&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">display_useragent</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;display_useragent&#39;</span><span class="p">,</span><span class="bp">False</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">theme</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;theme&#39;</span><span class="p">,</span><span class="s">&#39;default&#39;</span><span class="p">)</span>
+
+        <span class="c"># None indicates that no preference has been set.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">datauri</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;datauri&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">allow_embed</span> <span class="o">=</span> <span class="n">defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;allow_embed&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="c"># Note - We&#39;re not running make_hashes here.</span>
+        <span class="c"># After calling user(), you should always call a .generate() or .load() function.</span>
+        <span class="c"># If you do neither, and try to retrieve these, we want an exception</span>
+
+
+<div class="viewcode-block" id="User.make_hashes"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.make_hashes">[docs]</a>    <span class="k">def</span> <span class="nf">make_hashes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_wordhash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">wordlist</span><span class="o">.</span><span class="n">wordhash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_sha512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_wordhash</span> <span class="o">=</span> <span class="bp">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">author_sha512</span> <span class="o">=</span> <span class="bp">None</span>
+
+</div>
+<div class="viewcode-block" id="User.ensure_keys"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.ensure_keys">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate the Keys for a User()</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="p">,</span><span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="p">,</span><span class="n">keygen</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;AllowGuestKey must be either True, False or Enum&#39;</span><span class="p">)</span>
+
+        <span class="c"># Exit out if we&#39;ve already set a key</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">AllowGuestKey</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">True</span><span class="p">,</span><span class="n">keygen</span><span class="o">.</span><span class="n">useguest</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">guestuser</span><span class="o">.</span><span class="n">Keys</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">elif</span> <span class="n">AllowGuestKey</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span><span class="n">keygen</span><span class="o">.</span><span class="n">generate</span><span class="p">]:</span>
+                <span class="n">pulledkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">unusedkeycache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">block</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">lockedkey</span><span class="o">.</span><span class="n">LockedKey</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">pulledkey</span><span class="p">,</span><span class="n">passkey</span><span class="o">=</span><span class="n">pulledkey</span><span class="p">[</span><span class="s">&#39;passkey&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">passkey</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_hashes</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="User.new_posted_key"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.new_posted_key">[docs]</a>    <span class="k">def</span> <span class="nf">new_posted_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a new communication key.</span>
+<span class="sd">        This key might be attached to a forum message, or a private message.</span>
+
+<span class="sd">        By generating a new key for each message, even if our key does eventually leak</span>
+<span class="sd">        it will be difficult to decode old messages, who&#39;s keys have been deleted.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Must have a valid passkey to run this method&quot;</span><span class="p">)</span>
+
+        <span class="c"># Step 1, Create a new Key for this person.</span>
+        <span class="n">newkey</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">lockedkey</span><span class="o">.</span><span class="n">LockedKey</span><span class="p">()</span>
+        <span class="n">newkey</span><span class="o">.</span><span class="n">generate</span><span class="p">(</span><span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">passkey</span><span class="p">,</span> <span class="n">autoexpire</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newkey</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">newkey</span>
+
+</div>
+<div class="viewcode-block" id="User.verify_password"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.verify_password">[docs]</a>    <span class="k">def</span> <span class="nf">verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guessed_password</span><span class="p">,</span> <span class="n">tryinverted</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Check a proposed password, to see if it&#39;s able to open and load a</span>
+<span class="sd">        user&#39;s account.&quot;&quot;&quot;</span>
+
+        <span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tmp_passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_passkey</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">tmp_passkey</span><span class="p">):</span>
+                <span class="c"># We&#39;ve successfully unlocked.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">lastauth</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+                <span class="n">successful</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="k">if</span> <span class="n">successful</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">elif</span> <span class="n">tryinverted</span><span class="p">:</span>
+            <span class="c"># Based on the FB-technique, as described at</span>
+            <span class="c"># http://blog.agilebits.com/2011/09/13/facebook-and-caps-lock-unintuitive-security/</span>
+            <span class="c"># Prevents users with Caplocks on</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">verify_password</span><span class="p">(</span><span class="n">guessed_password</span><span class="o">=</span><span class="n">guessed_password</span><span class="o">.</span><span class="n">swapcase</span><span class="p">(),</span> <span class="n">tryinverted</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="User.get_note"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.get_note">[docs]</a>    <span class="k">def</span> <span class="nf">get_note</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noteabout</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve any note by user A about user B.&quot;&quot;&quot;</span>
+        <span class="c"># Make sure the key we&#39;re asking about is formatted right.</span>
+        <span class="c"># I don&#39;t trust myself ;)</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">noteabout</span><span class="p">)</span>
+        <span class="n">noteabout</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">pubkey</span>
+        <span class="c"># Retrieve the note from mongo</span>
+        <span class="n">note</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="s">&#39;notes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="s">&quot;noteabout&quot;</span><span class="p">:</span> <span class="n">noteabout</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">note</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">note</span><span class="p">[</span><span class="s">&#39;note&#39;</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">noteabout</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">:</span>
+            <span class="c"># I&#39;m asking about myself, and I haven&#39;t set a note yet.</span>
+            <span class="k">return</span> <span class="s">&quot;This is you!&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="User.save_note"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.save_note">[docs]</a>    <span class="k">def</span> <span class="nf">save_note</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noteabout</span><span class="p">,</span> <span class="n">note</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save a note to mongo about a user&quot;&quot;&quot;</span>
+
+        <span class="c"># Format the Key.</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">noteabout</span><span class="p">)</span>
+        <span class="n">noteabout</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">pubkey</span>
+
+        <span class="c"># Retrieve any existing note.</span>
+        <span class="c"># We do this so we can them save the new note out as an update.</span>
+
+        <span class="n">newnote</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;notes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="s">&quot;noteabout&quot;</span><span class="p">:</span> <span class="n">noteabout</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">newnote</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">newnote</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;user&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span><span class="s">&quot;noteabout&quot;</span><span class="p">:</span> <span class="n">noteabout</span><span class="p">,</span> <span class="s">&quot;note&quot;</span><span class="p">:</span> <span class="n">note</span><span class="p">}</span>
+        <span class="n">newnote</span><span class="p">[</span><span class="s">&#39;note&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">note</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;notes&#39;</span><span class="p">,</span> <span class="n">newnote</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="User.gatherTrust"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.gatherTrust">[docs]</a>    <span class="k">def</span> <span class="nf">gatherTrust</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">askingabout</span><span class="p">,</span> <span class="n">incomingtrust</span><span class="o">=</span><span class="mi">250</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return how much I trust a given ID, rather than a given post.</span>
+<span class="sd">        This is determined by several factors, but the base algorithm is:</span>
+<span class="sd">            [Keys and Spam Ranking]</span>
+<span class="sd">            [Have I rated this person]</span>
+<span class="sd">            [Have any friends rated this person]</span>
+<span class="sd">            [Have any FOF or FOFOF rated this person]</span>
+<span class="sd">            [Each generation of friends gets their trust multiplied by .4, since you trust them less and less]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Ensure we have proper formatting for the key we&#39;re examining, so we</span>
+        <span class="c"># find it in the DB.</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">askingabout</span><span class="p">)</span>
+        <span class="n">askingabout</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">pubkey</span>
+
+        <span class="c"># Our opinion of everyone starts off Neutral</span>
+        <span class="n">trust</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c"># Set the maximum amount of trust we can return.</span>
+        <span class="c"># This is set to 40% of incoming - Incoming starts at 250, to ensure</span>
+        <span class="c"># that this goes to 100 for myself.</span>
+        <span class="n">maxtrust</span> <span class="o">=</span> <span class="o">.</span><span class="mi">4</span> <span class="o">*</span> <span class="n">incomingtrust</span>
+
+        <span class="c"># We trust ourselves implicitly</span>
+        <span class="k">if</span> <span class="n">askingabout</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;I trust me.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="nb">round</span><span class="p">(</span><span class="n">incomingtrust</span><span class="p">)</span>
+
+        <span class="c"># Don&#39;t recurse forever, please.</span>
+        <span class="c"># Stop after 4 Friends-of-Friends = 100,40,16,6,0,0,0,0,0,0,0,0,0,0,0,0</span>
+        <span class="c"># etc</span>
+        <span class="k">if</span> <span class="n">incomingtrust</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="mi">0</span>
+
+        <span class="c"># Query mongo to retrieve the most recent rating for a specific user.</span>
+        <span class="n">myvote</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+            <span class="n">collection</span><span class="o">=</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+            <span class="n">query</span><span class="o">=</span><span class="p">{</span><span class="s">&quot;envelope.payload.class&quot;</span><span class="p">:</span> <span class="s">&quot;usertrust&quot;</span><span class="p">,</span>
+                   <span class="s">&quot;envelope.payload.trusted_pubkey&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">askingabout</span><span class="p">),</span>
+                   <span class="s">&quot;envelope.payload.trust&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$exists&quot;</span><span class="p">:</span> <span class="s">&quot;true&quot;</span><span class="p">},</span>
+                   <span class="s">&quot;envelope.local.author.pubkey&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)},</span>
+            <span class="n">sortkey</span><span class="o">=</span><span class="s">&quot;envelope.local.time_added&quot;</span><span class="p">,</span>
+            <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;descending&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">myvote</span><span class="p">:</span>
+            <span class="c"># If I directly rated this user, Mazel tov, that was easy.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;I rated this user directly.&quot;</span><span class="p">)</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">myvote</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;trust&#39;</span><span class="p">])</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># If we didn&#39;t directly rate the user, let&#39;s see if any of our</span>
+            <span class="c"># friends have rated him.</span>
+
+            <span class="c"># First, let&#39;s get a list of the friends we trust</span>
+            <span class="n">alltrusted</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+                <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                <span class="p">{</span><span class="s">&quot;envelope.payload.class&quot;</span><span class="p">:</span> <span class="s">&quot;usertrust&quot;</span><span class="p">,</span>
+                 <span class="s">&quot;envelope.payload.trust&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$gt&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">},</span>
+                 <span class="s">&quot;envelope.local.author.pubkey&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">})</span>
+            <span class="n">combinedFriendTrust</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">friendcount</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="c"># Now, iterate through each of those people, and see if they rated him. Check THEIR friends.</span>
+            <span class="c"># This will be slow for the first search, but the function uses a</span>
+            <span class="c"># decorator for caching.</span>
+            <span class="k">for</span> <span class="n">trusted</span> <span class="ow">in</span> <span class="n">alltrusted</span><span class="p">:</span>
+                <span class="n">friendcount</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="c"># Load in our friend from the DB.</span>
+                <span class="n">u</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
+                <span class="n">u</span><span class="o">.</span><span class="n">load_dict</span><span class="p">(</span>
+                    <span class="n">trusted</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;trusted_pubkey&#39;</span><span class="p">])</span>
+                <span class="c"># TODO -</span>
+                <span class="c"># MAKE THIS NOT LOAD BY PUBKEY</span>
+                <span class="c"># WE WANT TO RE-CREATE FROM PUBLIC DATA, NOT LOAD LOCALLY!!</span>
+
+                <span class="c"># How much do we trust our Friend...</span>
+                <span class="c"># We&#39;re only going to be here if we directly rated them, which set it out at 100</span>
+                <span class="c"># But if they&#39;re from a bad neighborhood, or if they constantly recommend people we downvote, we might decide we don&#39;t like them anymore.</span>
+                <span class="c"># That&#39;s why we want to weigh their recomendation by how much</span>
+                <span class="c"># we trust them.</span>
+                <span class="n">amountITrustThisFriend</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">gatherTrust</span><span class="p">(</span>
+                    <span class="n">askingabout</span><span class="o">=</span><span class="n">trusted</span><span class="p">[</span>
+                        <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                        <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                        <span class="s">&#39;trusted_pubkey&#39;</span><span class="p">],</span>
+                    <span class="n">incomingtrust</span><span class="o">=</span><span class="n">maxtrust</span><span class="p">)</span>
+                <span class="n">amountMyFriendTrustsAskingAbout</span> <span class="o">=</span> <span class="n">u</span><span class="o">.</span><span class="n">gatherTrust</span><span class="p">(</span>
+                    <span class="n">askingabout</span><span class="o">=</span><span class="n">askingabout</span><span class="p">,</span> <span class="n">incomingtrust</span><span class="o">=</span><span class="n">maxtrust</span><span class="p">)</span>
+
+                <span class="c"># I can never trust my friends unusual amounts.</span>
+                <span class="k">if</span> <span class="n">amountITrustThisFriend</span> <span class="o">&gt;</span> <span class="mi">100</span><span class="p">:</span>
+                    <span class="n">amountITrustThisFriend</span> <span class="o">=</span> <span class="mi">100</span>
+                <span class="k">if</span> <span class="n">amountITrustThisFriend</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">amountITrustThisFriend</span> <span class="o">=</span> <span class="mi">1</span>
+
+                <span class="n">combinedFriendTrust</span> <span class="o">+=</span> <span class="nb">round</span><span class="p">(</span>
+                    <span class="p">(</span><span class="n">amountITrustThisFriend</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span> <span class="o">*</span> <span class="n">amountMyFriendTrustsAskingAbout</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">friendcount</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">trust</span> <span class="o">=</span> <span class="n">combinedFriendTrust</span> <span class="o">/</span> <span class="n">friendcount</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;total friend average&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">trust</span><span class="p">))</span>
+
+        <span class="c"># Ensure that this element of the trust doesn&#39;t go out of range, and</span>
+        <span class="c"># unduly effect others.</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="n">maxtrust</span><span class="p">:</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="n">maxtrust</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&lt;</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">):</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">)</span>
+
+        <span class="c"># OK, so now we have a rating for this user, either directly or indirectly.</span>
+        <span class="c"># Let&#39;s add other characteristics.</span>
+        <span class="c"># For instance, If we&#39;ve upvoted this guy, that should weigh in, somewhat.</span>
+        <span class="c"># We&#39;ll weigh the vote by log2, to discourage vote-farming.</span>
+        <span class="n">ratingtally</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">allratings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;envelope.payload.class&quot;</span><span class="p">:</span> <span class="s">&quot;messagerating&quot;</span><span class="p">,</span>
+             <span class="s">&quot;envelope.payload.rating&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$exists&quot;</span><span class="p">:</span> <span class="s">&quot;true&quot;</span><span class="p">},</span>
+             <span class="s">&quot;envelope.local.regardingAuthor&quot;</span><span class="p">:</span> <span class="n">askingabout</span><span class="p">})</span>
+        <span class="k">for</span> <span class="n">rating</span> <span class="ow">in</span> <span class="n">allratings</span><span class="p">:</span>
+            <span class="n">ratingtally</span> <span class="o">+=</span> <span class="n">rating</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;rating&#39;</span><span class="p">]</span>
+
+        <span class="c"># Reduce it using log2, carefully saving the direction.</span>
+        <span class="k">if</span> <span class="n">ratingtally</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">weighted</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">ratingtally</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">elif</span> <span class="n">ratingtally</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">weighted</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">ratingtally</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">weighted</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">trust</span> <span class="o">+=</span> <span class="n">weighted</span>
+
+        <span class="c"># Ensure that this element of the trust doesn&#39;t go out of range, and</span>
+        <span class="c"># unduly effect others.</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="n">maxtrust</span><span class="p">:</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="n">maxtrust</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&lt;</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">):</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">)</span>
+
+        <span class="c"># We should also reduce their trust everytime we disagree with a recommendation.</span>
+        <span class="c"># We still like them, but we don&#39;t trust their judgement.</span>
+        <span class="c"># TODO - How can we do this without spending ALL the CPU?</span>
+        <span class="c"># Add up the trusts from our friends, and cap at MaxTrust</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="n">maxtrust</span><span class="p">:</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="n">maxtrust</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&lt;</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">):</span>
+            <span class="n">trust</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">maxtrust</span><span class="p">)</span>
+
+        <span class="n">trust</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">trust</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;trust is :&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">trust</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">trust</span>
+</div>
+<div class="viewcode-block" id="User.translateTrustToWords"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.translateTrustToWords">[docs]</a>    <span class="k">def</span> <span class="nf">translateTrustToWords</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">trust</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">==</span> <span class="mi">250</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;are&quot;</span>
+        <span class="k">if</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="mi">75</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;strongly trust&quot;</span>
+        <span class="k">elif</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="mi">50</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;moderately trust&quot;</span>
+        <span class="k">elif</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;slightly trust&quot;</span>
+        <span class="k">elif</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">10</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;are neutral toward&quot;</span>
+        <span class="k">elif</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">50</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;slightly distrust&quot;</span>
+        <span class="k">elif</span> <span class="n">trust</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">75</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;moderately distrust&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;strongly distrust&quot;</span>
+
+    <span class="c"># @memorise(parent_keys=[&#39;Keys.master.pubkey&#39;], ttl=self.server.serversettings.settings[&#39;cache&#39;][&#39;message-ratings&#39;][&#39;seconds&#39;], maxsize=self.server.serversettings.settings[&#39;cache&#39;][&#39;message-ratings&#39;][&#39;size&#39;])</span></div>
+<div class="viewcode-block" id="User.getRatings"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.getRatings">[docs]</a>    <span class="k">def</span> <span class="nf">getRatings</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">postInQuestion</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the ratings of a specific message.&quot;&quot;&quot;</span>
+        <span class="c"># Move this. Maybe to Server??</span>
+        <span class="n">allvotes</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;envelope.payload.class&quot;</span><span class="p">:</span> <span class="s">&quot;messagerating&quot;</span><span class="p">,</span>
+             <span class="s">&quot;envelope.payload.rating&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s">&quot;$exists&quot;</span><span class="p">:</span> <span class="s">&quot;true&quot;</span><span class="p">},</span>
+             <span class="s">&quot;envelope.payload.regarding&quot;</span><span class="p">:</span> <span class="n">postInQuestion</span><span class="p">})</span>
+        <span class="n">combinedrating</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">vote</span> <span class="ow">in</span> <span class="n">allvotes</span><span class="p">:</span>
+            <span class="n">author</span> <span class="o">=</span> <span class="n">vote</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span>
+            <span class="n">rating</span> <span class="o">=</span> <span class="n">vote</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;rating&#39;</span><span class="p">]</span>
+            <span class="n">authorTrust</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gatherTrust</span><span class="p">(</span><span class="n">askingabout</span><span class="o">=</span><span class="n">author</span><span class="p">)</span>
+
+            <span class="c"># Now that we know how much we trust the author, pay attention to</span>
+            <span class="c"># their rating in proportion to how much we trust them.</span>
+            <span class="k">if</span> <span class="n">authorTrust</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">authorPCT</span> <span class="o">=</span> <span class="n">authorTrust</span> <span class="o">/</span> <span class="mi">100</span>
+                <span class="n">combinedrating</span> <span class="o">+=</span> <span class="n">rating</span> <span class="o">*</span> <span class="n">authorPCT</span>
+
+        <span class="c"># Stamp based ratings give a baseline, like SpamAssassin.</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                                           <span class="p">{</span><span class="s">&quot;envelope.local.payload_sha512&quot;</span><span class="p">:</span> <span class="n">postInQuestion</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">e</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;stamps&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">]:</span>
+                <span class="n">stamps</span> <span class="o">=</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">stamp</span> <span class="ow">in</span> <span class="n">stamps</span><span class="p">:</span>
+                    <span class="c"># if it was posted directly to OUR server, we can ip limit</span>
+                    <span class="c"># it, give it a +1</span>
+                    <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;origin&quot;</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">ServerKeys</span><span class="o">.</span><span class="n">pubkey</span><span class="p">:</span>
+                            <span class="n">combinedrating</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">combinedrating</span>
+</div>
+<div class="viewcode-block" id="User.add_email"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.add_email">[docs]</a>    <span class="k">def</span> <span class="nf">add_email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">email</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">][</span><span class="s">&#39;confirmed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">][</span><span class="s">&#39;added&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="User.remove_email"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.remove_email">[docs]</a>    <span class="k">def</span> <span class="nf">remove_email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">email</span><span class="p">):</span>
+        <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="User.follow_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.follow_topic">[docs]</a>    <span class="k">def</span> <span class="nf">follow_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="n">matched</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">sortname</span> <span class="o">==</span> <span class="n">newtopic</span><span class="o">.</span><span class="n">sortname</span><span class="p">:</span>
+                <span class="n">matched</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">matched</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newtopic</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="User.unfollow_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.unfollow_topic">[docs]</a>    <span class="k">def</span> <span class="nf">unfollow_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">sortname</span> <span class="o">==</span> <span class="n">newtopic</span><span class="o">.</span><span class="n">sortname</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="User.follows_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.follows_topic">[docs]</a>    <span class="k">def</span> <span class="nf">follows_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Does this user follow the topic?&quot;&quot;&quot;</span>
+        <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="n">matched</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">sortname</span> <span class="o">==</span> <span class="n">newtopic</span><span class="o">.</span><span class="n">sortname</span><span class="p">:</span>
+                <span class="n">matched</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="n">matched</span>
+</div>
+<div class="viewcode-block" id="User.decrypt"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.decrypt">[docs]</a>    <span class="k">def</span> <span class="nf">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Decrypt a message sent to me, using one of my communication keys.</span>
+
+<span class="sd">        Note - We don&#39;t try to decrypt using the master key, even though it&#39;s technically possible.</span>
+<span class="sd">        This is intentional, so that other clients don&#39;t start sending PMs to the master key, and compromise security.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span>
+
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">LockedKey</span><span class="p">):</span>
+                <span class="n">key</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">passkey</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="User.get_pubkeys"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.get_pubkeys">[docs]</a>    <span class="k">def</span> <span class="nf">get_pubkeys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Returns a list of all public keys for a user.</span>
+<span class="sd">        Typically used to search for messages belonging to that user.</span>
+<span class="sd">        :return: A list of all public keys.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span>
+        <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">])</span>
+        <span class="n">pubs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">Keys</span><span class="p">:</span>
+            <span class="n">pub</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pubs</span>
+</div>
+<div class="viewcode-block" id="User.changepass"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.changepass">[docs]</a>    <span class="k">def</span> <span class="nf">changepass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newpassword</span><span class="p">,</span> <span class="n">oldpasskey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Change the User&#39;s password.</span>
+<span class="sd">        Since this password is used to encrypt all of the keys, we need to re-encrypt them as well.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">oldpasskey</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">oldpasskey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">changepass</span><span class="p">(</span><span class="n">oldpasskey</span><span class="o">=</span><span class="n">oldpasskey</span><span class="p">,</span> <span class="n">newpassword</span><span class="o">=</span><span class="n">newpassword</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_passkey</span><span class="p">(</span><span class="n">newpassword</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastauth</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">has_set_password</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]:</span>
+                <span class="n">key</span><span class="o">.</span><span class="n">changepass</span><span class="p">(</span><span class="n">oldpasskey</span><span class="o">=</span><span class="n">oldpasskey</span><span class="p">,</span> <span class="n">newpassword</span><span class="o">=</span><span class="n">newpassword</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+</div>
+<div class="viewcode-block" id="User.to_dict"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Marshall out the user obj a dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Start with a dump of the current obj</span>
+        <span class="n">userdict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">)</span>
+
+        <span class="c"># Delete the non-value settings</span>
+        <span class="k">del</span><span class="p">(</span><span class="n">userdict</span><span class="p">[</span><span class="s">&#39;server&#39;</span><span class="p">])</span>
+        <span class="k">del</span><span class="p">(</span><span class="n">userdict</span><span class="p">[</span><span class="s">&#39;logger&#39;</span><span class="p">])</span>
+        <span class="k">del</span><span class="p">(</span><span class="n">userdict</span><span class="p">[</span><span class="s">&#39;Keys&#39;</span><span class="p">])</span>
+        <span class="k">del</span><span class="p">(</span><span class="n">userdict</span><span class="p">[</span><span class="s">&#39;followed_topics&#39;</span><span class="p">])</span>
+
+        <span class="c"># Save Followed Topics by name, not obj</span>
+        <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;followed_topics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">]</span>
+
+        <span class="c"># Dump master key</span>
+        <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+
+        <span class="c"># Dump all posted keys</span>
+        <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;posted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]:</span>
+            <span class="n">keydict</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">key</span><span class="o">.</span><span class="n">expires</span> <span class="o">&gt;</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">):</span>
+                <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;posted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">keydict</span><span class="p">)</span>
+
+        <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span>
+        <span class="k">return</span> <span class="n">userdict</span>
+
+</div>
+<div class="viewcode-block" id="User.from_dict"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.from_dict">[docs]</a>    <span class="k">def</span> <span class="nf">from_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">userdict</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Demarshall a user obj from a dictionary.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Save in the stored values</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">userdict</span><span class="p">:</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">key</span><span class="p">,</span><span class="n">userdict</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+
+        <span class="c"># Don&#39;t restore Followed_topics by str, restore by obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">topic</span> <span class="ow">in</span> <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;followed_topics&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">follow_topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+
+        <span class="c"># Don&#39;t restore keys normally.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="c"># Restore our master key</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">lockedkey</span><span class="o">.</span><span class="n">LockedKey</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;master&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Reconstructed with encryptedprivkey&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># Restore any posted communication keys</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">userdict</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;posted&#39;</span><span class="p">]:</span>
+            <span class="n">lk</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">lockedkey</span><span class="o">.</span><span class="n">LockedKey</span><span class="p">()</span>
+            <span class="n">lk</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">lk</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">expires</span><span class="p">),</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_hashes</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="User.load_string"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_string">[docs]</a>    <span class="k">def</span> <span class="nf">load_string</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">incomingstring</span><span class="p">):</span>
+        <span class="n">userdict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+            <span class="n">incomingstring</span><span class="p">,</span>
+            <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">,</span>
+            <span class="n">object_hook</span><span class="o">=</span><span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">userdict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="User.load_file"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_file">[docs]</a>    <span class="k">def</span> <span class="nf">load_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+            <span class="n">filecontents</span> <span class="o">=</span> <span class="n">filehandle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">filecontents</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="User.load_mongo_by_pubkey"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_pubkey">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_pubkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pubkey</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a user object for a given pubkey.&quot;&quot;&quot;</span>
+
+        <span class="c"># Get Formatted key for searching.</span>
+        <span class="n">tmpkey</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">pubkey</span><span class="p">)</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,{</span><span class="s">&quot;keys.master.pubkey&quot;</span><span class="p">:</span> <span class="n">tmpkey</span><span class="o">.</span><span class="n">pubkey</span><span class="p">})</span>
+
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># If we find a local user, load in their priv and pub keys.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="User.load_mongo_by_username"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_username">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_username</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
+        <span class="c"># Local server Only</span>
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span>
+                                            <span class="p">{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="n">username</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+    </div>
+<div class="viewcode-block" id="User.load_mongo_by_sessionid"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_sessionid">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_sessionid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sessionid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load in a user, via their sessionid</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;sessions&#39;</span><span class="p">,{</span><span class="s">&quot;sessionid&quot;</span><span class="p">:</span><span class="n">sessionid</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">session</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">elif</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;expires&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_mongo_by_pubkey</span><span class="p">(</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="User.load_publicinfo_by_pubkey"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_publicinfo_by_pubkey">[docs]</a>    <span class="k">def</span> <span class="nf">load_publicinfo_by_pubkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">pubkey</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieves publicly available information for a given user.</span>
+<span class="sd">        This does leak what messages the server has received.</span>
+<span class="sd">        But shouldn&#39;t give them anything about a user they couldn&#39;t get from another server.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">pubkeyonly</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">pubkey</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pubkeyonly</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="n">_friendly</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">for</span> <span class="n">envelope</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.local.author.pubkey&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">},</span> <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">maxposts</span><span class="p">,</span> <span class="n">sortkey</span><span class="o">=</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">,</span> <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;descending&#39;</span><span class="p">):</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">_friendly</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="s">&#39;friendlyname&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">]:</span>
+                <span class="c"># Take the newest name we see.</span>
+                <span class="n">_friendly</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;friendlyname&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s">&#39;replyto&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">]:</span>
+                <span class="c"># Take the newest key we see.</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;replyto&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">_friendly</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">friendlyname</span> <span class="o">=</span> <span class="n">_friendly</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">make_hashes</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="User.save_file"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.save_file">[docs]</a>    <span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">author_sha512</span> <span class="o">+</span> <span class="s">&quot;.TavernUser&quot;</span>
+
+        <span class="n">userdict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+            <span class="n">filehandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">userdict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="User.save_mongo"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.save_mongo">[docs]</a>    <span class="k">def</span> <span class="nf">save_mongo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">overwriteguest</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">userdict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">overwriteguest</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">guestuser</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">userdict</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span> <span class="n">userdict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="User.save_session"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.save_session">[docs]</a>    <span class="k">def</span> <span class="nf">save_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Save a session out to the DB.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sessiondict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">sessiondict</span><span class="p">[</span><span class="s">&#39;sessionid&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="n">sessiondict</span><span class="p">[</span><span class="s">&#39;expires&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;session_lifetime&#39;</span><span class="p">]</span>
+        <span class="n">sessiondict</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">sessions</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;sessions&#39;</span><span class="p">,</span> <span class="n">sessiondict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">sessiondict</span><span class="p">[</span><span class="s">&#39;sessionid&#39;</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

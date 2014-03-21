@@ -1,0 +1,536 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.utils &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.utils</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;memorised module - container for the memorise python-memcache decorator&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">string</span>
+<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+<span class="kn">import</span> <span class="nn">zlib</span>
+
+<div class="viewcode-block" id="proveWork"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.proveWork">[docs]</a><span class="k">def</span> <span class="nf">proveWork</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Produces a Proof-of-work SHA collision based on HashCash.</span>
+<span class="sd">    This is useful for avoiding spam.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># Calculate the base hash, which we can then add to later.</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">input</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+    <span class="n">basehash</span> <span class="o">=</span> <span class="n">h</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c"># We&#39;ll always add a padding number, even if it&#39;s 0.</span>
+    <span class="c"># Even if a basestring matters, we ignore that.</span>
+    <span class="n">zerocount</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">count</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">while</span> <span class="n">zerocount</span> <span class="o">&lt;</span> <span class="n">difficulty</span><span class="p">:</span>
+        <span class="n">newhash</span> <span class="o">=</span> <span class="n">basehash</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">newhash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">count</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+
+        <span class="c"># Get the raw bit string of the hash</span>
+        <span class="n">binver</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">newhash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span> <span class="mi">16</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span>
+        <span class="n">zerocount</span> <span class="o">=</span> <span class="mi">256</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">binver</span><span class="p">)</span>
+
+        <span class="n">finalcount</span> <span class="o">=</span> <span class="n">count</span>
+        <span class="n">count</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">finalcount</span>
+
+</div>
+<div class="viewcode-block" id="checkWork"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.checkWork">[docs]</a><span class="k">def</span> <span class="nf">checkWork</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span> <span class="n">proof</span><span class="p">,</span> <span class="n">difficulty</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Check a Proof-of-work calculation</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Verifying Work&quot;</span><span class="p">)</span>
+    <span class="c"># Verify our hash</span>
+    <span class="n">fullstr</span> <span class="o">=</span> <span class="nb">input</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">proof</span><span class="p">)</span>
+    <span class="n">verify</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha256</span><span class="p">()</span>
+    <span class="n">verify</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">fullstr</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+
+    <span class="c"># Get us back to a binstring of length 256, containing only the bits</span>
+    <span class="n">binstr</span> <span class="o">=</span> <span class="nb">bin</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">verify</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span> <span class="mi">16</span><span class="p">))[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span>
+
+    <span class="c"># Generate a string of 0s the appropriate length.</span>
+    <span class="n">matchstr</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">zfill</span><span class="p">(</span><span class="n">difficulty</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">binstr</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">difficulty</span><span class="p">]</span> <span class="o">==</span> <span class="n">matchstr</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Work Verifies&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Work fails to verify&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">False</span>
+
+</div>
+<div class="viewcode-block" id="gettime"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.gettime">[docs]</a><span class="k">def</span> <span class="nf">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">,</span><span class="n">timestamp</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Get the time in various formats.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span> <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;timestamp&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;datetime&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dt</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;longstr&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000000</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;relative&#39;</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">timestamp</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;just now&quot;</span>
+        <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">60</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">delta</span><span class="p">))</span> <span class="o">+</span> <span class="s">&#39; seconds ago&#39;</span>
+        <span class="k">elif</span> <span class="mi">60</span> <span class="o">&lt;=</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">180</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;a few minutes ago&#39;</span>
+        <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">3600</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">delta</span><span class="o">//</span><span class="mi">60</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; minutes ago&#39;</span>
+        <span class="k">elif</span> <span class="mi">3600</span> <span class="o">&lt;=</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">7200</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;an hour ago&#39;</span>
+        <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">86400</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">delta</span><span class="o">//</span><span class="mi">3600</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; hours ago&#39;</span>
+        <span class="k">elif</span> <span class="mi">86400</span> <span class="o">&lt;=</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">172800</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;yesterday&#39;</span>
+        <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">5184000</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">delta</span><span class="o">//</span><span class="mi">86400</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; days ago&#39;</span>
+        <span class="k">elif</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">31536000</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">delta</span><span class="o">//</span><span class="mi">2592000</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; months ago&#39;</span>
+        <span class="k">elif</span> <span class="mi">31536000</span> <span class="o">&lt;=</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">63072000</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&#39;last year&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">delta</span><span class="o">//</span><span class="mi">31536000</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; years ago&#39;</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;iso&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dt</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;printable&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dt</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&quot;%A, %B </span><span class="si">%d</span><span class="s">, %Y at %I:%M%p&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="randomWords"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randomWords">[docs]</a><span class="k">class</span> <span class="nc">randomWords</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fortunefile</span><span class="o">=</span><span class="s">&quot;datafiles/fortunes&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fortunefile</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fortunes</span><span class="p">:</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="n">fortunes</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+            <span class="n">lines</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="n">line</span><span class="p">:</span>
+                <span class="n">lines</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">lstrip</span><span class="p">())</span>
+                <span class="n">line</span> <span class="o">=</span> <span class="n">fortunes</span><span class="o">.</span><span class="n">readline</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot; fortunes loaded.&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="randomWords.random"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randomWords.random">[docs]</a>    <span class="k">def</span> <span class="nf">random</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a Random Fortune from the stack.&quot;&quot;&quot;</span>
+        <span class="n">fortuneindex</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">SystemRandom</span><span class="p">()</span><span class="o">.</span><span class="n">randrange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span><span class="p">[</span><span class="n">fortuneindex</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="randomWords.wordhash"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randomWords.wordhash">[docs]</a>    <span class="k">def</span> <span class="nf">wordhash</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">st</span><span class="p">,</span> <span class="n">slots</span><span class="o">=</span><span class="mi">4</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generate a WordHash, such as MinibarAvoureParapetedSlashings for a</span>
+<span class="sd">        string.&quot;&quot;&quot;</span>
+
+        <span class="c"># Build a hash of the word</span>
+        <span class="n">hsh</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+        <span class="n">hsh</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">hexdigest</span> <span class="o">=</span> <span class="n">hsh</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+
+        <span class="n">chunksize</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hexdigest</span><span class="p">)</span> <span class="o">/</span> <span class="n">slots</span><span class="p">)</span>
+
+        <span class="n">words</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">segment</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">(</span><span class="n">hexdigest</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">):</span>
+            <span class="n">intversion</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">segment</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+
+            <span class="c"># figure out which array integer the word is in</span>
+            <span class="n">fortuneslot</span> <span class="o">=</span> <span class="n">intversion</span> <span class="o">%</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span><span class="p">)</span>
+            <span class="n">word</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fortunes</span><span class="p">[</span><span class="n">fortuneslot</span><span class="p">]</span>
+            <span class="n">words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">word</span><span class="p">)</span>
+
+        <span class="c"># Turn the words into a CamelCase term</span>
+        <span class="c"># Ensure we drop the remainder</span>
+        <span class="n">s</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">words</span><span class="p">[:</span><span class="n">slots</span><span class="p">]:</span>
+            <span class="n">s</span> <span class="o">+=</span> <span class="n">word</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">s</span>
+
+</div></div>
+<div class="viewcode-block" id="chunks"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.chunks">[docs]</a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Produce `n`-character chunks from `s`.</span>
+<span class="sd">    Used in the hashes above.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">start</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">s</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">start</span> <span class="o">+</span> <span class="n">n</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="randstr"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randstr">[docs]</a><span class="k">def</span> <span class="nf">randstr</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+    <span class="n">available</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
+    <span class="n">ran</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+        <span class="n">ran</span> <span class="o">+=</span> <span class="n">random</span><span class="o">.</span><span class="n">SystemRandom</span><span class="p">()</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">available</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">ran</span>
+
+</div>
+<span class="k">class</span> <span class="nc">TavernCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generic in-memory cache object to store values in.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mc</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cache</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">queues</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">TavernCache</span> <span class="o">=</span> <span class="n">TavernCache</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="objresolve"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.objresolve">[docs]</a><span class="k">def</span> <span class="nf">objresolve</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attrspec</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="n">attrspec</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span>
+        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">KeyError</span><span class="p">):</span>
+            <span class="n">obj</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">obj</span>
+
+</div>
+<div class="viewcode-block" id="instancer"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.instancer">[docs]</a><span class="k">class</span> <span class="nc">instancer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="n">_shared_state</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">slot</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+        <span class="n">cn</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">cn</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_state</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shared_state</span><span class="p">[</span><span class="n">cn</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">slot</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_state</span><span class="p">[</span><span class="n">cn</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_shared_state</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_shared_state</span><span class="p">[</span><span class="n">cn</span><span class="p">][</span><span class="n">slot</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="memorise"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.memorise">[docs]</a><span class="k">class</span> <span class="nc">memorise</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Decorate any function or class method/staticmethod with a memcace</span>
+<span class="sd">        enabled caching wrapper. Similar to the memoise pattern, this will push</span>
+<span class="sd">        mutator operators into memcache.Client.set(), and pull accessor</span>
+<span class="sd">        operations from memcache.Client.get().</span>
+
+<span class="sd">        :Parameters:</span>
+<span class="sd">          `parent_keys` : list</span>
+<span class="sd">            A list of attributes in the parent instance or class to use for</span>
+<span class="sd">            key hashing.</span>
+<span class="sd">          `set` : string</span>
+<span class="sd">            An attribute present in the parent instance or class to set</span>
+<span class="sd">            to the same value as the cached return value. Handy for keeping</span>
+<span class="sd">            models in line if attributes are accessed directly in other</span>
+<span class="sd">            places, or for pickling instances.</span>
+<span class="sd">          `ttl` : integer</span>
+<span class="sd">            Tells memcached the time which this value should expire.</span>
+<span class="sd">            We default to 0 == cache forever. None is turn off caching.</span>
+
+
+<span class="sd">            If we pass a `taverncache` entry to the wrapped function, memorise will intercept it.</span>
+<span class="sd">            taverncache=&#39;invalidate&#39; will remove the entry from the cache, if it&#39;s there.</span>
+<span class="sd">            taverncache=&#39;bypass&#39; will ignore the stored entry, re-run the function, and re-store the result.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent_keys</span><span class="o">=</span><span class="p">[],</span> <span class="nb">set</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ttl</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">maxsize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+                <span class="c"># Instance some default values, and customisations</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">parent_keys</span> <span class="o">=</span> <span class="n">parent_keys</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set</span> <span class="o">=</span> <span class="nb">set</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">ttl</span> <span class="o">=</span> <span class="n">ttl</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">maxsize</span> <span class="o">=</span> <span class="n">maxsize</span>
+
+        <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fn</span><span class="p">):</span>
+                <span class="nd">@wraps</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+                <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                        <span class="c"># Get a list of arguement names from the func_code</span>
+                        <span class="c"># attribute on the function/method instance, so we can</span>
+                        <span class="c"># test for the presence of self or cls, as decorator</span>
+                        <span class="c"># wrapped instances lose frame and no longer contain a</span>
+                        <span class="c"># reference to their parent instance/class within this</span>
+                        <span class="c"># frame</span>
+                        <span class="n">argnames</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">__code__</span><span class="o">.</span><span class="n">co_varnames</span><span class="p">[</span>
+                            <span class="p">:</span><span class="n">fn</span><span class="o">.</span><span class="n">__code__</span><span class="o">.</span><span class="n">co_argcount</span><span class="p">]</span>
+                        <span class="n">method</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">static</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="n">taverncache</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">argnames</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="n">argnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;self&#39;</span> <span class="ow">or</span> <span class="n">argnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cls&#39;</span><span class="p">:</span>
+                                    <span class="n">method</span> <span class="o">=</span> <span class="bp">True</span>
+                                <span class="k">if</span> <span class="n">argnames</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;cls&#39;</span><span class="p">:</span>
+                                    <span class="n">static</span> <span class="o">=</span> <span class="bp">True</span>
+
+                        <span class="n">arg_values_hash</span> <span class="o">=</span> <span class="p">[]</span>
+                        <span class="c"># Grab all the keyworded and non-keyworded arguements so</span>
+                        <span class="c"># that we can use them in the hashed memcache key</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">argnames</span><span class="p">,</span> <span class="n">args</span><span class="p">),</span> <span class="nb">iter</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))):</span>
+                                <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;self&#39;</span><span class="p">,</span> <span class="s">&#39;cls&#39;</span><span class="p">,</span> <span class="s">&#39;taverncache&#39;</span><span class="p">]:</span>
+                                                <span class="n">arg_values_hash</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                                    <span class="s">&quot;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">))</span>
+                                <span class="k">elif</span> <span class="n">i</span> <span class="o">==</span> <span class="s">&#39;taverncache&#39;</span><span class="p">:</span>
+                                    <span class="n">taverncache</span> <span class="o">=</span> <span class="n">v</span>
+
+                        <span class="k">if</span> <span class="s">&#39;taverncache&#39;</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+                            <span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s">&#39;taverncache&#39;</span><span class="p">)</span>
+
+                        <span class="n">class_name</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">if</span> <span class="n">method</span><span class="p">:</span>
+                                <span class="n">keys</span> <span class="o">=</span> <span class="p">[]</span>
+                                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parent_keys</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                                        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">parent_keys</span><span class="p">:</span>
+                                                <span class="n">tempkey</span> <span class="o">=</span> <span class="p">{}</span>
+                                                <span class="n">tempkey</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">objresolve</span><span class="p">(</span>
+                                                    <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>
+                                                <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tempkey</span><span class="p">)</span>
+                                <span class="n">keys</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+                                <span class="k">if</span> <span class="n">static</span><span class="p">:</span>
+                                <span class="c"># Get the class name from the cls argument</span>
+                                        <span class="n">class_name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span>
+                                <span class="k">else</span><span class="p">:</span>
+                                <span class="c"># Get the class name from the self argument</span>
+                                        <span class="n">class_name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+                                <span class="n">module_name</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span>
+                                    <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">__name__</span>
+                                <span class="n">parent_name</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s">[</span><span class="si">%s</span><span class="s">]::&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                                    <span class="n">module_name</span><span class="p">,</span> <span class="n">class_name</span><span class="p">,</span> <span class="n">keys</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                                <span class="c"># Function passed in, use the module name as the</span>
+                                <span class="c"># parent</span>
+                                <span class="n">parent_name</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmodule</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span><span class="o">.</span><span class="n">__name__</span>
+                        <span class="c"># Create a unique hash of the function/method call</span>
+                        <span class="n">key</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s%s</span><span class="s">(</span><span class="si">%s</span><span class="s">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">parent_name</span><span class="p">,</span>
+                                            <span class="n">fn</span><span class="o">.</span><span class="n">__name__</span><span class="p">,</span> <span class="s">&quot;,&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_values_hash</span><span class="p">))</span>
+
+                        <span class="c"># If taverncache is set to &#39;invalidate&#39;, don&#39;t run the function..</span>
+                        <span class="c"># Instead, just drop the result from the cache.</span>
+                        <span class="k">if</span> <span class="n">taverncache</span> <span class="o">==</span> <span class="s">&#39;invalidate&#39;</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">:</span>
+                                <span class="n">val</span> <span class="o">=</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                                <span class="k">return</span> <span class="n">val</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="k">return</span> <span class="bp">False</span>
+
+                        <span class="c"># Check to see if we have a valid/current cached</span>
+                        <span class="c"># result.</span>
+                        <span class="n">usecached</span> <span class="o">=</span> <span class="bp">False</span>
+                        <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">:</span>
+                            <span class="n">output</span> <span class="o">=</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttl</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">or</span> <span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&#39;timeset&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">ttl</span><span class="p">:</span>
+                                <span class="n">output</span> <span class="o">=</span> <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+                                <span class="n">usecached</span> <span class="o">=</span> <span class="bp">True</span>
+
+                        <span class="c"># &#39;taverncache=bypass&#39; will skip the cached value, and end up restoring.</span>
+                        <span class="k">if</span> <span class="n">usecached</span> <span class="ow">is</span> <span class="bp">False</span> <span class="ow">or</span> <span class="n">taverncache</span> <span class="o">==</span> <span class="s">&#39;bypass&#39;</span><span class="p">:</span>
+                            <span class="n">output</span> <span class="o">=</span> <span class="n">fn</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+                            <span class="k">if</span> <span class="n">output</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="n">set_value</span> <span class="o">=</span> <span class="n">memcache_none</span><span class="p">()</span>
+                            <span class="k">else</span><span class="p">:</span>
+                                <span class="n">set_value</span> <span class="o">=</span> <span class="n">output</span>
+
+                            <span class="c"># We&#39;re going to store a key.</span>
+                            <span class="c"># Make room if nec; This shouldn&#39;t run more than once, but the while will ensure</span>
+                            <span class="c"># That if we get out of whack, this will correct</span>
+                            <span class="c"># it.</span>
+                            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxsize</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">maxsize</span><span class="p">:</span>
+                                    <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="o">.</span><span class="n">popitem</span><span class="p">(</span><span class="n">last</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                            <span class="n">TavernCache</span><span class="o">.</span><span class="n">mc</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;value&#39;</span><span class="p">:</span>
+                                                   <span class="n">set_value</span><span class="p">,</span> <span class="s">&#39;timeset&#39;</span><span class="p">:</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()}</span>
+
+                        <span class="k">if</span> <span class="n">output</span><span class="o">.</span><span class="n">__class__</span> <span class="o">==</span> <span class="n">memcache_none</span><span class="p">:</span>
+                                <span class="c"># Because not-found keys return</span>
+                                <span class="c"># a None value, we use the</span>
+                                <span class="c"># memcache_none stub class to</span>
+                                <span class="c"># detect these, and make a</span>
+                                <span class="c"># distinction between them and</span>
+                                <span class="c"># actual None values</span>
+                                <span class="n">output</span> <span class="o">=</span> <span class="bp">None</span>
+                        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">:</span>
+                                <span class="c"># Set an attribute of the parent</span>
+                                <span class="c"># instance/class to the output value,</span>
+                                <span class="c"># this can help when other code</span>
+                                <span class="c"># accesses attribures directly, or you</span>
+                                <span class="c"># want to pickle the instance</span>
+                                <span class="n">set_attr</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+                                <span class="n">set_attr</span> <span class="o">=</span> <span class="n">output</span>
+                        <span class="k">return</span> <span class="n">output</span>
+                <span class="k">return</span> <span class="n">wrapper</span>
+
+</div>
+<div class="viewcode-block" id="memcache_none"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.memcache_none">[docs]</a><span class="k">class</span> <span class="nc">memcache_none</span><span class="p">:</span>
+
+        <span class="sd">&quot;&quot;&quot;Stub class for storing None values in memcache,</span>
+<span class="sd">        so we can distinguish between None values and not-found</span>
+<span class="sd">        entries.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="fix_rotation"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.fix_rotation">[docs]</a><span class="k">def</span> <span class="nf">fix_rotation</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses exif data from an image to rotate it to viewing configuration.</span>
+<span class="sd">    This is useful since we&#39;re going to later strip out exif info, otherwise it would be sideways.</span>
+<span class="sd">    This is typically seen on images uploaded from phones.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">img</span><span class="p">,</span><span class="n">Image</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Can&#39;t remove exif data from non-image object&quot;</span><span class="p">)</span>
+
+    <span class="c"># Most image formats have no exif data</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">im</span><span class="p">,</span><span class="s">&#39;_getexif&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">img</span>
+
+    <span class="n">exif</span><span class="o">=</span><span class="n">im</span><span class="o">.</span><span class="n">_getexif</span><span class="p">()</span>
+
+    <span class="c"># Rotate the image if nec, since without the EXIF data,</span>
+    <span class="c"># Browsers/etc won&#39;t know how to display it.</span>
+
+    <span class="n">orientation</span> <span class="o">=</span> <span class="n">exif</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">247</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_180</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_TOP_BOTTOM</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">5</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_TOP_BOTTOM</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">6</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">FLIP_LEFT_RIGHT</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_270</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">orientation</span> <span class="o">==</span> <span class="mi">8</span><span class="p">:</span>
+        <span class="n">img</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">Image</span><span class="o">.</span><span class="n">ROTATE_90</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">img</span>
+</div>
+<div class="viewcode-block" id="make_thumbnail"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.make_thumbnail">[docs]</a><span class="k">def</span> <span class="nf">make_thumbnail</span><span class="p">(</span><span class="n">fileobj</span><span class="p">,</span><span class="n">filename</span><span class="p">,</span><span class="n">mime</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Make a thumbnail version of the passed in image.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c"># Ensure it&#39;s an image</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;image/jpeg&#39;</span><span class="p">,</span><span class="s">&#39;image/gif&#39;</span><span class="p">,</span><span class="s">&#39;image/png&#39;</span><span class="p">,</span><span class="s">&#39;image/x-ms-bmp&#39;</span><span class="p">,</span><span class="s">&#39;image/bmp&#39;</span><span class="p">,</span><span class="s">&#39;image/x-bmp&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">mime</span> <span class="ow">in</span> <span class="n">images</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c"># Ensure it&#39;s not too big</span>
+        <span class="k">if</span> <span class="n">fileobj</span><span class="o">.</span><span class="n">length</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;max-upload-preview-size&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+        <span class="c"># Ensure we don&#39;t already have a thumnail</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">filename</span>
+
+        <span class="n">fileobj</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fileobj</span><span class="p">)</span>
+        <span class="n">im</span> <span class="o">=</span> <span class="n">fix_rotation</span><span class="p">(</span><span class="n">im</span><span class="p">)</span>
+
+        <span class="n">size</span><span class="o">=</span> <span class="p">(</span><span class="mi">640</span><span class="p">,</span><span class="mi">480</span><span class="p">)</span>
+        <span class="n">im</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">(</span><span class="n">size</span><span class="p">,</span><span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+
+        <span class="n">thumbnail</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">new_file</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">im</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">thumbnail</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;png&#39;</span><span class="p">)</span>
+        <span class="n">thumbnail</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">filename</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">None</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

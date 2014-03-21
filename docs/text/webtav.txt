@@ -1,0 +1,368 @@
+
+webtav package
+**************
+
+
+Submodules
+==========
+
+
+webtav.uimodules module
+=======================
+
+class class webtav.uimodules.NewMessage(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Prints the form to submit a new message
+
+   javascript_files()
+
+      Add the JS files that are specific to newmessages
+
+   render(template, *args, **kwargs)
+
+class class webtav.uimodules.ShowAttachments(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show the Global Menu (generally the first pane on the left)
+
+   render(envelope)
+
+class class webtav.uimodules.ShowGlobalmenu(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show the Global Menu (generally the first pane on the left)
+
+   render()
+
+class class webtav.uimodules.ShowMessage(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show a Tavern Message.
+
+   render(envelope, top)
+
+class class webtav.uimodules.ShowMessagelist(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show the Message List (generally the middle pane)
+
+   render()
+
+class class webtav.uimodules.ShowPrivateMessagelist(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show the Global Menu (generally the first pane on the left)
+
+   render(messages)
+
+class class webtav.uimodules.ShowUserdetails(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Show the Global Menu (generally the first pane on the left)
+
+   render(envelope, note=None)
+
+class class webtav.uimodules.xsrf_form_html(handler)
+
+   Bases: "tornado.web.UIModule"
+
+   Includes the XSRF token as a hidden variable. This overwrites the
+   default tornado xsrf_form_html, with a version that includes via
+   SSI.
+
+   render()
+
+
+webtav.webbase module
+=====================
+
+class class webtav.webbase.BaseHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.XSRFBaseHandler"
+
+   The default HTTPHandler for webtavern.
+
+   add_js(file=None, files=None)
+
+      Add a Javascript file to this request
+
+   get_template_namespace()
+
+      Provides a dict of variables/functions that are available to
+      templates.
+
+      Returns:
+         dict
+
+   get_template_path()
+
+      Returns the correct template path for the current theme.
+
+      Currently this is using the chosen theme, but eventually we can
+      default to mobile/etc here Overwrite to force a handler to use a
+      specific theme (such as SiteMap)
+
+   load_session(AllowGuestKey=True)
+
+      Load into memory the User class by way of the session cookie.
+
+      Generates a new user (usually guest) if it can't find one.
+
+   save_session()
+
+      Saves the current user to a session cookie.
+
+      These are encrypted by Tornado.
+
+   setheaders()
+
+      Set various headers that each HTTP response should have.
+
+   write_error(status_code, **kwargs)
+
+      Catch exceptions and print out an error message using a
+      template.
+
+class class webtav.webbase.XSRFBaseHandler(application, request, **kwargs)
+
+   Bases: "tornado.web.RequestHandler"
+
+   A version of the Tornado RequestHandler with additional security in
+   the XSRF token.
+
+   secure
+
+      Returns if the connection is loaded over https
+
+   set_secure_cookie(name, value, **kwargs)
+
+   xsrf_token
+
+      The XSRF value is a randomly generated string that is set in
+      both POST requests and cookies.
+
+      Overwritten from the Tornado default to use systemrandom rather
+      than uuid. Like tornado, this method will set a cookie with the
+      xsrf value if it does not currently exist.
+
+exception exception webtav.webbase.weberror(code=500, short=None, long=None, log=None, *args, **kwargs)
+
+   Bases: "builtins.Exception"
+
+   A generic http error message that supports subject/body.
+
+   Raising the exception is preferred to calling write_error directly,
+   This way we can log, look up errors in translation, etc.
+
+
+webtav.webfront module
+======================
+
+class class webtav.webfront.AllMessagesHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get()
+
+      Display all messages.
+
+class class webtav.webfront.AllSavedHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get()
+
+      Display all messages.
+
+class class webtav.webfront.AvatarHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Create Avatars using Robohashes. You should cache these on disk
+   using nginx.
+
+   get(avatar)
+
+class class webtav.webfront.CatchallHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Handler for any requests that aren't handled anywhere else. Returns
+   404.
+
+   delete()
+
+   get()
+
+   post()
+
+   put()
+
+class class webtav.webfront.EntryHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get()
+
+      A simple redirect, that will redirect people from / to a FAQ.
+
+      Currently, this redirects everyone. Eventually, it may give a
+      different experience for first-time visitors.
+
+class class webtav.webfront.MessageHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get(*args)
+
+      Retrieve and Display a message
+
+      Parameters:
+         **args** -- The messageid should always be the final param
+         passed in. We should be able to arrive here by either /m/uuid
+         or /t/topic/subject/uuid
+
+class class webtav.webfront.MessageHistoryHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get(messageid, topic=None, short_name=None)
+
+      Display the various edits to a message.
+
+class class webtav.webfront.NewMessageHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Create a new message.
+
+   get(topic=None)
+
+class class webtav.webfront.RegisterHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Register a new user for the site.
+
+   get()
+
+   post()
+
+class class webtav.webfront.ShowAllTopicsHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Show every known topic
+
+   get(page=0)
+
+class class webtav.webfront.SiteContentHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Displays site content, such as FAQ, Ettiquite, etc, without replies
+   or other chrome.
+
+   get(message)
+
+class class webtav.webfront.SiteIndexHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get()
+
+      Return a sitemap index file, which includes all other sitemap
+      files. Since each sitemap.xml file can only contain 50K urls, we
+      need to split these.
+
+   get_template_path()
+
+      Force this request out of the robots folder, since it's not for
+      people.
+
+class class webtav.webfront.SitemapMessagesHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get(iteration)
+
+      Create a sitemap.xml file to show a slice of messages.
+
+   get_template_path()
+
+      Force this request out of the robots folder, since it's not for
+      people.
+
+class class webtav.webfront.TopicHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   get(topic)
+
+      Display the messages for a given topic
+
+class class webtav.webfront.TopicPropertiesHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Show Properties for a topic
+
+   get(topic)
+
+class class webtav.webfront.UserHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseHandler"
+
+   Print the User's information
+
+   If this is your account, also shows an UI to change settings.
+
+   get(pubkey)
+
+class class webtav.webfront.XSRFHandler(application, request, **kwargs)
+
+   Bases: "webtav.webbase.XSRFBaseHandler"
+
+   The XSRF handler returns a xsrf token
+
+   This handler's output is included into the header via nginx SSI. By
+   importing via SSI, nginx can cache the output from other handlers.
+
+   Otherwise, each request from a non-logged in user would do a full
+   page-load, since the Set-Cookie would bypass the cache.
+
+   We do need a separate token for each request, since the site
+   contains a login form. Combining them in nginx lets us have a
+   separate xsrf value while still caching on sessionid.
+
+   This inherits from XSRFBaseHandler so that it bypasses the regular
+   login/session path.
+
+   get()
+
+      Internal only handler that returns the xsrf token. This is
+      called by nginx, not accessible to the outside world.
+
+   get_template_path()
+
+      Force this request out of the robots folder, since it's not for
+      people.
+
+webtav.webfront.main()
+
+   Starts and runs the Python component of the Tavern web interface.
+   You are NOT supposed to connect to Tornado directly, connections
+   MUST go through Nginx. Nginx will connect to tornado through a
+   domain socket.
+
+
+Module contents
+===============

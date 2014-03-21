@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Using Postgresql &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="index.html" />
+    <link rel="up" title="Tools for Developing Tavern" href="environment.html" />
+    <link rel="next" title="Developing Tavern using an IDE" href="ides.html" />
+    <link rel="prev" title="Using Vagrant" href="using-vagrant.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ides.html" title="Developing Tavern using an IDE"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="using-vagrant.html" title="Using Vagrant"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="environment.html" accesskey="U">Tools for Developing Tavern</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="using-postgresql">
+<h1>Using Postgresql<a class="headerlink" href="#using-postgresql" title="Permalink to this headline">¶</a></h1>
+<p># Tavern works with either MongoDB or Postgres.
+# The support for postgres is not as well tested as other parts of Tavern-
+# It works reasonably well, but there&#8217;s more work to do.</p>
+<p># You&#8217;ll likely want to use  <a class="reference external" href="http://postgresapp.com/">http://postgresapp.com/</a> instead of compiling postgres yourself.
+# I&#8217;d suggest version &gt; 9.2.4.3 (<a class="reference external" href="https://s3-eu-west-1.amazonaws.com/eggerapps.at/postgresapp/PostgresApp-9.2.4.3-Beta2.zip">https://s3-eu-west-1.amazonaws.com/eggerapps.at/postgresapp/PostgresApp-9.2.4.3-Beta2.zip</a>)</p>
+<p>PATH=&#8221;/Applications/Postgres.app/Contents/MacOS/bin:$PATH&#8221;</p>
+<p># Create Tavern DB
+createdb -O`whoami` -Eutf8 Tavern
+psql -d Tavern -c &#8220;CREATE EXTENSION plv8&#8221;</p>
+<p>cd /opt/Tavern/libs
+git clone <a class="reference external" href="https://github.com/JerrySievert/mongolike.git">https://github.com/JerrySievert/mongolike.git</a>
+cd mongolike</p>
+<p>psql Tavern &lt; create_collection.sql
+psql Tavern &lt; drop_collection.sql
+psql Tavern &lt; find.sql
+psql Tavern &lt; mapreduce.sql
+psql Tavern &lt; save.sql
+psql Tavern &lt; whereclause.sql</p>
+<p>#
+# select save(&#8216;test&#8217;,&#8217;&#8221;{&#8220;f&#8221;: 1}&#8221;&#8217;);
+# select find(&#8216;test&#8217;,&#8217;&#8221;{}&#8221;&#8217;);</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="using-vagrant.html"
+                        title="previous chapter">Using Vagrant</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="ides.html"
+                        title="next chapter">Developing Tavern using an IDE</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/using-postgres.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ides.html" title="Developing Tavern using an IDE"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="using-vagrant.html" title="Using Vagrant"
+             >previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="environment.html" >Tools for Developing Tavern</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

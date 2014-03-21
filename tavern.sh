@@ -297,38 +297,6 @@ function findcommands
     fi
     writearg stat "$stat"
 
-    if [ -z "$yui" ]
-    then
-        # The yui-compressor will compress JS and CSS.
-        # The command to run it is different on OSX and Linux, however, so figure out which one we have
-        # If we don't have either, use 'cat' as an alternate 'compressor'
-
-        say "Testing ability to Minimize" "minor"
-        yui-compressor -h > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            yui='yui-compressor'
-        fi
-
-        yuicompressor -h  > /dev/null 2>&1
-        if [ $? -eq 0 ]
-        then
-            yui='yuicompressor'
-        fi
-
-        if [ -z $yui ]
-        then
-            # No minimization
-            yui='cat'
-        fi
-
-        if [ "$yui" != "cat" ]
-        then
-            flags='--nomunge'
-        fi
-    fi
-    writearg yui $yui
-
 }
 
 
@@ -407,29 +375,17 @@ function start
 
 
     say "Minimizing and combining JS libs" "minor"
-    MINIMIZE=0
-    echo "" > webtav/themes/default/header-debug-JS.html
-    for i in `find webtav/static/scripts/combine -name "*.js"`
+    for i in `find webtav/static/scripts -name "*.js" -not -name "*.min.js"`
     do
-        basename=`basename $i`
-        echo "<script defer src=\"/static/scripts/combine/$basename\"></script>" >> webtav/themes/default/header-debug-JS.html
-
+        basename=`basename $i ".js"`
         if [ $(sinceFileArg $i lastrun_minjs_$i) -gt 0 ]
         then
             say "$basename $(sinceFileArg $i lastrun)" "trivial"
-            MINIMIZE=1
+            yuicompressor $i -o webtav/static/scripts/$basename.min.js
         fi
-
         writearg lastrun_minjs_$i `date +%s`
     done
-    if [ $MINIMIZE -gt 0 ] || [ ! -f webtav/static/scripts/combined.js ]
-    then
-        rm webtav/static/scripts/combined.js
-        for i in `find webtav/static/scripts/combine -name "*.js"`
-        do
-            $yui $i >> webtav/static/scripts/combined.js
-        done
-    fi
+
 
 
     say "Ensuring Proper Python formatting.." "minor"

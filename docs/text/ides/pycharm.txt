@@ -1,0 +1,22 @@
+
+Using Pycharm
+*************
+
+PyCharm is kinda neat, but it's a PITA about working with the workflow
+that I prefer. I do -not- want a top-level .idea folder.
+
+I'd prefer to keep all IDE information in Tavern/datafiles/ide
+
+I haven't figured out a good way to make PyCharm happy, but I've
+hacked it for now. If you'd like to do more, go for it! ;)
+
+To open Tavern in PyCharm, from this folder, run:
+
+ln -Fs *pwd*/PyCharm  *pwd*/../../.idea
+
+This is symlink the .idea folder to the location where PyCharm would
+prefer it. Then, open Pycharm, and Open Folder, and select your Tavern
+install folder.
+
+I have also installed the Bash Plugin (http://www.ansorg-
+it.com/en/products_bashsupport.html)

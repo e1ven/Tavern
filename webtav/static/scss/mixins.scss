@@ -1,0 +1,49 @@
+@import 'bourbon/bourbon';
+
+// Create a super-fast animation used to trigger an event
+
+@mixin trivialAnimation(){
+    @include animation-duration(0.001s);
+    @include animation-name(nodeInserted);
+}
+@include keyframes(nodeInserted)
+{
+    from {
+        clip: rect(1px, auto, auto, auto);
+    }
+    to {
+        clip: rect(0px, auto, auto, auto);
+    }
+}
+
+
+
+// Links should be 20% darker
+@mixin link($color) {
+
+    // textbuttons are links that aren't in <a>, such as form submit, or JS
+    a, .textbutton {
+        color: $color;
+        text-decoration:none;
+        position:relative;
+        border: 0px;
+        background-color: transparent;
+        margin: 0;
+        padding: 0;
+
+        &:hover{
+            @extend a:hover;
+        }
+        &:hover,active {
+            color: darken($color, 20%);
+            outline: 0;
+            text-decoration: None;
+            font-weight: 500;
+        }
+        &:focus {
+          outline: thin dotted;
+          outline-offset: -2px;
+        }
+
+    }
+}

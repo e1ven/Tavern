@@ -737,11 +737,7 @@ class Server(libtavern.utils.instancer):
         return url
 
     def url_for(self,envelope=None,topic=None,user=None,pubkey=None,static=None,base=True,fqdn=False):
-        """
-        Return the canonical URL for a given token
-        :param message: Optional messageid
-        :param topic: optional topic
-        :return string: URL
+        """Return the canonical URL for a given token
         """
         if static:
             url = "/static/" + self.urlize(static)

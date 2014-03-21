@@ -1,0 +1,13 @@
+Using Sublime
+=============
+No particular IDE is necessary for Tavern, but I've included a Sublime Text config file.
+I've played with a few IDEs (Pycharm, Textmate, TextPad, Subl), and currently prefer Sublime.
+If you have another IDE you prefer, feel free to contribute it's confs.
+
+I am personally using the following plugins-
+
+    https://github.com/int3h/SublimeFixMacPath
+        This allows tavern.sh to run and see your bash path.
+
+    https://sublime.wbond.net/packages/Jedi%20-%20Python%20autocompletion
+        This is an autocomplete library.

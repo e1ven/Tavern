@@ -1,0 +1,277 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.topic &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.topic</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+<span class="kn">import</span> <span class="nn">libtavern.utils</span>
+<span class="kn">import</span> <span class="nn">libtavern.envelope</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<div class="viewcode-block" id="sorttopic"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.sorttopic">[docs]</a><span class="k">def</span> <span class="nf">sorttopic</span><span class="p">(</span><span class="n">topic</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">topic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">topic</span><span class="o">.</span><span class="n">sortname</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">topic</span> <span class="o">=</span> <span class="bp">None</span>
+    <span class="k">return</span> <span class="n">topic</span>
+</div>
+<div class="viewcode-block" id="Topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic">[docs]</a><span class="k">class</span> <span class="nc">Topic</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A Topic is a collection of messages with a common subject.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a Topic.</span>
+<span class="sd">        Called by __init__() automatically.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span><span class="n">Topic</span><span class="p">):</span>
+            <span class="c"># If we receive a topic obj, absorb it.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">topics</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">topic</span><span class="o">.</span><span class="n">topics</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">topic</span><span class="o">.</span><span class="n">sorttopics</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c"># The list of all topics we received</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># The &#39;sorttopic&#39; version, case-matched, etc.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span> <span class="nf">_sorttopic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="n">topic</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+            <span class="n">topic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">urlize</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">topic</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="Topic.add"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.add">[docs]</a>    <span class="k">def</span> <span class="nf">add</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add a topic&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sorttopic</span><span class="p">(</span><span class="n">topic</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Name of the topic&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;_nameoverride&#39;</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s">&quot;+&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nameoverride</span>
+
+    <span class="nd">@name.setter</span>
+<div class="viewcode-block" id="Topic.name"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.name">[docs]</a>    <span class="k">def</span> <span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">value</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Sets the display name of the topic, without changing the underlying topiclist.</span>
+<span class="sd">        Use only with Extreme caution.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_nameoverride</span> <span class="o">=</span> <span class="n">value</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Topic.sortname"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.sortname">[docs]</a>    <span class="k">def</span> <span class="nf">sortname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Name of the topic&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="s">&quot;+&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span><span class="p">)</span>
+
+</div>
+    <span class="k">def</span> <span class="nf">_create_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">before</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Internal method to create the search obj used by the rest of the class.&quot;&quot;&quot;</span>
+
+        <span class="c"># Create our search. First off, the obvious.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;envelope.local.sorttopic&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$in&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">sorttopics</span><span class="p">}})</span>
+        <span class="k">if</span> <span class="n">before</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$lt&#39;</span><span class="p">:</span> <span class="n">before</span><span class="p">}})</span>
+        <span class="k">if</span> <span class="n">after</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$gt&#39;</span><span class="p">:</span> <span class="n">after</span><span class="p">}})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">include_replies</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">}})</span>
+
+
+<div class="viewcode-block" id="Topic.messages"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.messages">[docs]</a>    <span class="k">def</span> <span class="nf">messages</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">maxposts</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">before</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the messages in the specified topics.</span>
+
+<span class="sd">        :param int maxposts: Max number of posts to return</span>
+<span class="sd">        :param float before: Find only messages before this timestamp</span>
+<span class="sd">        :param float after: Find only messages after this timestamp</span>
+<span class="sd">        :return array: List of messages</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">subjects</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_filter</span><span class="p">(</span><span class="n">before</span><span class="o">=</span><span class="n">before</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="n">after</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="n">include_replies</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">envelope</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">maxposts</span><span class="p">,</span> <span class="n">sortkey</span><span class="o">=</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">,</span> <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;ascending&#39;</span><span class="p">):</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+            <span class="n">subjects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">subjects</span>
+</div>
+<div class="viewcode-block" id="Topic.count"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">before</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Count the messages in the current topic.</span>
+
+<span class="sd">        :param float before: Count only messages before this timestamp</span>
+<span class="sd">        :param float after: Count only messages after this timestamp</span>
+<span class="sd">        :param bool include_replies: Should replies be included, or only top-level messages.</span>
+<span class="sd">        :return int: Number of messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_create_filter</span><span class="p">(</span><span class="n">before</span><span class="o">=</span><span class="n">before</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="n">after</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="n">include_replies</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">search</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Topic.get_first_after"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.get_first_after">[docs]</a>    <span class="k">def</span> <span class="nf">get_first_after</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxposts</span><span class="p">,</span> <span class="n">after</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get the earliest dated message, after `after`</span>
+<span class="sd">        :param int maxposts: Max number of posts to return</span>
+<span class="sd">        :param after: Find only messages after</span>
+<span class="sd">        :type after: integer or float</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sorttopic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorttopic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="n">subjects</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="n">topic</span> <span class="o">!=</span> <span class="s">&quot;all&quot;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">envelope</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.local.sorttopic&#39;</span><span class="p">:</span> <span class="n">sorttopic</span><span class="p">,</span> <span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span> <span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$gt&#39;</span><span class="p">:</span> <span class="n">after</span><span class="p">}},</span> <span class="n">limit</span><span class="o">=</span><span class="n">maxposts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sortkey</span><span class="o">=</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">,</span> <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;ascending&#39;</span><span class="p">):</span>
+                <span class="n">subjects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">envelope</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">,</span> <span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span> <span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$gt&#39;</span><span class="p">:</span> <span class="n">after</span><span class="p">}},</span> <span class="n">limit</span><span class="o">=</span><span class="n">maxposts</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">sortkey</span><span class="o">=</span><span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">,</span> <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;ascending&#39;</span><span class="p">):</span>
+                <span class="n">subjects</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">envelope</span><span class="p">)</span>
+
+        <span class="c"># Adding 1 to maxposts above, because we&#39;re going to use this to get the 10 posts AFTER the date we return from this function.</span>
+        <span class="c"># This is also the reason why, if we don&#39;t have maxposts posts, we</span>
+        <span class="c"># subtract 1 below. This ensures that we get ALL the posts in the</span>
+        <span class="c"># range.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">subjects</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">maxposts</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">subjects</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">subjects</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ret</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ret</span>
+</div>
+<div class="viewcode-block" id="Topic.moreafter"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.moreafter">[docs]</a>    <span class="k">def</span> <span class="nf">moreafter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">before</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">maxposts</span><span class="p">):</span>
+        <span class="n">sorttopic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sorttopic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">topic</span> <span class="o">!=</span> <span class="s">&quot;all&quot;</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                                      <span class="p">{</span><span class="s">&#39;envelope.local.sorttopic&#39;</span><span class="p">:</span> <span class="n">sorttopic</span><span class="p">,</span>
+                                       <span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">,</span>
+                                       <span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span>
+                                       <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+                                       <span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$lt&#39;</span><span class="p">:</span> <span class="n">before</span><span class="p">}}))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                                      <span class="p">{</span><span class="s">&#39;envelope.payload.class&#39;</span><span class="p">:</span> <span class="s">&#39;message&#39;</span><span class="p">,</span>
+                                       <span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span>
+                                       <span class="p">{</span><span class="s">&#39;$exists&#39;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+                                       <span class="s">&#39;envelope.local.time_added&#39;</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;$lt&#39;</span><span class="p">:</span> <span class="n">before</span><span class="p">}}))</span>
+        <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="Topic.toptopics"><a class="viewcode-back" href="../../libtavern.html#libtavern.topic.Topic.toptopics">[docs]</a>    <span class="k">def</span> <span class="nf">toptopics</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a list of the Top topics on the server, as generated by TopicList.py</span>
+<span class="sd">        :param (int) limit: The maximum number of topics to return.</span>
+<span class="sd">        :param skip int: Skip N topics before returning. Used for pagination.</span>
+<span class="sd">        :return:Array: A list of Topic objects.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">toptopics</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">quicktopic</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;topiclist&#39;</span><span class="p">,</span> <span class="n">skip</span><span class="o">=</span><span class="n">skip</span><span class="p">,</span> <span class="n">sortkey</span><span class="o">=</span><span class="s">&#39;value&#39;</span><span class="p">,</span> <span class="n">sortdirection</span><span class="o">=</span><span class="s">&#39;descending&#39;</span><span class="p">,</span><span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">):</span>
+            <span class="n">toptopics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="n">quicktopic</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">toptopics</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

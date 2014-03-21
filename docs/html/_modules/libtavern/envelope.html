@@ -1,0 +1,742 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.envelope &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.envelope</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">import</span> <span class="nn">lzma</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="c"># To detect/resize images</span>
+<span class="kn">import</span> <span class="nn">magic</span>
+
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+<span class="kn">import</span> <span class="nn">libtavern.key</span>
+<span class="kn">import</span> <span class="nn">libtavern.utils</span>
+<span class="kn">import</span> <span class="nn">libtavern.topic</span>
+
+<div class="viewcode-block" id="Envelope"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope">[docs]</a><span class="k">class</span> <span class="nc">Envelope</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.Payload"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload">[docs]</a>    <span class="k">class</span> <span class="nc">Payload</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialdict</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="n">initialdict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Envelope.Payload.alphabetizeAllItems"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload.alphabetizeAllItems">[docs]</a>        <span class="k">def</span> <span class="nf">alphabetizeAllItems</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldobj</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;To ensure our messages are reconstructable, the message, and all</span>
+<span class="sd">            fields should be in alphabetical order.&quot;&quot;&quot;</span>
+            <span class="c"># Recursively loop through all the keys/items</span>
+            <span class="c"># If we can sort them, do so, if not, just return it.</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+                <span class="n">oldlist</span> <span class="o">=</span> <span class="n">oldobj</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+                <span class="n">newdict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">oldlist</span><span class="p">):</span>
+                    <span class="n">newdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabetizeAllItems</span><span class="p">(</span><span class="n">oldobj</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+                <span class="k">return</span> <span class="n">newdict</span>
+
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                <span class="n">newlist</span> <span class="o">=</span> <span class="p">[]</span>
+
+                <span class="c"># If this is an array of OrderedDicts, for example, we can&#39;t sort them.</span>
+                <span class="c"># So leave them as they are.</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">oldlist</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">oldobj</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                    <span class="n">oldlist</span> <span class="o">=</span> <span class="n">oldobj</span>
+
+                <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">oldlist</span><span class="p">:</span>
+                    <span class="n">newlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabetizeAllItems</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+                <span class="k">return</span> <span class="n">newlist</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">oldobj</span>
+</div>
+<div class="viewcode-block" id="Envelope.Payload.format"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload.format">[docs]</a>        <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabetizeAllItems</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.Payload.hash"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload.hash">[docs]</a>        <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+            <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+            <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Envelope.Payload.text"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload.text">[docs]</a>        <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+            <span class="n">newstr</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">newstr</span>
+</div>
+<div class="viewcode-block" id="Envelope.Payload.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Payload.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Envelope.MessageRevision"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.MessageRevision">[docs]</a>    <span class="k">class</span> <span class="nc">MessageRevision</span><span class="p">(</span><span class="n">Payload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.MessageRevision.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.MessageRevision.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;Message Revisions must refer to an original message.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># See if we have the original. If so, is the right type?</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;We have the original message this revision refers to&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Message Revisions must refer to a message.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Envelope.get_original"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.get_original">[docs]</a>    <span class="k">def</span> <span class="nf">get_original</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the original message, without any edits</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">env</span>
+</div>
+<div class="viewcode-block" id="Envelope.Message"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Message">[docs]</a>    <span class="k">class</span> <span class="nc">Message</span><span class="p">(</span><span class="n">Payload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.Message.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Message.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;subject&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No subject&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;body&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Body&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Topic&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;formatting&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Formatting&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;markdown&#39;</span><span class="p">,</span> <span class="s">&#39;plaintext&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Formatting not in pre-approved list&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Topic too long&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">if</span> <span class="s">&#39;subject&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Subject too long&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># See if we have the original. If so, is the right type?</span>
+            <span class="k">if</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
+                    <span class="k">print</span><span class="p">(</span>
+                        <span class="s">&quot;We have the original message this revision refers to&quot;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+                        <span class="k">print</span><span class="p">(</span><span class="s">&quot;Message can only reply to other messages.&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="Envelope.PrivateMessage"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.PrivateMessage">[docs]</a>    <span class="k">class</span> <span class="nc">PrivateMessage</span><span class="p">(</span><span class="n">Payload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.PrivateMessage.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.PrivateMessage.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;to&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No &#39;to&#39; field&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="c"># if &#39;topic&#39; in self.dict:</span>
+            <span class="c">#     self.server.logger.debug(&quot;Topic not allowed in privmessage.&quot;)</span>
+            <span class="c">#     return False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Envelope.Rating"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Rating">[docs]</a>    <span class="k">class</span> <span class="nc">Rating</span><span class="p">(</span><span class="n">Payload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.Rating.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.Rating.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super fails&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;rating&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No rating number&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;rating&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;Evelope ratings must be either -1, 1, or 0.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Envelope.UserTrust"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.UserTrust">[docs]</a>    <span class="k">class</span> <span class="nc">UserTrust</span><span class="p">(</span><span class="n">Payload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Envelope.UserTrust.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.UserTrust.validate">[docs]</a>        <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;trusted_pubkey&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No trusted_pubkey to set trust for.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;trust&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;Message ratings must be either -100, 0, or 100&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;User trust must be per topic. Please include a topic.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Envelope.validate"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Ensures an envelope is valid, legal, and according to spec.&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerpayload</span><span class="p">()</span>
+        <span class="c"># Check headers</span>
+        <span class="k">if</span> <span class="s">&#39;envelope&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Invalid Envelope. No Header&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Ensure we have 1 and only 1 author signature stamp</span>
+        <span class="n">stamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span>
+        <span class="n">foundauthor</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">stamp</span> <span class="ow">in</span> <span class="n">stamps</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;author&quot;</span><span class="p">:</span>
+                <span class="n">foundauthor</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">foundauthor</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;privatemessage&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No author stamp.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="n">foundauthor</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Too Many author stamps&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Ensure Every stamp validates.</span>
+        <span class="n">stamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">stamp</span> <span class="ow">in</span> <span class="n">stamps</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="s">&#39;keyformat&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stamp</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Key format is not specififed.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;keyformat&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;gpg&#39;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;Key not in acceptable container format.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># Retrieve the key, ensure it&#39;s valid.</span>
+            <span class="n">stampkey</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">stamp</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">stampkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Key is invalid.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;algorithm&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;ElGamal&#39;</span><span class="p">,</span> <span class="s">&#39;RSA&#39;</span><span class="p">,</span> <span class="s">&#39;DSA&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                    <span class="s">&quot;Key does not use an acceptable algorithm.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">if</span> <span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;algorithm&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;ElGamal&#39;</span><span class="p">,</span> <span class="s">&#39;RSA&#39;</span><span class="p">,</span> <span class="s">&#39;DSA&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;length&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">3072</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Key is too small.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">elif</span> <span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;algorithm&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;ECDSA&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">int</span><span class="p">(</span><span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;length&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mi">233</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Key is too small.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="k">for</span> <span class="n">uid</span> <span class="ow">in</span> <span class="n">stampkey</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;uids&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">uid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="bp">None</span><span class="p">,</span> <span class="s">&#39;TAVERN&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                        <span class="s">&quot;Key UID is potentially leaking information.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># Ensure it matches the signature.</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">stampkey</span><span class="o">.</span><span class="n">verify_string</span><span class="p">(</span><span class="n">stringtoverify</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span> <span class="n">signature</span><span class="o">=</span><span class="n">stamp</span><span class="p">[</span><span class="s">&#39;signature&#39;</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Signature Failed to verify for stamp :: &quot;</span> <span class="o">+</span>
+                                         <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; :: &quot;</span> <span class="o">+</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="c"># If they specify a proof-of-work in the stamp, make sure it&#39;s</span>
+            <span class="c"># valid.</span>
+            <span class="k">if</span> <span class="s">&#39;proof-of-work&#39;</span> <span class="ow">in</span> <span class="n">stamp</span><span class="p">:</span>
+                    <span class="n">proof</span> <span class="o">=</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;proof&#39;</span><span class="p">]</span>
+                    <span class="n">difficulty</span> <span class="o">=</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;difficulty&#39;</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;sha256&#39;</span><span class="p">:</span>
+                        <span class="n">result</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">checkWork</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">(),</span>
+                            <span class="n">proof</span><span class="p">,</span>
+                            <span class="n">difficulty</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                                <span class="s">&quot;Proof of work cannot be verified.&quot;</span><span class="p">)</span>
+                            <span class="k">return</span> <span class="bp">False</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                            <span class="s">&quot;Proof of work in unrecognized format. Ignoring.&quot;</span><span class="p">)</span>
+
+        <span class="c"># It&#39;s OK if they don&#39;t include a user-agent, but not if they include a</span>
+        <span class="c"># bad one.</span>
+        <span class="c"># if &#39;useragent&#39; in self.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;author&#39;]:</span>
+        <span class="c">#     if not &#39;name&#39; in self.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;author&#39;][&#39;useragent&#39;]:</span>
+        <span class="c">#         self.server.logger.debug(</span>
+        <span class="c">#             &quot;If you supply a user agent, it must have a valid name&quot;)</span>
+        <span class="c">#         return False</span>
+        <span class="c">#     if not isinstance(self.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;author&#39;][&#39;useragent&#39;][&#39;version&#39;], int) and not isinstance(self.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;author&#39;][&#39;useragent&#39;][&#39;version&#39;], float):</span>
+        <span class="c">#             self.server.logger.debug(</span>
+        <span class="c">#                 &quot;Bad Useragent version must be a float or integer&quot;)</span>
+        <span class="c">#             return False</span>
+
+        <span class="c"># Do this last, so we don&#39;t waste time if the stamps are bad.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Payload does not validate.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Envelope.munge"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.munge">[docs]</a>    <span class="k">def</span> <span class="nf">munge</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Set things in the local block of the message.&quot;&quot;&quot;</span>
+
+        <span class="c"># If we don&#39;t have a local section, add one.</span>
+        <span class="c"># This isn&#39;t inside of validation since it&#39;s legal not to have one.</span>
+        <span class="c"># if &#39;local&#39; not in c.dict[&#39;envelope&#39;]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
+        <span class="c"># Don&#39;t caclulate the SHA_512 each time. Store it in local, so we can</span>
+        <span class="c"># reference it going forward.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span>
+
+        <span class="c"># Pull out serverstamps.</span>
+        <span class="n">stamps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span>
+
+        <span class="n">highestPOW</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">for</span> <span class="n">stamp</span> <span class="ow">in</span> <span class="n">stamps</span><span class="p">:</span>
+
+            <span class="c"># Find the author of the message, save it where it&#39;s easy to find</span>
+            <span class="c"># later.</span>
+            <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;author&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stamp</span>
+
+            <span class="c"># Calculate highest proof of work difficuly.</span>
+            <span class="c"># Only use proof-of-work class sha256 for now.</span>
+            <span class="k">if</span> <span class="s">&#39;proof-of-work&#39;</span> <span class="ow">in</span> <span class="n">stamp</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;sha256&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;difficulty&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">highestPOW</span><span class="p">:</span>
+                        <span class="n">highestPOW</span> <span class="o">=</span> <span class="n">stamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">][</span><span class="s">&#39;difficulty&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;highestPOW&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">highestPOW</span>
+
+        <span class="c"># Copy a lowercase/simplified version of the topic into &#39;local&#39;, so</span>
+        <span class="c"># StarTrek and startrek show up together.</span>
+        <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;sorttopic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">sorttopic</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;topic&#39;</span><span class="p">])</span>
+
+        <span class="c"># Get a short version of the subject, for display.</span>
+        <span class="k">if</span> <span class="s">&#39;subject&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="n">temp_short</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                <span class="s">&#39;subject&#39;</span><span class="p">][:</span><span class="mi">50</span><span class="p">]</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span>
+                <span class="s">&#39;short_subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">urlize</span><span class="p">(</span><span class="n">temp_short</span><span class="p">)</span>
+        <span class="c"># Get a short version of the body, to use as a preview.</span>
+        <span class="c"># First line only.</span>
+        <span class="k">if</span> <span class="s">&#39;body&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="n">short_body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                <span class="s">&#39;body&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">60</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span>
+                <span class="s">&#39;short_body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">short_body</span>
+
+        <span class="c"># Process any binaries which are listed in the envelope</span>
+        <span class="k">if</span> <span class="s">&#39;binaries&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">mungebins</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="s">&#39;body&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="n">formattedbody</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">formatText</span><span class="p">(</span>
+                <span class="n">text</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;body&#39;</span><span class="p">],</span>
+                <span class="n">formatting</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;formatting&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;formattedbody&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">formattedbody</span>
+
+            <span class="c"># Check for any Embeddable (Youtube, Vimeo, etc) Links.</span>
+            <span class="c"># Don&#39;t check a given message more than once.</span>
+            <span class="c"># Iterate through the list of possible embeddables.</span>
+            <span class="c"># cap the number of URLs we can embed.</span>
+            <span class="n">foundurls</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;embed&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;embed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">formattedbody</span><span class="p">,</span> <span class="s">&quot;html.parser&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">href</span> <span class="ow">in</span> <span class="n">soup</span><span class="o">.</span><span class="n">findAll</span><span class="p">(</span><span class="s">&#39;a&#39;</span><span class="p">):</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">external</span><span class="o">.</span><span class="n">lookup</span><span class="p">(</span><span class="n">href</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;href&#39;</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">foundurls</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;maxembeddedurls&#39;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;embed&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+                    <span class="n">foundurls</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="s">&#39;author&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author_wordhash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">wordlist</span><span class="o">.</span><span class="n">wordhash</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">])</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;priority&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">if</span> <span class="s">&#39;_id&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="Envelope.mungebins"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.mungebins">[docs]</a>    <span class="k">def</span> <span class="nf">mungebins</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Store details for all binaries, and create thumbnails for images.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">attachmentlist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">binary</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">get_last_version</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">binary</span><span class="p">[</span><span class="s">&#39;sha_512&#39;</span><span class="p">])</span> <span class="k">as</span> <span class="n">attachment</span><span class="p">:</span>
+                    <span class="n">desc</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="s">&#39;sha_512&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">binary</span><span class="p">[</span><span class="s">&#39;sha_512&#39;</span><span class="p">]</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">binary</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;filename&#39;</span><span class="p">,</span><span class="s">&#39;Unknown_File&#39;</span><span class="p">)</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="s">&#39;detected_mime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">magic</span><span class="o">.</span><span class="n">from_buffer</span><span class="p">(</span><span class="n">attachment</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">mime</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="s">&#39;displayable&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">make_thumbnail</span><span class="p">(</span><span class="n">attachment</span><span class="p">,</span><span class="n">binary</span><span class="p">[</span><span class="s">&#39;sha_512&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;-thumb&#39;</span><span class="p">,</span><span class="n">desc</span><span class="p">[</span><span class="s">&#39;detected_mime&#39;</span><span class="p">])</span>
+                    <span class="n">desc</span><span class="p">[</span><span class="s">&#39;filesize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attachment</span><span class="o">.</span><span class="n">length</span>
+                    <span class="n">attachmentlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attachmentdesc</span><span class="p">)</span>
+            <span class="k">except</span><span class="p">:</span>
+                <span class="k">continue</span>
+
+            <span class="c"># Use the first displayable binary as a link for Pinterest and FB</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;medialink&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">desc</span><span class="p">[</span><span class="s">&#39;displayable&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;medialink&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">desc</span><span class="p">[</span><span class="s">&#39;displayable&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;attachmentlist&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attachmentlist</span>
+
+
+    <span class="c">#@libtavern.utils.memorise(parent_keys=[&#39;dict.envelope.local.payload_sha512&#39;], ttl=self.server.serversettings.settings[&#39;cache&#39;][&#39;templates&#39;][&#39;seconds&#39;], maxsize=self.server.serversettings.settings[&#39;cache&#39;][&#39;templates&#39;][&#39;size&#39;])</span></div>
+<div class="viewcode-block" id="Envelope.countChildren"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.countChildren">[docs]</a>    <span class="k">def</span> <span class="nf">countChildren</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c">#print(&quot;Looking for childen for :&quot; + self.payload.hash())</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">count</span><span class="p">(</span>
+            <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+            <span class="p">{</span><span class="s">&quot;envelope.local.ancestors&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()})</span>
+        <span class="k">return</span> <span class="n">results</span>
+</div>
+<div class="viewcode-block" id="Envelope.addStamp"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.addStamp">[docs]</a>    <span class="k">def</span> <span class="nf">addStamp</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">stampclass</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Adds a stamp of type `class` to the current envelope.&quot;&quot;&quot;</span>
+
+        <span class="n">signature</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">signstring</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">text</span><span class="p">(),</span><span class="n">passkey</span><span class="o">=</span><span class="n">passkey</span><span class="p">)</span>
+
+        <span class="c"># Generate the full stamp obj we will insert.</span>
+        <span class="n">fullstamp</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stampclass</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;keyformat&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">keydetails</span><span class="p">[</span><span class="s">&#39;format&#39;</span><span class="p">]</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">pubkey</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;signature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">signature</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+
+        <span class="c"># Copy in any passed values</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c"># Remove the kwargs we know we already added</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;stampclass&quot;</span><span class="p">,</span> <span class="s">&quot;keys&quot;</span><span class="p">,</span> <span class="s">&quot;passkey&quot;</span><span class="p">]:</span>
+                <span class="n">fullstamp</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+
+        <span class="n">proof</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">proof</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;sha256&#39;</span>
+        <span class="n">proof</span><span class="p">[</span>
+            <span class="s">&#39;difficulty&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span>
+            <span class="s">&#39;proof-of-work-difficulty&#39;</span><span class="p">]</span>
+        <span class="n">proof</span><span class="p">[</span><span class="s">&#39;proof&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">proveWork</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">(),</span>
+            <span class="n">proof</span><span class="p">[</span><span class="s">&#39;difficulty&#39;</span><span class="p">])</span>
+        <span class="n">fullstamp</span><span class="p">[</span><span class="s">&#39;proof-of-work&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">proof</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fullstamp</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.addAncestor"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.addAncestor">[docs]</a>    <span class="k">def</span> <span class="nf">addAncestor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ancestorid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;A new Ancestor has been found (parent, parent&#39;s parent, etc) for</span>
+<span class="sd">        this message.</span>
+
+<span class="sd">        Set it locally, and tell all my children, if I have any</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ancestor</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">ancestor</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">ancestorid</span><span class="p">):</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;ancestors&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;ancestors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;ancestors&#39;</span> <span class="ow">in</span> <span class="n">ancestor</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+                <span class="n">ancestorlist</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ancestorlist</span> <span class="o">=</span> <span class="n">ancestor</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;ancestors&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">ancestorid</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ancestorlist</span><span class="p">:</span>
+                <span class="n">ancestorlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ancestorid</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">listedancestor</span> <span class="ow">in</span> <span class="n">ancestorlist</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">listedancestor</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;ancestors&#39;</span><span class="p">]:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span>
+                        <span class="s">&#39;ancestors&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">listedancestor</span><span class="p">)</span>
+
+            <span class="c"># Now, tell our children, if we have any</span>
+            <span class="k">if</span> <span class="s">&#39;citedby&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+                <span class="k">for</span> <span class="n">childid</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]:</span>
+                    <span class="n">child</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">child</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">childid</span><span class="p">):</span>
+                        <span class="n">child</span><span class="o">.</span><span class="n">addAncestor</span><span class="p">(</span><span class="n">ancestorid</span><span class="p">)</span>
+                        <span class="n">child</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Envelope.addcite"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.addcite">[docs]</a>    <span class="k">def</span> <span class="nf">addcite</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">citedby</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Another message has referenced this one.</span>
+
+<span class="sd">        Mark it in the local area.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;citedby&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">citedby</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">citedby</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Envelope.addEdit"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.addEdit">[docs]</a>    <span class="k">def</span> <span class="nf">addEdit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">editid</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Another message has come in that says it&#39;s an edit of this one.</span>
+
+<span class="sd">        Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">newmessage</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;edits&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Check to see if we already have this edit</span>
+        <span class="k">for</span> <span class="n">edit</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">edit</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">editid</span><span class="p">:</span>
+                <span class="c"># We already have this message</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;We&#39;ve already stored this edit.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="n">newmessage</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">editid</span><span class="p">):</span>
+
+            <span class="c"># Ensure the two messages have the same author. If not, abort.</span>
+            <span class="c"># Do this here, rather in validate, so we can receive them in</span>
+            <span class="c"># either order.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">newmessage</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]:</span>
+                <span class="k">print</span><span class="p">(</span>
+                    <span class="s">&quot;Invalid Revision. Author pubkey must match original message.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newmessage</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+
+            <span class="c"># Order by Priority, then date if they match</span>
+            <span class="c"># This will ensure that [&#39;edits&#39;][-1] is the one we want to</span>
+            <span class="c"># display.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+                <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">],</span>
+                               <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">])))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Envelope.binary"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.binary">[docs]</a>    <span class="k">class</span> <span class="nc">binary</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+        <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sha512</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;sha_512&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">sha512</span>
+</div>
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;citedby&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;stamps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Payload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+
+<div class="viewcode-block" id="Envelope.registerpayload"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.registerpayload">[docs]</a>    <span class="k">def</span> <span class="nf">registerpayload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">&#39;payload&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="s">&#39;class&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;message&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Message</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;messagerating&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">Rating</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;usertrust&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">UserTrust</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;privatemessage&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">PrivateMessage</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+                <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;messagerevision&quot;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">payload</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">MessageRevision</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">])</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s">&quot;Rejecting message of class &quot;</span> <span class="o">+</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
+                            <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                            <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                            <span class="s">&#39;class&#39;</span><span class="p">])</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+            <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Envelope.loaddict"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.loaddict">[docs]</a>    <span class="k">def</span> <span class="nf">loaddict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">importdict</span><span class="p">):</span>
+        <span class="n">newstr</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">importdict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadstring</span><span class="p">(</span><span class="n">newstr</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.loadstring"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.loadstring">[docs]</a>    <span class="k">def</span> <span class="nf">loadstring</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">importstring</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span>
+            <span class="n">importstring</span><span class="p">,</span>
+            <span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">,</span>
+            <span class="n">object_hook</span><span class="o">=</span><span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">registerpayload</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Envelope.loadfile"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.loadfile">[docs]</a>    <span class="k">def</span> <span class="nf">loadfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+
+        <span class="c"># Determine the file extension to see how to parse it.</span>
+        <span class="n">basename</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+        <span class="n">max_size</span> <span class="o">=</span> <span class="mi">102400</span>
+        <span class="k">with</span> <span class="n">lzma</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="s">&#39;rt&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+            <span class="n">filecontents</span> <span class="o">=</span> <span class="n">filehandle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">loadstring</span><span class="p">(</span><span class="n">filecontents</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.loadmongo"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.loadmongo">[docs]</a>    <span class="k">def</span> <span class="nf">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mongo_id</span><span class="p">):</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span> <span class="n">mongo_id</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.reloadmongo"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.reloadmongo">[docs]</a>    <span class="k">def</span> <span class="nf">reloadmongo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="Envelope.reloadfile"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.reloadfile">[docs]</a>    <span class="k">def</span> <span class="nf">reloadfile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">loadfile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;.7zTavernEnvelope&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Envelope.flatten"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.flatten">[docs]</a>    <span class="k">def</span> <span class="nf">flatten</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">striplocal</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">registerpayload</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">striplocal</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s">&#39;local&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">]:</span>
+                <span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span>
+</div>
+<div class="viewcode-block" id="Envelope.text"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.text">[docs]</a>    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">striplocal</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">newstr</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">newstr</span>
+</div>
+<div class="viewcode-block" id="Envelope.prettytext"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.prettytext">[docs]</a>    <span class="k">def</span> <span class="nf">prettytext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">striplocal</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+        <span class="n">newstr</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;, &#39;</span><span class="p">,</span> <span class="s">&#39;: &#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">newstr</span>
+</div>
+<div class="viewcode-block" id="Envelope.savefile"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.savefile">[docs]</a>    <span class="k">def</span> <span class="nf">savefile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="s">&#39;.&#39;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="c"># We want to name this file to the SHA512 of the payload contents, so</span>
+        <span class="c"># it is consistant across servers.</span>
+        <span class="k">with</span> <span class="n">lzma</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span> <span class="n">directory</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;.7zTavernEnvelope&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s">&#39;w&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+            <span class="n">filehandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="Envelope.saveMongo"><a class="viewcode-back" href="../../libtavern.html#libtavern.envelope.Envelope.saveMongo">[docs]</a>    <span class="k">def</span> <span class="nf">saveMongo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

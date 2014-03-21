@@ -10,7 +10,7 @@
 	<ul>
 		{% for topic in topics %}
 		    <li><b><a href="{{url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
-                {% if user.follows_topic(topic.name) %}
+                {% if handler.user.follows_topic(topic) %}
                     <form class = "followtopic" action="/changesetting/unfollowtopic" method="post">
                         {% module xsrf_form_html() %}
                         <input type="hidden" value="{{topic.sortname}}" name="topic">
@@ -26,7 +26,12 @@
 		    </li>
 		{% end %}
 	</ul>
-
+    {% if page > 1 %}
+        <a href="/showtopics/{{ page - 1 }}">Previous Topics</a>
+    {% end if %}
+    {% if remaining > 0 %}
+        <a href="/showtopics/{{ page + 1 }}">Next Topics</a>
+    {% end if %}
 {% end %}
 
 

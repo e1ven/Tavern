@@ -76,9 +76,11 @@ class BaseHandler(XSRFBaseHandler):
         """Create the base object for all requests to our Tavern webserver."""
 
         self.server = server
-
         self.html = ""
         super().__init__(*args, **kwargs)
+
+        # Pull a timestamp to use as the canonical time for this request
+        self.timestamp = libtavern.utils.gettime(format='timestamp')
 
 
         # Before we do anything, see if we have a XSRF cookie set.
@@ -157,7 +159,28 @@ class BaseHandler(XSRFBaseHandler):
         self.newmessage = "/newmessage"
         self.topic = libtavern.topic.Topic()
         self.displayenvelope = None
+        self.scripts = []
 
+        # Add default JS that is needed everywhere.
+        self.add_js('jquery.min.js')        # Selector Library
+        self.add_js('garlic.min.js')        # Remember user input between refreshes
+        self.add_js('colresizable.min.js')  # Slidable columns
+        self.add_js('jquery.unveil.min.js') # LazyLoad Images
+        self.add_js('mousetrap.min.js')     # Keyboard Shortcuts
+        self.add_js('default.min.js')       # Tavern stuff
+
+        if self.useragent['ua_family'] == 'IE' and browser['ua_versions'][0] < 9:
+            self.add_js('IE9.js')
+
+    def add_js(self,file=None,files=None):
+        """Add a Javascript file to this request"""
+        if not files:
+            files = []
+        if file:
+            files.append(file)
+        for script in files:
+            if script not in self.scripts:
+                self.scripts.append(file)
 
     def load_session(self, AllowGuestKey=True):
         """Load into memory the User class by way of the session cookie.

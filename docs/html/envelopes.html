@@ -1,0 +1,312 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Structure of Envelopes &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="index.html" />
+    <link rel="up" title="Developing using Tavern" href="for-developers.html" />
+    <link rel="next" title="Topics" href="topics.html" />
+    <link rel="prev" title="Using Pycharm" href="ides/pycharm.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="topics.html" title="Topics"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="ides/pycharm.html" title="Using Pycharm"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" accesskey="U">Developing using Tavern</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="structure-of-envelopes">
+<h1>Structure of Envelopes<a class="headerlink" href="#structure-of-envelopes" title="Permalink to this headline">¶</a></h1>
+<p>A message is the core unit of exchange in Tavern.</p>
+<dl class="docutils">
+<dt>{</dt>
+<dd><dl class="first docutils">
+<dt>&#8220;envelope&#8221; <span class="classifier-delimiter">:</span> <span class="classifier">{</span></dt>
+<dd><dl class="first docutils">
+<dt>&#8220;payload&#8221; <span class="classifier-delimiter">:</span> <span class="classifier">{</span></dt>
+<dd><dl class="first docutils">
+<dt>&#8220;author&#8221; <span class="classifier-delimiter">:</span> <span class="classifier">{</span></dt>
+<dd><p class="first">&#8220;pubkey&#8221; : &#8220;&#8212;&#8211;BEGIN PUBLIC KEY&#8212;&#8211;nMIIBCgKCAQEAzRc/QIzdhfutaCQuXMyzYxQm7IdzVqLV53Z1EgoetGELcguRjz5pn9ot6A7dfKaSy+96GmBak+U0dJZvqWzaiV3uTiuI3xMN6D/wK9TegZK69IZKQObG1npAHduIomZ4cxg22SAzDmnMGqcginA7Niy74LaiCcZY6poJ3g4OGoupuWEOcmGbV9nx4BnMFuDrmK8t431gTFdKYhijaPmbR2vua54dCUwBMZmytJPZQxOMfb/TCYXsAUfnEifkBagCpSdGF3qE2qeYPMty8SlHKBQ80L3FpqNYVK+8sXWiF6N2tPDwrOUVYIP+nFUPJgGcrrWnagiWRwfoklpRinAA/qu5AbQIDAQABn&#8212;&#8211;END PUBLIC KEY&#8212;&#8211;&#8221;,
+&#8220;friendlyname&#8221; : &#8220;Anonymous&#8221;,
+&#8220;useragent&#8221; : {</p>
+<blockquote>
+<div>&#8220;version&#8221; : 0.01,
+&#8220;name&#8221; : &#8220;Tavern Web Frontend&#8221;</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+<p class="last">},
+&#8220;body&#8221; : &#8220;Welcome to Tavernrn=================rnTavern is a way to ensure that everyone in the world canrncommunicate freely, without fear of Censorship, Oppression, or corporate manipulation.rnrnIf you&#8217;re seeing this note, it&#8217;s running on a server that runs the Tavern software. rnThe primary site for Tavern is [Tavern.com](<a class="reference external" href="http://Tavern.com/).rnrnThis">http://Tavern.com/).rnrnThis</a> message was posted into the &amp;amp;quot;sitecontent&amp;amp;quot; Topic.rnrnThis Topic is used as the default for information about the server, such asrnrn- Frequently Asked Questionsrn- Formatting Notesrn- Terms of ServicernAnd the like.rnrnYou can register a new account either by using the &amp;amp;quot;Register&amp;amp;quot; link, or by replying to an existing comment.rnrnWe&#8217;ll be adding more content as time goes on, but I wanted to make sure that there was at least <em>something</em> in the default distribution ;)rnrnThanks, and enjoy the Site!rnrn-Colin&#8221;,
+&#8220;class&#8221; : &#8220;message&#8221;,
+&#8220;formatting&#8221; : &#8220;markdown&#8221;,
+&#8220;subject&#8221; : &#8220;Welcome to Tavern ;)&#8221;,
+&#8220;topic&#8221; : &#8220;sitecontent&#8221;</p>
+</dd>
+</dl>
+<p>},
+&#8220;local&#8221; : {</p>
+<blockquote>
+<div><p>&#8220;sorttopic&#8221; : &#8220;sitecontent&#8221;,
+&#8220;time_added&#8221; : 1354075098.185418,
+&#8220;short_subject&#8221; : &#8220;Welcome-to-Tavern-&#8221;,
+&#8220;formattedbody&#8221; : &#8220;&lt;h1&gt;Welcome to Tavern&lt;/h1&gt;n&lt;p&gt;Tavern is a way to ensure that everyone in the world can&lt;br /&gt;ncommunicate freely, without fear of Censorship, Oppression, or corporate manipulation.  &lt;/p&gt;n&lt;p&gt;If you&#8217;re seeing this note, it&#8217;s running on a server that runs the Tavern software.&lt;br /&gt;nThe primary site for Tavern is &lt;a href=&#8221;<a class="reference external" href="http://Tavern.com/">http://Tavern.com/</a>&#8220;&gt;Tavern.com&lt;/a&gt;.  &lt;/p&gt;n&lt;p&gt;This message was posted into the &amp;amp;quot;sitecontent&amp;amp;quot; Topic.  &lt;/p&gt;n&lt;p&gt;This Topic is used as the default for information about the server, such as  &lt;/p&gt;n&lt;ul&gt;n&lt;li&gt;Frequently Asked Questions  &lt;/li&gt;n&lt;li&gt;Formatting Notes  &lt;/li&gt;n&lt;li&gt;Terms of Service&lt;br /&gt;nAnd the like.  &lt;/li&gt;n&lt;/ul&gt;n&lt;p&gt;You can register a new account either by using the &amp;amp;quot;Register&amp;amp;quot; link, or by replying to an existing comment.  &lt;/p&gt;n&lt;p&gt;We&#8217;ll be adding more content as time goes on, but I wanted to make sure that there was at least &lt;em&gt;something&lt;/em&gt; in the default distribution ;)  &lt;/p&gt;n&lt;p&gt;Thanks, and enjoy the Site!  &lt;/p&gt;n&lt;p&gt;-Colin&lt;/p&gt;&#8221;,
+&#8220;attachmentlist&#8221; : [</p>
+<p>],
+&#8220;author_pubkey_sha1&#8221; : &#8220;119279b33e998e0bf6877470ce051f87b1a5e151&#8221;,
+&#8220;embed&#8221; : [</p>
+<p>],
+&#8220;calculatedrating&#8221; : 1</p>
+</div></blockquote>
+<p>},
+&#8220;stamps&#8221; : [</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>{</dt>
+<dd>&#8220;class&#8221; : &#8220;author&#8221;,
+&#8220;pubkey&#8221; : &#8220;&#8212;&#8211;BEGIN PUBLIC KEY&#8212;&#8211;nMIIBCgKCAQEAzRc/QIzdhfutaCQuXMyzYxQm7IdzVqLV53Z1EgoetGELcguRjz5pn9ot6A7dfKaSy+96GmBak+U0dJZvqWzaiV3uTiuI3xMN6D/wK9TegZK69IZKQObG1npAHduIomZ4cxg22SAzDmnMGqcginA7Niy74LaiCcZY6poJ3g4OGoupuWEOcmGbV9nx4BnMFuDrmK8t431gTFdKYhijaPmbR2vua54dCUwBMZmytJPZQxOMfb/TCYXsAUfnEifkBagCpSdGF3qE2qeYPMty8SlHKBQ80L3FpqNYVK+8sXWiF6N2tPDwrOUVYIP+nFUPJgGcrrWnagiWRwfoklpRinAA/qu5AbQIDAQABn&#8212;&#8211;END PUBLIC KEY&#8212;&#8211;&#8221;,
+&#8220;signature&#8221; : &#8220;Kq9kYhckxBdxCC+cOhybMMJsLpCAMGP/BLI14ItRqXaEeQh5CgaPgDNdhwN84TlQRX+Pz/7wVBv5NQ5GXT9Sga4KY2jvbdu5NRpPuvnfvV6dsiqQ5WlYOeCbUSw+xp0sBu07QIRkwwxVNFY45GzkSAnlMq43vE3KEi5H4XxMHBKnU8/y4o66EAix7+T+mfrzjx6bFAhqcELaYl8RfOAY6ZZ484/sq6Z7V0VYMWColKH2eisG0xdul+rPbkgv4mKbtvf4QnBe137G1JQjQRcfQAd8RpdKCx+pLSqIrMsmY5eFtsJCBw2hkfuSlPs7bvUvHEBTKx235rsj2Y50ED5QEw==&#8221;,
+&#8220;time_added&#8221; : 1354059443</dd>
+</dl>
+<p>},
+{</p>
+<blockquote>
+<div>&#8220;time_added&#8221; : 1354059443,
+&#8220;hostname&#8221; : &#8220;Threepwood.local&#8221;,
+&#8220;pubkey&#8221; : &#8220;&#8212;&#8211;BEGIN PUBLIC KEY&#8212;&#8211;nMIIBCgKCAQEAsIYfIqrCuAaL1aD1IFj4QnbhhDLjdJvnoTzU/1cDSFjn4JcFRf2wndP4ZgbNmmx7GCohr61NUUjmadNzJQB5Jvwm6eGXJtXapfwkCPBTLsgGMPhFCOtO+ny+qMLPCMX/2BhAEWmndmzfjrhkJiCvwW0C25LC6/w9nSDjQkgIZYcFBshw9cKXyinRCM1Y01eIzi9DCHp3FupnJI0aoSUTkEosGKPCSkk134689g2sc7fnxpBtNSsSjqBn93CQ9G8CMMSMWkwykwMgSYv+ZvzFFTr21hiVq6S9Mr6CdQeprCcACGoiYDc4ssDTnLcA7t8fQgemuMibFkEP9YEoDTI8T/RbIQwIDAQABn&#8212;&#8211;END PUBLIC KEY&#8212;&#8211;&#8221;,
+&#8220;class&#8221; : &#8220;server&#8221;,
+&#8220;signature&#8221; : &#8220;ON9QrBQJo2bDXVEEY7Y0N5cZmCsPtC7iB8nE+EaINdbgGI4RJfLe3RB6S+jiFQG2gCwpY5VJyYdiXTz6HO5Jbow2el7a4FU7Nzjm0ndXP8+CaAKEn0lQE3EkFa7pNc33eiNC+BjW+lBuaxJ8EAjRG5cZKFsehBtX5TQcCMG+ZujBnUigp313j5Uaaf0rPKo5AtUrBuYoHd0lUies1pl2dfH8XK/IbvPrCR+l1qajC3gmC6kCQot25e+rHGAE2BE1GgW0QW8VVvLDdIzRJuktGixXXMuPlOAc0arjKofOLVDyariKyvziD65dVyBj9Ma425AqHEazTPW+ff/NaPsntg==&#8221;</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div>&#8220;time_added&#8221; : 1354059443,
+&#8220;hostname&#8221; : &#8220;Threepwood.local&#8221;,
+&#8220;pubkey&#8221; : &#8220;&#8212;&#8211;BEGIN PUBLIC KEY&#8212;&#8211;nMIIBCgKCAQEAsIYfIqrCuAaL1aD1IFj4QnbhhDLjdJvnoTzU/1cDSFjn4JcFRf2wndP4ZgbNmmx7GCohr61NUUjmadNzJQB5Jvwm6eGXJtXapfwkCPBTLsgGMPhFCOtO+ny+qMLPCMX/2BhAEWmndmzfjrhkJiCvwW0C25LC6/w9nSDjQkgIZYcFBshw9cKXyinRCM1Y01eIzi9DCHp3FupnJI0aoSUTkEosGKPCSkk134689g2sc7fnxpBtNSsSjqBn93CQ9G8CMMSMWkwykwMgSYv+ZvzFFTr21hiVq6S9Mr6CdQeprCcACGoiYDc4ssDTnLcA7t8fQgemuMibFkEP9YEoDTI8T/RbIQwIDAQABn&#8212;&#8211;END PUBLIC KEY&#8212;&#8211;&#8221;,
+&#8220;class&#8221; : &#8220;origin&#8221;,
+&#8220;signature&#8221; : &#8220;ON9QrBQJo2bDXVEEY7Y0N5cZmCsPtC7iB8nE+EaINdbgGI4RJfLe3RB6S+jiFQG2gCwpY5VJyYdiXTz6HO5Jbow2el7a4FU7Nzjm0ndXP8+CaAKEn0lQE3EkFa7pNc33eiNC+BjW+lBuaxJ8EAjRG5cZKFsehBtX5TQcCMG+ZujBnUigp313j5Uaaf0rPKo5AtUrBuYoHd0lUies1pl2dfH8XK/IbvPrCR+l1qajC3gmC6kCQot25e+rHGAE2BE1GgW0QW8VVvLDdIzRJuktGixXXMuPlOAc0arjKofOLVDyariKyvziD65dVyBj9Ma425AqHEazTPW+ff/NaPsntg==&#8221;</div></blockquote>
+<p>},
+{</p>
+<blockquote>
+<div>&#8220;time_added&#8221; : 1354075098,
+&#8220;hostname&#8221; : &#8220;gettavern.com&#8221;,
+&#8220;pubkey&#8221; : &#8220;&#8212;&#8211;BEGIN PUBLIC KEY&#8212;&#8211;nMIIBCgKCAQEArymGitARoguDFDxofHuH6QAhbX91iZJRGgeyfZrXtzCIH5CG+6HXnLdNdu7dmSkzhVGT2Od32pyw6gievUW5iXnPfHZIU8+jMqYnW1pViRZX316DCv2e8nWaQlIlY1GYXvI0L5I9IOvyRfOvaFK6L9FdTqT/bChdHcZhaU9uRYsmegFjs53YTWnLmnQZhrst4jdqRiLFw9b/L9HadeqLIf08zmmE7spxZld34dFDjipKVXYsvhdBpybn+l7+za5jh979yJr9Eb4FQC1cf12l9KuohWB2CwW6h/0HwuQ/KM41zdp0NDAyslfHnVth/aK6sR4I6FLzvniCnredLZ4yaDb03wwIDAQABn&#8212;&#8211;END PUBLIC KEY&#8212;&#8211;&#8221;,
+&#8220;class&#8221; : &#8220;server&#8221;,
+&#8220;signature&#8221; : &#8220;rM0Qu1/sYmKuwdddFmF6vlra/81bVVXWQZPwNfSOdp8JKKGDM0lk/TyL4pvTevK1MIlZUdBropeuaj6XGybtu7iRc5S3RgftWAwn7bAoWSxBadCjJ7T+CtRbvV0hUqb9/HEwQ5MGGUnQSXKY0LErra4kfeTTcNzxnnPxboI9F4J4u6WAOuN8FCPT0Sii8nYCLY1vpwWk9GdmfppGzkIUBrQ+QoSnvaTkUnQ+vGSxDfeALI2tlEMM5c67ohDM8wwtfzWadiJyVcT758Huiqb1f/+0CQtdFPrmYycm8nF/J0/J/WmYHFJ6CHFmuwWNhfE99p0xt7VYFTeG4jCalVNipg==&#8221;</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p class="last">],
+&#8220;payload_sha512&#8221; : &#8220;f78624b85da662a289699a0b56fda5407a52d869741ebfef5631904ecbddba0c12400b4264be573f0a283841bc6e30c5c4549e4e0e1b72c4c776a570929d1d04&#8221;</p>
+</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+<div class="section" id="id1">
+<h2>}<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Each Tavern Envelope is contained in a JSON dictionary.</p>
+<p>The order of fields must be alphabetical - This is to ensure that we can separate them later, but re-assemble them in the same order.
+The envelope should be of the most compact JSON.</p>
+<blockquote>
+<div><p>In Python this can be generated with -             json.dumps(self.ServerSettings, separators=(&#8216;,&#8217;, &#8216;:&#8217;)))
+In PHP, this is generated with -                  $mytext = json_encode($this-&gt;dict);</p>
+<blockquote>
+<div>$mytext = str_replace(&#8216;/&#8217;,&#8217;/&#8217;,$mytext);</div></blockquote>
+</div></blockquote>
+<p>The root element of Tavern JSON is the Envelope.
+The envelope contains two crucial sections - Payload and Stamps.</p>
+<blockquote>
+<div><p>The &#8216;payload&#8217; dictionary of an envelope contains all of the UNTOUCHABLE data in an envelope.
+If you modify any data in this section, the envelope is considered a new envelope.
+A SHA-512 hash of the payload section is used as the envelope&#8217;s ID.. This is stored in the Root Envelope object as &#8216;payload_sha512&#8217;</p>
+<dl class="docutils">
+<dt>The payload section contains a dictionary describing the author, as well as metadata about the envelope.</dt>
+<dd><dl class="first docutils">
+<dt>The &#8216;author&#8217; section must contain the author&#8217;s Public Key &#8216;pubkey&#8217;, as a PGP formatted key.</dt>
+<dd>It is suggested that this key does not have version information or comments, in order to reduce size.</dd>
+</dl>
+<p>The author section must also have a &#8216;Friendlyname&#8217; for the user.
+This is the name that the author prefers is displayed for their post.</p>
+<blockquote>
+<div><p>This has to be in every envelope, since we can&#8217;t rely on being able to pull a profile page.
+Additionally, a user might change this for each post.
+The &#8216;useragent&#8217; dictionary MUST contain at least two entries- &#8216;name&#8217; and &#8216;version&#8217;</p>
+<blockquote>
+<div>Version should be a number
+Name should be a descriptive string. This should be only the name, - &#8220;TavNet&#8221;, not &#8220;Tavnet 4.2/EN-us&#8221;
+If you want to store additional information, such as &#8216;language&#8217;, add an additional field.
+Please note that user-agent is for convienience-only; There is no way to verify that a client is not lying about it&#8217;s user-agent.
+If this greatly concerns you, I suggest you issue a &#8216;stamp&#8217; for the client, rather than relying on the user-agent.</div></blockquote>
+</div></blockquote>
+<dl class="last docutils">
+<dt>The payload may have a &#8216;body&#8217; field. This should contain the bulk of the message&#8217;s human-readable text.</dt>
+<dd>The format for this is up to you (see below), but text or markdown are the most likely to be supported.</dd>
+<dt>The payload must also have a &#8216;class&#8217; field. This will tell us what TYPE of message it is.</dt>
+<dd>Example classes include &#8216;message&#8217;, &#8216;rating&#8217;, and &#8216;privatemessage&#8217;.
+The class is used to filter messages, to only see compatible types.</dd>
+<dt>The Payload may contain a &#8216;formatting&#8217; field.</dt>
+<dd>This will tell the client how to display a message. Examples include &#8216;bbcode&#8217;, &#8216;markdown&#8217;, or &#8216;plaintext&#8217;</dd>
+<dt>A payload may have a &#8216;regarding&#8217; field.</dt>
+<dd>This field marks that this envelope is in response to a previous envelope.
+This can either be used as a message reply, or in ratings.
+This is the payload_sha512 of the message it is regarding.</dd>
+<dt>A payload may have a &#8216;subject&#8217; field.</dt>
+<dd>This field gives the short, 1 sentence summary of what a particular message is about.
+When replying to a message, the subject is often ignored by clients.
+Do NOT add a &#8220;re:&#8221; field.
+The subject field may not be longer than 200 characters.</dd>
+<dt>A payload should have a &#8216;topic&#8217; field.</dt>
+<dd>This is used for sorting and categorization. It is the bulk category where a message lives.
+This can be thought of akin to a HashTag in twitter, a Subreddit on Reddit, or a Newsgroup on Usenet.
+There may only ever be ONE topic. This topic must not be longer than 200 characters.</dd>
+<dt>A payload may contain a binaries section.</dt>
+<dd>Binaries that are to be included with the message should be uploaded to the server separately, and listed in this section.
+&#8216;sha_512&#8217; - This is the sha512 of the binary that should be included.
+&#8216;filesize_hint&#8217; - This is an estimated filesize of the binary. Clients should not trust this number.
+&#8216;content_type&#8217; - This is the desired content type of the upload.
+&#8216;filename&#8217; - This is the original filename that the file was uploaded with.
+Keep in mind that the same sha_512 might be uploaded with multiple messages, potentially with differerent filenames or content_types.</dd>
+</dl>
+</dd>
+<dt>An Envelope should also have an array of Stamps.</dt>
+<dd><p class="first">A stamp is a signature of authenticity on a message, asserting something.
+A stamp has at least 4 values-</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>&#8216;class&#8217; - This describes what type of stamp it is.</dt>
+<dd>Examples include &#8216;author&#8217;, &#8216;server&#8217;, or &#8216;origin&#8217;</dd>
+</dl>
+<p>&#8216;pubkey&#8217; - This is the public key used by the whatever service stamped the envelope
+&#8216;time_added&#8217; - This is the time (in unix timestamp) that the server stamped the message.</p>
+<blockquote>
+<div>This is set by the server, and not verified, so should not be trusted.</div></blockquote>
+<dl class="docutils">
+<dt>&#8216;signature&#8217; - This is a PGP signed version of the &#8216;payload_sha512&#8217;</dt>
+<dd>This is used to ensure that the stamp was given to this specific message, not copy/pasted in elsewhere.</dd>
+</dl>
+<p>Some types of stamps may have other values, such as &#8216;hostname&#8217; in &#8216;server&#8217; and &#8216;origin&#8217; messages</p>
+</div></blockquote>
+<dl class="last docutils">
+<dt>Each server that a message travels through may leave a &#8216;server&#8217; stamp.</dt>
+<dd>The origin server will also leave an &#8216;origin&#8217; stamp. These are not secure, however.
+Any server a message travels through might remove these stamps, or change the &#8216;origin&#8217;</dd>
+</dl>
+</dd>
+<dt>An envelope may also have a &#8216;local&#8217; section.</dt>
+<dd>This dictionary is server-specific, and should not be transferred along with the message to other servers.
+This is a good place to store when a specific server first received a message, HTML markup, and the like.</dd>
+</dl>
+</div></blockquote>
+<dl class="docutils">
+<dt>The &#8220;Body&#8221; section should be plaintext, formatted in markdown or bbcode.</dt>
+<dd>Specify which you are using by with the &#8216;formatting&#8217; tag (ex: &#8216;formatting&#8217;:&#8217;markdown&#8217; )</dd>
+</dl>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Structure of Envelopes</a><ul>
+<li><a class="reference internal" href="#id1">}</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="ides/pycharm.html"
+                        title="previous chapter">Using Pycharm</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="topics.html"
+                        title="next chapter">Topics</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/envelopes.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="topics.html" title="Topics"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="ides/pycharm.html" title="Using Pycharm"
+             >previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

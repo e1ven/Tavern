@@ -1,0 +1,487 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.serversettings &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.serversettings</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">platform</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">import</span> <span class="nn">libtavern.utils</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">multiprocessing</span>
+
+<div class="viewcode-block" id="ServerSettings"><a class="viewcode-back" href="../../libtavern.html#libtavern.serversettings.ServerSettings">[docs]</a><span class="k">class</span> <span class="nc">ServerSettings</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">instancer</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">slot</span><span class="o">=</span><span class="s">&#39;default&#39;</span><span class="p">):</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">slot</span><span class="p">)</span>
+        
+        <span class="c"># Don&#39;t run __init__ more than once, since we return the same one.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;set&#39;</span><span class="p">)</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="k">return</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">settingsdir</span> <span class="o">=</span> <span class="s">&#39;conf/&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settingsfile</span> <span class="o">=</span> <span class="n">slot</span> <span class="o">+</span> <span class="s">&quot;.serversettings&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">loadconfig</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">settingsfile</span><span class="p">)</span>
+    
+<div class="viewcode-block" id="ServerSettings.loadconfig"><a class="viewcode-back" href="../../libtavern.html#libtavern.serversettings.ServerSettings.loadconfig">[docs]</a>    <span class="k">def</span> <span class="nf">loadconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settingsfile</span>
+        <span class="k">if</span> <span class="n">directory</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settingsdir</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">filename</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+                <span class="n">filecontents</span> <span class="o">=</span> <span class="n">filehandle</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">filecontents</span><span class="p">,</span><span class="n">object_pairs_hook</span><span class="o">=</span><span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">,</span><span class="n">object_hook</span><span class="o">=</span><span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">updateconfig</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">saveconfig</span><span class="p">()</span>
+            <span class="k">pass</span>
+        
+        <span class="c"># Always ensure we have all variables, to deal with schema upgrades, etc.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">updateconfig</span><span class="p">():</span>
+           <span class="bp">self</span><span class="o">.</span><span class="n">saveconfig</span><span class="p">()</span>
+
+        </div>
+<div class="viewcode-block" id="ServerSettings.saveconfig"><a class="viewcode-back" href="../../libtavern.html#libtavern.serversettings.ServerSettings.saveconfig">[docs]</a>    <span class="k">def</span> <span class="nf">saveconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">directory</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+        <span class="k">if</span> <span class="n">filename</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settingsfile</span>
+        <span class="k">if</span> <span class="n">directory</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">directory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settingsdir</span>
+
+        <span class="n">newsettings</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span>
+
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">directory</span> <span class="o">+</span> <span class="n">filename</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">filehandle</span><span class="p">:</span>
+            <span class="n">filehandle</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">newsettings</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="ServerSettings.updateconfig"><a class="viewcode-back" href="../../libtavern.html#libtavern.serversettings.ServerSettings.updateconfig">[docs]</a>    <span class="k">def</span> <span class="nf">updateconfig</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="c"># Create a string/immutable version of ServerSettings that we can</span>
+        <span class="c"># compare against later to see if anything changed.</span>
+        <span class="n">tmpsettings</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">platform</span><span class="o">.</span><span class="n">node</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;path&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="c"># Find the root dir where we&#39;re running.</span>
+            <span class="n">absolutedir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span>
+            <span class="n">rootdir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">absolutedir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">pardir</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rootdir</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;ip_listen_on&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;ip_listen_on&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;0.0.0.0&#39;</span>
+
+        <span class="c"># # Which daemons should we start up</span>
+        <span class="c"># if not &#39;processes&#39; in self.settings:</span>
+        <span class="c">#     self.settings[&#39;processes&#39;] = {}</span>
+        <span class="c"># if not &#39;nginx&#39; in self.settings[&#39;processes&#39;]:</span>
+        <span class="c">#     self.settings[&#39;processes&#39;][&#39;nginx&#39;] = True</span>
+        <span class="c"># if not &#39;mongo&#39; in self.settings[&#39;processes&#39;]:</span>
+        <span class="c">#     self.settings[&#39;processes&#39;][&#39;mongo&#39;] = True</span>
+   
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;webtav&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;workers&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;downloads_url&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;downloads_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;/binaries/&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;main_url&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;main_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;canonical_url&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="c"># The Canonical URL is specified so that Google won&#39;t detect duplicate</span>
+            <span class="c"># content for every Tavern server, and penalize.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;canonical_url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;https://tavern.is&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;session_lifetime&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="c"># Keep Permanent sessions around ~forever, since users might not -have- passwords</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;session_lifetime&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">31536000</span> <span class="o">*</span> <span class="mi">20</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;port&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="c"># Externally Facing Port for nginx</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8000</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;urls_per_sitemap&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="c"># Sitemaps can have up to 50K URLs per file, and must be under 10M</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;urls_per_sitemap&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">40000</span>
+
+        <span class="c"># By default the Strict-Transport-Security will be sent if https.</span>
+        <span class="c"># This flag forces it one way or the other.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;force_sts&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;force_sts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># Default STS to 1 month. This could be a bit long if a site is swapping from https-&gt;http</span>
+        <span class="c"># But we want to ensure that people don&#39;t try to force it to do exactly that ;(</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;sts_time&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;sts_time&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2629743</span>
+
+        <span class="c"># Default Tornado settings. Put here to let people override.</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;tornado&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;cookie_secret&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">]:</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">][</span><span class="s">&#39;cookie_secret&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">255</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;static_path&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">][</span><span class="s">&#39;static_path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;tmp/static&#39;</span>
+
+        <span class="c"># Set the default DBs</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;DB&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;type&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;mongo&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;binaries&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;type&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;mongo&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;sessions&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;type&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;mongo&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+
+        <span class="c"># Set up the various MongoDBs    </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;mongo&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;localhost&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;port&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">27017</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Tavern&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;connections&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;connections&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;binaries&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;localhost&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;port&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">27017</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Tavern-Binaries&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;connections&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;binaries&#39;</span><span class="p">][</span><span class="s">&#39;connections&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;sessions&#39;</span><span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;localhost&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;port&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">27017</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Tavern-Sessions&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;connections&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mongo&#39;</span><span class="p">][</span><span class="s">&#39;sessions&#39;</span><span class="p">][</span><span class="s">&#39;connections&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+
+        <span class="c"># Set up the various PostgresDBs    </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;postgres&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;default&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;localhost&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;user&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;hostname&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;localhost&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;name&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Tavern&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;port&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5432</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;connections&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;postgres&#39;</span><span class="p">][</span><span class="s">&#39;default&#39;</span><span class="p">][</span><span class="s">&#39;connections&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+
+        <span class="c"># Set up the various Nginx settings    </span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;nginx&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;workers&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiprocessing</span><span class="o">.</span><span class="n">cpu_count</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;worker_connections&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">]:</span>
+            <span class="kn">import</span> <span class="nn">resource</span>
+            <span class="n">max_files_soft</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrlimit</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NOFILE</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">max_files_hard</span> <span class="o">=</span> <span class="n">resource</span><span class="o">.</span><span class="n">getrlimit</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">RLIMIT_NOFILE</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c"># wc is the total number of connections each worker can hold open, </span>
+            <span class="c"># including connections downstream to tornado.</span>
+            <span class="n">wc</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;workers&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="mi">10000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;worker_connections&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wc</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;worker_rlimit_nofile&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;worker_rlimit_nofile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;worker_connections&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;workers&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;sitefile&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;nginx&#39;</span><span class="p">][</span><span class="s">&#39;sitefile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;default.site&#39;</span>
+
+
+        <span class="c"># Logging</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;logfile&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;logfile&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;logs/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.log&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;loglevel&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;loglevel&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;WARNING&quot;</span>
+
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;cache&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;user-trust&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-trust&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-trust&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-trust&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;message-ratings&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-ratings&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-ratings&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-ratings&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;avatarcache&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;avatarcache&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;avatarcache&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">100000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;avatarcache&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;embedded&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;embedded&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;embedded&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;embedded&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3601</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;user-note&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-note&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-note&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;user-note&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">60</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;subjects-in-topic&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;subjects-in-topic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;subjects-in-topic&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;subjects-in-topic&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;toptopics&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;toptopics&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;toptopics&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;toptopics&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3602</span>
+
+        <span class="c"># Settings related to the Web View</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;templates&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;templates&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;templates&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;templates&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;getpagelemenent&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;getpagelemenent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;getpagelemenent&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;getpagelemenent&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;message-page&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-page&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-page&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;message-page&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;topic-page&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topic-page&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topic-page&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topic-page&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;uasparser&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;uasparser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;uasparser&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;uasparser&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">36001</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;topiccount&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topiccount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topiccount&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;topiccount&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;receiveEnvelope&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;receiveEnvelope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;receiveEnvelope&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;receiveEnvelope&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;get_all_user_posts&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;get_all_user_posts&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;get_all_user_posts&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;get_all_user_posts&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;sorttopic&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;sorttopic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;sorttopic&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;sorttopic&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000000000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;formatText&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;formatText&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;formatText&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1000</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;formatText&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000000000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;error_envelope&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;error_envelope&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;error_envelope&#39;</span><span class="p">][</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">20</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;cache&#39;</span><span class="p">][</span><span class="s">&#39;error_envelope&#39;</span><span class="p">][</span><span class="s">&#39;seconds&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10000000000</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;KeyGenerator&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;KeyGenerator&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;num_pregens&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;KeyGenerator&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;KeyGenerator&#39;</span><span class="p">][</span><span class="s">&#39;num_pregens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;workers&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;KeyGenerator&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;KeyGenerator&#39;</span><span class="p">][</span><span class="s">&#39;workers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;keys&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;keysize&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;keys&#39;</span><span class="p">][</span><span class="s">&#39;keysize&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">3072</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;upload-dir&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;upload-dir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;../nginx/uploads&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;mark-origin&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mark-origin&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;mark-seen&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mark-seen&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;max-upload-preview-size&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;max-upload-preview-size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10485760</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;embedserver&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;embedserver&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;http://embed.is&#39;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;maxembeddedurls&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;maxembeddedurls&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;proof-of-work-difficulty&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;proof-of-work-difficulty&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">19</span>
+
+
+        <span class="c"># These users are created by the server on startup.</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;guestuser&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;guestuser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;pubkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;guestuser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;guestuser&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;passkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;guestuser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;guestuser&#39;</span><span class="p">][</span><span class="s">&#39;passkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;defaultuser&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;defaultuser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;pubkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;defaultuser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;defaultuser&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;passkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;defaultuser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;defaultuser&#39;</span><span class="p">][</span><span class="s">&#39;passkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;serveruser&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;serveruser&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;pubkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;serveruser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;serveruser&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;passkey&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;serveruser&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;serveruser&#39;</span><span class="p">][</span><span class="s">&#39;passkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+        <span class="c"># Report back on if there were any changes.</span>
+        <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span> <span class="o">==</span> <span class="n">tmpsettings</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

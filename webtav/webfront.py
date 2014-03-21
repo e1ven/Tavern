@@ -26,7 +26,8 @@ import tornado.escape
 
 class EntryHandler(webbase.BaseHandler):
     def get(self):
-        """A simple redirect, that will redirect people from / to a FAQ.
+        """
+        A simple redirect, that will redirect people from / to a FAQ.
 
         Currently, this redirects everyone.
         Eventually, it may give a different experience for first-time visitors.
@@ -35,7 +36,12 @@ class EntryHandler(webbase.BaseHandler):
 
 class MessageHandler(webbase.BaseHandler):
     def get(self,*args):
-        """Retrieve and display a message."""
+        """
+        Retrieve and Display a message
+
+        :param args: The messageid should always be the final param passed in.
+                     We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid
+        """
 
         # The messageid should always be the last thing passed in.
         # We can get here either via /m/uuid or /t/topic/subject/uuid
@@ -128,9 +134,9 @@ class AllMessagesHandler(webbase.BaseHandler):
         Display all messages.
         """
         self.topic = libtavern.topic.Topic()
+        self.topic.name = "All Messages"
         self.title = "Tavern - All Messages"
         self.canon = self.server.url_for(topic=self.topic)
-
         self.specialtopic = True
 
         if self.topic.count() < 1:
@@ -150,6 +156,8 @@ class AllSavedHandler(webbase.BaseHandler):
         Display all messages.
         """
         self.topic = libtavern.topic.Topic()
+        self.topic.name = "Messages from saved topics"
+
         self.title = "Tavern - Messages in all saved topics"
         self.canon = "/all/saved"
         self.specialtopic = True
@@ -172,18 +180,21 @@ class AllSavedHandler(webbase.BaseHandler):
 
 class ShowAllTopicsHandler(webbase.BaseHandler):
     """Show every known topic"""
-    def get(self):
+    def get(self,page=0):
         self.title = "List of all topics"
+        self.topic = libtavern.topic.Topic()
+        topics_per_page = 1000
 
-        if self.after is None:
-            limit = 1000
-            skip = 0
+        if page > 0:
+            skip = topics_per_page * page
         else:
-            limit = self.after + 1000
-            skip = self.after
+            skip = 0
 
-        alltopics = Topic.toptopics(limit=limit, skip=skip,counts=True)
-        self.render('View-showtopics.html',topics=alltopics)
+        alltopics = self.topic.toptopics(limit=topics_per_page, skip=skip)
+        totalcount = self.server.db.unsafe.count('topiclist')
+        remaining = totalcount - len(alltopics) - skip
+
+        self.render('View-showtopics.html',topics=alltopics,remaining=remaining,page=page)
 
 class TopicPropertiesHandler(webbase.BaseHandler):
     """Show Properties for a topic"""
@@ -364,7 +375,10 @@ class RegisterHandler(webbase.BaseHandler):
 
 # def ChangepasswordHandler_get():
 #     self.getvars()
-
+#       self.js = """{% block extraJS %}
+#     <script defer src="/static/scripts/zxcvbn.min.js?v={{serversettings.settings['static-revision']}}"></script>
+#     <script defer src="/static/scripts/register.min.js?v={{serversettings.settings['static-revision']}}"></script>
+# {% end extraJS %}"""
 #     if not self.recentauth():
 #         numcharacters = 100 + libtavern.TavernUtils.randrange(1, 100)
 #         slug = libtavern.TavernUtils.randstr(numcharacters, printable=True)
@@ -685,15 +699,20 @@ class UserHandler(webbase.BaseHandler):
 # self.finish(divs=['scrollablediv3'])
 #     self.finish(divs=['wrappertable'])
 
+class NewMessageHandler(webbase.BaseHandler):
+    """
+    Create a new message.
+    """
+    def get(self,topic=None):
+        if topic:
+            self.title = "New Message for " + topic
+            self.topic = libtavern.topic.Topic(topic=topic)
+        else:
+            self.title = "New Message"
+            self.topic = libtavern.topic.Topic()
+        self.canon = self.server.url_for(topic=self.topic) + "/new"
 
-# def NewmessageHandler_get(topic=None):
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title="Post a new message", rsshead=None, type=None))
-#     self.write(self.render_string('newmessageform.html', topic=topic))
-#     self.write(self.render_string('footer.html'))
-#     self.finish(divs=['wrappertable'])
-
+        self.render('View-newmessage.html',topic=self.topic)
 
 # """Where envelopes POST."""
 
@@ -1383,11 +1402,13 @@ def main():
 
             (r"/t/(.*)/(.*)/(.*)", MessageHandler),
             (r"/t/(.*)/settings", TopicPropertiesHandler),
+            (r"/t/(.*)/new", NewMessageHandler),
             (r"/t/(.*)", TopicHandler),
+            (r"/new", NewMessageHandler),
+
 
             (r"/m/(.*)", MessageHandler),
             (r"/mh/(.*)", MessageHistoryHandler),
-
             (r"/all/saved", AllSavedHandler),
             (r"/all", AllMessagesHandler),
 
@@ -1397,6 +1418,7 @@ def main():
             (r"/s/(.*)", SiteContentHandler),
 
 
+            (r"/showtopics/(.*)", ShowAllTopicsHandler),
             (r"/showtopics", ShowAllTopicsHandler),
             # (r"/showprivates", ShowPrivatesHandler),
             # (r"/privatem/(.*)", ShowPrivatesHandler),
@@ -1407,9 +1429,6 @@ def main():
 
 
             (r"/u/(.*)", UserHandler),
-
-            # (r"/newm/(.*)", NewmessageHandler),
-            # (r"/newmessage", NewmessageHandler),
 
             # (r"/edit/(.*)", EditMessageHandler),
             # (r"/reply/(.*)/(.*)", ReplyHandler),

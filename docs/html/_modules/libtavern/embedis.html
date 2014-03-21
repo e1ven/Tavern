@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.embedis &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.embedis</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">urllib.parse</span> <span class="kn">import</span> <span class="n">urlparse</span><span class="p">,</span> <span class="n">parse_qs</span>
+<span class="kn">import</span> <span class="nn">urllib.request</span>
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">urllib.error</span>
+<span class="kn">import</span> <span class="nn">socket</span>
+<span class="n">socket</span><span class="o">.</span><span class="n">setdefaulttimeout</span><span class="p">(</span><span class="mi">30</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">robohash</span> <span class="kn">import</span> <span class="n">Robohash</span>
+<span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">io</span>
+
+<div class="viewcode-block" id="Embedis"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis">[docs]</a><span class="k">class</span> <span class="nc">Embedis</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;Embedis is a quick class/API for translating embeddable media.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="p">,</span><span class="n">x</span><span class="o">=</span><span class="mi">640</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mi">480</span><span class="p">):</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">server</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">functionlist</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">youtube</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">vimeo</span><span class="p">,</span>
+                             <span class="bp">self</span><span class="o">.</span><span class="n">embedis</span><span class="p">,</span>
+                             <span class="p">]</span>
+
+   <span class="c"># @libtavern.utils.memorise(ttl=self.server.serversettings.settings[&#39;cache&#39;][&#39;embedded&#39;][&#39;seconds&#39;], maxsize=libtavern.singleserv.serversettings.settings[&#39;cache&#39;][&#39;embedded&#39;][&#39;size&#39;])</span>
+<div class="viewcode-block" id="Embedis.lookup"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis.lookup">[docs]</a>    <span class="k">def</span> <span class="nf">lookup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">query</span> <span class="o">=</span> <span class="n">urlparse</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">function</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">functionlist</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">function</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">result</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Embedis.youtube"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis.youtube">[docs]</a>    <span class="k">def</span> <span class="nf">youtube</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">yid</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">hostname</span> <span class="o">==</span> <span class="s">&#39;youtu.be&#39;</span><span class="p">:</span>
+            <span class="n">yid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;www.youtube.com&#39;</span><span class="p">,</span> <span class="s">&#39;youtube.com&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span> <span class="o">==</span> <span class="s">&#39;/watch&#39;</span><span class="p">:</span>
+                <span class="n">p</span> <span class="o">=</span> <span class="n">parse_qs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">query</span><span class="p">)</span>
+                <span class="n">yid</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;v&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="p">[:</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;/embed/&#39;</span><span class="p">:</span>
+                <span class="n">yid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;/v/&#39;</span><span class="p">:</span>
+                <span class="n">yid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="c"># fail?</span>
+        <span class="k">if</span> <span class="n">yid</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span>
+                <span class="s">&quot;&lt;iframe class=&#39;youtube-player&#39; type=&#39;text/html&#39; width=&#39;&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="s">&quot;&#39; height=&#39;&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span>
+                <span class="s">&quot;&#39; src=&#39;https://www.youtube.com/embed/&quot;</span> <span class="o">+</span>
+                <span class="n">yid</span> <span class="o">+</span> <span class="s">&quot;?wmode=opaque&#39; frameborder=&#39;0&#39;&gt;&lt;/iframe&gt;&quot;</span>
+            <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Embedis.vimeo"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis.vimeo">[docs]</a>    <span class="k">def</span> <span class="nf">vimeo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">hostname</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;vimeo.com&#39;</span><span class="p">,</span> <span class="s">&#39;www.vimeo.com&#39;</span><span class="p">):</span>
+            <span class="n">possibleid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c"># If we can convert it to a str and back, it&#39;s an int, so likely a</span>
+            <span class="c"># video.</span>
+            <span class="n">testid</span> <span class="o">=</span> <span class="s">&quot;foo&quot;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">testid</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">possibleid</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">None</span>
+            <span class="k">if</span> <span class="n">testid</span> <span class="o">==</span> <span class="n">possibleid</span><span class="p">:</span>
+                <span class="k">return</span> <span class="p">(</span>
+                    <span class="s">&quot;&lt;iframe src=&#39;https://player.vimeo.com/video/&quot;</span> <span class="o">+</span> <span class="n">possibleid</span> <span class="o">+</span> <span class="s">&quot;&#39; width=&#39;&quot;</span> <span class="o">+</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="s">&quot;&#39; height=&#39;&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span>
+                    <span class="s">&quot;&#39; frameborder=&#39;0&#39; &gt;&lt;/iframe&gt;&quot;</span>
+                <span class="p">)</span>
+            <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="Embedis.embedis"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis.embedis">[docs]</a>    <span class="k">def</span> <span class="nf">embedis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Embed.is integration.&quot;&quot;&quot;</span>
+        <span class="n">api_url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;embedserver&#39;</span><span class="p">]</span> <span class="o">+</span> \
+            <span class="s">&#39;/iframe/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">x</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">+</span> <span class="s">&#39;/&#39;</span>
+        <span class="n">full_url</span> <span class="o">=</span> <span class="n">api_url</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">url</span>
+        <span class="n">req</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">full_url</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">urllib</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">getcode</span><span class="p">()</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">response</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Embedis gave us - &quot;</span> <span class="o">+</span> <span class="n">response</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="n">response</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                        <span class="s">&quot;No good from &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;embedserver&#39;</span><span class="p">])</span>
+                    <span class="k">return</span> <span class="bp">None</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">None</span>
+
+   <span class="c"># @libtavern.utils.memorise(ttl=self.server.serversettings.settings[&#39;cache&#39;][&#39;avatarcache&#39;][&#39;seconds&#39;], maxsize=self.server.serversettings.settings[&#39;cache&#39;][&#39;avatarcache&#39;][&#39;size&#39;])</span></div>
+<div class="viewcode-block" id="Embedis.getavatar"><a class="viewcode-back" href="../../libtavern.html#libtavern.embedis.Embedis.getavatar">[docs]</a>    <span class="k">def</span> <span class="nf">getavatar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">myid</span><span class="p">,</span> <span class="n">datauri</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">40</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Retrieve the Avatar from Robohash.org, for use in the datauri</span>
+<span class="sd">        embed.&quot;&quot;&quot;</span>
+
+        <span class="c"># Normalize the ID</span>
+        <span class="n">myid</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">myid</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
+
+        <span class="c"># If user.datauri is True, generate the image and hand it back.</span>
+        <span class="k">if</span> <span class="n">datauri</span><span class="p">:</span>
+            <span class="n">format</span> <span class="o">=</span> <span class="s">&#39;png&#39;</span>
+            <span class="n">robo</span> <span class="o">=</span> <span class="n">Robohash</span><span class="p">(</span><span class="n">myid</span><span class="p">)</span>
+            <span class="n">robo</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span>
+                <span class="n">roboset</span><span class="o">=</span><span class="s">&#39;any&#39;</span><span class="p">,</span>
+                <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">,</span>
+                <span class="n">bgset</span><span class="o">=</span><span class="s">&#39;any&#39;</span><span class="p">,</span>
+                <span class="n">sizex</span><span class="o">=</span><span class="n">width</span><span class="p">,</span>
+                <span class="n">sizey</span><span class="o">=</span><span class="n">height</span><span class="p">)</span>
+
+            <span class="c"># Encode the Robot to a DataURI</span>
+            <span class="n">fakefile</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+            <span class="n">robo</span><span class="o">.</span><span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">fakefile</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">)</span>
+            <span class="n">fakefile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="n">b64ver</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">fakefile</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+            <span class="n">b64ver</span> <span class="o">=</span> <span class="n">b64ver</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="k">return</span><span class="p">(</span><span class="s">&quot;data:image/png;base64,&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">b64ver</span><span class="p">))</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">avlink</span> <span class="o">=</span> <span class="s">&#39;/avatar/&#39;</span> <span class="o">+</span> <span class="n">myid</span> <span class="o">+</span> \
+                <span class="s">&#39;.png?set=any&amp;bgset=any&amp;size=&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">width</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;x&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">height</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">avlink</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

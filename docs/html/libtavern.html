@@ -1,0 +1,1256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern package &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="index.html" />
+    <link rel="up" title="Tavern Source Code" href="code.html" />
+    <link rel="next" title="webtav package" href="webtav.html" />
+    <link rel="prev" title="Tavern Source Code" href="code.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="webtav.html" title="webtav package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Tavern Source Code"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="code.html" accesskey="U">Tavern Source Code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="libtavern-package">
+<h1>libtavern package<a class="headerlink" href="#libtavern-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-libtavern.baseobj">
+<span id="libtavern-baseobj-module"></span><h2>libtavern.baseobj module<a class="headerlink" href="#module-libtavern.baseobj" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.baseobj.Baseobj">
+<em class="property">class </em><tt class="descclassname">libtavern.baseobj.</tt><tt class="descname">Baseobj</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/baseobj.html#Baseobj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.baseobj.Baseobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>A base object for all Tavern objects.
+This will create some reasonable defaults in self that are really handy</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.embedis">
+<span id="libtavern-embedis-module"></span><h2>libtavern.embedis module<a class="headerlink" href="#module-libtavern.embedis" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.embedis.Embedis">
+<em class="property">class </em><tt class="descclassname">libtavern.embedis.</tt><tt class="descname">Embedis</tt><big>(</big><em>server</em>, <em>x=640</em>, <em>y=480</em><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Embedis is a quick class/API for translating embeddable media.</p>
+<dl class="method">
+<dt id="libtavern.embedis.Embedis.embedis">
+<tt class="descname">embedis</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis.embedis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis.embedis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Embed.is integration.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.embedis.Embedis.getavatar">
+<tt class="descname">getavatar</tt><big>(</big><em>myid</em>, <em>datauri=True</em>, <em>width=40</em>, <em>height=40</em><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis.getavatar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis.getavatar" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the Avatar from Robohash.org, for use in the datauri
+embed.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.embedis.Embedis.lookup">
+<tt class="descname">lookup</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis.lookup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis.lookup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.embedis.Embedis.vimeo">
+<tt class="descname">vimeo</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis.vimeo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis.vimeo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.embedis.Embedis.youtube">
+<tt class="descname">youtube</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/embedis.html#Embedis.youtube"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.embedis.Embedis.youtube" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.envelope">
+<span id="libtavern-envelope-module"></span><h2>libtavern.envelope module<a class="headerlink" href="#module-libtavern.envelope" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.envelope.Envelope">
+<em class="property">class </em><tt class="descclassname">libtavern.envelope.</tt><tt class="descname">Envelope</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.Message">
+<em class="property">class </em><tt class="descname">Message</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">libtavern.envelope.Payload</span></tt></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Message.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Message.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Message.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.MessageRevision">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">MessageRevision</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.MessageRevision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.MessageRevision" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">libtavern.envelope.Payload</span></tt></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.MessageRevision.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.MessageRevision.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.MessageRevision.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.Payload">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">Payload</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Payload.alphabetizeAllItems">
+<tt class="descname">alphabetizeAllItems</tt><big>(</big><em>oldobj</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload.alphabetizeAllItems"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload.alphabetizeAllItems" title="Permalink to this definition">¶</a></dt>
+<dd><p>To ensure our messages are reconstructable, the message, and all
+fields should be in alphabetical order.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Payload.format">
+<tt class="descname">format</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload.format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload.format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Payload.hash">
+<tt class="descname">hash</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload.hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload.hash" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Payload.text">
+<tt class="descname">text</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload.text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Payload.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Payload.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Payload.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.PrivateMessage">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">PrivateMessage</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.PrivateMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.PrivateMessage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">libtavern.envelope.Payload</span></tt></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.PrivateMessage.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.PrivateMessage.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.PrivateMessage.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.Rating">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">Rating</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Rating"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Rating" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">libtavern.envelope.Payload</span></tt></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.Rating.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.Rating.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.Rating.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.UserTrust">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">UserTrust</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.UserTrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.UserTrust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">libtavern.envelope.Payload</span></tt></p>
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.UserTrust.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.UserTrust.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.UserTrust.validate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.addAncestor">
+<tt class="descclassname">Envelope.</tt><tt class="descname">addAncestor</tt><big>(</big><em>ancestorid</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.addAncestor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.addAncestor" title="Permalink to this definition">¶</a></dt>
+<dd><p>A new Ancestor has been found (parent, parent&#8217;s parent, etc) for
+this message.</p>
+<p>Set it locally, and tell all my children, if I have any</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.addEdit">
+<tt class="descclassname">Envelope.</tt><tt class="descname">addEdit</tt><big>(</big><em>editid</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.addEdit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.addEdit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Another message has come in that says it&#8217;s an edit of this one.</p>
+<p>Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.addStamp">
+<tt class="descclassname">Envelope.</tt><tt class="descname">addStamp</tt><big>(</big><em>stampclass</em>, <em>keys</em>, <em>passkey=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.addStamp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.addStamp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a stamp of type <cite>class</cite> to the current envelope.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.addcite">
+<tt class="descclassname">Envelope.</tt><tt class="descname">addcite</tt><big>(</big><em>citedby</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.addcite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.addcite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Another message has referenced this one.</p>
+<p>Mark it in the local area.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.envelope.Envelope.binary">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">binary</tt><big>(</big><em>sha512</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.countChildren">
+<tt class="descclassname">Envelope.</tt><tt class="descname">countChildren</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.countChildren"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.countChildren" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.flatten">
+<tt class="descclassname">Envelope.</tt><tt class="descname">flatten</tt><big>(</big><em>striplocal=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.flatten" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.get_original">
+<tt class="descclassname">Envelope.</tt><tt class="descname">get_original</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.get_original"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.get_original" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the original message, without any edits</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.loaddict">
+<tt class="descclassname">Envelope.</tt><tt class="descname">loaddict</tt><big>(</big><em>importdict</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.loaddict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.loaddict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.loadfile">
+<tt class="descclassname">Envelope.</tt><tt class="descname">loadfile</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.loadfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.loadfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.loadmongo">
+<tt class="descclassname">Envelope.</tt><tt class="descname">loadmongo</tt><big>(</big><em>mongo_id</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.loadmongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.loadmongo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.loadstring">
+<tt class="descclassname">Envelope.</tt><tt class="descname">loadstring</tt><big>(</big><em>importstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.loadstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.loadstring" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.munge">
+<tt class="descclassname">Envelope.</tt><tt class="descname">munge</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.munge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.munge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set things in the local block of the message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.mungebins">
+<tt class="descclassname">Envelope.</tt><tt class="descname">mungebins</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.mungebins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.mungebins" title="Permalink to this definition">¶</a></dt>
+<dd><p>Store details for all binaries, and create thumbnails for images.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.prettytext">
+<tt class="descclassname">Envelope.</tt><tt class="descname">prettytext</tt><big>(</big><em>striplocal=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.prettytext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.prettytext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.registerpayload">
+<tt class="descclassname">Envelope.</tt><tt class="descname">registerpayload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.registerpayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.registerpayload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.reloadfile">
+<tt class="descclassname">Envelope.</tt><tt class="descname">reloadfile</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.reloadfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.reloadfile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.reloadmongo">
+<tt class="descclassname">Envelope.</tt><tt class="descname">reloadmongo</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.reloadmongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.reloadmongo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.saveMongo">
+<tt class="descclassname">Envelope.</tt><tt class="descname">saveMongo</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.saveMongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.saveMongo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.savefile">
+<tt class="descclassname">Envelope.</tt><tt class="descname">savefile</tt><big>(</big><em>directory='.'</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.savefile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.savefile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.text">
+<tt class="descclassname">Envelope.</tt><tt class="descname">text</tt><big>(</big><em>striplocal=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.envelope.Envelope.validate">
+<tt class="descclassname">Envelope.</tt><tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ensures an envelope is valid, legal, and according to spec.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.key">
+<span id="libtavern-key-module"></span><h2>libtavern.key module<a class="headerlink" href="#module-libtavern.key" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.key.Key">
+<em class="property">class </em><tt class="descclassname">libtavern.key.</tt><tt class="descname">Key</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.key.Key.decrypt">
+<tt class="descname">decrypt</tt><big>(</big><em>decryptstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.decrypt_file">
+<tt class="descname">decrypt_file</tt><big>(</big><em>tmpfile</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.decrypt_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.decrypt_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.encrypt">
+<tt class="descname">encrypt</tt><big>(</big><em>encryptstring</em>, <em>encrypt_to</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt a string, to the gpg key of the specified recipient)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.encrypt_file">
+<tt class="descname">encrypt_file</tt><big>(</big><em>newfile</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.encrypt_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.encrypt_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encrypt a string, to the gpg key of the specified recipient)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.from_dict">
+<tt class="descname">from_dict</tt><big>(</big><em>keydict</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restores a key from a dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.generate">
+<tt class="descname">generate</tt><big>(</big><em>autoexpire=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replaces whatever keys currently might exist with new ones.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.isValid">
+<tt class="descname">isValid</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.isValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.isValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this key have an &#8216;expires&#8217; variable set in the past?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.privatekeyaccess">
+<tt class="descname">privatekeyaccess</tt><big>(</big><em>fn</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.privatekeyaccess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.privatekeyaccess" title="Permalink to this definition">¶</a></dt>
+<dd><p>privatekeyaccess is an wrapper decorator.</p>
+<p>It will call the unlock() function in the obj if it has one.
+This allows us to define a separate unlock for each type of key,
+and call them from the parent.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.signstring">
+<tt class="descname">signstring</tt><big>(</big><em>signstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.signstring"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.signstring" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign a string, and return back the Base64 Signature.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.test_encryption">
+<tt class="descname">test_encryption</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.test_encryption"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.test_encryption" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.test_signing">
+<tt class="descname">test_signing</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.test_signing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.test_signing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify the signing/verification engine works as expected.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.to_dict">
+<tt class="descname">to_dict</tt><big>(</big><em>clean=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the key objects as a python dictionary.
+If <cite>clean</cite> is True, it removes private keys.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.unlock">
+<tt class="descname">unlock</tt><big>(</big><em>privkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.unlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.unlock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.key.Key.verify_string">
+<tt class="descname">verify_string</tt><big>(</big><em>stringtoverify</em>, <em>signature</em><big>)</big><a class="reference internal" href="_modules/libtavern/key.html#Key.verify_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.key.Key.verify_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verify the passed in string matches the passed signature.</p>
+<p>We&#8217;re expanding the GPG signatures a bit, so that we can verify
+the message matches Not just the signature.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.keygen">
+<span id="libtavern-keygen-module"></span><h2>libtavern.keygen module<a class="headerlink" href="#module-libtavern.keygen" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.keygen.KeyGenerator">
+<em class="property">class </em><tt class="descclassname">libtavern.keygen.</tt><tt class="descname">KeyGenerator</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/keygen.html#KeyGenerator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.keygen.KeyGenerator" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<p>Pre-generates GPG keys.</p>
+<dl class="method">
+<dt id="libtavern.keygen.KeyGenerator.CreateUnusedLK">
+<tt class="descname">CreateUnusedLK</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/keygen.html#KeyGenerator.CreateUnusedLK"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.keygen.KeyGenerator.CreateUnusedLK" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a LockedKey with a random password.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.keygen.KeyGenerator.GenerateAsNeeded">
+<tt class="descname">GenerateAsNeeded</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/keygen.html#KeyGenerator.GenerateAsNeeded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.keygen.KeyGenerator.GenerateAsNeeded" title="Permalink to this definition">¶</a></dt>
+<dd><p>Watch to see if the queue gets low, and then add users.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.keygen.KeyGenerator.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/keygen.html#KeyGenerator.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.keygen.KeyGenerator.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start up all subprocs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.keygen.KeyGenerator.stop">
+<tt class="descname">stop</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/keygen.html#KeyGenerator.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.keygen.KeyGenerator.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Terminate all subprocs.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.lockedkey">
+<span id="libtavern-lockedkey-module"></span><h2>libtavern.lockedkey module<a class="headerlink" href="#module-libtavern.lockedkey" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.lockedkey.LockedKey">
+<em class="property">class </em><tt class="descclassname">libtavern.lockedkey.</tt><tt class="descname">LockedKey</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.key.Key" title="libtavern.key.Key"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.key.Key</span></tt></a></p>
+<p>A securely locked away key, which uses a secret only stored in the
+client to unlock. If our DB is ever compromised, this will prevent bad guys
+from easily impersonating users. This also prevents us from evesdropping on
+private messages.</p>
+<p>Class is basically a wrapper around Keys.py</p>
+<p>We aren&#8217;t just using gpg passphrases because there is no easy way to progratically change them.</p>
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.changepass">
+<tt class="descname">changepass</tt><big>(</big><em>oldpasskey</em>, <em>newpassword</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.changepass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.changepass" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.from_dict">
+<tt class="descname">from_dict</tt><big>(</big><em>keydict</em>, <em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Restores a key from a dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.generate">
+<tt class="descname">generate</tt><big>(</big><em>password=None</em>, <em>passkey=None</em>, <em>random=False</em>, <em>autoexpire=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.generate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a new set of keys.
+Store only the encrypted version</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.get_passkey">
+<tt class="descname">get_passkey</tt><big>(</big><em>password</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.get_passkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.get_passkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the hashed version of the password.</p>
+<p>Broken out into a method, so we can swap it if nec.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.lock">
+<tt class="descname">lock</tt><big>(</big><em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.lock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove the private key from Python obj.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.to_dict">
+<tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the key objects as a python dictionary.
+Does -not- save out the privkey or passkey!</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.lockedkey.LockedKey.unlock">
+<tt class="descname">unlock</tt><big>(</big><em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.unlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.unlock" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets self.privkey to be the public key, if possible.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.server">
+<span id="libtavern-server-module"></span><h2>libtavern.server module<a class="headerlink" href="#module-libtavern.server" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.server.DBWrapper">
+<em class="property">class </em><tt class="descclassname">libtavern.server.</tt><tt class="descname">DBWrapper</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#DBWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.DBWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.server.FakeMongo">
+<em class="property">class </em><tt class="descclassname">libtavern.server.</tt><tt class="descname">FakeMongo</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.count">
+<tt class="descname">count</tt><big>(</big><em>collection</em>, <em>query={}</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.drop_collection">
+<tt class="descname">drop_collection</tt><big>(</big><em>collection</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.drop_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.drop_collection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.ensure_index">
+<tt class="descname">ensure_index</tt><big>(</big><em>collection</em>, <em>index</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.ensure_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.ensure_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.find">
+<tt class="descname">find</tt><big>(</big><em>collection</em>, <em>query={}</em>, <em>limit=-1</em>, <em>skip=0</em>, <em>sortkey=None</em>, <em>sortdirection='ascending'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.find" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.find_one">
+<tt class="descname">find_one</tt><big>(</big><em>collection</em>, <em>query={}</em>, <em>limit=-1</em>, <em>skip=0</em>, <em>sortkey=None</em>, <em>sortdirection='ascending'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.find_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.find_one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.insert">
+<tt class="descname">insert</tt><big>(</big><em>collection</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.map_reduce">
+<tt class="descname">map_reduce</tt><big>(</big><em>collection</em>, <em>map</em>, <em>reduce</em>, <em>out</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.map_reduce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.map_reduce" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.FakeMongo.save">
+<tt class="descname">save</tt><big>(</big><em>collection</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#FakeMongo.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.FakeMongo.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.server.MongoWrapper">
+<em class="property">class </em><tt class="descclassname">libtavern.server.</tt><tt class="descname">MongoWrapper</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.count">
+<tt class="descname">count</tt><big>(</big><em>collection</em>, <em>query={}</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.drop_collection">
+<tt class="descname">drop_collection</tt><big>(</big><em>collection</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.drop_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.drop_collection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.ensure_index">
+<tt class="descname">ensure_index</tt><big>(</big><em>collection</em>, <em>index</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.ensure_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.ensure_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.find">
+<tt class="descname">find</tt><big>(</big><em>collection</em>, <em>query={}</em>, <em>limit=0</em>, <em>skip=0</em>, <em>sortkey=None</em>, <em>sortdirection='ascending'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.find" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.find_one">
+<tt class="descname">find_one</tt><big>(</big><em>collection</em>, <em>query={}</em>, <em>skip=0</em>, <em>sortkey=None</em>, <em>sortdirection='ascending'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.find_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.find_one" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.insert">
+<tt class="descname">insert</tt><big>(</big><em>collection</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.insert" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.map_reduce">
+<tt class="descname">map_reduce</tt><big>(</big><em>collection</em>, <em>map</em>, <em>reduce</em>, <em>out</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.map_reduce"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.map_reduce" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.MongoWrapper.save">
+<tt class="descname">save</tt><big>(</big><em>collection</em>, <em>query</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#MongoWrapper.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.MongoWrapper.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.server.Server">
+<em class="property">class </em><tt class="descclassname">libtavern.server.</tt><tt class="descname">Server</tt><big>(</big><em>slot='default'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.utils.instancer" title="libtavern.utils.instancer"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.utils.instancer</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.server.Server.error_envelope">
+<tt class="descname">error_envelope</tt><big>(</big><em>subject='Error'</em>, <em>topic='sitecontent'</em>, <em>body=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.error_envelope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.error_envelope" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.formatText">
+<tt class="descname">formatText</tt><big>(</big><em>text=None</em>, <em>formatting='markdown'</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.formatText"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.formatText" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.getTopMessage">
+<tt class="descname">getTopMessage</tt><big>(</big><em>messageid</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.getTopMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.getTopMessage" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.get_all_user_posts">
+<tt class="descname">get_all_user_posts</tt><big>(</big><em>pubkey</em>, <em>limit=1000</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.get_all_user_posts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.get_all_user_posts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.prettytext">
+<tt class="descname">prettytext</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.prettytext"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.prettytext" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.receiveEnvelope">
+<tt class="descname">receiveEnvelope</tt><big>(</big><em>envstr=None</em>, <em>env=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.receiveEnvelope"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.receiveEnvelope" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive an envelope for processing in the server.</p>
+<p>Can take either a string, or an envelope obj.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.start">
+<tt class="descname">start</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.start"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.start" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stuff that should be done when the server is running as a process,
+not just imported as a obj.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.stop">
+<tt class="descname">stop</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.stop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.stop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stop all server procs.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.url_for">
+<tt class="descname">url_for</tt><big>(</big><em>envelope=None</em>, <em>topic=None</em>, <em>user=None</em>, <em>pubkey=None</em>, <em>static=None</em>, <em>base=True</em>, <em>fqdn=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.url_for"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.url_for" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the canonical URL for a given token</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.server.Server.urlize">
+<tt class="descname">urlize</tt><big>(</big><em>url</em><big>)</big><a class="reference internal" href="_modules/libtavern/server.html#Server.urlize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.server.Server.urlize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.serversettings">
+<span id="libtavern-serversettings-module"></span><h2>libtavern.serversettings module<a class="headerlink" href="#module-libtavern.serversettings" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.serversettings.ServerSettings">
+<em class="property">class </em><tt class="descclassname">libtavern.serversettings.</tt><tt class="descname">ServerSettings</tt><big>(</big><em>slot='default'</em><big>)</big><a class="reference internal" href="_modules/libtavern/serversettings.html#ServerSettings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.serversettings.ServerSettings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.utils.instancer" title="libtavern.utils.instancer"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.utils.instancer</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.serversettings.ServerSettings.loadconfig">
+<tt class="descname">loadconfig</tt><big>(</big><em>filename=None</em>, <em>directory=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/serversettings.html#ServerSettings.loadconfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.serversettings.ServerSettings.loadconfig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.serversettings.ServerSettings.saveconfig">
+<tt class="descname">saveconfig</tt><big>(</big><em>filename=None</em>, <em>directory=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/serversettings.html#ServerSettings.saveconfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.serversettings.ServerSettings.saveconfig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.serversettings.ServerSettings.updateconfig">
+<tt class="descname">updateconfig</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/serversettings.html#ServerSettings.updateconfig"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.serversettings.ServerSettings.updateconfig" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.topic">
+<span id="libtavern-topic-module"></span><h2>libtavern.topic module<a class="headerlink" href="#module-libtavern.topic" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.topic.Topic">
+<em class="property">class </em><tt class="descclassname">libtavern.topic.</tt><tt class="descname">Topic</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<p>A Topic is a collection of messages with a common subject.</p>
+<dl class="method">
+<dt id="libtavern.topic.Topic.add">
+<tt class="descname">add</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add a topic</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.topic.Topic.count">
+<tt class="descname">count</tt><big>(</big><em>before=None</em>, <em>after=None</em>, <em>include_replies=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Count the messages in the current topic.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>before</strong> (<em>float</em>) &#8211; Count only messages before this timestamp</li>
+<li><strong>after</strong> (<em>float</em>) &#8211; Count only messages after this timestamp</li>
+<li><strong>include_replies</strong> (<em>bool</em>) &#8211; Should replies be included, or only top-level messages.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return int:</th><td class="field-body"><p class="first last">Number of messages.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.topic.Topic.get_first_after">
+<tt class="descname">get_first_after</tt><big>(</big><em>maxposts</em>, <em>after</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.get_first_after"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.get_first_after" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the earliest dated message, after <cite>after</cite>
+:param int maxposts: Max number of posts to return
+:param after: Find only messages after
+:type after: integer or float</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.topic.Topic.messages">
+<tt class="descname">messages</tt><big>(</big><em>maxposts=100</em>, <em>before=None</em>, <em>after=None</em>, <em>include_replies=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.messages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.messages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve the messages in the specified topics.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>maxposts</strong> (<em>int</em>) &#8211; Max number of posts to return</li>
+<li><strong>before</strong> (<em>float</em>) &#8211; Find only messages before this timestamp</li>
+<li><strong>after</strong> (<em>float</em>) &#8211; Find only messages after this timestamp</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return array:</th><td class="field-body"><p class="first last">List of messages</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.topic.Topic.moreafter">
+<tt class="descname">moreafter</tt><big>(</big><em>before</em>, <em>topic</em>, <em>maxposts</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.moreafter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.moreafter" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="libtavern.topic.Topic.name">
+<tt class="descname">name</tt><a class="reference internal" href="_modules/libtavern/topic.html#Topic.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the topic</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="libtavern.topic.Topic.sortname">
+<tt class="descname">sortname</tt><a class="reference internal" href="_modules/libtavern/topic.html#Topic.sortname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.sortname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of the topic</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.topic.Topic.toptopics">
+<tt class="descname">toptopics</tt><big>(</big><em>limit=10</em>, <em>skip=0</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#Topic.toptopics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.Topic.toptopics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the Top topics on the server, as generated by TopicList.py
+:param (int) limit: The maximum number of topics to return.
+:param skip int: Skip N topics before returning. Used for pagination.
+:return:Array: A list of Topic objects.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.topic.sorttopic">
+<tt class="descclassname">libtavern.topic.</tt><tt class="descname">sorttopic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/topic.html#sorttopic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.topic.sorttopic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.uasparser">
+<span id="libtavern-uasparser-module"></span><h2>libtavern.uasparser module<a class="headerlink" href="#module-libtavern.uasparser" title="Permalink to this headline">¶</a></h2>
+<p>Converts a User Agent String into a dictionary describing the browser.
+This uses data from <a class="reference external" href="http://user-agent-string.info">http://user-agent-string.info</a>
+This is a python version of
+A python version of <a class="reference external" href="http://user-agent-string.info/download/UASparser">http://user-agent-string.info/download/UASparser</a>, adapted to Tavern.
+Initially adapted to Python by Hicro Kee (<a class="reference external" href="http://hicrokee.com">http://hicrokee.com</a>) and <a class="reference external" href="http://molhanec.net">http://molhanec.net</a> (Michal Molhanec)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">libtavern.uasparser</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">uas</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">uasparser</span><span class="o">.</span><span class="n">UASparser</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;SonyEricssonK750i/R1L Browser/SEMC-Browser/4.2 Profile/MIDP-2.0 Configuration/CLDC-1.1&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="s">&#39;Mozilla/5.0 (Windows; U; Windows NT 5.2; en-GB; rv:1.8.1.18) Gecko/20081029 Firefox/2.0.0.18&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="s">&#39;Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_5_5; en-us) AppleWebKit/525.26.2 (KHTML, like Gecko) Version/3.2 Safari/525.26.12&#39;</span><span class="p">,</span>
+<span class="gp">... </span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">test</span><span class="p">:</span>
+<span class="gp">... </span>   <span class="n">res</span> <span class="o">=</span> <span class="n">uas</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+<span class="gp">... </span>   <span class="k">print</span><span class="p">(</span><span class="n">res</span><span class="p">[</span><span class="s">&#39;typ&#39;</span><span class="p">]</span> <span class="o">+</span><span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s">&#39;ua_name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="n">res</span><span class="p">[</span><span class="s">&#39;os_name&#39;</span><span class="p">])</span>
+<span class="go">Mobile Browser SEMC Browser 4.2 JVM (Java)</span>
+<span class="go">Browser Firefox 2.0.0.18 Windows 2003 Server</span>
+<span class="go">Browser Safari 3.2 OS X 10.5 Leopard</span>
+</pre></div>
+</div>
+<dl class="exception">
+<dt id="libtavern.uasparser.UASException">
+<em class="property">exception </em><tt class="descclassname">libtavern.uasparser.</tt><tt class="descname">UASException</tt><a class="reference internal" href="_modules/libtavern/uasparser.html#UASException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.uasparser.UASException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.uasparser.UASparser">
+<em class="property">class </em><tt class="descclassname">libtavern.uasparser.</tt><tt class="descname">UASparser</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/uasparser.html#UASparser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.uasparser.UASparser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.uasparser.UASparser.loadData">
+<tt class="descname">loadData</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/uasparser.html#UASparser.loadData"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.uasparser.UASparser.loadData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load cache data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.uasparser.UASparser.parse">
+<tt class="descname">parse</tt><big>(</big><em>useragent</em><big>)</big><a class="reference internal" href="_modules/libtavern/uasparser.html#UASparser.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.uasparser.UASparser.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the information of an useragent string.
+param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.user">
+<span id="libtavern-user-module"></span><h2>libtavern.user module<a class="headerlink" href="#module-libtavern.user" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="libtavern.user.User">
+<em class="property">class </em><tt class="descclassname">libtavern.user.</tt><tt class="descname">User</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.user.User.add_email">
+<tt class="descname">add_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.add_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.add_email" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.changepass">
+<tt class="descname">changepass</tt><big>(</big><em>newpassword</em>, <em>oldpasskey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.changepass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.changepass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Change the User&#8217;s password.
+Since this password is used to encrypt all of the keys, we need to re-encrypt them as well.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.decrypt">
+<tt class="descname">decrypt</tt><big>(</big><em>text</em>, <em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrypt a message sent to me, using one of my communication keys.</p>
+<p>Note - We don&#8217;t try to decrypt using the master key, even though it&#8217;s technically possible.
+This is intentional, so that other clients don&#8217;t start sending PMs to the master key, and compromise security.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.ensure_keys">
+<tt class="descname">ensure_keys</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.ensure_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.ensure_keys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the Keys for a User()</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.follow_topic">
+<tt class="descname">follow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follow_topic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.follows_topic">
+<tt class="descname">follows_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follows_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follows_topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this user follow the topic?</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.from_dict">
+<tt class="descname">from_dict</tt><big>(</big><em>userdict</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Demarshall a user obj from a dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.gatherTrust">
+<tt class="descname">gatherTrust</tt><big>(</big><em>askingabout</em>, <em>incomingtrust=250</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.gatherTrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.gatherTrust" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return how much I trust a given ID, rather than a given post.
+This is determined by several factors, but the base algorithm is:</p>
+<blockquote>
+<div>[Keys and Spam Ranking]
+[Have I rated this person]
+[Have any friends rated this person]
+[Have any FOF or FOFOF rated this person]
+[Each generation of friends gets their trust multiplied by .4, since you trust them less and less]</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.getRatings">
+<tt class="descname">getRatings</tt><big>(</big><em>postInQuestion</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.getRatings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.getRatings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the ratings of a specific message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.get_note">
+<tt class="descname">get_note</tt><big>(</big><em>noteabout</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_note" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieve any note by user A about user B.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.get_pubkeys">
+<tt class="descname">get_pubkeys</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_pubkeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_pubkeys" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of all public keys for a user.
+Typically used to search for messages belonging to that user.
+:return: A list of all public keys.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_file">
+<tt class="descname">load_file</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_mongo_by_pubkey">
+<tt class="descname">load_mongo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_pubkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a user object for a given pubkey.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_mongo_by_sessionid">
+<tt class="descname">load_mongo_by_sessionid</tt><big>(</big><em>sessionid</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_sessionid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_sessionid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load in a user, via their sessionid</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_mongo_by_username">
+<tt class="descname">load_mongo_by_username</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_username" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_publicinfo_by_pubkey">
+<tt class="descname">load_publicinfo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_publicinfo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_publicinfo_by_pubkey" title="Permalink to this definition">¶</a></dt>
+<dd><p>Retrieves publicly available information for a given user.
+This does leak what messages the server has received.
+But shouldn&#8217;t give them anything about a user they couldn&#8217;t get from another server.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.load_string">
+<tt class="descname">load_string</tt><big>(</big><em>incomingstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.make_hashes">
+<tt class="descname">make_hashes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.make_hashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.make_hashes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.new_posted_key">
+<tt class="descname">new_posted_key</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.new_posted_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.new_posted_key" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a new communication key.
+This key might be attached to a forum message, or a private message.</p>
+<p>By generating a new key for each message, even if our key does eventually leak
+it will be difficult to decode old messages, who&#8217;s keys have been deleted.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.remove_email">
+<tt class="descname">remove_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.remove_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.remove_email" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.save_file">
+<tt class="descname">save_file</tt><big>(</big><em>filename=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.save_mongo">
+<tt class="descname">save_mongo</tt><big>(</big><em>overwriteguest=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_mongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_mongo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.save_note">
+<tt class="descname">save_note</tt><big>(</big><em>noteabout</em>, <em>note=''</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_note" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a note to mongo about a user</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.save_session">
+<tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save a session out to the DB.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.to_dict">
+<tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Marshall out the user obj a dictionary.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.translateTrustToWords">
+<tt class="descname">translateTrustToWords</tt><big>(</big><em>trust</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.translateTrustToWords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.translateTrustToWords" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.unfollow_topic">
+<tt class="descname">unfollow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.unfollow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.unfollow_topic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="libtavern.user.User.verify_password">
+<tt class="descname">verify_password</tt><big>(</big><em>guessed_password</em>, <em>tryinverted=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.verify_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.verify_password" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check a proposed password, to see if it&#8217;s able to open and load a
+user&#8217;s account.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.user.keygen">
+<em class="property">class </em><tt class="descclassname">libtavern.user.</tt><tt class="descname">keygen</tt><a class="reference internal" href="_modules/libtavern/user.html#keygen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.keygen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></tt></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-libtavern.utils">
+<span id="libtavern-utils-module"></span><h2>libtavern.utils module<a class="headerlink" href="#module-libtavern.utils" title="Permalink to this headline">¶</a></h2>
+<p>memorised module - container for the memorise python-memcache decorator</p>
+<dl class="function">
+<dt id="libtavern.utils.checkWork">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">checkWork</tt><big>(</big><em>input</em>, <em>proof</em>, <em>difficulty</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#checkWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.checkWork" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check a Proof-of-work calculation</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.chunks">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">chunks</tt><big>(</big><em>s</em>, <em>n</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#chunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.chunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce <cite>n</cite>-character chunks from <cite>s</cite>.
+Used in the hashes above.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.fix_rotation">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">fix_rotation</tt><big>(</big><em>img</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#fix_rotation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.fix_rotation" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses exif data from an image to rotate it to viewing configuration.
+This is useful since we&#8217;re going to later strip out exif info, otherwise it would be sideways.
+This is typically seen on images uploaded from phones.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.gettime">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">gettime</tt><big>(</big><em>format='timestamp'</em>, <em>timestamp=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#gettime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.gettime" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the time in various formats.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.utils.instancer">
+<em class="property">class </em><tt class="descclassname">libtavern.utils.</tt><tt class="descname">instancer</tt><big>(</big><em>slot='default'</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#instancer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.instancer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.make_thumbnail">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">make_thumbnail</tt><big>(</big><em>fileobj</em>, <em>filename</em>, <em>mime</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#make_thumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.make_thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a thumbnail version of the passed in image.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.utils.memcache_none">
+<em class="property">class </em><tt class="descclassname">libtavern.utils.</tt><tt class="descname">memcache_none</tt><a class="reference internal" href="_modules/libtavern/utils.html#memcache_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.memcache_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Stub class for storing None values in memcache,
+so we can distinguish between None values and not-found
+entries.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.utils.memorise">
+<em class="property">class </em><tt class="descclassname">libtavern.utils.</tt><tt class="descname">memorise</tt><big>(</big><em>parent_keys=</em>, <span class="optional">[</span><span class="optional">]</span><em>set=None</em>, <em>ttl=60</em>, <em>maxsize=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#memorise"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.memorise" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
+<p>Decorate any function or class method/staticmethod with a memcace
+enabled caching wrapper. Similar to the memoise pattern, this will push
+mutator operators into memcache.Client.set(), and pull accessor
+operations from memcache.Client.get().</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><dl class="first last docutils">
+<dt><cite>parent_keys</cite> <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
+<dd><p class="first last">A list of attributes in the parent instance or class to use for
+key hashing.</p>
+</dd>
+<dt><cite>set</cite> <span class="classifier-delimiter">:</span> <span class="classifier">string</span></dt>
+<dd><p class="first last">An attribute present in the parent instance or class to set
+to the same value as the cached return value. Handy for keeping
+models in line if attributes are accessed directly in other
+places, or for pickling instances.</p>
+</dd>
+<dt><cite>ttl</cite> <span class="classifier-delimiter">:</span> <span class="classifier">integer</span></dt>
+<dd><p class="first">Tells memcached the time which this value should expire.
+We default to 0 == cache forever. None is turn off caching.</p>
+<p class="last">If we pass a <cite>taverncache</cite> entry to the wrapped function, memorise will intercept it.
+taverncache=&#8217;invalidate&#8217; will remove the entry from the cache, if it&#8217;s there.
+taverncache=&#8217;bypass&#8217; will ignore the stored entry, re-run the function, and re-store the result.</p>
+</dd>
+</dl>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.objresolve">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">objresolve</tt><big>(</big><em>obj</em>, <em>attrspec</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#objresolve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.objresolve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.proveWork">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">proveWork</tt><big>(</big><em>input</em>, <em>difficulty</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#proveWork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.proveWork" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produces a Proof-of-work SHA collision based on HashCash.
+This is useful for avoiding spam.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="libtavern.utils.randomWords">
+<em class="property">class </em><tt class="descclassname">libtavern.utils.</tt><tt class="descname">randomWords</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#randomWords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.randomWords" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="method">
+<dt id="libtavern.utils.randomWords.random">
+<tt class="descname">random</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#randomWords.random"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.randomWords.random" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Random Fortune from the stack.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="libtavern.utils.randomWords.wordhash">
+<tt class="descname">wordhash</tt><big>(</big><em>st</em>, <em>slots=4</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#randomWords.wordhash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.randomWords.wordhash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a WordHash, such as MinibarAvoureParapetedSlashings for a
+string.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.randstr">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">randstr</tt><big>(</big><em>length</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#randstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.randstr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-libtavern">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-libtavern" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/logo.png" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">libtavern package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-libtavern.baseobj">libtavern.baseobj module</a></li>
+<li><a class="reference internal" href="#module-libtavern.embedis">libtavern.embedis module</a></li>
+<li><a class="reference internal" href="#module-libtavern.envelope">libtavern.envelope module</a></li>
+<li><a class="reference internal" href="#module-libtavern.key">libtavern.key module</a></li>
+<li><a class="reference internal" href="#module-libtavern.keygen">libtavern.keygen module</a></li>
+<li><a class="reference internal" href="#module-libtavern.lockedkey">libtavern.lockedkey module</a></li>
+<li><a class="reference internal" href="#module-libtavern.server">libtavern.server module</a></li>
+<li><a class="reference internal" href="#module-libtavern.serversettings">libtavern.serversettings module</a></li>
+<li><a class="reference internal" href="#module-libtavern.topic">libtavern.topic module</a></li>
+<li><a class="reference internal" href="#module-libtavern.uasparser">libtavern.uasparser module</a></li>
+<li><a class="reference internal" href="#module-libtavern.user">libtavern.user module</a></li>
+<li><a class="reference internal" href="#module-libtavern.utils">libtavern.utils module</a></li>
+<li><a class="reference internal" href="#module-libtavern">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="code.html"
+                        title="previous chapter">Tavern Source Code</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="webtav.html"
+                        title="next chapter">webtav package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/libtavern.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="webtav.html" title="webtav package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="Tavern Source Code"
+             >previous</a> |</li>
+        <li><a href="index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="for-developers.html" >Developing using Tavern</a> &raquo;</li>
+          <li><a href="code.html" >Tavern Source Code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

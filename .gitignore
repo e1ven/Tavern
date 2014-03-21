@@ -13,8 +13,6 @@ __pycache__
 
 # Preprocessing tmp files
 .sass-cache
-libs.js
-libs.css
 .coverage
 
 # Tavern tmp files/logs/conf/etc
@@ -22,12 +20,19 @@ tmp
 logs
 libs/virtualenv*
 *.serversettings
+*.min.js
+datafiles/mongodb/
+datafiles/messages/
+utils/mongodb/
+utils/nginx/
+webtav/static/css/
+
 
 # IDE tmp files
 tavern.sublime-workspace
 .idea
-datafiles/ide/Pycharm/*.xml
-
+datafiles/ide/Pycharm/
+!datafiles/ide/Pycharm/Tavern.iml
 
 # Big Tavern files - These would bloat the repo, since they're big and change :/
 GeoLiteCity.dat
@@ -35,5 +40,5 @@ useragent.ini
 *.box
 
 # Docs
-datafiles/documentation-generator/_build
+docs/documentation_sources/_*
 .coverage

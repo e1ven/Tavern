@@ -1,0 +1,126 @@
+Frequently Asked Questions
+#####
+
+Tavern User Questions
+=====
+
+Does Tavern track what I do?
+----
+Unlike most social sites, Tavern doesn't want to know who you are, or what you're into ;)
+With Tavern, Your identity is tied only your account - If you want to be someone else, just make a new one. Even then, we work as hard as we can to avoid knowing anything about you.
+Tavern.com doesn't run Analytics or have Social Buttons, and only log to memory.
+Running your own Tavern server is even more secure - It lets you avoid talking to our servers entirely, and we don't know which messages are yours, or which you are relaying for others.
+
+Can anyone read my private messages?
+----
+NO.
+No one can read your private messages except for you, and the person you send them to.
+When you create an account at Tavern.com, it generates a unique encryption key for your account, then locks it with your password, so even we can't get to it.
+When you run your own tavern server, your key never leaves your house, increasing your security even further.
+
+How does Tavern prevent Spam?
+----
+Tavern combines three powerful systems to make it difficult for Spammers to operate on the network.
+The first layer of protection is provided by a "proof-of-work" system, similar to what BitCoin uses. It ensures that each message that you want to post takes a second or two before it becomes live. This doesn't effect any individual user very much, but makes it really difficult for spammers to send out thousands of messages at once.
+Secondly, Tavern uses a ranking system, with upvotes and downvotes, similar to Reddit or Slashdot. This lets you separate the wheat from the chaff, and see the best comments first.
+Finally, Tavern uses a "web of trust" system, which means we show you messages from people you like first, and then messages from people THEY like, before messages from strangers.
+
+Will my Tavern Server carry content that I disapprove of?
+----
+While it's impossible to stop everyone who wants to cause mischief, Tavern was designed from the beginning to make sure that you're only downloading the topics that you find interesting.
+You decide which Topics ("Apple", or "Startrek") you want your machine to carry - You can choose to have just a few that interest you, or lots of them, to help the network grow and propagate.
+You can also always block messages from individual posters, and choose moderators to filter topics for you.
+
+Should I use Tavern for pirating aquatic yodeling videos?
+----
+Please don't.
+Tavern is an open network, and while we can't stop you, you're kinda missing the point.
+We're trying to build a way for everyone to be able to share and communicate, even when powerful interests around the world might try to force them into silence or conformity. Using Tavern for illegal things just puts a bigger target on us, and gives more ammunition to people who might want to shut us down.. And that's not good for anyone.
+Tavern Networks, LLC will remain fully compliant with all local laws, including the DMCA - If we're notified about infringing content on Tavern.com, we'll need to take it off of our servers. If the same user continues to upload infringing content, we'll need to block them from accessing our servers.
+Please understand that is a very difficult subject for us - We don't want to be in the business of policing content, or trying to judge what people should or shouldn't post, but at the same time, in order to be able to legally operate Tavern.com and our open api relays, we need to remain in legal compliance.
+
+How anonymous is Tavern?
+----
+Tavern allows you to post and share messages identified only by your username and public key.
+
+We avoid logging, so no one knows who you are, and what you're sharing except for you.
+
+When you run your own Tavern server, your messages are pulled from dozens of other machines around the net, making sure that even we don't have access to what you post, share or read.
+
+That said, Tavern can't protect against everything - It's possible to detect that you are connecting to Tavern, and dedicated agencies (like governments) may be able to identify you by any number of advanced techniques, such as monitoring your writing style, by watching all traffic in or out of your home, or even looking through your walls as you type.
+
+If you are a secret agent trying to avoid capture, we'd encourage you to be careful. Make sure that you use a Tavern Bartender, and that you save messages off to a USB stick to be loaded elsewhere around the world.
+For the rest of us, Tavern provides a secure, anonymous means of sharing the world, balanced with ensuring that messages are difficult or impossible to block.
+
+Developer FAQ
+=============
+
+Can I develop apps for Tavern?
+----
+Absolutely!
+Tavern a fully open system - There's no company who can change the rules, or cut off anyone's access. Not even us. We're releasing the full specifications about how to write messages, and even giving away the computer code that runs our servers.
+
+Tavern runs on machines around the world, which means that even if we go away, Tavern, and your apps, will keep running.
+
+What technologies is Tavern based on?
+----
+We've written Tavern over the last few years, in response to an increasing threat to online freedom. The programming language is Python 3, and it can store data in either the Mongo Database, or Postgresql.
+
+On the hardware side, the Tavern Bartenders run under modified Revision B Raspberry Pis. The Raspberry Pis are fast, inexpensive, and let us get up and going quickly. We've built a custom-enclosure, and loaded them up with Wifi and SDcards.
+
+We've developed Tavern under the MIT (Expat) License.
+
+How is this different from existing projects?
+----
+There several approaches to providing anonymous online services, and various teams have tried before, to varying levels of success. Tavern combines what we feel is the best of each of these services to bring a true next-generation service.
+
+    Projects like Tor, I2P and CJDNS are amazing innovations - While these projects operate through very different means, they each try to make it easier to let computers talk to one another, even when they might otherwise be blocked. They provide an effective way to bypass firewalls, or in the case of CJDNS, work without any central infrastructure at all. What they don't do is provide any system for posting, saving, or sharing messages.
+
+    Tavern operates at a higher level - It builds on top of these technologies to make it easy to post a message and have it saved and re-transmitted around the world.
+
+    Projects like Diaspora*, Identica, and Tent are trying to re-implement Facebook and Twitter, but give you more control of your data - We think that's a great start - No one should rely on a centralized server to talk to their friends and loved ones.
+
+    But these servers are still designed around the idea of always-on, persistent servers, which define who you are and where people find you. With Tavern, your identity is defined by a public key, and it can come from anywhere. You could have an iPod Touch which was only only for 5 minutes a day, and it could relay all your messages and get replies.
+
+    Freenet is an amazing project, that we've been working with (in limited ways) for years - Their goals are a model for all of us, and their WoT system directly inspired the one used in Tavern.
+
+    While we laud the ambition behind Freenet, in practice, it's often just too slow to be usable for everyday communication, and ends up only being used when necessary, which limits the audience. If people are only using your network when they absolutely need to, there are fewer people who can hear your cry when you are in trouble.
+
+    Tavern is optimized for discussions and debate, rather than storing content indefinitely, which lets us make different technical tradeoffs - These let the network run much faster, without compromising the anonymity and safety of the users.
+
+    Usenet is a robust system of exchanging messages that's been running for over 30 years - It's been around longer than Smartphones, Facebook, Google, and even the Web itself!
+
+    We've built Tavern on many of the same principals that have always made Usenet great - It's a distributed system, with no central control or point of failure, and messages can be copied and relayed to reach everyone.
+
+    Usenet has worked well for decades, but continues to run into limitations of it's age - It was designed and flourished in Universities where everyone knew one another - It doesn't have built in SPAM protection, voting, or support for signing and encryption. Often features have been tested or used in limited circumstances, but they don't work as well as they would if they were built in.
+
+    An example is sharing files- Because Usenet doesn't have any built-in ability to store and share binary files, people exchange files by converting them down into hundreds of text messages. These messages are fragile, harder to filter, and waste a lot of space.
+
+    We like to think that if Usenet were designed in 2013 instead of 1971, it would look a lot like Taven.
+
+    We're always interested in integrating with as many other networks as possible. We've talked with the developers of quite a few other networks, and we want to do everything reasonable to interop.
+
+Why does Tavern support Tor and not CJDNS or I2P?
+----
+I2P is a neat project, and we'd love to work with them down the line. Right now, the performance of running the Java version on the Raspberry Pi just wasn't up to what we were looking for.
+
+CJDNS/Hyperborea accept connections over regular IPv6, so in theory Tavern should work. These systems are based around manually exchanging keys with people you trust, which isn't otherwise required in the Tavern model. Right now, there really isn't a big "opennet" which anyone can connect to.
+Aren't messages kinda big?
+
+While a message may seem lengthy when written out in the documentation, when it's stored or transferred between servers the message is always compressed - Saved to disk this message is ~2KB, which is approximately the same size as the uncompressed payload, and within the average range for a HTTP header.
+
+Why not allow something to be posted into multiple topics?
+----
+The initial versions of Tavern did allow cross-posting, and it took a bit of code (and an API change) to take it out. After testing, it really doesn't work very well-
+Almost anything you want to have happen to a post, you only want to effect the post in a Single topic. For example, if you upvote a post, it will be shown closer to the top of the list of posts for that topic. A post with 15 upvotes will be higher than a post with 5 upvotes.
+If you crossposted a message to two topics, however, with varying numbers of members, it might get a LOT of upvotes from the popular topic, which would catapult it higher than should be in the less popular topic.
+You can fix this by special casing the voting code, to count votes separately for each topic. The problem was, I found I was special casing it in nearly every case.
+Separating posts also creates more targetted discussions-
+Imagine a post about a vulnerability in a popular application.
+    Members of the "Programming" topic might write about how to avoid it.
+    Members of "WhiteHat" might write about how to guard your servers against it.
+    Members of the the suite's Topic might talk about how it affects each of them.
+None of these posts would be directly interesting to the other Topics.
+Or imagine if I were to post about a baseball game, and include both the "Yankees" and "Redsox" topics. I'd probably just be generating fights, more than encouraging worthwhile discussion between rivals.
+If you really want to cross-post something, the best way is probably to manually copy and paste it to make multiple posts. This will create better discussions, more meaningful voting, and allow for better filtering at the topic level.
+

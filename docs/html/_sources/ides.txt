@@ -1,0 +1,12 @@
+Developing Tavern using an IDE
+==============================
+
+Tavern is built to be agnostic, and work with whatever IDE you prefer.
+That said, we've added several support files to make it easy to use some IDEs that we've used in the past.
+
+
+.. toctree::
+
+   ides/sublime
+   ides/pycharm
+
