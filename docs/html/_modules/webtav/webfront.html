@@ -72,9 +72,12 @@
 <span class="kn">import</span> <span class="nn">tornado.options</span>
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
+<span class="kn">import</span> <span class="nn">tornado.wsgi</span>
+<span class="kn">import</span> <span class="nn">flask</span>
 
 
-<div class="viewcode-block" id="EntryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.EntryHandler">[docs]</a><span class="k">class</span> <span class="nc">EntryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+
+<div class="viewcode-block" id="EntryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.EntryHandler">[docs]</a><span class="k">class</span> <span class="nc">EntryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="EntryHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.EntryHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        A simple redirect, that will redirect people from / to a FAQ.</span>
@@ -84,20 +87,15 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/t/sitecontent&#39;</span><span class="p">,</span><span class="n">permanent</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="MessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
-<div class="viewcode-block" id="MessageHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">,</span><span class="n">short_sub</span><span class="p">,</span><span class="n">messageid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Retrieve and Display a message</span>
-
-<span class="sd">        :param args: The messageid should always be the final param passed in.</span>
-<span class="sd">                     We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</span>
+<span class="sd">        Displays a given message.</span>
+<span class="sd">        Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons.</span>
+<span class="sd">        :param topic: (not used) - The topic that the message is in.</span>
+<span class="sd">        :param short_sub: (not used) - The Short version of the message&#39;s subject.</span>
+<span class="sd">        :param messageid: The ID of the message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="c"># The messageid should always be the last thing passed in.</span>
-        <span class="c"># We can get here either via /m/uuid or /t/topic/subject/uuid</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&#39;Too many directories&#39;</span><span class="p">,</span><span class="nb">long</span><span class="o">=</span><span class="s">&#39;The URL you are trying to load is too many directories deep. Perhaps a copy/paste error?&#39;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
-        <span class="n">messageid</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
         <span class="n">messagesenvelope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">messageid</span><span class="p">})</span>
 
@@ -113,7 +111,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="MessageHistoryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHistoryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageHistoryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHistoryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="MessageHistoryHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messageid</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display the various edits to a message.&quot;&quot;&quot;</span>
 
@@ -157,7 +155,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-messagehistory.html&#39;</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="TopicHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicHandler">[docs]</a><span class="k">class</span> <span class="nc">TopicHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="TopicHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicHandler">[docs]</a><span class="k">class</span> <span class="nc">TopicHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="TopicHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display the messages for a given topic</span>
@@ -178,7 +176,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="AllMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">AllMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="AllMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">AllMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="AllMessagesHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllMessagesHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display all messages.</span>
@@ -200,7 +198,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="AllSavedHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllSavedHandler">[docs]</a><span class="k">class</span> <span class="nc">AllSavedHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="AllSavedHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllSavedHandler">[docs]</a><span class="k">class</span> <span class="nc">AllSavedHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="AllSavedHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AllSavedHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Display all messages.</span>
@@ -228,7 +226,7 @@
 
 
 </div></div>
-<div class="viewcode-block" id="ShowAllTopicsHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.ShowAllTopicsHandler">[docs]</a><span class="k">class</span> <span class="nc">ShowAllTopicsHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="ShowAllTopicsHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.ShowAllTopicsHandler">[docs]</a><span class="k">class</span> <span class="nc">ShowAllTopicsHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Show every known topic&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="ShowAllTopicsHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.ShowAllTopicsHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;List of all topics&quot;</span>
@@ -246,7 +244,7 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showtopics.html&#39;</span><span class="p">,</span><span class="n">topics</span><span class="o">=</span><span class="n">alltopics</span><span class="p">,</span><span class="n">remaining</span><span class="o">=</span><span class="n">remaining</span><span class="p">,</span><span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="TopicPropertiesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicPropertiesHandler">[docs]</a><span class="k">class</span> <span class="nc">TopicPropertiesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="TopicPropertiesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicPropertiesHandler">[docs]</a><span class="k">class</span> <span class="nc">TopicPropertiesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Show Properties for a topic&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="TopicPropertiesHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicPropertiesHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
@@ -259,7 +257,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-topicprefs.html&#39;</span><span class="p">,</span><span class="n">mods</span><span class="o">=</span><span class="n">mods</span><span class="p">)</span>
 
 </div></div>
-<div class="viewcode-block" id="SiteContentHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteContentHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteContentHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="SiteContentHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteContentHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteContentHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Displays site content, such as FAQ, Ettiquite, etc, without replies or other chrome.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="SiteContentHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteContentHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">message</span><span class="p">):</span>
         <span class="n">envelope</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
@@ -314,13 +312,16 @@
 <span class="c">#         &#39;showattachment.html&#39;, myattach=myattach, preview=preview, attachment=client_attachment_id, stack=stack))</span>
 <span class="c">#     self.write(self.render_string(&#39;footer.html&#39;))</span>
 </div></div>
-<div class="viewcode-block" id="RegisterHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler">[docs]</a><span class="k">class</span> <span class="nc">RegisterHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="RegisterHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler">[docs]</a><span class="k">class</span> <span class="nc">RegisterHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Register a new user for the site.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="RegisterHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Register for a new account&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;registerform.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;topic&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-newuser.html&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="RegisterHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">getvars</span><span class="p">()</span>
@@ -467,7 +468,7 @@
 <span class="c">#     bottle.redirect(&quot;/&quot;)</span>
 
 </div></div>
-<div class="viewcode-block" id="UserHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UserHandler">[docs]</a><span class="k">class</span> <span class="nc">UserHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="UserHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UserHandler">[docs]</a><span class="k">class</span> <span class="nc">UserHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Print the User&#39;s information</span>
 
@@ -749,7 +750,7 @@
 <span class="c"># self.finish(divs=[&#39;scrollablediv3&#39;])</span>
 <span class="c">#     self.finish(divs=[&#39;wrappertable&#39;])</span>
 </div></div>
-<div class="viewcode-block" id="NewMessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler">[docs]</a><span class="k">class</span> <span class="nc">NewMessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="NewMessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler">[docs]</a><span class="k">class</span> <span class="nc">NewMessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create a new message.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -761,431 +762,372 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;New Message&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/new&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-newmessage.html&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="NewMessageHandler.options"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.options">[docs]</a>    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Methods&#39;</span><span class="p">,</span>
+                        <span class="s">&#39;OPTIONS, HEAD, GET, POST, PUT, DELETE&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="NewMessageHandler.receive_files"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.receive_files">[docs]</a>    <span class="k">def</span> <span class="nf">receive_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receive files as process by the nginx file module plugin.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># The nginx file upload module creates new variables in the form-</span>
+        <span class="c"># They are named &#39;attached_file&#39;</span>
+        <span class="n">attached_files</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">argument</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;attached_file&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">argument</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.path&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">argument</span> <span class="o">==</span> <span class="s">&#39;files[].path&#39;</span><span class="p">):</span>
+                <span class="n">file_details</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">argument</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.name&quot;</span><span class="p">)</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.content_type&quot;</span><span class="p">)</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.path&quot;</span><span class="p">)</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.size&quot;</span><span class="p">)</span>
+
+                <span class="n">fs_basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">])</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;fullpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span>
+                    <span class="s">&#39;upload-dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">fs_basename</span>
+
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">],</span> <span class="s">&#39;rb+&#39;</span><span class="p">)</span>
+                <span class="n">hashname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.sha512&#39;</span><span class="p">)</span>
+
+                <span class="c"># Nginx should give us the SHA512 hash, but if not, calc it.</span>
+                <span class="k">if</span> <span class="n">hashname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                        <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.sha512&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Calculating Hash in Python. Nginx should do this.&quot;</span><span class="p">)</span>
+                    <span class="n">SHA512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+                    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                        <span class="n">buf</span> <span class="o">=</span> <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mh">0x100000</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                            <span class="k">break</span>
+                        <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SHA512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">filelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_file</span><span class="p">)</span>
+
+        <span class="c"># If we get files directly, calculate what we need to know.</span>
+        <span class="k">for</span> <span class="n">file_field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">individual_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">file_field</span><span class="p">]:</span>
+
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
+                <span class="n">SHA512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+                <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+                    <span class="n">buf</span> <span class="o">=</span> <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mh">0x100000</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
+                        <span class="k">break</span>
+                    <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SHA512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">filelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_file</span><span class="p">)</span>
+
+        <span class="n">envelopebinarylist</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Attach the files that are actually here, submitted alongside the</span>
+        <span class="c"># message.</span>
+        <span class="k">for</span> <span class="n">attached_file</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+            <span class="c"># All the same, let&#39;s strip out all but the basename.</span>
+            <span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Dealing with File &quot;</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
+                                <span class="o">+</span> <span class="s">&quot; with hash &quot;</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">])</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]):</span>
+                <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">imagetype</span> <span class="o">=</span> <span class="n">imghdr</span><span class="o">.</span><span class="n">what</span><span class="p">(</span>
+                    <span class="s">&#39;ignoreme&#39;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+                <span class="n">acceptable_images</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;gif&#39;</span><span class="p">,</span> <span class="s">&#39;jpeg&#39;</span><span class="p">,</span> <span class="s">&#39;jpg&#39;</span><span class="p">,</span> <span class="s">&#39;png&#39;</span><span class="p">,</span> <span class="s">&#39;bmp&#39;</span><span class="p">]</span>
+                <span class="k">print</span><span class="p">(</span><span class="n">imagetype</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">imagetype</span> <span class="ow">in</span> <span class="n">acceptable_images</span><span class="p">:</span>
+                    <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="c"># If it&#39;s an image, open and re-save to strip EXIF data.</span>
+                    <span class="c"># Do so here, rather than in server, so that server-&gt;server</span>
+                    <span class="c"># messages aren&#39;t touched</span>
+                    <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+                        <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">],</span> <span class="n">format</span><span class="o">=</span><span class="n">imagetype</span><span class="p">)</span>
+                <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
+                    <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">],</span>
+                    <span class="n">filename</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">],</span>
+                    <span class="n">content_type</span><span class="o">=</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">])</span>
+            <span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Creating Message&quot;</span><span class="p">)</span>
+            <span class="c"># Create a message binary.</span>
+            <span class="n">mybinary</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">binary</span><span class="p">(</span><span class="n">sha512</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">])</span>
+            <span class="c"># Set the Filesize. Clients can&#39;t trust it, but oh-well.</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&#39;estimated size : &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]))</span>
+            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filesize_hint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span>
+            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span>
+            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
+            <span class="n">envelopebinarylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+
+            <span class="c"># Don&#39;t keep spare copies on the webservers</span>
+            <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;fullpath&#39;</span><span class="p">])</span>
+
+        <span class="c"># Support the Javascript upload handler.</span>
+        <span class="c"># return the JSON formatted reply it&#39;s looking for</span>
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&quot;fileonly&quot;</span><span class="p">:</span>
+            <span class="n">details</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">attached_file</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+                <span class="n">detail</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span>
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span>
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span>
+
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span>
+                    <span class="s">&#39;downloadsurl&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span>
+                <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">detail</span><span class="p">)</span>
+            <span class="n">details_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">details</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;application/json&quot;</span><span class="p">)</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">details_json</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">details_json</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c"># Add the binaries which are only referenced, not multipart posted.</span>
+        <span class="c"># This is not unusual - The jQuery uploaded will upload them separately, for example.</span>
+
+        <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">argument</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;referenced_file&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">argument</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;_name&#39;</span><span class="p">):</span>
+                <span class="n">r</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;referenced_file(.*?)_name&#39;</span><span class="p">)</span>
+                <span class="n">m</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">argument</span><span class="p">)</span>
+                <span class="n">binarycount</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">mybinary</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">binary</span><span class="p">(</span><span class="n">sha512</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="s">&#39;referenced_file&#39;</span> <span class="o">+</span> <span class="n">binarycount</span> <span class="o">+</span> <span class="s">&#39;_hash&#39;</span><span class="p">))</span>
+                <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filesize_hint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="s">&#39;referenced_file&#39;</span> <span class="o">+</span> <span class="n">binarycount</span> <span class="o">+</span> <span class="s">&#39;_size&#39;</span><span class="p">)</span>
+                <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="s">&#39;referenced_file&#39;</span> <span class="o">+</span> <span class="n">binarycount</span> <span class="o">+</span> <span class="s">&#39;_contenttype&#39;</span><span class="p">)</span>
+                <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                    <span class="s">&#39;referenced_file&#39;</span> <span class="o">+</span> <span class="n">binarycount</span> <span class="o">+</span> <span class="s">&#39;_name&#39;</span><span class="p">)</span>
+                <span class="n">envelopebinarylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="NewMessageHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Receive Envelopes and their attachments.&quot;&quot;&quot;</span>
+
+
+
+
+        <span class="c"># Now that we have the file handled.. (Whew!) .. Let&#39;s do the Envelope</span>
+        <span class="c"># Pull in our Form variables.</span>
+        <span class="n">client_body</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;body&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">client_topic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;topic&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">client_subject</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;subject&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">client_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;to&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="n">client_regarding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;regarding&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;markdown&quot;</span>
+
+        <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;message&quot;</span>
+            <span class="k">if</span> <span class="n">client_topic</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_topic</span>
+            <span class="k">if</span> <span class="n">client_subject</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_subject</span>
+            <span class="k">if</span> <span class="n">client_body</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_body</span>
+
+            <span class="k">if</span> <span class="n">envelopebinarylist</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;binaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">envelopebinarylist</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
+                <span class="s">&#39;author&#39;</span><span class="p">][</span>
+                <span class="s">&#39;replyto&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span>
+                <span class="s">&#39;posted&#39;</span><span class="p">][</span>
+                <span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span>
+                <span class="s">&#39;friendlyname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">]</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;author&#39;</span><span class="p">,</span>
+                <span class="n">friendlyname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">],</span>
+                <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span>
+                <span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&#39;reply&#39;</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;message&quot;</span>
+            <span class="k">if</span> <span class="n">client_regarding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_regarding</span>
+                <span class="n">regardingmsg</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                    <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">client_regarding</span><span class="p">})</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regardingmsg</span><span class="p">[</span>
+                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;topic&#39;</span><span class="p">]</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regardingmsg</span><span class="p">[</span>
+                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;subject&#39;</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">client_body</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_body</span>
+            <span class="k">if</span> <span class="n">envelopebinarylist</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;binaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">envelopebinarylist</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;replyto&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;posted&#39;</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span>
+                <span class="s">&#39;friendlyname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">]</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;author&#39;</span><span class="p">,</span>
+                <span class="n">friendlyname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">],</span>
+                <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span>
+                <span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&#39;messagerevision&#39;</span><span class="p">:</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;messagerevision&quot;</span>
+            <span class="k">if</span> <span class="n">client_body</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_body</span>
+            <span class="k">if</span> <span class="n">client_regarding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_regarding</span>
+                <span class="n">regardingmsg</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                    <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">client_regarding</span><span class="p">})</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regardingmsg</span><span class="p">[</span>
+                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;topic&#39;</span><span class="p">]</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regardingmsg</span><span class="p">[</span>
+                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;payload&#39;</span><span class="p">][</span>
+                    <span class="s">&#39;subject&#39;</span><span class="p">]</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;author&#39;</span><span class="p">,</span>
+                <span class="n">friendlyname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">],</span>
+                <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span>
+                <span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&#39;privatemessage&#39;</span><span class="p">:</span>
+            <span class="c"># For encrypted messages we want to actually create a whole</span>
+            <span class="c"># sub-envelope inside of it!</span>
+
+            <span class="n">single_use_key</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_pmkey</span><span class="p">()</span>
+            <span class="n">single_use_key</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;privatemessage&quot;</span>
+            <span class="n">touser</span> <span class="o">=</span> <span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">client_to</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;to&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">touser</span><span class="o">.</span><span class="n">pubkey</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;replyto&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_use_key</span><span class="o">.</span><span class="n">pubkey</span>
+
+            <span class="n">encrypted_msg</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;markdown&quot;</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_body</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;privatemessage&#39;</span>
+
+            <span class="k">if</span> <span class="n">client_regarding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">encrypted</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_regarding</span>
+                <span class="n">regardingmsg</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
+                    <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
+                    <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">client_regarding</span><span class="p">})</span>
+
+                <span class="c"># The message we&#39;re referencing is likey unreadable due to encryption.</span>
+                <span class="c"># Pull in it&#39;s subject if possible.</span>
+                <span class="n">decrypted_regarding_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span>
+                    <span class="n">regardingmsg</span><span class="p">[</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;encrypted&#39;</span><span class="p">])</span>
+                <span class="n">decrypted_regarding</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+                <span class="n">decrypted_regarding</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">decrypted_regarding_dict</span><span class="p">)</span>
+
+                <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
+                    <span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">decrypted_regarding</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
+                    <span class="s">&#39;subject&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">client_subject</span>
+
+            <span class="k">if</span> <span class="n">envelopebinarylist</span><span class="p">:</span>
+                <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;binaries&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">envelopebinarylist</span>
+
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
+                <span class="s">&#39;author&#39;</span><span class="p">][</span>
+                <span class="s">&#39;replyto&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_use_key</span><span class="o">.</span><span class="n">pubkey</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span>
+                <span class="s">&#39;friendlyname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">]</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;include_location&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;include_location&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+                <span class="n">gi</span> <span class="o">=</span> <span class="n">pygeoip</span><span class="o">.</span><span class="n">GeoIP</span><span class="p">(</span><span class="s">&#39;data/GeoLiteCity.dat&#39;</span><span class="p">)</span>
+                <span class="n">ip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+
+                <span class="c"># Don&#39;t check from home.</span>
+                <span class="k">if</span> <span class="n">ip</span> <span class="o">==</span> <span class="s">&quot;127.0.0.1&quot;</span><span class="p">:</span>
+                    <span class="n">ip</span> <span class="o">=</span> <span class="s">&quot;8.8.8.8&quot;</span>
+
+                <span class="n">gir</span> <span class="o">=</span> <span class="n">gi</span><span class="o">.</span><span class="n">record_by_name</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span>
+                <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;coords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">gir</span><span class="p">[</span><span class="s">&#39;latitude&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                    <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gir</span><span class="p">[</span><span class="s">&#39;longitude&#39;</span><span class="p">])</span>
+
+            <span class="c"># Add stamps to show we&#39;re the author (and optionally) we&#39;re the</span>
+            <span class="c"># origin server</span>
+            <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;author&#39;</span><span class="p">,</span>
+                <span class="n">friendlyname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;friendlyname&#39;</span><span class="p">],</span>
+                <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span>
+                <span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mark-origin&#39;</span><span class="p">]:</span>
+                    <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                        <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;origin&#39;</span><span class="p">,</span>
+                        <span class="n">keys</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">ServerKeys</span><span class="p">,</span>
+                        <span class="n">hostname</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">])</span>
+
+            <span class="c"># Now that we&#39;ve created the inner message, convert it to text,</span>
+            <span class="c"># store it in the outer message.</span>
+            <span class="n">encrypted_pmstr</span> <span class="o">=</span> <span class="n">encrypted_msg</span><span class="o">.</span><span class="n">text</span><span class="p">()</span>
+
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;encrypted&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">single_use_key</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span>
+                <span class="n">encrypt_to</span><span class="o">=</span><span class="n">touser</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span>
+                <span class="n">encryptstring</span><span class="o">=</span><span class="n">encrypted_pmstr</span><span class="p">)</span>
+
+        <span class="c"># For all classses of messages-</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">UserSettings</span><span class="p">[</span><span class="s">&#39;include_location&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;include_location&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="n">gi</span> <span class="o">=</span> <span class="n">pygeoip</span><span class="o">.</span><span class="n">GeoIP</span><span class="p">(</span><span class="s">&#39;data/GeoLiteCity.dat&#39;</span><span class="p">)</span>
+            <span class="n">ip</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span>
+
+            <span class="c"># Don&#39;t check from home.</span>
+            <span class="k">if</span> <span class="n">ip</span> <span class="o">==</span> <span class="s">&quot;127.0.0.1&quot;</span><span class="p">:</span>
+                <span class="n">ip</span> <span class="o">=</span> <span class="s">&quot;8.8.8.8&quot;</span>
+
+            <span class="n">gir</span> <span class="o">=</span> <span class="n">gi</span><span class="o">.</span><span class="n">record_by_name</span><span class="p">(</span><span class="n">ip</span><span class="p">)</span>
+            <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;coords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">gir</span><span class="p">[</span><span class="s">&#39;latitude&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                <span class="s">&quot;,&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">gir</span><span class="p">[</span><span class="s">&#39;longitude&#39;</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mark-origin&#39;</span><span class="p">]:</span>
+                <span class="n">e</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+                    <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;origin&#39;</span><span class="p">,</span>
+                    <span class="n">keys</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">ServerKeys</span><span class="p">,</span>
+                    <span class="n">hostname</span><span class="o">=</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">])</span>
+
+        <span class="c"># Send to the server</span>
+        <span class="n">newmsgid</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">receiveEnvelope</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">newmsgid</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">client_to</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">client_regarding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/message/&#39;</span> <span class="o">+</span> <span class="n">server</span><span class="o">.</span><span class="n">getTopMessage</span><span class="p">(</span>
+                        <span class="n">newmsgid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;?jumpto=&quot;</span> <span class="o">+</span> <span class="n">newmsgid</span><span class="p">,</span> <span class="n">permanent</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/message/&#39;</span> <span class="o">+</span> <span class="n">newmsgid</span><span class="p">,</span> <span class="n">permanent</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/showprivates&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Failure to insert message.&quot;</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-newmessage.html&#39;</span><span class="p">,</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span>
-
-<span class="c"># &quot;&quot;&quot;Where envelopes POST.&quot;&quot;&quot;</span>
-
-
-<span class="c"># def ReceiveEnvelopeHandler_options(regarding=None):</span>
-<span class="c">#     self.set_header(&#39;Access-Control-Allow-Methods&#39;,</span>
-<span class="c">#                     &#39;OPTIONS, HEAD, GET, POST, PUT, DELETE&#39;)</span>
-<span class="c">#     self.set_header(&#39;Access-Control-Allow-Origin&#39;, &#39;*&#39;)</span>
-
-
-<span class="c"># def ReceiveEnvelopeHandler_get(topic=None, regarding=None):</span>
-<span class="c">#     bottle.redirect(&#39;/&#39;)</span>
-
-
-<span class="c"># def ReceiveEnvelopeHandler_post(flag=None):</span>
-<span class="c">#     self.getvars(AllowGuestKey=False)</span>
-
-<span class="c">#     filelist = []</span>
-
-<span class="c"># We might be getting files either through nginx, or through directly.</span>
-<span class="c"># If we get the file through Nginx, parse out the arguments.</span>
-<span class="c">#     for argument in self.request.arguments:</span>
-<span class="c">#         if (argument.startswith(&quot;attached_file&quot;) and argument.endswith(&#39;.path&#39;)) or (argument == &#39;files[].path&#39;):</span>
-<span class="c">#             individual_file = {}</span>
-<span class="c">#             individual_file[&#39;basename&#39;] = argument.rsplit(&#39;.&#39;)[0]</span>
-<span class="c">#             individual_file[&#39;clean_up_file_afterward&#39;] = True</span>
-<span class="c">#             individual_file[&#39;filename&#39;] = self.get_argument(</span>
-<span class="c">#                 individual_file[&#39;basename&#39;] + &quot;.name&quot;)</span>
-<span class="c">#             individual_file[&#39;content_type&#39;] = self.get_argument(</span>
-<span class="c">#                 individual_file[&#39;basename&#39;] + &quot;.content_type&quot;)</span>
-<span class="c">#             individual_file[&#39;path&#39;] = self.get_argument(</span>
-<span class="c">#                 individual_file[&#39;basename&#39;] + &quot;.path&quot;)</span>
-<span class="c">#             individual_file[&#39;size&#39;] = self.get_argument(</span>
-<span class="c">#                 individual_file[&#39;basename&#39;] + &quot;.size&quot;)</span>
-
-<span class="c">#             fs_basename = os.path.basename(individual_file[&#39;path&#39;])</span>
-<span class="c">#             individual_file[&#39;fullpath&#39;] = self.server.serversettings.settings[</span>
-<span class="c">#                 &#39;upload-dir&#39;] + &quot;/&quot; + fs_basename</span>
-
-<span class="c">#             individual_file[&#39;filehandle&#39;] = open(</span>
-<span class="c">#                 individual_file[&#39;path&#39;], &#39;rb+&#39;)</span>
-<span class="c">#             hashname = str(individual_file[&#39;basename&#39;] + &#39;.sha512&#39;)</span>
-
-<span class="c"># Nginx should give us the SHA512 hash, but if not, calc it.</span>
-<span class="c">#             if hashname in self.request.arguments:</span>
-<span class="c">#                 individual_file[&#39;hash&#39;] = self.get_argument(</span>
-<span class="c">#                     individual_file[&#39;basename&#39;] + &quot;.sha512&quot;)</span>
-<span class="c">#             else:</span>
-<span class="c">#                 print(&quot;Calculating Hash in Python. Nginx should do this.&quot;)</span>
-<span class="c">#                 SHA512 = hashlib.sha512()</span>
-<span class="c">#                 while True:</span>
-<span class="c">#                     buf = individual_file[&#39;filehandle&#39;].read(0x100000)</span>
-<span class="c">#                     if not buf:</span>
-<span class="c">#                         break</span>
-<span class="c">#                     SHA512.update(buf)</span>
-<span class="c">#                 individual_file[&#39;hash&#39;] = SHA512.hexdigest()</span>
-<span class="c">#             individual_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c">#             filelist.append(individual_file)</span>
-
-<span class="c"># If we get files directly, calculate what we need to know.</span>
-<span class="c">#     for file_field in self.request.files:</span>
-<span class="c">#         for individual_file in self.request.files[file_field]:</span>
-
-<span class="c">#             individual_file[&#39;clean_up_file_afterward&#39;] = False</span>
-<span class="c">#             individual_file[&#39;filehandle&#39;] = io.BytesIO()</span>
-<span class="c">#             individual_file[&#39;filehandle&#39;].write(individual_file[&#39;body&#39;])</span>
-<span class="c">#             individual_file[&#39;size&#39;] = len(individual_file[&#39;body&#39;])</span>
-<span class="c">#             SHA512 = hashlib.sha512()</span>
-<span class="c">#             while True:</span>
-<span class="c">#                 buf = individual_file[&#39;filehandle&#39;].read(0x100000)</span>
-<span class="c">#                 if not buf:</span>
-<span class="c">#                     break</span>
-<span class="c">#                 SHA512.update(buf)</span>
-<span class="c">#             individual_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c">#             SHA512.update(individual_file[&#39;body&#39;])</span>
-<span class="c">#             individual_file[&#39;hash&#39;] = SHA512.hexdigest()</span>
-<span class="c">#             individual_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c">#             filelist.append(individual_file)</span>
-
-<span class="c">#     envelopebinarylist = []</span>
-
-<span class="c"># Attach the files that are actually here, submitted alongside the</span>
-<span class="c"># message.</span>
-<span class="c">#     for attached_file in filelist:</span>
-<span class="c"># All the same, let&#39;s strip out all but the basename.</span>
-<span class="c">#         self.server.logger.debug(&quot;Dealing with File &quot; + attached_file[&#39;filename&#39;]</span>
-<span class="c">#                                  + &quot; with hash &quot; + attached_file[&#39;hash&#39;])</span>
-<span class="c">#         if not self.server.bin_GridFS.exists(filename=attached_file[&#39;hash&#39;]):</span>
-<span class="c">#             attached_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c">#             imagetype = imghdr.what(</span>
-<span class="c">#                 &#39;ignoreme&#39;, h=attached_file[&#39;filehandle&#39;].read())</span>
-<span class="c">#             acceptable_images = [&#39;gif&#39;, &#39;jpeg&#39;, &#39;jpg&#39;, &#39;png&#39;, &#39;bmp&#39;]</span>
-<span class="c">#             print(imagetype)</span>
-<span class="c">#             if imagetype in acceptable_images:</span>
-<span class="c">#                 attached_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c"># If it&#39;s an image, open and re-save to strip EXIF data.</span>
-<span class="c"># Do so here, rather than in server, so that server-&gt;server</span>
-<span class="c"># messages aren&#39;t touched</span>
-<span class="c">#                 Image.open(attached_file[&#39;filehandle&#39;]).save(</span>
-<span class="c">#                     attached_file[&#39;filehandle&#39;], format=imagetype)</span>
-<span class="c">#             attached_file[&#39;filehandle&#39;].seek(0)</span>
-<span class="c">#             self.server.bin_GridFS.put(</span>
-<span class="c">#                 attached_file[&#39;filehandle&#39;],</span>
-<span class="c">#                 filename=attached_file[&#39;hash&#39;],</span>
-<span class="c">#                 content_type=individual_file[&#39;content_type&#39;])</span>
-<span class="c">#         self.server.logger.debug(&quot;Creating Message&quot;)</span>
-<span class="c"># Create a message binary.</span>
-<span class="c">#         mybinary = Envelope.binary(sha512=attached_file[&#39;hash&#39;])</span>
-<span class="c"># Set the Filesize. Clients can&#39;t trust it, but oh-well.</span>
-<span class="c">#         print(&#39;estimated size : &#39; + str(attached_file[&#39;size&#39;]))</span>
-<span class="c">#         mybinary.dict[&#39;filesize_hint&#39;] = attached_file[&#39;size&#39;]</span>
-<span class="c">#         mybinary.dict[&#39;content_type&#39;] = attached_file[&#39;content_type&#39;]</span>
-<span class="c">#         mybinary.dict[&#39;filename&#39;] = attached_file[&#39;filename&#39;]</span>
-<span class="c">#         envelopebinarylist.append(mybinary.dict)</span>
-
-<span class="c"># Don&#39;t keep spare copies on the webservers</span>
-<span class="c">#         attached_file[&#39;filehandle&#39;].close()</span>
-<span class="c">#         if attached_file[&#39;clean_up_file_afterward&#39;] is True:</span>
-<span class="c">#             os.remove(attached_file[&#39;fullpath&#39;])</span>
-
-<span class="c"># Support the Javascript upload handler.</span>
-<span class="c"># return the JSON formatted reply it&#39;s looking for</span>
-<span class="c">#     if flag == &quot;fileonly&quot;:</span>
-<span class="c">#         details = []</span>
-<span class="c">#         for attached_file in filelist:</span>
-<span class="c">#             detail = {}</span>
-<span class="c">#             detail[&#39;name&#39;] = attached_file[&#39;filename&#39;]</span>
-<span class="c">#             detail[&#39;hash&#39;] = attached_file[&#39;hash&#39;]</span>
-<span class="c">#             detail[&#39;size&#39;] = attached_file[&#39;size&#39;]</span>
-<span class="c">#             detail[&#39;content_type&#39;] = attached_file[&#39;content_type&#39;]</span>
-
-<span class="c">#             detail[&#39;url&#39;] = self.server.serversettings.settings[</span>
-<span class="c">#                 &#39;downloads_url&#39;] + attached_file[&#39;hash&#39;]</span>
-<span class="c">#             details.append(detail)</span>
-<span class="c">#         details_json = json.dumps(details, separators=(&#39;,&#39;, &#39;:&#39;))</span>
-<span class="c">#         self.set_header(&quot;Content-Type&quot;, &quot;application/json&quot;)</span>
-<span class="c">#         print(details_json)</span>
-<span class="c">#         self.write(details_json)</span>
-<span class="c">#         return</span>
-
-<span class="c"># Add the binaries which are only referenced, not multipart posted.</span>
-<span class="c"># This is not unusual - The jQuery uploaded will upload them separately, for example.</span>
-
-<span class="c">#     for argument in self.request.arguments:</span>
-<span class="c">#         if argument.startswith(&quot;referenced_file&quot;) and argument.endswith(&#39;_name&#39;):</span>
-<span class="c">#             r = re.compile(&#39;referenced_file(.*?)_name&#39;)</span>
-<span class="c">#             m = r.search(argument)</span>
-<span class="c">#             binarycount = m.group(1)</span>
-<span class="c">#             mybinary = Envelope.binary(sha512=self.get_argument(</span>
-<span class="c">#                 &#39;referenced_file&#39; + binarycount + &#39;_hash&#39;))</span>
-<span class="c">#             mybinary.dict[&#39;filesize_hint&#39;] = self.get_argument(</span>
-<span class="c">#                 &#39;referenced_file&#39; + binarycount + &#39;_size&#39;)</span>
-<span class="c">#             mybinary.dict[&#39;content_type&#39;] = self.get_argument(</span>
-<span class="c">#                 &#39;referenced_file&#39; + binarycount + &#39;_contenttype&#39;)</span>
-<span class="c">#             mybinary.dict[&#39;filename&#39;] = self.get_argument(</span>
-<span class="c">#                 &#39;referenced_file&#39; + binarycount + &#39;_name&#39;)</span>
-<span class="c">#             envelopebinarylist.append(mybinary.dict)</span>
-
-<span class="c"># Now that we have the file handled.. (Whew!) .. Let&#39;s do the Envelope</span>
-<span class="c"># Pull in our Form variables.</span>
-<span class="c">#     client_body = self.get_argument(&quot;body&quot;, None)</span>
-<span class="c">#     client_topic = self.get_argument(&quot;topic&quot;, None)</span>
-<span class="c">#     client_subject = self.get_argument(&quot;subject&quot;, None)</span>
-
-<span class="c">#     client_to = self.get_argument(&quot;to&quot;, None)</span>
-<span class="c">#     client_regarding = self.get_argument(&quot;regarding&quot;, None)</span>
-
-<span class="c">#     e = libtavern.envelope.Envelope()</span>
-<span class="c">#     e.payload.dict[&#39;formatting&#39;] = &quot;markdown&quot;</span>
-
-<span class="c">#     if flag == &#39;message&#39;:</span>
-<span class="c">#         e.payload.dict[&#39;class&#39;] = &quot;message&quot;</span>
-<span class="c">#         if client_topic is not None:</span>
-<span class="c">#             e.payload.dict[&#39;topic&#39;] = client_topic</span>
-<span class="c">#         if client_subject is not None:</span>
-<span class="c">#             e.payload.dict[&#39;subject&#39;] = client_subject</span>
-<span class="c">#         if client_body is not None:</span>
-<span class="c">#             e.payload.dict[&#39;body&#39;] = client_body</span>
-
-<span class="c">#         if envelopebinarylist:</span>
-<span class="c">#             e.payload.dict[&#39;binaries&#39;] = envelopebinarylist</span>
-
-<span class="c">#         e.payload.dict[&#39;author&#39;] = OrderedDict()</span>
-<span class="c">#         e.payload.dict[&#39;author&#39;][&#39;replyto&#39;] = self.user.new_posted_key().pubkey</span>
-<span class="c">#         e.payload.dict[&#39;author&#39;][</span>
-<span class="c">#             &#39;friendlyname&#39;] = self.user.friendlyname</span>
-
-<span class="c">#         e.addStamp(</span>
-<span class="c">#             stampclass=&#39;author&#39;,</span>
-<span class="c">#             friendlyname=self.user.friendlyname,</span>
-<span class="c">#             keys=self.user.Keys[&#39;master&#39;],</span>
-<span class="c">#             passkey=self.user.passkey)</span>
-
-<span class="c">#     elif flag == &#39;reply&#39;:</span>
-<span class="c">#         e.payload.dict[&#39;class&#39;] = &quot;message&quot;</span>
-<span class="c">#         if client_regarding is not None:</span>
-<span class="c">#             e.payload.dict[&#39;regarding&#39;] = client_regarding</span>
-<span class="c">#             regardingmsg = self.server.db.unsafe.find_one(</span>
-<span class="c">#                 &#39;envelopes&#39;,</span>
-<span class="c">#                 {&#39;envelope.local.payload_sha512&#39;: client_regarding})</span>
-<span class="c">#             e.payload.dict[&#39;topic&#39;] = regardingmsg[</span>
-<span class="c">#                 &#39;envelope&#39;][</span>
-<span class="c">#                 &#39;payload&#39;][</span>
-<span class="c">#                 &#39;topic&#39;]</span>
-<span class="c">#             e.payload.dict[&#39;subject&#39;] = regardingmsg[</span>
-<span class="c">#                 &#39;envelope&#39;][</span>
-<span class="c">#                 &#39;payload&#39;][</span>
-<span class="c">#                 &#39;subject&#39;]</span>
-<span class="c">#         if client_body is not None:</span>
-<span class="c">#             e.payload.dict[&#39;body&#39;] = client_body</span>
-<span class="c">#         if envelopebinarylist:</span>
-<span class="c">#             e.payload.dict[&#39;binaries&#39;] = envelopebinarylist</span>
-
-<span class="c">#         e.payload.dict[&#39;author&#39;] = OrderedDict()</span>
-<span class="c">#         e.payload.dict[&#39;author&#39;][&#39;replyto&#39;] = self.user.new_posted_key().pubkey</span>
-
-<span class="c">#         e.payload.dict[&#39;author&#39;][</span>
-<span class="c">#             &#39;friendlyname&#39;] = self.user.friendlyname</span>
-
-<span class="c">#         e.addStamp(</span>
-<span class="c">#             stampclass=&#39;author&#39;,</span>
-<span class="c">#             friendlyname=self.user.friendlyname,</span>
-<span class="c">#             keys=self.user.Keys[&#39;master&#39;],</span>
-<span class="c">#             passkey=self.user.passkey)</span>
-
-<span class="c">#     elif flag == &#39;messagerevision&#39;:</span>
-<span class="c">#         e.payload.dict[&#39;class&#39;] = &quot;messagerevision&quot;</span>
-<span class="c">#         if client_body is not None:</span>
-<span class="c">#             e.payload.dict[&#39;body&#39;] = client_body</span>
-<span class="c">#         if client_regarding is not None:</span>
-<span class="c">#             e.payload.dict[&#39;regarding&#39;] = client_regarding</span>
-<span class="c">#             regardingmsg = self.server.db.unsafe.find_one(</span>
-<span class="c">#                 &#39;envelopes&#39;,</span>
-<span class="c">#                 {&#39;envelope.local.payload_sha512&#39;: client_regarding})</span>
-<span class="c">#             e.payload.dict[&#39;topic&#39;] = regardingmsg[</span>
-<span class="c">#                 &#39;envelope&#39;][</span>
-<span class="c">#                 &#39;payload&#39;][</span>
-<span class="c">#                 &#39;topic&#39;]</span>
-<span class="c">#             e.payload.dict[&#39;subject&#39;] = regardingmsg[</span>
-<span class="c">#                 &#39;envelope&#39;][</span>
-<span class="c">#                 &#39;payload&#39;][</span>
-<span class="c">#                 &#39;subject&#39;]</span>
-<span class="c">#         e.addStamp(</span>
-<span class="c">#             stampclass=&#39;author&#39;,</span>
-<span class="c">#             friendlyname=self.user.friendlyname,</span>
-<span class="c">#             keys=self.user.Keys[&#39;master&#39;],</span>
-<span class="c">#             passkey=self.user.passkey)</span>
-
-<span class="c">#     elif flag == &#39;privatemessage&#39;:</span>
-<span class="c"># For encrypted messages we want to actually create a whole</span>
-<span class="c"># sub-envelope inside of it!</span>
-
-<span class="c">#         single_use_key = self.user.new_posted_key()</span>
-<span class="c">#         single_use_key.unlock(self.user.passkey)</span>
-
-<span class="c">#         e.payload.dict[&#39;class&#39;] = &quot;privatemessage&quot;</span>
-<span class="c">#         touser = Key(pub=client_to)</span>
-<span class="c">#         e.payload.dict[&#39;to&#39;] = touser.pubkey</span>
-<span class="c">#         e.payload.dict[&#39;author&#39;] = OrderedDict()</span>
-<span class="c">#         e.payload.dict[&#39;author&#39;][&#39;replyto&#39;] = self.user.new_posted_key().pubkey</span>
-
-<span class="c">#         encrypted_msg = libtavern.envelope.Envelope()</span>
-<span class="c">#         encrypted_msg.payload.dict[&#39;formatting&#39;] = &quot;markdown&quot;</span>
-<span class="c">#         encrypted_msg.payload.dict[&#39;body&#39;] = client_body</span>
-<span class="c">#         encrypted_msg.payload.dict[&#39;class&#39;] = &#39;privatemessage&#39;</span>
-
-<span class="c">#         if client_regarding is not None:</span>
-<span class="c">#             encrypted[&#39;regarding&#39;] = client_regarding</span>
-<span class="c">#             regardingmsg = self.server.db.unsafe.find_one(</span>
-<span class="c">#                 &#39;envelopes&#39;,</span>
-<span class="c">#                 {&#39;envelope.local.payload_sha512&#39;: client_regarding})</span>
-
-<span class="c"># The message we&#39;re referencing is likey unreadable due to encryption.</span>
-<span class="c"># Pull in it&#39;s subject if possible.</span>
-<span class="c">#             decrypted_regarding_dict = self.user.decrypt(</span>
-<span class="c">#                 regardingmsg[&#39;payload&#39;][&#39;encrypted&#39;])</span>
-<span class="c">#             decrypted_regarding = libtavern.envelope.Envelope()</span>
-<span class="c">#             decrypted_regarding.loaddict(decrypted_regarding_dict)</span>
-
-<span class="c">#             encrypted_msg.payload.dict[</span>
-<span class="c">#                 &#39;subject&#39;] = decrypted_regarding.payload.dict[</span>
-<span class="c">#                 &#39;subject&#39;]</span>
-<span class="c">#         else:</span>
-<span class="c">#             encrypted_msg.payload.dict[&#39;subject&#39;] = client_subject</span>
-
-<span class="c">#         if envelopebinarylist:</span>
-<span class="c">#             encrypted_msg.payload.dict[&#39;binaries&#39;] = envelopebinarylist</span>
-
-<span class="c">#         encrypted_msg.payload.dict[&#39;author&#39;] = OrderedDict()</span>
-<span class="c">#         encrypted_msg.payload.dict[&#39;author&#39;][&#39;replyto&#39;] = self.user.new_posted_key().pubkey</span>
-
-<span class="c">#         encrypted_msg.payload.dict[&#39;author&#39;][</span>
-<span class="c">#             &#39;friendlyname&#39;] = self.user.friendlyname</span>
-
-<span class="c">#         if self.user.include_location or &#39;include_location&#39; in self.request.arguments:</span>
-<span class="c">#             gi = pygeoip.GeoIP(&#39;datafiles/GeoLiteCity.dat&#39;)</span>
-<span class="c">#             ip = self.request.remote_ip</span>
-
-<span class="c"># Don&#39;t check from home.</span>
-<span class="c">#             if ip == &quot;127.0.0.1&quot;:</span>
-<span class="c">#                 ip = &quot;8.8.8.8&quot;</span>
-
-<span class="c">#             gir = gi.record_by_name(ip)</span>
-<span class="c">#             encrypted_msg.payload.dict[&#39;coords&#39;] = str(gir[&#39;latitude&#39;]) + \</span>
-<span class="c">#                 &quot;,&quot; + str(gir[&#39;longitude&#39;])</span>
-
-<span class="c"># Add stamps to show we&#39;re the author (and optionally) we&#39;re the</span>
-<span class="c"># origin server</span>
-<span class="c">#         encrypted_msg.addStamp(</span>
-<span class="c">#             stampclass=&#39;author&#39;,</span>
-<span class="c">#             friendlyname=self.user.friendlyname,</span>
-<span class="c">#             keys=self.user.Keys[&#39;master&#39;],</span>
-<span class="c">#             passkey=self.user.passkey)</span>
-<span class="c">#         if self.server.serversettings.settings[&#39;mark-origin&#39;]:</span>
-<span class="c">#             encrypted_msg.addStamp(</span>
-<span class="c">#                 stampclass=&#39;origin&#39;,</span>
-<span class="c">#                 keys=self.server.ServerKeys,</span>
-<span class="c">#                 hostname=self.server.serversettings.settings[&#39;hostname&#39;])</span>
-
-<span class="c"># Now that we&#39;ve created the inner message, convert it to text,</span>
-<span class="c"># store it in the outer message.</span>
-<span class="c">#         encrypted_pmstr = encrypted_msg.text()</span>
-
-<span class="c">#         e.payload.dict[&#39;encrypted&#39;] = single_use_key.encrypt(</span>
-<span class="c">#             encrypt_to=touser.pubkey,</span>
-<span class="c">#             encryptstring=encrypted_pmstr)</span>
-
-<span class="c"># For all classses of messages-</span>
-<span class="c">#     if self.user.include_location or &#39;include_location&#39; in self.request.arguments:</span>
-<span class="c">#         gi = pygeoip.GeoIP(&#39;datafiles/GeoLiteCity.dat&#39;)</span>
-<span class="c">#         ip = self.request.remote_ip</span>
-
-<span class="c"># Don&#39;t check from home.</span>
-<span class="c">#         if ip == &quot;127.0.0.1&quot;:</span>
-<span class="c">#             ip = &quot;8.8.8.8&quot;</span>
-
-<span class="c">#         gir = gi.record_by_name(ip)</span>
-<span class="c">#         e.payload.dict[&#39;coords&#39;] = str(gir[&#39;latitude&#39;]) + \</span>
-<span class="c">#             &quot;,&quot; + str(gir[&#39;longitude&#39;])</span>
-
-<span class="c">#     if self.server.serversettings.settings[&#39;mark-origin&#39;]:</span>
-<span class="c">#         e.addStamp(</span>
-<span class="c">#             stampclass=&#39;origin&#39;,</span>
-<span class="c">#             keys=self.server.ServerKeys,</span>
-<span class="c">#             hostname=self.server.serversettings.settings[&#39;hostname&#39;])</span>
-
-<span class="c"># Send to the server</span>
-<span class="c">#     newmsgid = self.server.receiveEnvelope(env=e)</span>
-<span class="c">#     if newmsgid:</span>
-<span class="c">#         if client_to is None:</span>
-<span class="c">#             if client_regarding is not None:</span>
-<span class="c">#                 bottle.redirect(&#39;/m/&#39; + self.server.getTopMessage(</span>
-<span class="c">#                     newmsgid) + &quot;?jumpto=&quot; + newmsgid, permanent=False)</span>
-<span class="c">#             else:</span>
-<span class="c">#                 bottle.redirect(&#39;/m/&#39; + newmsgid, permanent=False)</span>
-<span class="c">#         else:</span>
-<span class="c">#             bottle.redirect(&#39;/showprivates&#39;)</span>
-<span class="c">#     else:</span>
-<span class="c">#         self.write(&quot;Failure to insert message.&quot;)</span>
-
-
-<span class="c"># def ShowPrivatesHandler_get(messageid=None):</span>
-<span class="c">#     self.getvars(AllowGuestKey=False)</span>
-
-<span class="c">#     messages = []</span>
-<span class="c">#     self.write(self.render_string(&#39;header.html&#39;,</span>
-<span class="c">#                title=&quot;Your Private messages&quot;, rsshead=None, type=None))</span>
-
-<span class="c"># Construct a list of all current PMs</span>
-<span class="c"># for message in self.server.db.unsafe.find(&#39;envelopes&#39;,</span>
-<span class="c"># {&#39;envelope.payload.to&#39;: {&#39;$in&#39;: self.user.get_pubkeys()}}, limit=10,</span>
-<span class="c"># sortkey=&#39;value&#39;, sortdirection=&#39;descending&#39;):</span>
-
-<span class="c">#         if self.user.decrypt(message[&#39;envelope&#39;][&#39;payload&#39;][&#39;encrypted&#39;]):</span>
-<span class="c">#             unencrypted_str = self.user.decrypt(</span>
-<span class="c">#                 message[&#39;envelope&#39;][&#39;payload&#39;][&#39;encrypted&#39;])</span>
-<span class="c">#             unencrypted_env = libtavern.envelope.Envelope()</span>
-<span class="c">#             unencrypted_env.loadstring(unencrypted_str)</span>
-<span class="c">#             unencrypted_env.munge()</span>
-<span class="c">#             unencrypted_env.dict[&#39;parent&#39;] = message</span>
-<span class="c">#             messages.append(unencrypted_env)</span>
-
-<span class="c"># Retrieve a PM to display - Either by id if requested, or top PM if</span>
-<span class="c"># not.</span>
-<span class="c">#     e = libtavern.envelope.Envelope()</span>
-<span class="c">#     if messageid is not None:</span>
-<span class="c">#         if not e.loadmongo(messageid):</span>
-<span class="c">#             self.write(&quot;Can&#39;t load that..&quot;)</span>
-<span class="c">#             return</span>
-<span class="c">#         else:</span>
-<span class="c">#             if e.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;to&#39;] not in self.user.get_pubkeys():</span>
-<span class="c">#                 print(&quot;This is to--&quot;)</span>
-<span class="c">#                 print(e.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;to&#39;])</span>
-<span class="c">#                 print(&quot;Your Keys-&quot;)</span>
-<span class="c">#                 print(self.user.get_pubkeys())</span>
-<span class="c">#                 self.write(&quot;This isn&#39;t you.&quot;)</span>
-<span class="c">#                 return</span>
-<span class="c"># TODO - Put better error here. self.server.Error?</span>
-<span class="c">#         unencrypted_str = self.user.decrypt(</span>
-<span class="c">#             e.dict[&#39;envelope&#39;][&#39;payload&#39;][&#39;encrypted&#39;])</span>
-
-<span class="c">#         unencrypted_env = libtavern.envelope.Envelope()</span>
-<span class="c">#         unencrypted_env.loadstring(unencrypted_str)</span>
-<span class="c">#         unencrypted_env.munge()</span>
-<span class="c">#         unencrypted_env.dict[&#39;parent&#39;] = e.dict</span>
-
-<span class="c">#         displaymessage = unencrypted_env</span>
-
-<span class="c">#     elif messages:</span>
-<span class="c">#         displaymessage = messages[0]</span>
-<span class="c">#     else:</span>
-<span class="c">#         displaymessage = self.server.error_envelope(</span>
-<span class="c">#             &quot;You don&#39;t have any private messages yet. Silly goose!&quot;)</span>
-
-<span class="c">#     self.write(</span>
-<span class="c">#         self.render_string(</span>
-<span class="c">#             &#39;header.html&#39;,</span>
-<span class="c">#             title=&quot;Private Messages&quot;,</span>
-<span class="c">#             rsshead=None,</span>
-<span class="c">#             type=None))</span>
-<span class="c">#     self.write(</span>
-<span class="c">#         self.render_string(&#39;show_privates.html&#39;, messages=messages, envelope=displaymessage))</span>
-<span class="c">#     self.write(self.render_string(&#39;footer.html&#39;))</span>
 
 
 <span class="c"># def NewPrivateMessageHandler_get(urlto=None):</span>
@@ -1212,7 +1154,7 @@
 <span class="c">#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)</span>
 <span class="c">#     self.write(req.read())</span>
 </div></div>
-<div class="viewcode-block" id="CatchallHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler">[docs]</a><span class="k">class</span> <span class="nc">CatchallHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="CatchallHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler">[docs]</a><span class="k">class</span> <span class="nc">CatchallHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Handler for any requests that aren&#39;t handled anywhere else.</span>
 <span class="sd">    Returns 404.</span>
@@ -1226,7 +1168,7 @@
 <div class="viewcode-block" id="CatchallHandler.delete"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="AvatarHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler">[docs]</a><span class="k">class</span> <span class="nc">AvatarHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="AvatarHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler">[docs]</a><span class="k">class</span> <span class="nc">AvatarHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Create Avatars using Robohashes.</span>
 <span class="sd">    You should cache these on disk using nginx.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -1283,7 +1225,7 @@
 <span class="c">#         self.write(channel.toprettyxml())</span>
 
 </div></div>
-<div class="viewcode-block" id="SiteIndexHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteIndexHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="SiteIndexHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteIndexHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="SiteIndexHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return a sitemap index file, which includes all other sitemap files.</span>
@@ -1312,7 +1254,7 @@
         <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
 </div></div>
-<div class="viewcode-block" id="SitemapMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">SitemapMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="SitemapMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">SitemapMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
 <div class="viewcode-block" id="SitemapMessagesHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">iteration</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a sitemap.xml file to show a slice of messages.</span>
@@ -1390,6 +1332,12 @@
         <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
 </div></div>
+<div class="viewcode-block" id="UploadHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseFlask</span><span class="p">):</span>
+<div class="viewcode-block" id="UploadHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;My XSRF is- &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span> <span class="o">+</span> <span class="s">&quot; Isn&#39;t that cool???&lt;br&gt;&quot;</span>
+        <span class="n">html</span> <span class="o">+=</span> <span class="s">&quot;U:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">friendlyname</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;@&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">author_wordhash</span>
+        <span class="k">return</span> <span class="n">html</span>
+</div></div>
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Starts and runs the Python component of the Tavern web interface.</span>
@@ -1423,13 +1371,24 @@
         <span class="c"># SSI requires that gzip is disabled in Tornado.</span>
         <span class="s">&quot;gzip&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
     <span class="p">}</span>
+    <span class="n">flask_settings</span> <span class="o">=</span> <span class="p">{}</span>
+
 
     <span class="c"># Create the Tavern server. This is the main interop class for dealing with Tavern.</span>
     <span class="c"># We then start the server, which creates DB connections, fires up threads to create keys, etc.</span>
     <span class="n">server</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">Server</span><span class="p">()</span>
     <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
+    <span class="c"># Update the settings dicts for both engines</span>
     <span class="n">tornado_settings</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">])</span>
+    <span class="n">flask_settings</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;flask&#39;</span><span class="p">])</span>
+
+
+    <span class="c"># Create an instance of Flask, so we can add it to the Tornado routing table, below.</span>
+    <span class="n">flask_app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flask_settings</span><span class="p">)</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/upload&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_wsgi</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">flask_app</span><span class="p">)</span>
 
     <span class="c"># Parse -v, -vvv, etc for verbosity, starting with the level in settings.</span>
     <span class="c"># Parse -v for INFO, -vv for DEBUG, etc</span>
@@ -1444,21 +1403,21 @@
             <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;compiled_template_cache&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
             <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;autoreload&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;serve_traceback=True&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-
+            <span class="n">flask_settings</span><span class="p">[</span><span class="s">&#39;DEBUG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
     <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">EntryHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/__xsrf&quot;</span><span class="p">,</span> <span class="n">XSRFHandler</span><span class="p">),</span>
 
+            <span class="p">(</span><span class="s">r&quot;/t/(.*)/(.*)/(.*)/history&quot;</span><span class="p">,</span> <span class="n">MessageHistoryHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)/(.*)/(.*)&quot;</span><span class="p">,</span> <span class="n">MessageHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)/settings&quot;</span><span class="p">,</span> <span class="n">TopicPropertiesHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)&quot;</span><span class="p">,</span> <span class="n">TopicHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span>
+         <span class="c">#   (r&quot;/new/(.*)&quot;, ReceiveEnvelopeHandler),</span>
+         <span class="c">#   (r&quot;/new/file/(.*)&quot;, ReceiveEnvelopeHandler),</span>
 
-
-            <span class="p">(</span><span class="s">r&quot;/m/(.*)&quot;</span><span class="p">,</span> <span class="n">MessageHandler</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">r&quot;/mh/(.*)&quot;</span><span class="p">,</span> <span class="n">MessageHistoryHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/all/saved&quot;</span><span class="p">,</span> <span class="n">AllSavedHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/all&quot;</span><span class="p">,</span> <span class="n">AllMessagesHandler</span><span class="p">),</span>
 
@@ -1474,21 +1433,11 @@
             <span class="c"># (r&quot;/privatem/(.*)&quot;, ShowPrivatesHandler),</span>
 
             <span class="c"># (r&quot;/attachment/(.*)&quot;, AttachmentHandler),</span>
-
-
-
-
             <span class="p">(</span><span class="s">r&quot;/u/(.*)&quot;</span><span class="p">,</span> <span class="n">UserHandler</span><span class="p">),</span>
-
             <span class="c"># (r&quot;/edit/(.*)&quot;, EditMessageHandler),</span>
             <span class="c"># (r&quot;/reply/(.*)/(.*)&quot;, ReplyHandler),</span>
             <span class="c"># (r&quot;/reply/(.*)&quot;, ReplyHandler),</span>
             <span class="c"># (r&quot;/pm/(.*)&quot;, NewPrivateMessageHandler),</span>
-
-            <span class="c"># (r&quot;/upload/uploadenvelope/(.*)&quot;, ReceiveEnvelopeHandler),</span>
-            <span class="c"># (r&quot;/uploadenvelope/(.*)&quot;, ReceiveEnvelopeHandler),</span>
-            <span class="c"># (r&quot;/uploadfile/(.*)&quot;, ReceiveEnvelopeHandler),</span>
-
             <span class="p">(</span><span class="s">r&quot;/register&quot;</span><span class="p">,</span> <span class="n">RegisterHandler</span><span class="p">),</span>
             <span class="c"># (r&quot;/login/(.*)&quot;, LoginHandler),</span>
             <span class="c"># (r&quot;/login&quot;, LoginHandler),</span>
@@ -1509,16 +1458,20 @@
             <span class="p">(</span><span class="s">r&quot;/avatar/(.*)&quot;</span><span class="p">,</span> <span class="n">AvatarHandler</span><span class="p">),</span>
             <span class="c"># (r&quot;/binaries/(.*)/(.*)&quot;, BinariesHandler),</span>
             <span class="c"># (r&quot;/binaries/(.*)&quot;, BinariesHandler)</span>
+            <span class="p">(</span><span class="s">r&quot;/upload&quot;</span><span class="p">,</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">FallbackHandler</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fallback</span><span class="o">=</span><span class="n">flask_wsgi</span><span class="p">)),</span>
             <span class="p">(</span><span class="s">r&quot;.*&quot;</span><span class="p">,</span> <span class="n">CatchallHandler</span><span class="p">),</span>
-
             <span class="p">]</span>
 
-    <span class="n">application</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="p">(</span><span class="n">handlers</span><span class="o">=</span><span class="n">paths</span><span class="p">,</span><span class="o">**</span><span class="n">tornado_settings</span><span class="p">)</span>
+    <span class="c"># We want to create two application handlers inside webtav.</span>
+    <span class="c"># One for Tornado, and one for Flask. This allows us to send requests to either.</span>
+
+    <span class="n">tornado_app</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">Application</span><span class="p">(</span><span class="n">handlers</span><span class="o">=</span><span class="n">paths</span><span class="p">,</span><span class="o">**</span><span class="n">tornado_settings</span><span class="p">)</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">tornado</span> <span class="o">=</span> <span class="n">tornado_app</span>
 
     <span class="c"># socket timeout 10s</span>
     <span class="n">socket</span><span class="o">.</span><span class="n">setdefaulttimeout</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>
 
-    <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span><span class="n">application</span><span class="p">)</span>
+    <span class="n">http_server</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">httpserver</span><span class="o">.</span><span class="n">HTTPServer</span><span class="p">(</span><span class="n">tornado_app</span><span class="p">)</span>
     <span class="n">unix_socket</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">netutil</span><span class="o">.</span><span class="n">bind_unix_socket</span><span class="p">(</span><span class="n">options</span><span class="o">.</span><span class="n">socket</span><span class="p">)</span>
     <span class="n">http_server</span><span class="o">.</span><span class="n">add_socket</span><span class="p">(</span><span class="n">unix_socket</span><span class="p">)</span>
 

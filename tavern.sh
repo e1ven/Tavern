@@ -216,7 +216,8 @@ then
             hdiutil detach -force $device
         fi
     done
-    say "Stopping any disk images from previous unclean exits" "minor"
+    say "Stop
+    ping any disk images from previous unclean exits" "minor"
     for device in `diskutil list | grep '/dev/disk'`
     do
         say "$device" "minor"
@@ -371,7 +372,7 @@ function start
 
     # Convert the SCSS to CSS and put in production folder
     if [ $DEBUG -eq 1 ];then SASS_STYLE="expanded";else SASS_STYLE="compressed"; fi
-    sass --compass --scss --style "$SASS_STYLE" --update webtav/static/scss/:webtav/static/css
+    sass --scss --style "$SASS_STYLE" --update webtav/static/scss/:webtav/static/css
 
 
     say "Minimizing and combining JS libs" "minor"

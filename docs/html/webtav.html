@@ -61,6 +61,258 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-webtav.flasknado">
+<span id="webtav-flasknado-module"></span><h2>webtav.flasknado module<a class="headerlink" href="#module-webtav.flasknado" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="webtav.flasknado.Flasknado">
+<em class="property">class </em><tt class="descclassname">webtav.flasknado.</tt><tt class="descname">Flasknado</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">flask.views.MethodView</span></tt></p>
+<p>Create a Flask Handler which looks and smells like Tornado.</p>
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.add_header">
+<tt class="descname">add_header</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.add_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.add_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds the given response header and value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.check_xsrf_cookie">
+<tt class="descname">check_xsrf_cookie</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.check_xsrf_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.check_xsrf_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies that the <tt class="docutils literal"><span class="pre">_xsrf</span></tt> cookie matches the <tt class="docutils literal"><span class="pre">_xsrf</span></tt> argument.</p>
+<p>To prevent cross-site request forgery, we set an <tt class="docutils literal"><span class="pre">_xsrf</span></tt>
+cookie and include the same value as a non-cookie
+field with all <tt class="docutils literal"><span class="pre">POST</span></tt> requests. If the two do not match, we
+reject the form submission as a potential forgery.</p>
+<p>The <tt class="docutils literal"><span class="pre">_xsrf</span></tt> value may be set as either a form field named <tt class="docutils literal"><span class="pre">_xsrf</span></tt>
+or in a custom HTTP header named <tt class="docutils literal"><span class="pre">X-XSRFToken</span></tt> or <tt class="docutils literal"><span class="pre">X-CSRFToken</span></tt>
+(the latter is accepted for compatibility with Django).</p>
+<p>See <a class="reference external" href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">http://en.wikipedia.org/wiki/Cross-site_request_forgery</a></p>
+<p>Prior to release 1.1.1, this check was ignored if the HTTP header
+<tt class="docutils literal"><span class="pre">X-Requested-With:</span> <span class="pre">XMLHTTPRequest</span></tt> was present.  This exception
+has been shown to be insecure and has been removed.  For more
+information please see
+<a class="reference external" href="http://www.djangoproject.com/weblog/2011/feb/08/security/">http://www.djangoproject.com/weblog/2011/feb/08/security/</a>
+<a class="reference external" href="http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails">http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.clear_all_cookies">
+<tt class="descname">clear_all_cookies</tt><big>(</big><em>path='/'</em>, <em>domain=None</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.clear_all_cookies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.clear_all_cookies" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes all the cookies the user sent with this request.</p>
+<p>See <cite>clear_cookie</cite> for more information on the path and domain
+parameters.</p>
+<div class="versionchanged">
+<p><span class="versionmodified">Changed in version 3.2: </span>Added the <tt class="docutils literal"><span class="pre">path</span></tt> and <tt class="docutils literal"><span class="pre">domain</span></tt> parameters.</p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.clear_cookie">
+<tt class="descname">clear_cookie</tt><big>(</big><em>name</em>, <em>path='/'</em>, <em>domain=None</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.clear_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.clear_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes the cookie with the given name.</p>
+<p>Due to limitations of the cookie protocol, you must pass the same
+path and domain to clear a cookie as were used when that cookie
+was set (but there is no way to find out on the server side
+which values were used for a given cookie).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.clear_header">
+<tt class="descname">clear_header</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.clear_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.clear_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears an outgoing header, undoing a previous <cite>set_header</cite> call.</p>
+<p>Note that this method does not apply to multi-valued headers
+set by <cite>add_header</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webtav.flasknado.Flasknado.cookies">
+<tt class="descname">cookies</tt><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.cookies"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.cookies" title="Permalink to this definition">¶</a></dt>
+<dd><p>An alias for <cite>self.request.cookies &lt;.httpserver.HTTPRequest.cookies&gt;</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.create_signed_value">
+<tt class="descname">create_signed_value</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.create_signed_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.create_signed_value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signs and timestamps a string so it cannot be forged.</p>
+<p>Normally used via set_secure_cookie, but provided as a separate
+method for non-cookie uses.  To decode a value not stored
+as a cookie use the optional value argument to get_secure_cookie.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.decode_argument">
+<tt class="descname">decode_argument</tt><big>(</big><em>value</em>, <em>name=None</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.decode_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.decode_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes an argument from the request.</p>
+<p>The argument has been percent-decoded and is now a byte string.
+By default, this method decodes the argument as utf-8 and returns
+a unicode string, but this may be overridden in subclasses.</p>
+<p>This method is used as a filter for both <cite>get_argument()</cite> and for
+values extracted from the url and passed to <cite>get()</cite>/<cite>post()</cite>/etc.</p>
+<p>The name of the argument is provided if known, but may be None
+(e.g. for unnamed groups in the url regex).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_argument">
+<tt class="descname">get_argument</tt><big>(</big><em>name</em>, <em>default=</em>, <span class="optional">[</span><span class="optional">]</span><em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the argument with the given name.</p>
+<p>If default is not provided, the argument is considered to be
+required, and we raise a <cite>MissingArgumentError</cite> if it is missing.</p>
+<p>If the argument appears in the url more than once, we return the
+last value.</p>
+<p>The returned value is always unicode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_arguments">
+<tt class="descname">get_arguments</tt><big>(</big><em>name</em>, <em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the arguments with the given name.</p>
+<p>If the argument is not present, returns an empty list.</p>
+<p>The returned values are always unicode.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_body_argument">
+<tt class="descname">get_body_argument</tt><big>(</big><em>name</em>, <em>default=</em>, <span class="optional">[</span><span class="optional">]</span><em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_body_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_body_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the argument with the given name
+from the request body.</p>
+<p>If default is not provided, the argument is considered to be
+required, and we raise a <cite>MissingArgumentError</cite> if it is missing.</p>
+<p>If the argument appears in the url more than once, we return the
+last value.</p>
+<p>The returned value is always unicode.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_body_arguments">
+<tt class="descname">get_body_arguments</tt><big>(</big><em>name</em>, <em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_body_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_body_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the body arguments with the given name.</p>
+<p>If the argument is not present, returns an empty list.</p>
+<p>The returned values are always unicode.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_cookie">
+<tt class="descname">get_cookie</tt><big>(</big><em>name</em>, <em>default=None</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the value of the cookie with the given name, else default.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_query_argument">
+<tt class="descname">get_query_argument</tt><big>(</big><em>name</em>, <em>default=</em>, <span class="optional">[</span><span class="optional">]</span><em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_query_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_query_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the value of the argument with the given name
+from the request query string.</p>
+<p>If default is not provided, the argument is considered to be
+required, and we raise a <cite>MissingArgumentError</cite> if it is missing.</p>
+<p>If the argument appears in the url more than once, we return the
+last value.</p>
+<p>The returned value is always unicode.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_query_arguments">
+<tt class="descname">get_query_arguments</tt><big>(</big><em>name</em>, <em>strip=True</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_query_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_query_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of the query arguments with the given name.</p>
+<p>If the argument is not present, returns an empty list.</p>
+<p>The returned values are always unicode.</p>
+<div class="versionadded">
+<p><span class="versionmodified">New in version 3.2.</span></p>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_secure_cookie">
+<tt class="descname">get_secure_cookie</tt><big>(</big><em>name</em>, <em>value=None</em>, <em>max_age_days=31</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_secure_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_secure_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the given signed cookie if it validates, or None.</p>
+<p>The decoded cookie value is returned as a byte string (unlike
+<cite>get_cookie</cite>).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.get_status">
+<tt class="descname">get_status</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.get_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.get_status" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the status code for our response.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.redirect">
+<tt class="descname">redirect</tt><big>(</big><em>url</em>, <em>permanent=False</em>, <em>status=None</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.redirect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.redirect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sends a redirect to the given (optionally relative) URL.</p>
+<p>If the <tt class="docutils literal"><span class="pre">status</span></tt> argument is specified, that value is used as the
+HTTP status code; otherwise either 301 (permanent) or 302
+(temporary) is chosen based on the <tt class="docutils literal"><span class="pre">permanent</span></tt> argument.
+The default is 302 (temporary).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.set_cookie">
+<tt class="descname">set_cookie</tt><big>(</big><em>name</em>, <em>value</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.set_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.set_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the given cookie name/value with the given options.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.set_header">
+<tt class="descname">set_header</tt><big>(</big><em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.set_header"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.set_header" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets the given response header name and value.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.set_secure_cookie">
+<tt class="descname">set_secure_cookie</tt><big>(</big><em>name</em>, <em>value</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.set_secure_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.set_secure_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Signs and timestamps a cookie so it cannot be forged.</p>
+<p>You must specify the <tt class="docutils literal"><span class="pre">cookie_secret</span></tt> setting in your Tornado 
+Application to use this method. It should be a long, random sequence
+of bytes to be used as the HMAC secret for the signature.</p>
+<p>To read a cookie set with this method, use <cite>get_secure_cookie()</cite>.</p>
+<p>Note that the <tt class="docutils literal"><span class="pre">expires_days</span></tt> parameter sets the lifetime of the
+cookie in the browser, but is independent of the <tt class="docutils literal"><span class="pre">max_age_days</span></tt>
+parameter to <cite>get_secure_cookie</cite>.</p>
+<p>Secure cookies may contain arbitrary byte values, not just unicode
+strings (unlike regular cookies)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.flasknado.Flasknado.xsrf_form_html">
+<tt class="descname">xsrf_form_html</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.xsrf_form_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.xsrf_form_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>An HTML <tt class="docutils literal"><span class="pre">&lt;input/&gt;</span></tt> element to be included with all POST forms.</p>
+<p>It defines the <tt class="docutils literal"><span class="pre">_xsrf</span></tt> input value, which we check on all POST
+requests to prevent cross-site request forgery. If you have set
+the <tt class="docutils literal"><span class="pre">xsrf_cookies</span></tt> application setting, you must include this
+HTML within all of your HTML forms.</p>
+<p>In a template, this method should be called with <tt class="docutils literal"><span class="pre">{%</span> <span class="pre">module</span>
+<span class="pre">xsrf_form_html()</span> <span class="pre">%}</span></tt></p>
+<p>See <cite>check_xsrf_cookie()</cite> above for more information.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="webtav.flasknado.Flasknado.xsrf_token">
+<tt class="descname">xsrf_token</tt><a class="reference internal" href="_modules/webtav/flasknado.html#Flasknado.xsrf_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.Flasknado.xsrf_token" title="Permalink to this definition">¶</a></dt>
+<dd><p>The XSRF value is a randomly generated string that is set in both POST requests and cookies.</p>
+<p>Overwritten from the Tornado default to use systemrandom rather than uuid.
+Like tornado, this method will set a cookie with the xsrf value if it does not currently exist.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="webtav.flasknado.create_signed_value">
+<tt class="descclassname">webtav.flasknado.</tt><tt class="descname">create_signed_value</tt><big>(</big><em>secret</em>, <em>name</em>, <em>value</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#create_signed_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.create_signed_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webtav.flasknado.decode_signed_value">
+<tt class="descclassname">webtav.flasknado.</tt><tt class="descname">decode_signed_value</tt><big>(</big><em>secret</em>, <em>name</em>, <em>value</em>, <em>max_age_days=31</em><big>)</big><a class="reference internal" href="_modules/webtav/flasknado.html#decode_signed_value"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.flasknado.decode_signed_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-webtav.uimodules">
 <span id="webtav-uimodules-module"></span><h2>webtav.uimodules module<a class="headerlink" href="#module-webtav.uimodules" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -170,19 +422,27 @@ This overwrites the default tornado xsrf_form_html, with a version that includes
 <div class="section" id="module-webtav.webbase">
 <span id="webtav-webbase-module"></span><h2>webtav.webbase module<a class="headerlink" href="#module-webtav.webbase" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="webtav.webbase.BaseHandler">
-<em class="property">class </em><tt class="descclassname">webtav.webbase.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseFlask">
+<em class="property">class </em><tt class="descclassname">webtav.webbase.</tt><tt class="descname">BaseFlask</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseFlask"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseFlask" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.flasknado.Flasknado" title="webtav.flasknado.Flasknado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.flasknado.Flasknado</span></tt></a>, <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
+<p>Create a basic Flask object which looks and smells very much like a Tornado object.
+Pass through a copy of our Tornado app.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webbase.BaseTornado">
+<em class="property">class </em><tt class="descclassname">webtav.webbase.</tt><tt class="descname">BaseTornado</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.XSRFBaseHandler" title="webtav.webbase.XSRFBaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.XSRFBaseHandler</span></tt></a></p>
-<p>The default HTTPHandler for webtavern.</p>
+<p>The default HTTPHandler for webtavern Tornado objects</p>
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.add_js">
-<tt class="descname">add_js</tt><big>(</big><em>file=None</em>, <em>files=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.add_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.add_js" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.add_js">
+<tt class="descname">add_js</tt><big>(</big><em>file=None</em>, <em>files=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.add_js"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.add_js" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a Javascript file to this request</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.get_template_namespace">
-<tt class="descname">get_template_namespace</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.get_template_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.get_template_namespace" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.get_template_namespace">
+<tt class="descname">get_template_namespace</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.get_template_namespace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.get_template_namespace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides a dict of variables/functions that are available to templates.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -195,36 +455,36 @@ This overwrites the default tornado xsrf_form_html, with a version that includes
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.get_template_path">
-<tt class="descname">get_template_path</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.get_template_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.get_template_path" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.get_template_path">
+<tt class="descname">get_template_path</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.get_template_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.get_template_path" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the correct template path for the current theme.</p>
 <p>Currently this is using the chosen theme, but eventually we can default to mobile/etc here
 Overwrite to force a handler to use a specific theme (such as SiteMap)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.load_session">
-<tt class="descname">load_session</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.load_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.load_session" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.load_session">
+<tt class="descname">load_session</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.load_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.load_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load into memory the User class by way of the session cookie.</p>
 <p>Generates a new user (usually guest) if it can&#8217;t find one.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.save_session">
-<tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.save_session" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.save_session">
+<tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.save_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Saves the current user to a session cookie.</p>
 <p>These are encrypted by Tornado.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.setheaders">
-<tt class="descname">setheaders</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.setheaders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.setheaders" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.setheaders">
+<tt class="descname">setheaders</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.setheaders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.setheaders" title="Permalink to this definition">¶</a></dt>
 <dd><p>Set various headers that each HTTP response should have.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webbase.BaseHandler.write_error">
-<tt class="descname">write_error</tt><big>(</big><em>status_code</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseHandler.write_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseHandler.write_error" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.BaseTornado.write_error">
+<tt class="descname">write_error</tt><big>(</big><em>status_code</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.write_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.write_error" title="Permalink to this definition">¶</a></dt>
 <dd><p>Catch exceptions and print out an error message using a template.</p>
 </dd></dl>
 
@@ -236,8 +496,8 @@ Overwrite to force a handler to use a specific theme (such as SiteMap)</p>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></p>
 <p>A version of the Tornado RequestHandler with additional security in the XSRF token.</p>
 <dl class="attribute">
-<dt id="webtav.webbase.XSRFBaseHandler.secure">
-<tt class="descname">secure</tt><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler.secure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler.secure" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webbase.XSRFBaseHandler.is_secure">
+<tt class="descname">is_secure</tt><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler.is_secure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler.is_secure" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns if the connection is loaded over https</p>
 </dd></dl>
 
@@ -271,7 +531,7 @@ This way we can log, look up errors in translation, etc.</p>
 <dl class="class">
 <dt id="webtav.webfront.AllMessagesHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">AllMessagesHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#AllMessagesHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.AllMessagesHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.AllMessagesHandler.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#AllMessagesHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.AllMessagesHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -283,7 +543,7 @@ This way we can log, look up errors in translation, etc.</p>
 <dl class="class">
 <dt id="webtav.webfront.AllSavedHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">AllSavedHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#AllSavedHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.AllSavedHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.AllSavedHandler.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#AllSavedHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.AllSavedHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -295,7 +555,7 @@ This way we can log, look up errors in translation, etc.</p>
 <dl class="class">
 <dt id="webtav.webfront.AvatarHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">AvatarHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#AvatarHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.AvatarHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Create Avatars using Robohashes.
 You should cache these on disk using nginx.</p>
 <dl class="method">
@@ -308,7 +568,7 @@ You should cache these on disk using nginx.</p>
 <dl class="class">
 <dt id="webtav.webfront.CatchallHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">CatchallHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#CatchallHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.CatchallHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Handler for any requests that aren&#8217;t handled anywhere else.
 Returns 404.</p>
 <dl class="method">
@@ -336,7 +596,7 @@ Returns 404.</p>
 <dl class="class">
 <dt id="webtav.webfront.EntryHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">EntryHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#EntryHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.EntryHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.EntryHandler.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#EntryHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.EntryHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -350,20 +610,15 @@ Eventually, it may give a different experience for first-time visitors.</p>
 <dl class="class">
 <dt id="webtav.webfront.MessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">MessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.MessageHandler.get">
-<tt class="descname">get</tt><big>(</big><em>*args</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve and Display a message</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> &#8211; The messageid should always be the final param passed in.
-We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
-</tr>
-</tbody>
-</table>
+<tt class="descname">get</tt><big>(</big><em>topic</em>, <em>short_sub</em>, <em>messageid</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Displays a given message.
+Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons.
+:param topic: (not used) - The topic that the message is in.
+:param short_sub: (not used) - The Short version of the message&#8217;s subject.
+:param messageid: The ID of the message</p>
 </dd></dl>
 
 </dd></dl>
@@ -371,7 +626,7 @@ We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
 <dl class="class">
 <dt id="webtav.webfront.MessageHistoryHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">MessageHistoryHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHistoryHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHistoryHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.MessageHistoryHandler.get">
 <tt class="descname">get</tt><big>(</big><em>messageid</em>, <em>topic=None</em>, <em>short_name=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHistoryHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHistoryHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -383,19 +638,36 @@ We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
 <dl class="class">
 <dt id="webtav.webfront.NewMessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">NewMessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Create a new message.</p>
 <dl class="method">
 <dt id="webtav.webfront.NewMessageHandler.get">
 <tt class="descname">get</tt><big>(</big><em>topic=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="webtav.webfront.NewMessageHandler.options">
+<tt class="descname">options</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.options" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.NewMessageHandler.post">
+<tt class="descname">post</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive Envelopes and their attachments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.NewMessageHandler.receive_files">
+<tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.receive_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive files as process by the nginx file module plugin.</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="webtav.webfront.RegisterHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">RegisterHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#RegisterHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.RegisterHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Register a new user for the site.</p>
 <dl class="method">
 <dt id="webtav.webfront.RegisterHandler.get">
@@ -412,7 +684,7 @@ We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
 <dl class="class">
 <dt id="webtav.webfront.ShowAllTopicsHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">ShowAllTopicsHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#ShowAllTopicsHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.ShowAllTopicsHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Show every known topic</p>
 <dl class="method">
 <dt id="webtav.webfront.ShowAllTopicsHandler.get">
@@ -424,7 +696,7 @@ We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
 <dl class="class">
 <dt id="webtav.webfront.SiteContentHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">SiteContentHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#SiteContentHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.SiteContentHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Displays site content, such as FAQ, Ettiquite, etc, without replies or other chrome.</p>
 <dl class="method">
 <dt id="webtav.webfront.SiteContentHandler.get">
@@ -436,7 +708,7 @@ We should be able to arrive here by either /m/uuid or /t/topic/subject/uuid</td>
 <dl class="class">
 <dt id="webtav.webfront.SiteIndexHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">SiteIndexHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#SiteIndexHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.SiteIndexHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.SiteIndexHandler.get">
 <tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#SiteIndexHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.SiteIndexHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -455,7 +727,7 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dl class="class">
 <dt id="webtav.webfront.SitemapMessagesHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">SitemapMessagesHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#SitemapMessagesHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.SitemapMessagesHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.SitemapMessagesHandler.get">
 <tt class="descname">get</tt><big>(</big><em>iteration</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#SitemapMessagesHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.SitemapMessagesHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -473,7 +745,7 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dl class="class">
 <dt id="webtav.webfront.TopicHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">TopicHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#TopicHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.TopicHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.TopicHandler.get">
 <tt class="descname">get</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#TopicHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.TopicHandler.get" title="Permalink to this definition">¶</a></dt>
@@ -485,7 +757,7 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dl class="class">
 <dt id="webtav.webfront.TopicPropertiesHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">TopicPropertiesHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#TopicPropertiesHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.TopicPropertiesHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Show Properties for a topic</p>
 <dl class="method">
 <dt id="webtav.webfront.TopicPropertiesHandler.get">
@@ -495,9 +767,25 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 </dd></dl>
 
 <dl class="class">
+<dt id="webtav.webfront.UploadHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseFlask" title="webtav.webbase.BaseFlask"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseFlask</span></tt></a></p>
+<dl class="method">
+<dt id="webtav.webfront.UploadHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="webtav.webfront.UploadHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['GET']</em><a class="headerlink" href="#webtav.webfront.UploadHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="webtav.webfront.UserHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UserHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UserHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UserHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseHandler" title="webtav.webbase.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseHandler</span></tt></a></p>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <p>Print the User&#8217;s information</p>
 <p>If this is your account, also shows an UI to change settings.</p>
 <dl class="method">
@@ -561,6 +849,7 @@ Nginx will connect to tornado through a domain socket.</p>
   <ul>
 <li><a class="reference internal" href="#">webtav package</a><ul>
 <li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-webtav.flasknado">webtav.flasknado module</a></li>
 <li><a class="reference internal" href="#module-webtav.uimodules">webtav.uimodules module</a></li>
 <li><a class="reference internal" href="#module-webtav.webbase">webtav.webbase module</a></li>
 <li><a class="reference internal" href="#module-webtav.webfront">webtav.webfront module</a></li>

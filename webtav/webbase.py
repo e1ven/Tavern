@@ -10,6 +10,9 @@ import tornado.options
 import tornado.web
 import tornado.escape
 import tornado.httputil
+import flask
+from flask.views import MethodView
+import webtav.flasknado
 
 server = libtavern.server.Server()
 
@@ -19,7 +22,7 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
     """
 
     @property
-    def secure(self):
+    def is_secure(self):
         """Returns if the connection is loaded over https"""
         if hasattr(self, "_secure"):
             return self._secure
@@ -56,7 +59,7 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
 
         # Set secure flag when connecting over HTTPS
         # If so, set secure flag on cookie by default.
-        if self.secure:
+        if self.is_secure:
             kwargs['secure'] = True
         else:
             # If the 'secure' key exists, even if it's set to False, the flag will get sent/used.
@@ -67,16 +70,14 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
 
         self.set_cookie(name, self.create_signed_value(name, value), **kwargs)
 
-class BaseHandler(XSRFBaseHandler):
+class BaseTornado(XSRFBaseHandler):
     """
-    The default HTTPHandler for webtavern.
+    The default HTTPHandler for webtavern Tornado objects
     """
 
     def __init__(self, *args, **kwargs):
         """Create the base object for all requests to our Tavern webserver."""
-
         self.server = server
-        self.html = ""
         super().__init__(*args, **kwargs)
 
         # Pull a timestamp to use as the canonical time for this request
@@ -258,7 +259,7 @@ class BaseHandler(XSRFBaseHandler):
         self.set_header("X-XSS-Protection","1; mode=block;")
 
         # STS header says to always load over HTTPS
-        if self.secure or self.server.serversettings.settings['webtav']['force_sts'] is True:
+        if self.is_secure or self.server.serversettings.settings['webtav']['force_sts'] is True:
             self.set_header("Strict-Transport-Security","max-age=" + self.server.serversettings.settings['webtav']['sts_time'])
 
 
@@ -365,6 +366,16 @@ class BaseHandler(XSRFBaseHandler):
         namespace.update(self.ui)
         return namespace
 
+
+class BaseFlask(webtav.flasknado.Flasknado,BaseTornado):
+    """
+    Create a basic Flask object which looks and smells very much like a Tornado object.
+    Pass through a copy of our Tornado app.
+    """
+    def __init__(self,*args,**kwargs):
+        super().__init__(*args, **kwargs)
+
+
 class weberror(Exception):
     """A generic http error message that supports subject/body.
 
@@ -387,4 +398,3 @@ class weberror(Exception):
             return message + " (" + (self.log_message % self.args) + ")"
         else:
             return message
-

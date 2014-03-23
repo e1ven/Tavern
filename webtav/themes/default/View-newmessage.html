@@ -4,10 +4,10 @@
     <form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/message" method="post" class="messageform" id='{{handler.timestamp}}'>
         {% module xsrf_form_html() %}
 
-        {% if topic is None %}
+        {% if len(handler.topic.topics) != 1 %}
             Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
         {% else %}
-            <input type="hidden" name="topic" value="{{topic.sortname}}">
+            <input type="hidden" name="topic" value="{{handler.topic.sortname}}">
         {% end %}
         <br>
         Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>

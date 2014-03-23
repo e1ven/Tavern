@@ -124,6 +124,11 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'static_path' in self.settings['webtav']['tornado']:
             self.settings['webtav']['tornado']['static_path'] = 'tmp/static'
 
+        # Default Flask settings. Put here to let people override.
+        if not 'flask' in self.settings['webtav']:
+            self.settings['webtav']['flask'] = {}
+
+
         # Set the default DBs
         if not 'DB' in self.settings:
             self.settings['DB'] = {}

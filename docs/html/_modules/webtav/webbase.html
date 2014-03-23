@@ -60,6 +60,9 @@
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">tornado.httputil</span>
+<span class="kn">import</span> <span class="nn">flask</span>
+<span class="kn">from</span> <span class="nn">flask.views</span> <span class="kn">import</span> <span class="n">MethodView</span>
+<span class="kn">import</span> <span class="nn">webtav.flasknado</span>
 
 <span class="n">server</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">Server</span><span class="p">()</span>
 
@@ -69,7 +72,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nd">@property</span>
-<div class="viewcode-block" id="XSRFBaseHandler.secure"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.XSRFBaseHandler.secure">[docs]</a>    <span class="k">def</span> <span class="nf">secure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="XSRFBaseHandler.is_secure"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.XSRFBaseHandler.is_secure">[docs]</a>    <span class="k">def</span> <span class="nf">is_secure</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns if the connection is loaded over https&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&quot;_secure&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_secure</span>
@@ -106,7 +109,7 @@
 
         <span class="c"># Set secure flag when connecting over HTTPS</span>
         <span class="c"># If so, set secure flag on cookie by default.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">secure</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_secure</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="s">&#39;secure&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c"># If the &#39;secure&#39; key exists, even if it&#39;s set to False, the flag will get sent/used.</span>
@@ -117,16 +120,14 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_signed_value</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado">[docs]</a><span class="k">class</span> <span class="nc">BaseTornado</span><span class="p">(</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The default HTTPHandler for webtavern.</span>
+<span class="sd">    The default HTTPHandler for webtavern Tornado objects</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create the base object for all requests to our Tavern webserver.&quot;&quot;&quot;</span>
-
         <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">server</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">html</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="c"># Pull a timestamp to use as the canonical time for this request</span>
@@ -222,7 +223,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">useragent</span><span class="p">[</span><span class="s">&#39;ua_family&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;IE&#39;</span> <span class="ow">and</span> <span class="n">browser</span><span class="p">[</span><span class="s">&#39;ua_versions&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">9</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">add_js</span><span class="p">(</span><span class="s">&#39;IE9.js&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="BaseHandler.add_js"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.add_js">[docs]</a>    <span class="k">def</span> <span class="nf">add_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">files</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.add_js"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.add_js">[docs]</a>    <span class="k">def</span> <span class="nf">add_js</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="nb">file</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">files</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Add a Javascript file to this request&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">files</span><span class="p">:</span>
             <span class="n">files</span> <span class="o">=</span> <span class="p">[]</span>
@@ -232,7 +233,7 @@
             <span class="k">if</span> <span class="n">script</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">scripts</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">scripts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.load_session"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.load_session">[docs]</a>    <span class="k">def</span> <span class="nf">load_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.load_session"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.load_session">[docs]</a>    <span class="k">def</span> <span class="nf">load_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Load into memory the User class by way of the session cookie.</span>
 
 <span class="sd">        Generates a new user (usually guest) if it can&#39;t find one.</span>
@@ -264,7 +265,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">save_session</span><span class="p">()</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.save_session"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.save_session">[docs]</a>    <span class="k">def</span> <span class="nf">save_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.save_session"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.save_session">[docs]</a>    <span class="k">def</span> <span class="nf">save_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Saves the current user to a session cookie.</span>
 
 <span class="sd">        These are encrypted by Tornado.</span>
@@ -286,7 +287,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&#39;sessionid&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">save_session</span><span class="p">(),</span> <span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.setheaders"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.setheaders">[docs]</a>    <span class="k">def</span> <span class="nf">setheaders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.setheaders"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.setheaders">[docs]</a>    <span class="k">def</span> <span class="nf">setheaders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Set various headers that each HTTP response should have.&quot;&quot;&quot;</span>
         <span class="c"># Add in a random fortune</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;X-Fortune&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">fortune</span><span class="o">.</span><span class="n">random</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;iso-8859-1&#39;</span><span class="p">,</span> <span class="n">errors</span><span class="o">=</span><span class="s">&#39;ignore&#39;</span><span class="p">))</span>
@@ -308,7 +309,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;X-XSS-Protection&quot;</span><span class="p">,</span><span class="s">&quot;1; mode=block;&quot;</span><span class="p">)</span>
 
         <span class="c"># STS header says to always load over HTTPS</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">secure</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;force_sts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_secure</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;force_sts&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Strict-Transport-Security&quot;</span><span class="p">,</span><span class="s">&quot;max-age=&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;sts_time&#39;</span><span class="p">])</span>
 
 
@@ -321,7 +322,7 @@
         <span class="c">#     &quot; https://www.youtube.com https://player.vimeo.com; font-src &#39;self&#39;; connect-src &#39;self&#39;&quot;)</span>
 
 </div>
-<div class="viewcode-block" id="BaseHandler.write_error"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.write_error">[docs]</a>    <span class="k">def</span> <span class="nf">write_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.write_error"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.write_error">[docs]</a>    <span class="k">def</span> <span class="nf">write_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status_code</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Catch exceptions and print out an error message using a template.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
@@ -359,7 +360,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;subject&#39;</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns the correct template path for the current theme.</span>
 
 <span class="sd">        Currently this is using the chosen theme, but eventually we can default to mobile/etc here</span>
@@ -396,7 +397,7 @@
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;put&#39;</span><span class="p">,</span><span class="n">notimplemented</span><span class="p">)</span>
         <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;options&#39;</span><span class="p">,</span><span class="n">notimplemented</span><span class="p">)</span>
 
-<div class="viewcode-block" id="BaseHandler.get_template_namespace"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseHandler.get_template_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseTornado.get_template_namespace"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.get_template_namespace">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_namespace</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Provides a dict of variables/functions that are available to templates.</span>
 
@@ -414,7 +415,17 @@
         <span class="p">)</span>
         <span class="n">namespace</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ui</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">namespace</span>
+
 </div></div>
+<div class="viewcode-block" id="BaseFlask"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseFlask">[docs]</a><span class="k">class</span> <span class="nc">BaseFlask</span><span class="p">(</span><span class="n">webtav</span><span class="o">.</span><span class="n">flasknado</span><span class="o">.</span><span class="n">Flasknado</span><span class="p">,</span><span class="n">BaseTornado</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Create a basic Flask object which looks and smells very much like a Tornado object.</span>
+<span class="sd">    Pass through a copy of our Tornado app.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div>
 <div class="viewcode-block" id="weberror"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.weberror">[docs]</a><span class="k">class</span> <span class="nc">weberror</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A generic http error message that supports subject/body.</span>
 
@@ -436,8 +447,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_message</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot; (&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_message</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">message</span>
-</pre></div></div>
+            <span class="k">return</span> <span class="n">message</span></div>
+</pre></div>
 
           </div>
         </div>

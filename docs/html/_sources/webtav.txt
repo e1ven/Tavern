@@ -4,6 +4,14 @@ webtav package
 Submodules
 ----------
 
+webtav.flasknado module
+-----------------------
+
+.. automodule:: webtav.flasknado
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 webtav.uimodules module
 -----------------------
 

@@ -1,7 +1,8 @@
 // Imported/forked from from http://kevinburke.bitbucket.org/markdowncss/markdown.css
 
-@import "compass/reset";
-@import "compass";
+// Standardize defaults
+@import 'normalize';
+
 
 body{
     margin: 0 auto;

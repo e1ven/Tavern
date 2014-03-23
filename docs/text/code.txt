@@ -39,6 +39,8 @@ extend and use in various projects.
 
   * Submodules
 
+  * webtav.flasknado module
+
   * webtav.uimodules module
 
   * webtav.webbase module
