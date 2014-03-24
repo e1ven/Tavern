@@ -721,129 +721,261 @@ class NewMessageHandler(webbase.BaseTornado):
         self.set_header('Access-Control-Allow-Origin', '*')
 
 
+# def NewPrivateMessageHandler_get(urlto=None):
+#     self.getvars()
+#     self.write(self.render_string('header.html',
+#                title="Send a private message", rsshead=None, type=None))
+#     self.write(self.render_string('privatemessageform.html', urlto=urlto))
+#     self.write(self.render_string('footer.html'))
+
+
+# def NullHandler_get(url=None):
+#     return
+
+
+# def NullHandler_post(url=None):
+#     return
+
+
+# def BinariesHandler_get(binaryhash, filename=None):
+#     self.server.logger.info(
+#         "The gridfs_nginx plugin is a much better option than this method")
+#     self.set_header("Content-Type", 'application/octet-stream')
+
+#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)
+#     self.write(req.read())
+
+class CatchallHandler(webbase.BaseTornado):
+    """
+    Handler for any requests that aren't handled anywhere else.
+    Returns 404.
+    """
+    def get(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def post(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def put(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+    def delete(self):
+        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+
+class AvatarHandler(webbase.BaseTornado):
+    """Create Avatars using Robohashes.
+    You should cache these on disk using nginx.
+    """
+    def get(self, avatar):
+        format = 'png'
+        self.set_header("Content-Type", "image/" + format)
+
+        # Ensure proper sizing
+        sizex, sizey = self.get_argument('size', '40x40').split("x")
+        sizex = int(sizex)
+        sizey = int(sizey)
+        if sizex > 4096 or sizex < 0:
+            sizex = 40
+        if sizey > 4096 or sizey < 0:
+            sizey = 40
+        robo = Robohash(avatar)
+        robo.assemble(
+            roboset=self.get_argument(
+                'set',
+                'any'),
+            format=format,
+            bgset=self.get_argument(
+                'bgset',
+                'any'),
+            sizex=sizex,
+            sizey=sizey)
+        robo.img.save(self, format='png')
+
+
+# def RssHandler(self,action,topic):
+#    """Generate an RSS feed for a given topic"""
+#     """Generates RSS feeds for a Topic."""
+#     def get(action, topic):
+#         channel = rss.Channel('Tavern - ' + param,
+#                               'http://GetTavern.com/rss/' + param,
+#                               'Tavern discussion about ' + param,
+#                               generator='Tavern',
+#                               pubdate=datetime.datetime.utcnow())
+#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': libtavern.topic.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
+#             item = rss.Item(channel,
+#                             envelope['envelope']['payload']['subject'],
+#                             "http://GetTavern.com/m/" + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'sorttopic'] + '/' + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'short_subject'] + "/" + envelope[
+#                                 'envelope'][
+#                                 'local'][
+#                                 'payload_sha512'],
+#                             envelope['envelope']['local']['formattedbody'])
+#             channel.additem(item)
+#         self.write(channel.toprettyxml())
+
+
+class SiteIndexHandler(webbase.BaseTornado):
+    def get(self):
+        """
+        Return a sitemap index file, which includes all other sitemap files.
+        Since each sitemap.xml file can only contain 50K urls, we need to split these.
+        """
+
+        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
+
+        self.topic = libtavern.topic.Topic()
+
+        # Without a number, we want the index, which lists the other xml files.
+        # - Each one can contain up to 50K URLs
+        count = self.topic.count(include_replies=True)
+        messagecount = int(count / max_posts) + 1
+
+        # Get the base URL for the server
+        prefix=self.server.url_for(base=True,fqdn=True)
+        prefix += "sitemap/m/"
+
+        self.render('View-siteindex.html',messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
+class SitemapMessagesHandler(webbase.BaseTornado):
+    def get(self,iteration):
+        """
+        Create a sitemap.xml file to show a slice of messages.
+        """
+
+        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
+
+        # We want to figure out how many messages to skip.
+        # We do this by multiplying the number of messages per file (max_posts) * which file we're on.
+        # For aesthetic reasons, I think the sitemaps should start at 1, not 0.
+        iteration = int(iteration) - 1
+
+        # The skip is complicated because we want to avoid using .skip()
+        # Instead, every time this function finishes, we store the newest date in it's slot.
+        # Then, we can skip forward to date+1 millisecond for the next slot.
+
+
+        # Get the highest date for one slot lower than us.
+        previous_sitemap = 'messages_' + str(iteration - 1)
+        results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
+        if results:
+            after = results.get('last_message_date',0)
+        else:
+            after = 0
+
+        messages = self.topic.messages(maxposts=max_posts,after=after,include_replies=True)
+        if not messages:
+            self.set_status(404)
+            self.write("That sitemap does not exist.")
+            return
+
+        # Save our highest value out to the DB
+        results = {}
+        results['_id'] = 'messages_' + str(iteration)
+        results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
+        server.db.unsafe.save('sitemap',results)
+
+        self.render('View-sitemap.html',messages=messages,utils=libtavern.utils)
+
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
+
+class XSRFHandler(webbase.XSRFBaseHandler):
+    """
+    The XSRF handler returns a xsrf token
+
+    This handler's output is included into the header via nginx SSI.
+    By importing via SSI, nginx can cache the output from other handlers.
+
+    Otherwise, each request from a non-logged in user would do a full page-load,
+    since the Set-Cookie would bypass the cache.
+
+    We do need a separate token for each request, since the site contains a login form.
+    Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.
+
+    This inherits from XSRFBaseHandler so that it bypasses the regular login/session path.
+    """
+    def get(self):
+        """
+        Internal only handler that returns the xsrf token.
+        This is called by nginx, not accessible to the outside world.
+        """
+        self.write(str(self.xsrf_token))
+
+    def get_template_path(self):
+        """
+        Force this request out of the robots folder, since it's not for people.
+        """
+        basepath = self.application.settings.get("template_path")
+        return basepath + '/robots'
+
+class UploadHandler(webbase.BaseFlask):
+
     def receive_files(self):
         """
-        Receive files as process by the nginx file module plugin.
+        Receive files, save them out.
         """
 
-        # The nginx file upload module creates new variables in the form-
-        # They are named 'attached_file'
-        attached_files = []
-        for argument in self.request.arguments:
-            if (argument.startswith("attached_file") and argument.endswith('.path')) or (argument == 'files[].path'):
-                file_details = {}
-                file_details['basename'] = argument.rsplit('.')[0]
-                file_details['clean_up_file_afterward'] = True
-                file_details['filename'] = self.get_argument(individual_file['basename'] + ".name")
-                individual_file['content_type'] = self.get_argument(
-                    individual_file['basename'] + ".content_type")
-                individual_file['path'] = self.get_argument(
-                    individual_file['basename'] + ".path")
-                individual_file['size'] = self.get_argument(
-                    individual_file['basename'] + ".size")
+        # Each file in self.request.files is a Werkzeug FileStorage object.
+        # http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.FileStorage
+        for file in self.request.files:
+            file.sha,file.filesize = libtavern.utils.hash_file(file.stream)
+            if file.filesize > self.server.serversettings.settings['webtav']['uploads']['max_size']:
+                list.remove(file)
+            file.mimetype = magic.from_buffer(memcopy.read(), mime=True).decode('utf-8')
+            # Make a preview image if possible
+            if file.filesize < self.server.serversettings.settings['webtav']['uploads']['max_image_size']:
+                memcopy = io.BytesIO()
+                file.save(memcopy)
+                memcopy.seek(0)
+                if file.mimetype in ['image/gif', 'image/jpeg', 'image/png', 'image/bmp']:
+                    # Our attachment appears to be an image -
+                    # If we open and resave, it will strip the EXIF data.
+                    memcopy.seek(0)
+                    Image.open(memcopy)
+                    Image.save(memcopy)
 
-                fs_basename = os.path.basename(individual_file['path'])
-                individual_file['fullpath'] = server.serversettings.settings[
-                    'upload-dir'] + "/" + fs_basename
+                    # Don't generate a preview/etc here.
+                    # We need to do that as a sub-function of receiveEnvelope, so it happens for ALL envelopes.
+                    file.stream = memcopy
+            # Save the file out to GridFS
+            if not self.server.bin_GridFS.exists(filename=file.sha):
+                self.server.bin_GridFS.put(file.stream,filename=file.sha,content_type=file.mimetype)
+            file.close()
 
-                individual_file['filehandle'] = open(
-                    individual_file['path'], 'rb+')
-                hashname = str(individual_file['basename'] + '.sha512')
+    def post(self, flag=None):
+        """Receive Envelopes and their attachments."""
 
-                # Nginx should give us the SHA512 hash, but if not, calc it.
-                if hashname in self.request.arguments:
-                    individual_file['hash'] = self.get_argument(
-                        individual_file['basename'] + ".sha512")
-                else:
-                    print("Calculating Hash in Python. Nginx should do this.")
-                    SHA512 = hashlib.sha512()
-                    while True:
-                        buf = individual_file['filehandle'].read(0x100000)
-                        if not buf:
-                            break
-                        SHA512.update(buf)
-                    individual_file['hash'] = SHA512.hexdigest()
-                individual_file['filehandle'].seek(0)
-                filelist.append(individual_file)
+        # If there are any files that were sent along with the envelope, save them out.
+        self.receive_files()
 
-        # If we get files directly, calculate what we need to know.
-        for file_field in self.request.files:
-            for individual_file in self.request.files[file_field]:
-
-                individual_file['clean_up_file_afterward'] = False
-                individual_file['filehandle'] = io.BytesIO()
-                individual_file['filehandle'].write(individual_file['body'])
-                individual_file['size'] = len(individual_file['body'])
-                SHA512 = hashlib.sha512()
-                while True:
-                    buf = individual_file['filehandle'].read(0x100000)
-                    if not buf:
-                        break
-                    SHA512.update(buf)
-                individual_file['filehandle'].seek(0)
-                SHA512.update(individual_file['body'])
-                individual_file['hash'] = SHA512.hexdigest()
-                individual_file['filehandle'].seek(0)
-                filelist.append(individual_file)
-
-        envelopebinarylist = []
-
-        # Attach the files that are actually here, submitted alongside the
-        # message.
-        for attached_file in filelist:
-            # All the same, let's strip out all but the basename.
-            server.logger.debug("Dealing with File " + attached_file['filename']
-                                + " with hash " + attached_file['hash'])
-            if not server.bin_GridFS.exists(filename=attached_file['hash']):
-                attached_file['filehandle'].seek(0)
-                imagetype = imghdr.what(
-                    'ignoreme', h=attached_file['filehandle'].read())
-                acceptable_images = ['gif', 'jpeg', 'jpg', 'png', 'bmp']
-                print(imagetype)
-                if imagetype in acceptable_images:
-                    attached_file['filehandle'].seek(0)
-                    # If it's an image, open and re-save to strip EXIF data.
-                    # Do so here, rather than in server, so that server->server
-                    # messages aren't touched
-                    Image.open(attached_file['filehandle']).save(
-                        attached_file['filehandle'], format=imagetype)
-                attached_file['filehandle'].seek(0)
-                server.bin_GridFS.put(
-                    attached_file['filehandle'],
-                    filename=attached_file['hash'],
-                    content_type=individual_file['content_type'])
-            server.logger.debug("Creating Message")
-            # Create a message binary.
-            mybinary = Envelope.binary(sha512=attached_file['hash'])
-            # Set the Filesize. Clients can't trust it, but oh-well.
-            print('estimated size : ' + str(attached_file['size']))
-            mybinary.dict['filesize_hint'] = attached_file['size']
-            mybinary.dict['content_type'] = attached_file['content_type']
-            mybinary.dict['filename'] = attached_file['filename']
-            envelopebinarylist.append(mybinary.dict)
-
-            # Don't keep spare copies on the webservers
-            attached_file['filehandle'].close()
-            if attached_file['clean_up_file_afterward'] is True:
-                os.remove(attached_file['fullpath'])
-
-        # Support the Javascript upload handler.
-        # return the JSON formatted reply it's looking for
+        # Send a JSON formatted reply to the JS upload-handler if necessary.
         if flag == "fileonly":
             details = []
-            for attached_file in filelist:
+            for file in self.request.files:
                 detail = {}
                 detail['name'] = attached_file['filename']
                 detail['hash'] = attached_file['hash']
                 detail['size'] = attached_file['size']
                 detail['content_type'] = attached_file['content_type']
-
-                detail['url'] = server.serversettings.settings[
-                    'downloadsurl'] + attached_file['hash']
+                detail['url'] = server.serversettings.settings['webtav']['downloads_url'] + attached_file['hash']
                 details.append(detail)
             details_json = json.dumps(details, separators=(',', ':'))
             self.set_header("Content-Type", "application/json")
-            print(details_json)
             self.write(details_json)
             return
 
@@ -864,11 +996,6 @@ class NewMessageHandler(webbase.BaseTornado):
                 mybinary.dict['filename'] = self.get_argument(
                     'referenced_file' + binarycount + '_name')
                 envelopebinarylist.append(mybinary.dict)
-
-
-    def post(self, flag=None):
-        """Receive Envelopes and their attachments."""
-
 
 
 
@@ -1079,214 +1206,27 @@ class NewMessageHandler(webbase.BaseTornado):
             self.write("Failure to insert message.")
 
 
-
-# def NewPrivateMessageHandler_get(urlto=None):
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title="Send a private message", rsshead=None, type=None))
-#     self.write(self.render_string('privatemessageform.html', urlto=urlto))
-#     self.write(self.render_string('footer.html'))
-
-
-# def NullHandler_get(url=None):
-#     return
-
-
-# def NullHandler_post(url=None):
-#     return
-
-
-# def BinariesHandler_get(binaryhash, filename=None):
-#     self.server.logger.info(
-#         "The gridfs_nginx plugin is a much better option than this method")
-#     self.set_header("Content-Type", 'application/octet-stream')
-
-#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)
-#     self.write(req.read())
-
-class CatchallHandler(webbase.BaseTornado):
-    """
-    Handler for any requests that aren't handled anywhere else.
-    Returns 404.
-    """
-    def get(self):
-        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+class FileOnlyUploadHandler(UploadHandler):
     def post(self):
-        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
-    def put(self):
-        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
-    def delete(self):
-        raise weberror(short="That page doesn't exist.", long="I'm sorry, but the page you're looking for can't be found. ;(",code=404)
+        """Receive a POST request containing a file from JS, and return the JSON formatted reply it's expecting."""
 
-class AvatarHandler(webbase.BaseTornado):
-    """Create Avatars using Robohashes.
-    You should cache these on disk using nginx.
-    """
-    def get(self, avatar):
-        format = 'png'
-        self.set_header("Content-Type", "image/" + format)
+        # If there are any files that were sent along with the envelope, save them out.
+        self.receive_files()
 
-        # Ensure proper sizing
-        sizex, sizey = self.get_argument('size', '40x40').split("x")
-        sizex = int(sizex)
-        sizey = int(sizey)
-        if sizex > 4096 or sizex < 0:
-            sizex = 40
-        if sizey > 4096 or sizey < 0:
-            sizey = 40
-        robo = Robohash(avatar)
-        robo.assemble(
-            roboset=self.get_argument(
-                'set',
-                'any'),
-            format=format,
-            bgset=self.get_argument(
-                'bgset',
-                'any'),
-            sizex=sizex,
-            sizey=sizey)
-        robo.img.save(self, format='png')
-
-
-# def RssHandler(self,action,topic):
-#    """Generate an RSS feed for a given topic"""
-#     """Generates RSS feeds for a Topic."""
-#     def get(action, topic):
-#         channel = rss.Channel('Tavern - ' + param,
-#                               'http://GetTavern.com/rss/' + param,
-#                               'Tavern discussion about ' + param,
-#                               generator='Tavern',
-#                               pubdate=datetime.datetime.utcnow())
-#         for envelope in self.server.db.unsafe.find('envelopes', {'envelope.local.sorttopic': libtavern.topic.sorttopic(param), 'envelope.payload.class': 'message'}, limit=100, sortkey='envelope.local.time_added', sortdirection='descending'):
-#             item = rss.Item(channel,
-#                             envelope['envelope']['payload']['subject'],
-#                             "http://GetTavern.com/m/" + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'sorttopic'] + '/' + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'short_subject'] + "/" + envelope[
-#                                 'envelope'][
-#                                 'local'][
-#                                 'payload_sha512'],
-#                             envelope['envelope']['local']['formattedbody'])
-#             channel.additem(item)
-#         self.write(channel.toprettyxml())
-
-
-class SiteIndexHandler(webbase.BaseTornado):
-    def get(self):
-        """
-        Return a sitemap index file, which includes all other sitemap files.
-        Since each sitemap.xml file can only contain 50K urls, we need to split these.
-        """
-
-        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
-
-        self.topic = libtavern.topic.Topic()
-
-        # Without a number, we want the index, which lists the other xml files.
-        # - Each one can contain up to 50K URLs
-        count = self.topic.count(include_replies=True)
-        messagecount = int(count / max_posts) + 1
-
-        # Get the base URL for the server
-        prefix=self.server.url_for(base=True,fqdn=True)
-        prefix += "sitemap/m/"
-
-        self.render('View-siteindex.html',messagecount=messagecount,utils=libtavern.utils,prefix=prefix)
-
-    def get_template_path(self):
-        """
-        Force this request out of the robots folder, since it's not for people.
-        """
-        basepath = self.application.settings.get("template_path")
-        return basepath + '/robots'
-
-class SitemapMessagesHandler(webbase.BaseTornado):
-    def get(self,iteration):
-        """
-        Create a sitemap.xml file to show a slice of messages.
-        """
-
-        max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
-
-        # We want to figure out how many messages to skip.
-        # We do this by multiplying the number of messages per file (max_posts) * which file we're on.
-        # For aesthetic reasons, I think the sitemaps should start at 1, not 0.
-        iteration = int(iteration) - 1
-
-        # The skip is complicated because we want to avoid using .skip()
-        # Instead, every time this function finishes, we store the newest date in it's slot.
-        # Then, we can skip forward to date+1 millisecond for the next slot.
-
-
-        # Get the highest date for one slot lower than us.
-        previous_sitemap = 'messages_' + str(iteration - 1)
-        results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
-        if results:
-            after = results.get('last_message_date',0)
-        else:
-            after = 0
-
-        messages = self.topic.messages(maxposts=max_posts,after=after,include_replies=True)
-        if not messages:
-            self.set_status(404)
-            self.write("That sitemap does not exist.")
-            return
-
-        # Save our highest value out to the DB
-        results = {}
-        results['_id'] = 'messages_' + str(iteration)
-        results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
-        server.db.unsafe.save('sitemap',results)
-
-        self.render('View-sitemap.html',messages=messages,utils=libtavern.utils)
-
-
-    def get_template_path(self):
-        """
-        Force this request out of the robots folder, since it's not for people.
-        """
-        basepath = self.application.settings.get("template_path")
-        return basepath + '/robots'
-
-
-class XSRFHandler(webbase.XSRFBaseHandler):
-    """
-    The XSRF handler returns a xsrf token
-
-    This handler's output is included into the header via nginx SSI.
-    By importing via SSI, nginx can cache the output from other handlers.
-
-    Otherwise, each request from a non-logged in user would do a full page-load,
-    since the Set-Cookie would bypass the cache.
-
-    We do need a separate token for each request, since the site contains a login form.
-    Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.
-
-    This inherits from XSRFBaseHandler so that it bypasses the regular login/session path.
-    """
-    def get(self):
-        """
-        Internal only handler that returns the xsrf token.
-        This is called by nginx, not accessible to the outside world.
-        """
-        self.write(str(self.xsrf_token))
-
-    def get_template_path(self):
-        """
-        Force this request out of the robots folder, since it's not for people.
-        """
-        basepath = self.application.settings.get("template_path")
-        return basepath + '/robots'
-
-class UploadHandler(webbase.BaseFlask):
-    def get(self):
-        html = "My XSRF is- " + self.xsrf_token + " Isn't that cool???<br>"
-        html += "U:" + str(self.user.friendlyname) + "@" + self.user.author_wordhash
-        return html
+        # Send a JSON formatted reply to the JS upload-handler if necessary.
+        details = []
+        for file in self.request.files:
+            detail = {}
+            detail['name'] = file.name
+            detail['hash'] = file.sha
+            detail['size'] = file.filesize
+            detail['content_type'] = file.mimetype
+            detail['url'] = server.serversettings.settings['webtav']['downloads_url'] + file.sha
+            details.append(detail)
+        details_json = json.dumps(details, separators=(',', ':'))
+        self.set_header("Content-Type", "application/json")
+        self.write(details_json)
+        return
 
 def main():
     """
@@ -1312,6 +1252,12 @@ def main():
         print("Requires Unix Socket file destination :/ ")
         sys.exit(0)
 
+
+    # Create the Tavern server. This is the main interop class for dealing with Tavern.
+    # We then start the server, which creates DB connections, fires up threads to create keys, etc.
+    server = libtavern.server.Server()
+    server.start()
+
     # Specify the settings which are not designed to be overwritten.
     tornado_settings = {
         "template_path": "webtav/themes",
@@ -1320,14 +1266,9 @@ def main():
         "xsrf_cookies": True,
         # SSI requires that gzip is disabled in Tornado.
         "gzip": False,
+        "cookie_secret": server.serversettings.settings['webtav']['cookie_secret']
     }
     flask_settings = {}
-
-
-    # Create the Tavern server. This is the main interop class for dealing with Tavern.
-    # We then start the server, which creates DB connections, fires up threads to create keys, etc.
-    server = libtavern.server.Server()
-    server.start()
 
     # Update the settings dicts for both engines
     tornado_settings.update(server.serversettings.settings['webtav']['tornado'])
@@ -1365,6 +1306,9 @@ def main():
             (r"/t/(.*)/new", NewMessageHandler),
             (r"/t/(.*)", TopicHandler),
             (r"/new", NewMessageHandler),
+            (r"/new/attachment", FileOnlyUploadHandler),
+
+
          #   (r"/new/(.*)", ReceiveEnvelopeHandler),
          #   (r"/new/file/(.*)", ReceiveEnvelopeHandler),
 

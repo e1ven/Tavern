@@ -229,7 +229,7 @@ class Flasknado(MethodView):
         method for non-cookie uses.  To decode a value not stored
         as a cookie use the optional value argument to get_secure_cookie.
         """
-        return create_signed_value(secret=server.serversettings.settings['webtav']['tornado']['cookie_secret'],name=name, value=value)
+        return create_signed_value(secret=server.serversettings.settings['webtav']['cookie_secret'],name=name, value=value)
 
 
     def get_secure_cookie(self, name, value=None, max_age_days=31):
@@ -240,7 +240,7 @@ class Flasknado(MethodView):
         """
         if value is None:
             value = self.get_cookie(name)
-        return decode_signed_value(secret=server.serversettings.settings['webtav']['tornado']['cookie_secret'],name=name, value=value, max_age_days=max_age_days)
+        return decode_signed_value(secret=server.serversettings.settings['webtav']['cookie_secret'],name=name, value=value, max_age_days=max_age_days)
 
 
     def redirect(self, url, permanent=False, status=None):

@@ -468,6 +468,17 @@ class class webtav.webfront.EntryHandler(*args, **kwargs)
       Currently, this redirects everyone. Eventually, it may give a
       different experience for first-time visitors.
 
+class class webtav.webfront.FileOnlyUploadHandler(*args, **kwargs)
+
+   Bases: "webtav.webfront.UploadHandler"
+
+   methods = ['POST']
+
+   post()
+
+      Receive a POST request containing a file from JS, and return the
+      JSON formatted reply it's expecting.
+
 class class webtav.webfront.MessageHandler(*args, **kwargs)
 
    Bases: "webtav.webbase.BaseTornado"
@@ -497,14 +508,6 @@ class class webtav.webfront.NewMessageHandler(*args, **kwargs)
    get(topic=None)
 
    options(flag=None)
-
-   post(flag=None)
-
-      Receive Envelopes and their attachments.
-
-   receive_files()
-
-      Receive files as process by the nginx file module plugin.
 
 class class webtav.webfront.RegisterHandler(*args, **kwargs)
 
@@ -581,9 +584,15 @@ class class webtav.webfront.UploadHandler(*args, **kwargs)
 
    Bases: "webtav.webbase.BaseFlask"
 
-   get()
+   methods = ['POST']
 
-   methods = ['GET']
+   post(flag=None)
+
+      Receive Envelopes and their attachments.
+
+   receive_files()
+
+      Receive files, save them out.
 
 class class webtav.webfront.UserHandler(*args, **kwargs)
 

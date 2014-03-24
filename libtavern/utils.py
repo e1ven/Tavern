@@ -15,6 +15,23 @@ import string
 from PIL import Image
 import zlib
 
+
+def file_info(fileobj):
+    """
+    Returns a SHA512 hash for a file without loading the entire file into memory
+    :param fileobj: The file-like object to hash.
+    :return: A string version of the hash, the size of the file
+    """
+    sha = hashlib.sha512()
+    fileobj.seek(0)
+    while True:
+        buf = fileobj.read(0x100000)
+        if not buf:
+            break
+        sha.update(buf)
+    size = fileobj.tell()
+    return sha.hexdigest(), size
+
 def proveWork(input, difficulty):
     """
     Produces a Proof-of-work SHA collision based on HashCash.

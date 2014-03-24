@@ -608,6 +608,23 @@ Eventually, it may give a different experience for first-time visitors.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="webtav.webfront.FileOnlyUploadHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">FileOnlyUploadHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#FileOnlyUploadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadHandler" title="webtav.webfront.UploadHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadHandler</span></tt></a></p>
+<dl class="attribute">
+<dt id="webtav.webfront.FileOnlyUploadHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.FileOnlyUploadHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#FileOnlyUploadHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a POST request containing a file from JS, and return the JSON formatted reply it&#8217;s expecting.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="webtav.webfront.MessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">MessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
@@ -649,18 +666,6 @@ Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons
 <dt id="webtav.webfront.NewMessageHandler.options">
 <tt class="descname">options</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.options" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="method">
-<dt id="webtav.webfront.NewMessageHandler.post">
-<tt class="descname">post</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.post" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive Envelopes and their attachments.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="webtav.webfront.NewMessageHandler.receive_files">
-<tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.receive_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive files as process by the nginx file module plugin.</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -770,15 +775,22 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dt id="webtav.webfront.UploadHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseFlask" title="webtav.webbase.BaseFlask"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseFlask</span></tt></a></p>
-<dl class="method">
-<dt id="webtav.webfront.UploadHandler.get">
-<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.get" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="webtav.webfront.UploadHandler.methods">
-<tt class="descname">methods</tt><em class="property"> = ['GET']</em><a class="headerlink" href="#webtav.webfront.UploadHandler.methods" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadHandler.methods" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadHandler.post">
+<tt class="descname">post</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive Envelopes and their attachments.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadHandler.receive_files">
+<tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.receive_files" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive files, save them out.</p>
+</dd></dl>
 
 </dd></dl>
 

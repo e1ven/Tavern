@@ -105,6 +105,17 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'urls_per_sitemap' in self.settings['webtav']:
             # Sitemaps can have up to 50K URLs per file, and must be under 10M
             self.settings['webtav']['urls_per_sitemap'] = 40000
+        if not 'uploads' in self.settings['webtav']:
+            self.settings['webtav']['uploads'] = {}
+        if not 'max_size' in self.settings['webtav']['uploads']:
+            # 2G
+            self.settings['webtav']['uploads']['max_size'] = 2147483648
+        if not 'max_image_size' in self.settings['webtav']['uploads']:
+            # 20MB
+            self.settings['webtav']['uploads']['max_image_size'] = 20971520
+        if not 'cookie_secret' in self.settings['webtav']:
+             self.settings['webtav']['cookie_secret'] = libtavern.utils.randstr(255)
+
 
         # By default the Strict-Transport-Security will be sent if https.
         # This flag forces it one way or the other.
@@ -119,8 +130,6 @@ class ServerSettings(libtavern.utils.instancer):
         # Default Tornado settings. Put here to let people override.
         if not 'tornado' in self.settings['webtav']:
             self.settings['webtav']['tornado'] = {}
-        if not 'cookie_secret' in self.settings['webtav']['tornado']:
-             self.settings['webtav']['tornado']['cookie_secret'] = libtavern.utils.randstr(255)
         if not 'static_path' in self.settings['webtav']['tornado']:
             self.settings['webtav']['tornado']['static_path'] = 'tmp/static'
 

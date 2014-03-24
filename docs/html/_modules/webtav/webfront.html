@@ -770,130 +770,262 @@
                         <span class="s">&#39;OPTIONS, HEAD, GET, POST, PUT, DELETE&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="NewMessageHandler.receive_files"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.receive_files">[docs]</a>    <span class="k">def</span> <span class="nf">receive_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<span class="c"># def NewPrivateMessageHandler_get(urlto=None):</span>
+<span class="c">#     self.getvars()</span>
+<span class="c">#     self.write(self.render_string(&#39;header.html&#39;,</span>
+<span class="c">#                title=&quot;Send a private message&quot;, rsshead=None, type=None))</span>
+<span class="c">#     self.write(self.render_string(&#39;privatemessageform.html&#39;, urlto=urlto))</span>
+<span class="c">#     self.write(self.render_string(&#39;footer.html&#39;))</span>
+
+
+<span class="c"># def NullHandler_get(url=None):</span>
+<span class="c">#     return</span>
+
+
+<span class="c"># def NullHandler_post(url=None):</span>
+<span class="c">#     return</span>
+
+
+<span class="c"># def BinariesHandler_get(binaryhash, filename=None):</span>
+<span class="c">#     self.server.logger.info(</span>
+<span class="c">#         &quot;The gridfs_nginx plugin is a much better option than this method&quot;)</span>
+<span class="c">#     self.set_header(&quot;Content-Type&quot;, &#39;application/octet-stream&#39;)</span>
+
+<span class="c">#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)</span>
+<span class="c">#     self.write(req.read())</span>
+</div></div>
+<div class="viewcode-block" id="CatchallHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler">[docs]</a><span class="k">class</span> <span class="nc">CatchallHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handler for any requests that aren&#39;t handled anywhere else.</span>
+<span class="sd">    Returns 404.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CatchallHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
+<div class="viewcode-block" id="CatchallHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
+<div class="viewcode-block" id="CatchallHandler.put"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
+<div class="viewcode-block" id="CatchallHandler.delete"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="AvatarHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler">[docs]</a><span class="k">class</span> <span class="nc">AvatarHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Create Avatars using Robohashes.</span>
+<span class="sd">    You should cache these on disk using nginx.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="AvatarHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avatar</span><span class="p">):</span>
+        <span class="n">format</span> <span class="o">=</span> <span class="s">&#39;png&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;image/&quot;</span> <span class="o">+</span> <span class="n">format</span><span class="p">)</span>
+
+        <span class="c"># Ensure proper sizing</span>
+        <span class="n">sizex</span><span class="p">,</span> <span class="n">sizey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;size&#39;</span><span class="p">,</span> <span class="s">&#39;40x40&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">)</span>
+        <span class="n">sizex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sizex</span><span class="p">)</span>
+        <span class="n">sizey</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sizey</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">sizex</span> <span class="o">&gt;</span> <span class="mi">4096</span> <span class="ow">or</span> <span class="n">sizex</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sizex</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="k">if</span> <span class="n">sizey</span> <span class="o">&gt;</span> <span class="mi">4096</span> <span class="ow">or</span> <span class="n">sizey</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sizey</span> <span class="o">=</span> <span class="mi">40</span>
+        <span class="n">robo</span> <span class="o">=</span> <span class="n">Robohash</span><span class="p">(</span><span class="n">avatar</span><span class="p">)</span>
+        <span class="n">robo</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span>
+            <span class="n">roboset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                <span class="s">&#39;set&#39;</span><span class="p">,</span>
+                <span class="s">&#39;any&#39;</span><span class="p">),</span>
+            <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">,</span>
+            <span class="n">bgset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
+                <span class="s">&#39;bgset&#39;</span><span class="p">,</span>
+                <span class="s">&#39;any&#39;</span><span class="p">),</span>
+            <span class="n">sizex</span><span class="o">=</span><span class="n">sizex</span><span class="p">,</span>
+            <span class="n">sizey</span><span class="o">=</span><span class="n">sizey</span><span class="p">)</span>
+        <span class="n">robo</span><span class="o">.</span><span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;png&#39;</span><span class="p">)</span>
+
+
+<span class="c"># def RssHandler(self,action,topic):</span>
+<span class="c">#    &quot;&quot;&quot;Generate an RSS feed for a given topic&quot;&quot;&quot;</span>
+<span class="c">#     &quot;&quot;&quot;Generates RSS feeds for a Topic.&quot;&quot;&quot;</span>
+<span class="c">#     def get(action, topic):</span>
+<span class="c">#         channel = rss.Channel(&#39;Tavern - &#39; + param,</span>
+<span class="c">#                               &#39;http://GetTavern.com/rss/&#39; + param,</span>
+<span class="c">#                               &#39;Tavern discussion about &#39; + param,</span>
+<span class="c">#                               generator=&#39;Tavern&#39;,</span>
+<span class="c">#                               pubdate=datetime.datetime.utcnow())</span>
+<span class="c">#         for envelope in self.server.db.unsafe.find(&#39;envelopes&#39;, {&#39;envelope.local.sorttopic&#39;: libtavern.topic.sorttopic(param), &#39;envelope.payload.class&#39;: &#39;message&#39;}, limit=100, sortkey=&#39;envelope.local.time_added&#39;, sortdirection=&#39;descending&#39;):</span>
+<span class="c">#             item = rss.Item(channel,</span>
+<span class="c">#                             envelope[&#39;envelope&#39;][&#39;payload&#39;][&#39;subject&#39;],</span>
+<span class="c">#                             &quot;http://GetTavern.com/m/&quot; + envelope[</span>
+<span class="c">#                                 &#39;envelope&#39;][</span>
+<span class="c">#                                 &#39;local&#39;][</span>
+<span class="c">#                                 &#39;sorttopic&#39;] + &#39;/&#39; + envelope[</span>
+<span class="c">#                                 &#39;envelope&#39;][</span>
+<span class="c">#                                 &#39;local&#39;][</span>
+<span class="c">#                                 &#39;short_subject&#39;] + &quot;/&quot; + envelope[</span>
+<span class="c">#                                 &#39;envelope&#39;][</span>
+<span class="c">#                                 &#39;local&#39;][</span>
+<span class="c">#                                 &#39;payload_sha512&#39;],</span>
+<span class="c">#                             envelope[&#39;envelope&#39;][&#39;local&#39;][&#39;formattedbody&#39;])</span>
+<span class="c">#             channel.additem(item)</span>
+<span class="c">#         self.write(channel.toprettyxml())</span>
+
+</div></div>
+<div class="viewcode-block" id="SiteIndexHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteIndexHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+<div class="viewcode-block" id="SiteIndexHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Receive files as process by the nginx file module plugin.</span>
+<span class="sd">        Return a sitemap index file, which includes all other sitemap files.</span>
+<span class="sd">        Since each sitemap.xml file can only contain 50K urls, we need to split these.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
-        <span class="c"># The nginx file upload module creates new variables in the form-</span>
-        <span class="c"># They are named &#39;attached_file&#39;</span>
-        <span class="n">attached_files</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="k">for</span> <span class="n">argument</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span><span class="n">argument</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;attached_file&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">argument</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&#39;.path&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">argument</span> <span class="o">==</span> <span class="s">&#39;files[].path&#39;</span><span class="p">):</span>
-                <span class="n">file_details</span> <span class="o">=</span> <span class="p">{}</span>
-                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">argument</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
-                <span class="n">file_details</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.name&quot;</span><span class="p">)</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.content_type&quot;</span><span class="p">)</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.path&quot;</span><span class="p">)</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.size&quot;</span><span class="p">)</span>
+        <span class="n">max_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;urls_per_sitemap&#39;</span><span class="p">]</span>
 
-                <span class="n">fs_basename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">])</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;fullpath&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span>
-                    <span class="s">&#39;upload-dir&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;/&quot;</span> <span class="o">+</span> <span class="n">fs_basename</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">()</span>
 
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;path&#39;</span><span class="p">],</span> <span class="s">&#39;rb+&#39;</span><span class="p">)</span>
-                <span class="n">hashname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;.sha512&#39;</span><span class="p">)</span>
+        <span class="c"># Without a number, we want the index, which lists the other xml files.</span>
+        <span class="c"># - Each one can contain up to 50K URLs</span>
+        <span class="n">count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">messagecount</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">max_posts</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
 
-                <span class="c"># Nginx should give us the SHA512 hash, but if not, calc it.</span>
-                <span class="k">if</span> <span class="n">hashname</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                        <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;basename&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&quot;.sha512&quot;</span><span class="p">)</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">print</span><span class="p">(</span><span class="s">&quot;Calculating Hash in Python. Nginx should do this.&quot;</span><span class="p">)</span>
-                    <span class="n">SHA512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
-                    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-                        <span class="n">buf</span> <span class="o">=</span> <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mh">0x100000</span><span class="p">)</span>
-                        <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                            <span class="k">break</span>
-                        <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                    <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SHA512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">filelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_file</span><span class="p">)</span>
+        <span class="c"># Get the base URL for the server</span>
+        <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">fqdn</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="n">prefix</span> <span class="o">+=</span> <span class="s">&quot;sitemap/m/&quot;</span>
 
-        <span class="c"># If we get files directly, calculate what we need to know.</span>
-        <span class="k">for</span> <span class="n">file_field</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
-            <span class="k">for</span> <span class="n">individual_file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">[</span><span class="n">file_field</span><span class="p">]:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-siteindex.html&#39;</span><span class="p">,</span><span class="n">messagecount</span><span class="o">=</span><span class="n">messagecount</span><span class="p">,</span><span class="n">utils</span><span class="o">=</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SiteIndexHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
+</div></div>
+<div class="viewcode-block" id="SitemapMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">SitemapMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+<div class="viewcode-block" id="SitemapMessagesHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">iteration</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a sitemap.xml file to show a slice of messages.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
-                <span class="n">SHA512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
-                <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
-                    <span class="n">buf</span> <span class="o">=</span> <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mh">0x100000</span><span class="p">)</span>
-                    <span class="k">if</span> <span class="ow">not</span> <span class="n">buf</span><span class="p">:</span>
-                        <span class="k">break</span>
-                    <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">SHA512</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">])</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">SHA512</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
-                <span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">filelist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">individual_file</span><span class="p">)</span>
+        <span class="n">max_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;urls_per_sitemap&#39;</span><span class="p">]</span>
 
-        <span class="n">envelopebinarylist</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c"># We want to figure out how many messages to skip.</span>
+        <span class="c"># We do this by multiplying the number of messages per file (max_posts) * which file we&#39;re on.</span>
+        <span class="c"># For aesthetic reasons, I think the sitemaps should start at 1, not 0.</span>
+        <span class="n">iteration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
 
-        <span class="c"># Attach the files that are actually here, submitted alongside the</span>
-        <span class="c"># message.</span>
-        <span class="k">for</span> <span class="n">attached_file</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
-            <span class="c"># All the same, let&#39;s strip out all but the basename.</span>
-            <span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Dealing with File &quot;</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
-                                <span class="o">+</span> <span class="s">&quot; with hash &quot;</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">])</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]):</span>
-                <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">imagetype</span> <span class="o">=</span> <span class="n">imghdr</span><span class="o">.</span><span class="n">what</span><span class="p">(</span>
-                    <span class="s">&#39;ignoreme&#39;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
-                <span class="n">acceptable_images</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;gif&#39;</span><span class="p">,</span> <span class="s">&#39;jpeg&#39;</span><span class="p">,</span> <span class="s">&#39;jpg&#39;</span><span class="p">,</span> <span class="s">&#39;png&#39;</span><span class="p">,</span> <span class="s">&#39;bmp&#39;</span><span class="p">]</span>
-                <span class="k">print</span><span class="p">(</span><span class="n">imagetype</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">imagetype</span> <span class="ow">in</span> <span class="n">acceptable_images</span><span class="p">:</span>
-                    <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                    <span class="c"># If it&#39;s an image, open and re-save to strip EXIF data.</span>
-                    <span class="c"># Do so here, rather than in server, so that server-&gt;server</span>
-                    <span class="c"># messages aren&#39;t touched</span>
-                    <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
-                        <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">],</span> <span class="n">format</span><span class="o">=</span><span class="n">imagetype</span><span class="p">)</span>
-                <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-                <span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">put</span><span class="p">(</span>
-                    <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">],</span>
-                    <span class="n">filename</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">],</span>
-                    <span class="n">content_type</span><span class="o">=</span><span class="n">individual_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">])</span>
-            <span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Creating Message&quot;</span><span class="p">)</span>
-            <span class="c"># Create a message binary.</span>
-            <span class="n">mybinary</span> <span class="o">=</span> <span class="n">Envelope</span><span class="o">.</span><span class="n">binary</span><span class="p">(</span><span class="n">sha512</span><span class="o">=</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">])</span>
-            <span class="c"># Set the Filesize. Clients can&#39;t trust it, but oh-well.</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&#39;estimated size : &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]))</span>
-            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filesize_hint&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span>
-            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span>
-            <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
-            <span class="n">envelopebinarylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+        <span class="c"># The skip is complicated because we want to avoid using .skip()</span>
+        <span class="c"># Instead, every time this function finishes, we store the newest date in it&#39;s slot.</span>
+        <span class="c"># Then, we can skip forward to date+1 millisecond for the next slot.</span>
 
-            <span class="c"># Don&#39;t keep spare copies on the webservers</span>
-            <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filehandle&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
-            <span class="k">if</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;clean_up_file_afterward&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
-                <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;fullpath&#39;</span><span class="p">])</span>
 
-        <span class="c"># Support the Javascript upload handler.</span>
-        <span class="c"># return the JSON formatted reply it&#39;s looking for</span>
+        <span class="c"># Get the highest date for one slot lower than us.</span>
+        <span class="n">previous_sitemap</span> <span class="o">=</span> <span class="s">&#39;messages_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iteration</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;sitemap&#39;</span><span class="p">,{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span><span class="n">previous_sitemap</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
+            <span class="n">after</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;last_message_date&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">after</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">messages</span><span class="p">(</span><span class="n">maxposts</span><span class="o">=</span><span class="n">max_posts</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="n">after</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">messages</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;That sitemap does not exist.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c"># Save our highest value out to the DB</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">results</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;messages_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span>
+        <span class="n">results</span><span class="p">[</span><span class="s">&#39;last_message_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span>
+        <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;sitemap&#39;</span><span class="p">,</span><span class="n">results</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-sitemap.html&#39;</span><span class="p">,</span><span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span><span class="n">utils</span><span class="o">=</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="SitemapMessagesHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
+
+</div></div>
+<div class="viewcode-block" id="XSRFHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler">[docs]</a><span class="k">class</span> <span class="nc">XSRFHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    The XSRF handler returns a xsrf token</span>
+
+<span class="sd">    This handler&#39;s output is included into the header via nginx SSI.</span>
+<span class="sd">    By importing via SSI, nginx can cache the output from other handlers.</span>
+
+<span class="sd">    Otherwise, each request from a non-logged in user would do a full page-load,</span>
+<span class="sd">    since the Set-Cookie would bypass the cache.</span>
+
+<span class="sd">    We do need a separate token for each request, since the site contains a login form.</span>
+<span class="sd">    Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.</span>
+
+<span class="sd">    This inherits from XSRFBaseHandler so that it bypasses the regular login/session path.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="XSRFHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal only handler that returns the xsrf token.</span>
+<span class="sd">        This is called by nginx, not accessible to the outside world.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="XSRFHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
+</div></div>
+<div class="viewcode-block" id="UploadHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseFlask</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UploadHandler.receive_files"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler.receive_files">[docs]</a>    <span class="k">def</span> <span class="nf">receive_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receive files, save them out.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># Each file in self.request.files is a Werkzeug FileStorage object.</span>
+        <span class="c"># http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.FileStorage</span>
+        <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="nb">file</span><span class="o">.</span><span class="n">sha</span><span class="p">,</span><span class="nb">file</span><span class="o">.</span><span class="n">filesize</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">hash_file</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">stream</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">filesize</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;uploads&#39;</span><span class="p">][</span><span class="s">&#39;max_size&#39;</span><span class="p">]:</span>
+                <span class="nb">list</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="nb">file</span><span class="p">)</span>
+            <span class="nb">file</span><span class="o">.</span><span class="n">mimetype</span> <span class="o">=</span> <span class="n">magic</span><span class="o">.</span><span class="n">from_buffer</span><span class="p">(</span><span class="n">memcopy</span><span class="o">.</span><span class="n">read</span><span class="p">(),</span> <span class="n">mime</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+            <span class="c"># Make a preview image if possible</span>
+            <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">filesize</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;uploads&#39;</span><span class="p">][</span><span class="s">&#39;max_image_size&#39;</span><span class="p">]:</span>
+                <span class="n">memcopy</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">BytesIO</span><span class="p">()</span>
+                <span class="nb">file</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">memcopy</span><span class="p">)</span>
+                <span class="n">memcopy</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">file</span><span class="o">.</span><span class="n">mimetype</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;image/gif&#39;</span><span class="p">,</span> <span class="s">&#39;image/jpeg&#39;</span><span class="p">,</span> <span class="s">&#39;image/png&#39;</span><span class="p">,</span> <span class="s">&#39;image/bmp&#39;</span><span class="p">]:</span>
+                    <span class="c"># Our attachment appears to be an image -</span>
+                    <span class="c"># If we open and resave, it will strip the EXIF data.</span>
+                    <span class="n">memcopy</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+                    <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">memcopy</span><span class="p">)</span>
+                    <span class="n">Image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">memcopy</span><span class="p">)</span>
+
+                    <span class="c"># Don&#39;t generate a preview/etc here.</span>
+                    <span class="c"># We need to do that as a sub-function of receiveEnvelope, so it happens for ALL envelopes.</span>
+                    <span class="nb">file</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">memcopy</span>
+            <span class="c"># Save the file out to GridFS</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">filename</span><span class="o">=</span><span class="nb">file</span><span class="o">.</span><span class="n">sha</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">bin_GridFS</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="nb">file</span><span class="o">.</span><span class="n">stream</span><span class="p">,</span><span class="n">filename</span><span class="o">=</span><span class="nb">file</span><span class="o">.</span><span class="n">sha</span><span class="p">,</span><span class="n">content_type</span><span class="o">=</span><span class="nb">file</span><span class="o">.</span><span class="n">mimetype</span><span class="p">)</span>
+            <span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="UploadHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Receive Envelopes and their attachments.&quot;&quot;&quot;</span>
+
+        <span class="c"># If there are any files that were sent along with the envelope, save them out.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receive_files</span><span class="p">()</span>
+
+        <span class="c"># Send a JSON formatted reply to the JS upload-handler if necessary.</span>
         <span class="k">if</span> <span class="n">flag</span> <span class="o">==</span> <span class="s">&quot;fileonly&quot;</span><span class="p">:</span>
             <span class="n">details</span> <span class="o">=</span> <span class="p">[]</span>
-            <span class="k">for</span> <span class="n">attached_file</span> <span class="ow">in</span> <span class="n">filelist</span><span class="p">:</span>
+            <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
                 <span class="n">detail</span> <span class="o">=</span> <span class="p">{}</span>
                 <span class="n">detail</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span>
                 <span class="n">detail</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span>
                 <span class="n">detail</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span>
                 <span class="n">detail</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span>
-
-                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span>
-                    <span class="s">&#39;downloadsurl&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span>
+                <span class="n">detail</span><span class="p">[</span><span class="s">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;downloads_url&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">attached_file</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span>
                 <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">detail</span><span class="p">)</span>
             <span class="n">details_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">details</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;application/json&quot;</span><span class="p">)</span>
-            <span class="k">print</span><span class="p">(</span><span class="n">details_json</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">details_json</span><span class="p">)</span>
             <span class="k">return</span>
 
@@ -914,11 +1046,6 @@
                 <span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;filename&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
                     <span class="s">&#39;referenced_file&#39;</span> <span class="o">+</span> <span class="n">binarycount</span> <span class="o">+</span> <span class="s">&#39;_name&#39;</span><span class="p">)</span>
                 <span class="n">envelopebinarylist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mybinary</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="NewMessageHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Receive Envelopes and their attachments.&quot;&quot;&quot;</span>
-
 
 
 
@@ -1128,215 +1255,28 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Failure to insert message.&quot;</span><span class="p">)</span>
 
-
-
-<span class="c"># def NewPrivateMessageHandler_get(urlto=None):</span>
-<span class="c">#     self.getvars()</span>
-<span class="c">#     self.write(self.render_string(&#39;header.html&#39;,</span>
-<span class="c">#                title=&quot;Send a private message&quot;, rsshead=None, type=None))</span>
-<span class="c">#     self.write(self.render_string(&#39;privatemessageform.html&#39;, urlto=urlto))</span>
-<span class="c">#     self.write(self.render_string(&#39;footer.html&#39;))</span>
-
-
-<span class="c"># def NullHandler_get(url=None):</span>
-<span class="c">#     return</span>
-
-
-<span class="c"># def NullHandler_post(url=None):</span>
-<span class="c">#     return</span>
-
-
-<span class="c"># def BinariesHandler_get(binaryhash, filename=None):</span>
-<span class="c">#     self.server.logger.info(</span>
-<span class="c">#         &quot;The gridfs_nginx plugin is a much better option than this method&quot;)</span>
-<span class="c">#     self.set_header(&quot;Content-Type&quot;, &#39;application/octet-stream&#39;)</span>
-
-<span class="c">#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)</span>
-<span class="c">#     self.write(req.read())</span>
 </div></div>
-<div class="viewcode-block" id="CatchallHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler">[docs]</a><span class="k">class</span> <span class="nc">CatchallHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Handler for any requests that aren&#39;t handled anywhere else.</span>
-<span class="sd">    Returns 404.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="CatchallHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
-<div class="viewcode-block" id="CatchallHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
-<div class="viewcode-block" id="CatchallHandler.put"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span></div>
-<div class="viewcode-block" id="CatchallHandler.delete"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.CatchallHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That page doesn&#39;t exist.&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but the page you&#39;re looking for can&#39;t be found. ;(&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">404</span><span class="p">)</span>
-</div></div>
-<div class="viewcode-block" id="AvatarHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler">[docs]</a><span class="k">class</span> <span class="nc">AvatarHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Create Avatars using Robohashes.</span>
-<span class="sd">    You should cache these on disk using nginx.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="AvatarHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.AvatarHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">avatar</span><span class="p">):</span>
-        <span class="n">format</span> <span class="o">=</span> <span class="s">&#39;png&#39;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;image/&quot;</span> <span class="o">+</span> <span class="n">format</span><span class="p">)</span>
+<div class="viewcode-block" id="FileOnlyUploadHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.FileOnlyUploadHandler">[docs]</a><span class="k">class</span> <span class="nc">FileOnlyUploadHandler</span><span class="p">(</span><span class="n">UploadHandler</span><span class="p">):</span>
+<div class="viewcode-block" id="FileOnlyUploadHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.FileOnlyUploadHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Receive a POST request containing a file from JS, and return the JSON formatted reply it&#39;s expecting.&quot;&quot;&quot;</span>
 
-        <span class="c"># Ensure proper sizing</span>
-        <span class="n">sizex</span><span class="p">,</span> <span class="n">sizey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;size&#39;</span><span class="p">,</span> <span class="s">&#39;40x40&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;x&quot;</span><span class="p">)</span>
-        <span class="n">sizex</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sizex</span><span class="p">)</span>
-        <span class="n">sizey</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sizey</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sizex</span> <span class="o">&gt;</span> <span class="mi">4096</span> <span class="ow">or</span> <span class="n">sizex</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">sizex</span> <span class="o">=</span> <span class="mi">40</span>
-        <span class="k">if</span> <span class="n">sizey</span> <span class="o">&gt;</span> <span class="mi">4096</span> <span class="ow">or</span> <span class="n">sizey</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-            <span class="n">sizey</span> <span class="o">=</span> <span class="mi">40</span>
-        <span class="n">robo</span> <span class="o">=</span> <span class="n">Robohash</span><span class="p">(</span><span class="n">avatar</span><span class="p">)</span>
-        <span class="n">robo</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span>
-            <span class="n">roboset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                <span class="s">&#39;set&#39;</span><span class="p">,</span>
-                <span class="s">&#39;any&#39;</span><span class="p">),</span>
-            <span class="n">format</span><span class="o">=</span><span class="n">format</span><span class="p">,</span>
-            <span class="n">bgset</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span>
-                <span class="s">&#39;bgset&#39;</span><span class="p">,</span>
-                <span class="s">&#39;any&#39;</span><span class="p">),</span>
-            <span class="n">sizex</span><span class="o">=</span><span class="n">sizex</span><span class="p">,</span>
-            <span class="n">sizey</span><span class="o">=</span><span class="n">sizey</span><span class="p">)</span>
-        <span class="n">robo</span><span class="o">.</span><span class="n">img</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">format</span><span class="o">=</span><span class="s">&#39;png&#39;</span><span class="p">)</span>
+        <span class="c"># If there are any files that were sent along with the envelope, save them out.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receive_files</span><span class="p">()</span>
 
-
-<span class="c"># def RssHandler(self,action,topic):</span>
-<span class="c">#    &quot;&quot;&quot;Generate an RSS feed for a given topic&quot;&quot;&quot;</span>
-<span class="c">#     &quot;&quot;&quot;Generates RSS feeds for a Topic.&quot;&quot;&quot;</span>
-<span class="c">#     def get(action, topic):</span>
-<span class="c">#         channel = rss.Channel(&#39;Tavern - &#39; + param,</span>
-<span class="c">#                               &#39;http://GetTavern.com/rss/&#39; + param,</span>
-<span class="c">#                               &#39;Tavern discussion about &#39; + param,</span>
-<span class="c">#                               generator=&#39;Tavern&#39;,</span>
-<span class="c">#                               pubdate=datetime.datetime.utcnow())</span>
-<span class="c">#         for envelope in self.server.db.unsafe.find(&#39;envelopes&#39;, {&#39;envelope.local.sorttopic&#39;: libtavern.topic.sorttopic(param), &#39;envelope.payload.class&#39;: &#39;message&#39;}, limit=100, sortkey=&#39;envelope.local.time_added&#39;, sortdirection=&#39;descending&#39;):</span>
-<span class="c">#             item = rss.Item(channel,</span>
-<span class="c">#                             envelope[&#39;envelope&#39;][&#39;payload&#39;][&#39;subject&#39;],</span>
-<span class="c">#                             &quot;http://GetTavern.com/m/&quot; + envelope[</span>
-<span class="c">#                                 &#39;envelope&#39;][</span>
-<span class="c">#                                 &#39;local&#39;][</span>
-<span class="c">#                                 &#39;sorttopic&#39;] + &#39;/&#39; + envelope[</span>
-<span class="c">#                                 &#39;envelope&#39;][</span>
-<span class="c">#                                 &#39;local&#39;][</span>
-<span class="c">#                                 &#39;short_subject&#39;] + &quot;/&quot; + envelope[</span>
-<span class="c">#                                 &#39;envelope&#39;][</span>
-<span class="c">#                                 &#39;local&#39;][</span>
-<span class="c">#                                 &#39;payload_sha512&#39;],</span>
-<span class="c">#                             envelope[&#39;envelope&#39;][&#39;local&#39;][&#39;formattedbody&#39;])</span>
-<span class="c">#             channel.additem(item)</span>
-<span class="c">#         self.write(channel.toprettyxml())</span>
-
-</div></div>
-<div class="viewcode-block" id="SiteIndexHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler">[docs]</a><span class="k">class</span> <span class="nc">SiteIndexHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-<div class="viewcode-block" id="SiteIndexHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Return a sitemap index file, which includes all other sitemap files.</span>
-<span class="sd">        Since each sitemap.xml file can only contain 50K urls, we need to split these.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">max_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;urls_per_sitemap&#39;</span><span class="p">]</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">()</span>
-
-        <span class="c"># Without a number, we want the index, which lists the other xml files.</span>
-        <span class="c"># - Each one can contain up to 50K URLs</span>
-        <span class="n">count</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">messagecount</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">count</span> <span class="o">/</span> <span class="n">max_posts</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
-
-        <span class="c"># Get the base URL for the server</span>
-        <span class="n">prefix</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">fqdn</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="n">prefix</span> <span class="o">+=</span> <span class="s">&quot;sitemap/m/&quot;</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-siteindex.html&#39;</span><span class="p">,</span><span class="n">messagecount</span><span class="o">=</span><span class="n">messagecount</span><span class="p">,</span><span class="n">utils</span><span class="o">=</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="p">,</span><span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="SiteIndexHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SiteIndexHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
-</div></div>
-<div class="viewcode-block" id="SitemapMessagesHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler">[docs]</a><span class="k">class</span> <span class="nc">SitemapMessagesHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-<div class="viewcode-block" id="SitemapMessagesHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">iteration</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Create a sitemap.xml file to show a slice of messages.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-
-        <span class="n">max_posts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;urls_per_sitemap&#39;</span><span class="p">]</span>
-
-        <span class="c"># We want to figure out how many messages to skip.</span>
-        <span class="c"># We do this by multiplying the number of messages per file (max_posts) * which file we&#39;re on.</span>
-        <span class="c"># For aesthetic reasons, I think the sitemaps should start at 1, not 0.</span>
-        <span class="n">iteration</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
-
-        <span class="c"># The skip is complicated because we want to avoid using .skip()</span>
-        <span class="c"># Instead, every time this function finishes, we store the newest date in it&#39;s slot.</span>
-        <span class="c"># Then, we can skip forward to date+1 millisecond for the next slot.</span>
-
-
-        <span class="c"># Get the highest date for one slot lower than us.</span>
-        <span class="n">previous_sitemap</span> <span class="o">=</span> <span class="s">&#39;messages_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iteration</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;sitemap&#39;</span><span class="p">,{</span><span class="s">&#39;_id&#39;</span><span class="p">:</span><span class="n">previous_sitemap</span><span class="p">})</span>
-        <span class="k">if</span> <span class="n">results</span><span class="p">:</span>
-            <span class="n">after</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;last_message_date&#39;</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">after</span> <span class="o">=</span> <span class="mi">0</span>
-
-        <span class="n">messages</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">messages</span><span class="p">(</span><span class="n">maxposts</span><span class="o">=</span><span class="n">max_posts</span><span class="p">,</span><span class="n">after</span><span class="o">=</span><span class="n">after</span><span class="p">,</span><span class="n">include_replies</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">messages</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="mi">404</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;That sitemap does not exist.&quot;</span><span class="p">)</span>
-            <span class="k">return</span>
-
-        <span class="c"># Save our highest value out to the DB</span>
-        <span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="n">results</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;messages_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">iteration</span><span class="p">)</span>
-        <span class="n">results</span><span class="p">[</span><span class="s">&#39;last_message_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">messages</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span>
-        <span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s">&#39;sitemap&#39;</span><span class="p">,</span><span class="n">results</span><span class="p">)</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-sitemap.html&#39;</span><span class="p">,</span><span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">,</span><span class="n">utils</span><span class="o">=</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="p">)</span>
-
-</div>
-<div class="viewcode-block" id="SitemapMessagesHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.SitemapMessagesHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
-
-</div></div>
-<div class="viewcode-block" id="XSRFHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler">[docs]</a><span class="k">class</span> <span class="nc">XSRFHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    The XSRF handler returns a xsrf token</span>
-
-<span class="sd">    This handler&#39;s output is included into the header via nginx SSI.</span>
-<span class="sd">    By importing via SSI, nginx can cache the output from other handlers.</span>
-
-<span class="sd">    Otherwise, each request from a non-logged in user would do a full page-load,</span>
-<span class="sd">    since the Set-Cookie would bypass the cache.</span>
-
-<span class="sd">    We do need a separate token for each request, since the site contains a login form.</span>
-<span class="sd">    Combining them in nginx lets us have a separate xsrf value while still caching on sessionid.</span>
-
-<span class="sd">    This inherits from XSRFBaseHandler so that it bypasses the regular login/session path.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="XSRFHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Internal only handler that returns the xsrf token.</span>
-<span class="sd">        This is called by nginx, not accessible to the outside world.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span><span class="p">))</span>
-</div>
-<div class="viewcode-block" id="XSRFHandler.get_template_path"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.XSRFHandler.get_template_path">[docs]</a>    <span class="k">def</span> <span class="nf">get_template_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Force this request out of the robots folder, since it&#39;s not for people.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
-</div></div>
-<div class="viewcode-block" id="UploadHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseFlask</span><span class="p">):</span>
-<div class="viewcode-block" id="UploadHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">html</span> <span class="o">=</span> <span class="s">&quot;My XSRF is- &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span> <span class="o">+</span> <span class="s">&quot; Isn&#39;t that cool???&lt;br&gt;&quot;</span>
-        <span class="n">html</span> <span class="o">+=</span> <span class="s">&quot;U:&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">friendlyname</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;@&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">author_wordhash</span>
-        <span class="k">return</span> <span class="n">html</span>
+        <span class="c"># Send a JSON formatted reply to the JS upload-handler if necessary.</span>
+        <span class="n">details</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="nb">file</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">files</span><span class="p">:</span>
+            <span class="n">detail</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">detail</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">detail</span><span class="p">[</span><span class="s">&#39;hash&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">sha</span>
+            <span class="n">detail</span><span class="p">[</span><span class="s">&#39;size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">filesize</span>
+            <span class="n">detail</span><span class="p">[</span><span class="s">&#39;content_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">mimetype</span>
+            <span class="n">detail</span><span class="p">[</span><span class="s">&#39;url&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;downloads_url&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="nb">file</span><span class="o">.</span><span class="n">sha</span>
+            <span class="n">details</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">detail</span><span class="p">)</span>
+        <span class="n">details_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">details</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Content-Type&quot;</span><span class="p">,</span> <span class="s">&quot;application/json&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">details_json</span><span class="p">)</span>
+        <span class="k">return</span>
 </div></div>
 <div class="viewcode-block" id="main"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.main">[docs]</a><span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1362,6 +1302,12 @@
         <span class="k">print</span><span class="p">(</span><span class="s">&quot;Requires Unix Socket file destination :/ &quot;</span><span class="p">)</span>
         <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
 
+
+    <span class="c"># Create the Tavern server. This is the main interop class for dealing with Tavern.</span>
+    <span class="c"># We then start the server, which creates DB connections, fires up threads to create keys, etc.</span>
+    <span class="n">server</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">Server</span><span class="p">()</span>
+    <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
     <span class="c"># Specify the settings which are not designed to be overwritten.</span>
     <span class="n">tornado_settings</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s">&quot;template_path&quot;</span><span class="p">:</span> <span class="s">&quot;webtav/themes&quot;</span><span class="p">,</span>
@@ -1370,14 +1316,9 @@
         <span class="s">&quot;xsrf_cookies&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">,</span>
         <span class="c"># SSI requires that gzip is disabled in Tornado.</span>
         <span class="s">&quot;gzip&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="s">&quot;cookie_secret&quot;</span><span class="p">:</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;cookie_secret&#39;</span><span class="p">]</span>
     <span class="p">}</span>
     <span class="n">flask_settings</span> <span class="o">=</span> <span class="p">{}</span>
-
-
-    <span class="c"># Create the Tavern server. This is the main interop class for dealing with Tavern.</span>
-    <span class="c"># We then start the server, which creates DB connections, fires up threads to create keys, etc.</span>
-    <span class="n">server</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">Server</span><span class="p">()</span>
-    <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
 
     <span class="c"># Update the settings dicts for both engines</span>
     <span class="n">tornado_settings</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;tornado&#39;</span><span class="p">])</span>
@@ -1415,6 +1356,9 @@
             <span class="p">(</span><span class="s">r&quot;/t/(.*)/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)&quot;</span><span class="p">,</span> <span class="n">TopicHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/new/attachment&quot;</span><span class="p">,</span> <span class="n">FileOnlyUploadHandler</span><span class="p">),</span>
+
+
          <span class="c">#   (r&quot;/new/(.*)&quot;, ReceiveEnvelopeHandler),</span>
          <span class="c">#   (r&quot;/new/file/(.*)&quot;, ReceiveEnvelopeHandler),</span>
 
