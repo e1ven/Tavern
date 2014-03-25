@@ -56,9 +56,9 @@
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">from</span> <span class="nn">flask.views</span> <span class="kn">import</span> <span class="n">MethodView</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">utf8</span><span class="p">,</span> <span class="n">_unicode</span>
+<span class="kn">from</span> <span class="nn">tornado.util</span> <span class="kn">import</span> <span class="n">bytes_type</span><span class="p">,</span> <span class="n">import_object</span><span class="p">,</span> <span class="n">ObjectDict</span><span class="p">,</span> <span class="n">raise_exc_info</span><span class="p">,</span> <span class="n">unicode_type</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">libtavern.server</span>
-
 <span class="n">server</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">Server</span><span class="p">()</span>
 
 
@@ -319,13 +319,11 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&quot;_xsrf_token&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
         <span class="c"># Use cookie one if it exists, otherwise random str.</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
             <span class="c"># Generate a token, save it to a cookie.</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">token</span><span class="p">,</span><span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span> <span class="o">=</span> <span class="n">token</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
 </div>

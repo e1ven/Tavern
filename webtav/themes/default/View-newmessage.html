@@ -1,7 +1,7 @@
 {% extends "Layout-basemessage.html" %}
 
 {% block submitblock %}
-    <form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/message" method="post" class="messageform" id='{{handler.timestamp}}'>
+    <form data-persist="garlic" enctype="multipart/form-data" action="/new/message" method="post" class="messageform" id='{{handler.timestamp}}'>
         {% module xsrf_form_html() %}
 
         {% if len(handler.topic.topics) != 1 %}

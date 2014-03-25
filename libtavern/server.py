@@ -651,7 +651,7 @@ class Server(libtavern.utils.instancer):
         # Store our Envelope
         c.saveMongo()
 
-        return c.dict['envelope']['local']['payload_sha512']
+        return self.url_for(envelope=c)
 
 #    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):

@@ -6,9 +6,9 @@ import re
 import flask
 from flask.views import MethodView
 from tornado.escape import utf8, _unicode
+from tornado.util import bytes_type, import_object, ObjectDict, raise_exc_info, unicode_type
 import tornado.escape
 import libtavern.server
-
 server = libtavern.server.Server()
 
 
@@ -269,13 +269,11 @@ class Flasknado(MethodView):
         if hasattr(self, "_xsrf_token"):
             return self._xsrf_token
         # Use cookie one if it exists, otherwise random str.
-        token = self.get_secure_cookie('_xsrf',None)
+        token = self.get_signed_cookie('_xsrf',None)
         if not token:
             # Generate a token, save it to a cookie.
             token = libtavern.utils.randstr(16)
             self.set_secure_cookie(name="_xsrf",value=token,httponly=True, max_age=31556952 * 2)
-        else:
-            token = token.decode('utf-8')
         self._xsrf_token = token
         return self._xsrf_token
 

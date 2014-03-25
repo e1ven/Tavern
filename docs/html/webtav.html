@@ -472,8 +472,8 @@ Overwrite to force a handler to use a specific theme (such as SiteMap)</p>
 <dl class="method">
 <dt id="webtav.webbase.BaseTornado.save_session">
 <tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#BaseTornado.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.BaseTornado.save_session" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the current user to a session cookie.</p>
-<p>These are encrypted by Tornado.</p>
+<dd><p>Saves the current user to a session cookie.
+These are encrypted by Tornado.</p>
 </dd></dl>
 
 <dl class="method">
@@ -491,10 +491,56 @@ Overwrite to force a handler to use a specific theme (such as SiteMap)</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="webtav.webbase.FlaskHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webbase.</tt><tt class="descname">FlaskHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#FlaskHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.FlaskHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.XSRFBaseHandler" title="webtav.webbase.XSRFBaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.XSRFBaseHandler</span></tt></a></p>
+<p>A <cite>RequestHandler</cite> instead calls Flask. This is needed so that we can properly load our own _XSRF records.</p>
+<dl class="method">
+<dt id="webtav.webbase.FlaskHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><em>fallback</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#FlaskHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.FlaskHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webbase.FlaskHandler.prepare">
+<tt class="descname">prepare</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#FlaskHandler.prepare"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.FlaskHandler.prepare" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="webtav.webbase.XSRFBaseHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webbase.</tt><tt class="descname">XSRFBaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></p>
 <p>A version of the Tornado RequestHandler with additional security in the XSRF token.</p>
+<dl class="method">
+<dt id="webtav.webbase.XSRFBaseHandler.check_xsrf_cookie">
+<tt class="descname">check_xsrf_cookie</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler.check_xsrf_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler.check_xsrf_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Verifies that the <tt class="docutils literal"><span class="pre">_xsrf</span></tt> cookie matches the <tt class="docutils literal"><span class="pre">_xsrf</span></tt> argument.</p>
+<p>To prevent cross-site request forgery, we set an <tt class="docutils literal"><span class="pre">_xsrf</span></tt>
+cookie and include the same value as a non-cookie
+field with all <tt class="docutils literal"><span class="pre">POST</span></tt> requests. If the two do not match, we
+reject the form submission as a potential forgery.</p>
+<p>The <tt class="docutils literal"><span class="pre">_xsrf</span></tt> value may be set as either a form field named <tt class="docutils literal"><span class="pre">_xsrf</span></tt>
+or in a custom HTTP header named <tt class="docutils literal"><span class="pre">X-XSRFToken</span></tt> or <tt class="docutils literal"><span class="pre">X-CSRFToken</span></tt>
+(the latter is accepted for compatibility with Django).</p>
+<p>See <a class="reference external" href="http://en.wikipedia.org/wiki/Cross-site_request_forgery">http://en.wikipedia.org/wiki/Cross-site_request_forgery</a></p>
+<p>Prior to release 1.1.1, this check was ignored if the HTTP header
+<tt class="docutils literal"><span class="pre">X-Requested-With:</span> <span class="pre">XMLHTTPRequest</span></tt> was present.  This exception
+has been shown to be insecure and has been removed.  For more
+information please see
+<a class="reference external" href="http://www.djangoproject.com/weblog/2011/feb/08/security/">http://www.djangoproject.com/weblog/2011/feb/08/security/</a>
+<a class="reference external" href="http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails">http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.webbase.XSRFBaseHandler.get_signed_cookie">
+<tt class="descname">get_signed_cookie</tt><big>(</big><em>name</em>, <em>value=None</em>, <em>max_age_days=31</em><big>)</big><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler.get_signed_cookie"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler.get_signed_cookie" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets a secure cookie, via Tornado, and returns it as a Unicode string.
+:param name:The name of the cookie
+:param value (optional): If passed, get_signed_cookie will get the value from <cite>value</cite> instead of a cookie
+:return: Unicode string of the cookie</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="webtav.webbase.XSRFBaseHandler.is_secure">
 <tt class="descname">is_secure</tt><a class="reference internal" href="_modules/webtav/webbase.html#XSRFBaseHandler.is_secure"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webbase.XSRFBaseHandler.is_secure" title="Permalink to this definition">¶</a></dt>
@@ -608,23 +654,6 @@ Eventually, it may give a different experience for first-time visitors.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="webtav.webfront.FileOnlyUploadHandler">
-<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">FileOnlyUploadHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#FileOnlyUploadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadHandler" title="webtav.webfront.UploadHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadHandler</span></tt></a></p>
-<dl class="attribute">
-<dt id="webtav.webfront.FileOnlyUploadHandler.methods">
-<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler.methods" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="webtav.webfront.FileOnlyUploadHandler.post">
-<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#FileOnlyUploadHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.FileOnlyUploadHandler.post" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive a POST request containing a file from JS, and return the JSON formatted reply it&#8217;s expecting.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="webtav.webfront.MessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">MessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
@@ -682,7 +711,8 @@ Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons
 <dl class="method">
 <dt id="webtav.webfront.RegisterHandler.post">
 <tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#RegisterHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.RegisterHandler.post" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Create the user in the DB, as requested.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -772,25 +802,84 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 </dd></dl>
 
 <dl class="class">
-<dt id="webtav.webfront.UploadHandler">
-<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseFlask" title="webtav.webbase.BaseFlask"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseFlask</span></tt></a></p>
+<dt id="webtav.webfront.UploadAttachmentHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadAttachmentHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadAttachmentHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadAttachmentHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadMessageHandler" title="webtav.webfront.UploadMessageHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadMessageHandler</span></tt></a></p>
 <dl class="attribute">
-<dt id="webtav.webfront.UploadHandler.methods">
-<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webfront.UploadAttachmentHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadAttachmentHandler.methods" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="webtav.webfront.UploadHandler.post">
-<tt class="descname">post</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.post" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webfront.UploadAttachmentHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadAttachmentHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadAttachmentHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive a POST request containing a file from JS, and return the JSON formatted reply it&#8217;s expecting.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.UploadMessageHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadMessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseFlask" title="webtav.webbase.BaseFlask"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseFlask</span></tt></a></p>
+<dl class="attribute">
+<dt id="webtav.webfront.UploadMessageHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadMessageHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.post" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive Envelopes and their attachments.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="webtav.webfront.UploadHandler.receive_files">
-<tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadHandler.receive_files" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webfront.UploadMessageHandler.receive_files">
+<tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.receive_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Receive files, save them out.</p>
 </dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadMessageHandler.sign_and_deliver">
+<tt class="descname">sign_and_deliver</tt><big>(</big><em>envelope</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler.sign_and_deliver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.sign_and_deliver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sign the message with the Author&#8217;s info, and upload to the server.
+:return: ID of insert (if successful)</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.UploadMessageRevisionHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadMessageRevisionHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageRevisionHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageRevisionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadMessageHandler" title="webtav.webfront.UploadMessageHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadMessageHandler</span></tt></a></p>
+<p>Upload a revision to an earlier message.</p>
+<dl class="attribute">
+<dt id="webtav.webfront.UploadMessageRevisionHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadMessageRevisionHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadMessageRevisionHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageRevisionHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageRevisionHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive Envelopes and their attachments.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.UploadPrivateMessageHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadPrivateMessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadPrivateMessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadPrivateMessageHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadMessageHandler" title="webtav.webfront.UploadMessageHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadMessageHandler</span></tt></a></p>
+<p>Receive text, encrypt, send to dest.</p>
+<dl class="attribute">
+<dt id="webtav.webfront.UploadPrivateMessageHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadPrivateMessageHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadPrivateMessageHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadPrivateMessageHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadPrivateMessageHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

@@ -138,7 +138,7 @@ class LockedKey(libtavern.key.Key):
         try:
             privkey = self._decryptprivkey(oldpasskey)
         except:
-            self.logger.debug("Attempted to change password with incorrect password")
+            raise Exception('KeyPassError',"Attempted to change password with incorrect password")
             return False
 
         self.encryptedprivkey = None

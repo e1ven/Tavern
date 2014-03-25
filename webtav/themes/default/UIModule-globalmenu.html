@@ -5,8 +5,8 @@
         <li id="two" class="mainheader"><a href="#">Your Account</a>
             <ul  class="sub-element sub-menu">
                     <div id= "login">
-                            <a href="{{url_for(Keys['master'].pubkey) }}">
-                                <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{handler.user.Keys['master'].pubkey}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
+                            <a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey) }}">
+                                <img class="avatar" id="youravatar" alt= "Your Avatar" src="/avatar/{{pubkey=handler.user.Keys['master'].pubkey}}.png?set=any&amp;bgset=any&amp;size=100x100"/>
                             </a>
                             {% if handler.user.has_login %}
                                 <p>You are logged in as: <br>

@@ -1,4 +1,4 @@
-<form enctype="multipart/form-data" action="/uploadenvelope/privatemessage" method="post">
+<form enctype="multipart/form-data" action="/new/pm" method="post">
   {% module xsrf_form_html() %}
 To: <input type="text" name="to" {% if urlto is not None %} value="{{urlto}}" {% end %}><br>
 Subject: <input type="text" name="subject"><br>

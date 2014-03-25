@@ -610,26 +610,34 @@
 </div>
 <div class="viewcode-block" id="User.load_mongo_by_pubkey"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_pubkey">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_pubkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pubkey</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a user object for a given pubkey.&quot;&quot;&quot;</span>
-
         <span class="c"># Get Formatted key for searching.</span>
         <span class="n">tmpkey</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="n">pubkey</span><span class="p">)</span>
         <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,{</span><span class="s">&quot;keys.master.pubkey&quot;</span><span class="p">:</span> <span class="n">tmpkey</span><span class="o">.</span><span class="n">pubkey</span><span class="p">})</span>
-
         <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># If we find a local user, load in their priv and pub keys.</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">None</span>
 </div>
+<div class="viewcode-block" id="User.is_username_free"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.is_username_free">[docs]</a>    <span class="k">def</span> <span class="nf">is_username_free</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">username</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Is a given username free</span>
+<span class="sd">        :param username: The Username to check</span>
+<span class="sd">        :return: True if it is unused, False if it is used.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="n">username</span><span class="p">})</span> <span class="o">==</span> <span class="mi">0</span>
+</div>
+<div class="viewcode-block" id="User.UsernameNotInMongoError"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.UsernameNotInMongoError">[docs]</a>    <span class="k">class</span> <span class="nc">UsernameNotInMongoError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
 <div class="viewcode-block" id="User.load_mongo_by_username"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_username">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_username</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">username</span><span class="p">):</span>
         <span class="c"># Local server Only</span>
-        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,</span>
-                                            <span class="p">{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="n">username</span><span class="p">})</span>
-        <span class="k">if</span> <span class="n">user</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">None</span>
-
+        <span class="n">user</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">safe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;users&#39;</span><span class="p">,{</span><span class="s">&quot;username&quot;</span><span class="p">:</span> <span class="n">username</span><span class="p">})</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">user</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">UsernameNotInMongoError</span><span class="p">(</span><span class="s">&quot;It&#39;s not there.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">load_string</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">user</span><span class="p">))</span>
-    </div>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
 <div class="viewcode-block" id="User.load_mongo_by_sessionid"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.load_mongo_by_sessionid">[docs]</a>    <span class="k">def</span> <span class="nf">load_mongo_by_sessionid</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">sessionid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Load in a user, via their sessionid</span>

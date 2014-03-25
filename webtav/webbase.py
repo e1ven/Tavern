@@ -45,13 +45,11 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         if hasattr(self, "_xsrf_token"):
             return self._xsrf_token
         # Use cookie one if it exists, otherwise random str.
-        token = self.get_secure_cookie('_xsrf',None)
+        token = self.get_signed_cookie('_xsrf',None)
         if not token:
             # Generate a token, save it to a cookie.
             token = libtavern.utils.randstr(16)
             self.set_secure_cookie(name="_xsrf",value=token,httponly=True, max_age=31556952 * 2)
-        else:
-            token = token.decode('utf-8')
         self._xsrf_token = token
         return self._xsrf_token
 
@@ -70,6 +68,48 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
 
         self.set_cookie(name, self.create_signed_value(name, value), **kwargs)
 
+    def get_signed_cookie(self,name,value=None,max_age_days=31):
+        """
+        Gets a secure cookie, via Tornado, and returns it as a Unicode string.
+        :param name:The name of the cookie
+        :param value (optional): If passed, get_signed_cookie will get the value from `value` instead of a cookie
+        :return: Unicode string of the cookie
+        """
+        result =  self.get_secure_cookie(name=name,value=value,max_age_days=max_age_days)
+        if result:
+            return result.decode('utf-8')
+        else:
+            return result
+
+    def check_xsrf_cookie(self):
+        """Verifies that the ``_xsrf`` cookie matches the ``_xsrf`` argument.
+
+        To prevent cross-site request forgery, we set an ``_xsrf``
+        cookie and include the same value as a non-cookie
+        field with all ``POST`` requests. If the two do not match, we
+        reject the form submission as a potential forgery.
+
+        The ``_xsrf`` value may be set as either a form field named ``_xsrf``
+        or in a custom HTTP header named ``X-XSRFToken`` or ``X-CSRFToken``
+        (the latter is accepted for compatibility with Django).
+
+        See http://en.wikipedia.org/wiki/Cross-site_request_forgery
+
+        Prior to release 1.1.1, this check was ignored if the HTTP header
+        ``X-Requested-With: XMLHTTPRequest`` was present.  This exception
+        has been shown to be insecure and has been removed.  For more
+        information please see
+        http://www.djangoproject.com/weblog/2011/feb/08/security/
+        http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails
+        """
+        token = (self.get_argument("_xsrf", None) or
+                 self.request.headers.get("X-Xsrftoken") or
+                 self.request.headers.get("X-Csrftoken"))
+        if not token:
+            raise Exception("HTTPError","'_xsrf' argument missing from POST")
+        if self.xsrf_token != token:
+            raise Exception("HTTPError","XSRF cookie does not match POST argument")
+
 class BaseTornado(XSRFBaseHandler):
     """
     The default HTTPHandler for webtavern Tornado objects
@@ -77,6 +117,7 @@ class BaseTornado(XSRFBaseHandler):
 
     def __init__(self, *args, **kwargs):
         """Create the base object for all requests to our Tavern webserver."""
+
         self.server = server
         super().__init__(*args, **kwargs)
 
@@ -86,9 +127,10 @@ class BaseTornado(XSRFBaseHandler):
 
         # Before we do anything, see if we have a XSRF cookie set.
         # If not, either set it or abort, depending on the HTTP verb.
-        if not self.get_secure_cookie('_xsrf',None) and not self.get_argument('skipxsrf',None):
+        if not self.get_signed_cookie('_xsrf',None) and not self.get_argument('skipxsrf',None):
             self._rewrite_verbs()
             return
+
 
 
         self.setheaders()
@@ -152,6 +194,11 @@ class BaseTornado(XSRFBaseHandler):
         self.redirected = self.get_argument('redirected', False)
 
 
+        # Determine if we should include our location in the post. (default to no)
+        self.include_location = False
+        if self.user.include_location or 'include_location' in self.request.arguments:
+            if self.request.remote_ip != "127.0.0.1":
+                self.include_location = True
 
         # Set default values for variables we look for.
         self.canon = None
@@ -193,14 +240,12 @@ class BaseTornado(XSRFBaseHandler):
         self.user = libtavern.user.User()
 
         # Load in our saved passkey if it's available.
-        if self.get_secure_cookie('passkey'):
-            self.user.passkey = self.get_secure_cookie('passkey')
+        if self.get_signed_cookie('passkey'):
+            self.user.passkey = self.get_signed_cookie('passkey')
 
         # Load in our session token if we have one.
-        if self.get_secure_cookie('sessionid'):
-            result = self.user.load_mongo_by_sessionid(
-                self.get_secure_cookie('sessionid'))
-
+        if self.get_signed_cookie('sessionid'):
+            result = self.user.load_mongo_by_sessionid(self.get_signed_cookie('sessionid'))
         # Ensure we have a user that is valid
         # If not, clear cookies, delete user, treat as not-logged-in.
             try:
@@ -217,9 +262,7 @@ class BaseTornado(XSRFBaseHandler):
 
     def save_session(self):
         """Saves the current user to a session cookie.
-
         These are encrypted by Tornado.
-
         """
 
         # Note - We're using a sessionid lookup table, not storing a key from the User.
@@ -230,7 +273,7 @@ class BaseTornado(XSRFBaseHandler):
         # This passkey is never stored serverside.
         if self.user.has_unique_key:
             if self.user.passkey is not None:
-                self.set_secure_cookie('passkey', user.passkey, httponly=True, max_age=31556952 * 2)
+                self.set_secure_cookie('passkey', self.user.passkey, httponly=True, max_age=31556952 * 2)
 
         # Before we save out the sessionid, make sure the user is valid
         if self.user.ensure_keys():
@@ -398,3 +441,13 @@ class weberror(Exception):
             return message + " (" + (self.log_message % self.args) + ")"
         else:
             return message
+
+class FlaskHandler(XSRFBaseHandler):
+    """A `RequestHandler` instead calls Flask. This is needed so that we can properly load our own _XSRF records.
+    """
+    def initialize(self, fallback):
+        self.fallback = fallback
+
+    def prepare(self):
+        self.fallback(self.request)
+        self._finished = True

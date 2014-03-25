@@ -233,8 +233,8 @@ this message.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="libtavern.envelope.Envelope.binary">
-<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">binary</tt><big>(</big><em>sha512</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.binary" title="Permalink to this definition">¶</a></dt>
+<dt id="libtavern.envelope.Envelope.attachment">
+<em class="property">class </em><tt class="descclassname">Envelope.</tt><tt class="descname">attachment</tt><big>(</big><em>sha512</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.attachment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.object</span></tt></p>
 </dd></dl>
 
@@ -283,7 +283,7 @@ this message.</p>
 <dl class="method">
 <dt id="libtavern.envelope.Envelope.mungebins">
 <tt class="descclassname">Envelope.</tt><tt class="descname">mungebins</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.mungebins"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.mungebins" title="Permalink to this definition">¶</a></dt>
-<dd><p>Store details for all binaries, and create thumbnails for images.</p>
+<dd><p>Store details for all attachments, and create thumbnails for images.</p>
 </dd></dl>
 
 <dl class="method">
@@ -858,21 +858,27 @@ param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)<
 <dt id="libtavern.user.User">
 <em class="property">class </em><tt class="descclassname">libtavern.user.</tt><tt class="descname">User</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
+<dl class="exception">
+<dt id="libtavern.user.User.UsernameNotInMongoError">
+<em class="property">exception </em><tt class="descname">UsernameNotInMongoError</tt><a class="reference internal" href="_modules/libtavern/user.html#User.UsernameNotInMongoError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.UsernameNotInMongoError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.Exception</span></tt></p>
+</dd></dl>
+
 <dl class="method">
 <dt id="libtavern.user.User.add_email">
-<tt class="descname">add_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.add_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.add_email" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">add_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.add_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.add_email" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.changepass">
-<tt class="descname">changepass</tt><big>(</big><em>newpassword</em>, <em>oldpasskey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.changepass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.changepass" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">changepass</tt><big>(</big><em>newpassword</em>, <em>oldpasskey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.changepass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.changepass" title="Permalink to this definition">¶</a></dt>
 <dd><p>Change the User&#8217;s password.
 Since this password is used to encrypt all of the keys, we need to re-encrypt them as well.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.decrypt">
-<tt class="descname">decrypt</tt><big>(</big><em>text</em>, <em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.decrypt" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">decrypt</tt><big>(</big><em>text</em>, <em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.decrypt" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decrypt a message sent to me, using one of my communication keys.</p>
 <p>Note - We don&#8217;t try to decrypt using the master key, even though it&#8217;s technically possible.
 This is intentional, so that other clients don&#8217;t start sending PMs to the master key, and compromise security.</p>
@@ -880,30 +886,30 @@ This is intentional, so that other clients don&#8217;t start sending PMs to the 
 
 <dl class="method">
 <dt id="libtavern.user.User.ensure_keys">
-<tt class="descname">ensure_keys</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.ensure_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.ensure_keys" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">ensure_keys</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.ensure_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.ensure_keys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the Keys for a User()</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.follow_topic">
-<tt class="descname">follow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follow_topic" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">follow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follow_topic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.follows_topic">
-<tt class="descname">follows_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follows_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follows_topic" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">follows_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follows_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follows_topic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Does this user follow the topic?</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.from_dict">
-<tt class="descname">from_dict</tt><big>(</big><em>userdict</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.from_dict" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">from_dict</tt><big>(</big><em>userdict</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.from_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Demarshall a user obj from a dictionary.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.gatherTrust">
-<tt class="descname">gatherTrust</tt><big>(</big><em>askingabout</em>, <em>incomingtrust=250</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.gatherTrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.gatherTrust" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">gatherTrust</tt><big>(</big><em>askingabout</em>, <em>incomingtrust=250</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.gatherTrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.gatherTrust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return how much I trust a given ID, rather than a given post.
 This is determined by several factors, but the base algorithm is:</p>
 <blockquote>
@@ -916,49 +922,57 @@ This is determined by several factors, but the base algorithm is:</p>
 
 <dl class="method">
 <dt id="libtavern.user.User.getRatings">
-<tt class="descname">getRatings</tt><big>(</big><em>postInQuestion</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.getRatings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.getRatings" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">getRatings</tt><big>(</big><em>postInQuestion</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.getRatings"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.getRatings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the ratings of a specific message.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.get_note">
-<tt class="descname">get_note</tt><big>(</big><em>noteabout</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_note" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">get_note</tt><big>(</big><em>noteabout</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_note" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieve any note by user A about user B.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.get_pubkeys">
-<tt class="descname">get_pubkeys</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_pubkeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_pubkeys" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">get_pubkeys</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_pubkeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_pubkeys" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a list of all public keys for a user.
 Typically used to search for messages belonging to that user.
 :return: A list of all public keys.</p>
 </dd></dl>
 
 <dl class="method">
+<dt id="libtavern.user.User.is_username_free">
+<tt class="descclassname">User.</tt><tt class="descname">is_username_free</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.is_username_free"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.is_username_free" title="Permalink to this definition">¶</a></dt>
+<dd><p>Is a given username free
+:param username: The Username to check
+:return: True if it is unused, False if it is used.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="libtavern.user.User.load_file">
-<tt class="descname">load_file</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_file" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_file</tt><big>(</big><em>filename</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.load_mongo_by_pubkey">
-<tt class="descname">load_mongo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_pubkey" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_mongo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_pubkey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a user object for a given pubkey.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.load_mongo_by_sessionid">
-<tt class="descname">load_mongo_by_sessionid</tt><big>(</big><em>sessionid</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_sessionid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_sessionid" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_mongo_by_sessionid</tt><big>(</big><em>sessionid</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_sessionid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_sessionid" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load in a user, via their sessionid</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.load_mongo_by_username">
-<tt class="descname">load_mongo_by_username</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_username" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_mongo_by_username</tt><big>(</big><em>username</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_mongo_by_username"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_mongo_by_username" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.load_publicinfo_by_pubkey">
-<tt class="descname">load_publicinfo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_publicinfo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_publicinfo_by_pubkey" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_publicinfo_by_pubkey</tt><big>(</big><em>pubkey</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_publicinfo_by_pubkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_publicinfo_by_pubkey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves publicly available information for a given user.
 This does leak what messages the server has received.
 But shouldn&#8217;t give them anything about a user they couldn&#8217;t get from another server.</p>
@@ -966,17 +980,17 @@ But shouldn&#8217;t give them anything about a user they couldn&#8217;t get from
 
 <dl class="method">
 <dt id="libtavern.user.User.load_string">
-<tt class="descname">load_string</tt><big>(</big><em>incomingstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_string" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">load_string</tt><big>(</big><em>incomingstring</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.load_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.load_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.make_hashes">
-<tt class="descname">make_hashes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.make_hashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.make_hashes" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">make_hashes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.make_hashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.make_hashes" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.new_posted_key">
-<tt class="descname">new_posted_key</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.new_posted_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.new_posted_key" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">new_posted_key</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.new_posted_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.new_posted_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a new communication key.
 This key might be attached to a forum message, or a private message.</p>
 <p>By generating a new key for each message, even if our key does eventually leak
@@ -985,50 +999,50 @@ it will be difficult to decode old messages, who&#8217;s keys have been deleted.
 
 <dl class="method">
 <dt id="libtavern.user.User.remove_email">
-<tt class="descname">remove_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.remove_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.remove_email" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">remove_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.remove_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.remove_email" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.save_file">
-<tt class="descname">save_file</tt><big>(</big><em>filename=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_file" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">save_file</tt><big>(</big><em>filename=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.save_mongo">
-<tt class="descname">save_mongo</tt><big>(</big><em>overwriteguest=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_mongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_mongo" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">save_mongo</tt><big>(</big><em>overwriteguest=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_mongo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_mongo" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.save_note">
-<tt class="descname">save_note</tt><big>(</big><em>noteabout</em>, <em>note=''</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_note" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">save_note</tt><big>(</big><em>noteabout</em>, <em>note=''</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_note" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a note to mongo about a user</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.save_session">
-<tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_session" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">save_session</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.save_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.save_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Save a session out to the DB.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.to_dict">
-<tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.to_dict" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.to_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Marshall out the user obj a dictionary.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.translateTrustToWords">
-<tt class="descname">translateTrustToWords</tt><big>(</big><em>trust</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.translateTrustToWords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.translateTrustToWords" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">translateTrustToWords</tt><big>(</big><em>trust</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.translateTrustToWords"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.translateTrustToWords" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.unfollow_topic">
-<tt class="descname">unfollow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.unfollow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.unfollow_topic" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">unfollow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.unfollow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.unfollow_topic" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.verify_password">
-<tt class="descname">verify_password</tt><big>(</big><em>guessed_password</em>, <em>tryinverted=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.verify_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.verify_password" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">User.</tt><tt class="descname">verify_password</tt><big>(</big><em>guessed_password</em>, <em>tryinverted=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.verify_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.verify_password" title="Permalink to this definition">¶</a></dt>
 <dd><p>Check a proposed password, to see if it&#8217;s able to open and load a
 user&#8217;s account.</p>
 </dd></dl>

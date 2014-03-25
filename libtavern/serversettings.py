@@ -357,9 +357,6 @@ class ServerSettings(libtavern.utils.instancer):
         if not 'upload-dir' in self.settings:
             self.settings['upload-dir'] = '../nginx/uploads'
 
-        if not 'mark-origin' in self.settings:
-            self.settings['mark-origin'] = False
-
         if not 'mark-seen' in self.settings:
             self.settings['mark-seen'] = False
 

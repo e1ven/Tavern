@@ -95,13 +95,11 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&quot;_xsrf_token&quot;</span><span class="p">):</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
         <span class="c"># Use cookie one if it exists, otherwise random str.</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
             <span class="c"># Generate a token, save it to a cookie.</span>
             <span class="n">token</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">token</span><span class="p">,</span><span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">token</span> <span class="o">=</span> <span class="n">token</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span> <span class="o">=</span> <span class="n">token</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
 </div>
@@ -119,6 +117,48 @@
                 <span class="k">pass</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_signed_value</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="XSRFBaseHandler.get_signed_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.XSRFBaseHandler.get_signed_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">get_signed_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">max_age_days</span><span class="o">=</span><span class="mi">31</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Gets a secure cookie, via Tornado, and returns it as a Unicode string.</span>
+<span class="sd">        :param name:The name of the cookie</span>
+<span class="sd">        :param value (optional): If passed, get_signed_cookie will get the value from `value` instead of a cookie</span>
+<span class="sd">        :return: Unicode string of the cookie</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">value</span><span class="p">,</span><span class="n">max_age_days</span><span class="o">=</span><span class="n">max_age_days</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="XSRFBaseHandler.check_xsrf_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.XSRFBaseHandler.check_xsrf_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">check_xsrf_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Verifies that the ``_xsrf`` cookie matches the ``_xsrf`` argument.</span>
+
+<span class="sd">        To prevent cross-site request forgery, we set an ``_xsrf``</span>
+<span class="sd">        cookie and include the same value as a non-cookie</span>
+<span class="sd">        field with all ``POST`` requests. If the two do not match, we</span>
+<span class="sd">        reject the form submission as a potential forgery.</span>
+
+<span class="sd">        The ``_xsrf`` value may be set as either a form field named ``_xsrf``</span>
+<span class="sd">        or in a custom HTTP header named ``X-XSRFToken`` or ``X-CSRFToken``</span>
+<span class="sd">        (the latter is accepted for compatibility with Django).</span>
+
+<span class="sd">        See http://en.wikipedia.org/wiki/Cross-site_request_forgery</span>
+
+<span class="sd">        Prior to release 1.1.1, this check was ignored if the HTTP header</span>
+<span class="sd">        ``X-Requested-With: XMLHTTPRequest`` was present.  This exception</span>
+<span class="sd">        has been shown to be insecure and has been removed.  For more</span>
+<span class="sd">        information please see</span>
+<span class="sd">        http://www.djangoproject.com/weblog/2011/feb/08/security/</span>
+<span class="sd">        http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Xsrftoken&quot;</span><span class="p">)</span> <span class="ow">or</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Csrftoken&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;HTTPError&quot;</span><span class="p">,</span><span class="s">&quot;&#39;_xsrf&#39; argument missing from POST&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span> <span class="o">!=</span> <span class="n">token</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;HTTPError&quot;</span><span class="p">,</span><span class="s">&quot;XSRF cookie does not match POST argument&quot;</span><span class="p">)</span>
 </div></div>
 <div class="viewcode-block" id="BaseTornado"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado">[docs]</a><span class="k">class</span> <span class="nc">BaseTornado</span><span class="p">(</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -127,6 +167,7 @@
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create the base object for all requests to our Tavern webserver.&quot;&quot;&quot;</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">server</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
@@ -136,9 +177,10 @@
 
         <span class="c"># Before we do anything, see if we have a XSRF cookie set.</span>
         <span class="c"># If not, either set it or abort, depending on the HTTP verb.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;skipxsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;skipxsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rewrite_verbs</span><span class="p">()</span>
             <span class="k">return</span>
+
 
 
         <span class="bp">self</span><span class="o">.</span><span class="n">setheaders</span><span class="p">()</span>
@@ -202,6 +244,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">redirected</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&#39;redirected&#39;</span><span class="p">,</span> <span class="bp">False</span><span class="p">)</span>
 
 
+        <span class="c"># Determine if we should include our location in the post. (default to no)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">include_location</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">include_location</span> <span class="ow">or</span> <span class="s">&#39;include_location&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">remote_ip</span> <span class="o">!=</span> <span class="s">&quot;127.0.0.1&quot;</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">include_location</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="c"># Set default values for variables we look for.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">None</span>
@@ -243,14 +290,12 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">User</span><span class="p">()</span>
 
         <span class="c"># Load in our saved passkey if it&#39;s available.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">):</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">)</span>
 
         <span class="c"># Load in our session token if we have one.</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;sessionid&#39;</span><span class="p">):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">load_mongo_by_sessionid</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&#39;sessionid&#39;</span><span class="p">))</span>
-
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;sessionid&#39;</span><span class="p">):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">load_mongo_by_sessionid</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;sessionid&#39;</span><span class="p">))</span>
         <span class="c"># Ensure we have a user that is valid</span>
         <span class="c"># If not, clear cookies, delete user, treat as not-logged-in.</span>
             <span class="k">try</span><span class="p">:</span>
@@ -267,9 +312,7 @@
 </div>
 <div class="viewcode-block" id="BaseTornado.save_session"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.BaseTornado.save_session">[docs]</a>    <span class="k">def</span> <span class="nf">save_session</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Saves the current user to a session cookie.</span>
-
 <span class="sd">        These are encrypted by Tornado.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c"># Note - We&#39;re using a sessionid lookup table, not storing a key from the User.</span>
@@ -280,7 +323,7 @@
         <span class="c"># This passkey is never stored serverside.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_unique_key</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">,</span> <span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">,</span> <span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="s">&#39;passkey&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">,</span> <span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
 
         <span class="c"># Before we save out the sessionid, make sure the user is valid</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">ensure_keys</span><span class="p">():</span>
@@ -447,7 +490,17 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">log_message</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">message</span> <span class="o">+</span> <span class="s">&quot; (&quot;</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">log_message</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;)&quot;</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">message</span></div>
+            <span class="k">return</span> <span class="n">message</span>
+</div>
+<div class="viewcode-block" id="FlaskHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.FlaskHandler">[docs]</a><span class="k">class</span> <span class="nc">FlaskHandler</span><span class="p">(</span><span class="n">XSRFBaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A `RequestHandler` instead calls Flask. This is needed so that we can properly load our own _XSRF records.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="FlaskHandler.initialize"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.FlaskHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fallback</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fallback</span> <span class="o">=</span> <span class="n">fallback</span>
+</div>
+<div class="viewcode-block" id="FlaskHandler.prepare"><a class="viewcode-back" href="../../webtav.html#webtav.webbase.FlaskHandler.prepare">[docs]</a>    <span class="k">def</span> <span class="nf">prepare</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fallback</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="bp">True</span></div></div>
 </pre></div>
 
           </div>

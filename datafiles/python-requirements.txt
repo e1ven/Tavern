@@ -5,6 +5,10 @@ Cython
 pymongo
 psycopg2
 
+# Web
+tornado
+flask
+
 # Parsing
 beautifulsoup4>=4.1.3
 lxml>=3.0.1

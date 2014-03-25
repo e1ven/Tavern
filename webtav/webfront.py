@@ -131,7 +131,6 @@ class AllMessagesHandler(webbase.BaseTornado):
         """
         Display all messages.
         """
-        self.topic = libtavern.topic.Topic()
         self.topic.name = "All Messages"
         self.title = "Tavern - All Messages"
         self.canon = self.server.url_for(topic=self.topic)
@@ -153,7 +152,6 @@ class AllSavedHandler(webbase.BaseTornado):
         """
         Display all messages.
         """
-        self.topic = libtavern.topic.Topic()
         self.topic.name = "Messages from saved topics"
 
         self.title = "Tavern - Messages in all saved topics"
@@ -180,7 +178,6 @@ class ShowAllTopicsHandler(webbase.BaseTornado):
     """Show every known topic"""
     def get(self,page=0):
         self.title = "List of all topics"
-        self.topic = libtavern.topic.Topic()
         topics_per_page = 1000
 
         if page > 0:
@@ -268,59 +265,32 @@ class RegisterHandler(webbase.BaseTornado):
     """
     def get(self):
         self.title = "Register for a new account"
-        self.topic = libtavern.topic.Topic(topic=self.displayenvelope.dict['envelope']['payload']['topic'])
         self.canon = self.server.url_for(envelope=self.displayenvelope)
-
         self.render('View-newuser.html')
 
     def post(self):
-        self.getvars()
-        self.write(self.render_string('header.html',
-                   title='Register for an account', type=None, rsshead=None))
+        """Create the user in the DB, as requested."""
+        username = self.get_argument("username")
+        pass1 = self.get_argument("pass")
+        pass2 = self.get_argument("pass2")
+        email = self.get_argument("email",None)
 
-        client_newuser = self.get_argument("username")
-        client_newpass = self.get_argument("pass")
-        client_newpass2 = self.get_argument("pass2")
-        if "email" in self.request.arguments:
-            client_email = self.get_argument("email")
-            if client_email == "":
-                client_email = None
-        else:
-            client_email = None
+        u = libtavern.user.User()
+        if pass1 != pass2:
+            raise weberror(short="Can't create user", long="The two passwords didn't match, can you try again?",code=400)
+        if not u.is_username_free(username=username):
+            raise weberror(short="Can't create user", long="That username is already being used by someone.",code=400)
 
-        if client_newpass != client_newpass2:
-            self.write("I'm sorry, your passwords don't match.")
-            return
-
-        if client_email is not None:
-            users_with_this_email = self.server.db.safe.find('users',{"email": client_email.lower()})
-            if len(users_with_this_email) > 0:
-                self.write(
-                    "I'm sorry, this email address has already been used.")
-                return
-
-        u = User()
-        if u.load_mongo_by_username(username=client_newuser) is not False:
-            self.write("I'm sorry, this username has already been taken.")
-            return
-        else:
-    #Generate the user
-            self.user.generate(AllowGuestKey=False,
-                               username=client_newuser.lower(), password=client_newpass)
-            self.user.lastauth = int(time.time())
-
-            if client_email is not None:
-                self.user.email = client_email.lower()
-
-            self.user.savemongo()
-
-    #Save the passkey out to a separate cookie.
-            self.set_secure_cookie("tavern_passkey", self.user.Keys['master'].get_passkey(
-                client_newpass), httponly=True, expires_days=999)
-
-            self.setvars()
-            bottle.redirect("/")
-
+        # Create a temporary user, set it to current user.
+        u.username = username
+        u.ensure_keys(AllowGuestKey=False)
+        u.changepass(newpassword=pass1,oldpasskey=u.passkey)
+        if email:
+            self.user.add_email(email)
+        u.save_mongo()
+        self.user = u
+        self.save_session()
+        self.redirect(self.server.url_for(base=True))
 
 # def LoginHandler_get(slug=None):
 #     self.getvars()
@@ -539,7 +509,7 @@ class UserHandler(webbase.BaseTornado):
 
 # Instantiate the user who's currently logged in
 
-#     e.payload.dict['author'] = OrderedDict()
+#     e.payload.dict['author'] = {}
 #     e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 #     e.payload.dict['author'][
 #         'friendlyname'] = self.user.friendlyname
@@ -623,7 +593,7 @@ class UserHandler(webbase.BaseTornado):
 
 # Instantiate the user who's currently logged in
 
-#     e.payload.dict['author'] = OrderedDict()
+#     e.payload.dict['author'] = {}
 #     e.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
 #     e.payload.dict['author'][
 #         'friendlyname'] = self.user.friendlyname
@@ -710,7 +680,6 @@ class NewMessageHandler(webbase.BaseTornado):
             self.topic = libtavern.topic.Topic(topic=topic)
         else:
             self.title = "New Message"
-            self.topic = libtavern.topic.Topic()
         self.canon = self.server.url_for(topic=self.topic) + "/new"
         self.render('View-newmessage.html')
 
@@ -737,12 +706,12 @@ class NewMessageHandler(webbase.BaseTornado):
 #     return
 
 
-# def BinariesHandler_get(binaryhash, filename=None):
+# def BinariesHandler_get(attachment, filename=None):
 #     self.server.logger.info(
 #         "The gridfs_nginx plugin is a much better option than this method")
 #     self.set_header("Content-Type", 'application/octet-stream')
 
-#     req = self.server.bin_GridFS.get_last_version(filename=binaryhash)
+#     req = self.server.bin_GridFS.get_last_version(filename=attachment)
 #     self.write(req.read())
 
 class CatchallHandler(webbase.BaseTornado):
@@ -825,7 +794,6 @@ class SiteIndexHandler(webbase.BaseTornado):
 
         max_posts = self.server.serversettings.settings['webtav']['urls_per_sitemap']
 
-        self.topic = libtavern.topic.Topic()
 
         # Without a number, we want the index, which lists the other xml files.
         # - Each one can contain up to 50K URLs
@@ -865,7 +833,7 @@ class SitemapMessagesHandler(webbase.BaseTornado):
 
         # Get the highest date for one slot lower than us.
         previous_sitemap = 'messages_' + str(iteration - 1)
-        results = server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
+        results = self.server.db.unsafe.find_one('sitemap',{'_id':previous_sitemap})
         if results:
             after = results.get('last_message_date',0)
         else:
@@ -881,7 +849,7 @@ class SitemapMessagesHandler(webbase.BaseTornado):
         results = {}
         results['_id'] = 'messages_' + str(iteration)
         results['last_message_date'] = messages[-1].dict['envelope']['local']['time_added']
-        server.db.unsafe.save('sitemap',results)
+        self.server.db.unsafe.save('sitemap',results)
 
         self.render('View-sitemap.html',messages=messages,utils=libtavern.utils)
 
@@ -923,7 +891,39 @@ class XSRFHandler(webbase.XSRFBaseHandler):
         basepath = self.application.settings.get("template_path")
         return basepath + '/robots'
 
-class UploadHandler(webbase.BaseFlask):
+class UploadMessageHandler(webbase.BaseFlask):
+
+    def sign_and_deliver(self,envelope):
+        """
+        Sign the message with the Author's info, and upload to the server.
+        :return: ID of insert (if successful)
+        """
+
+        if self.request.files:
+            envelope.payload.dict['attachments'] = []
+            for file in self.request.files:
+                envelope.payload.dict['attachments'].append(file.sha)
+
+        if self.include_location:
+            gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
+            ip = self.request.remote_ip
+            gir = gi.record_by_name(ip)
+            envelope.payload.dict['coords'] = str(gir['latitude']) + "," + str(gir['longitude'])
+
+        # Add a Author section, with info on how to contact the author.
+        envelope.payload.dict['author'] = {}
+        envelope.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
+        envelope.payload.dict['author']['friendlyname'] = self.user.friendlyname
+
+        # Add a Stamp, which signs the message with the Author's key.
+        envelope.addStamp(stampclass='author',friendlyname=self.user.friendlyname,keys=self.user.Keys['master'],passkey=self.user.passkey)
+
+        # Opt-in way to debug/explore network.
+        if server.serversettings.settings['mark-seen']:
+                envelope.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
+
+        # Send to the server
+        return server.receiveEnvelope(env=envelope)
 
     def receive_files(self):
         """
@@ -934,9 +934,9 @@ class UploadHandler(webbase.BaseFlask):
         # http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.FileStorage
         for file in self.request.files:
             file.sha,file.filesize = libtavern.utils.hash_file(file.stream)
+            file.mimetype = magic.from_buffer(memcopy.read(), mime=True).decode('utf-8')
             if file.filesize > self.server.serversettings.settings['webtav']['uploads']['max_size']:
                 list.remove(file)
-            file.mimetype = magic.from_buffer(memcopy.read(), mime=True).decode('utf-8')
             # Make a preview image if possible
             if file.filesize < self.server.serversettings.settings['webtav']['uploads']['max_image_size']:
                 memcopy = io.BytesIO()
@@ -957,256 +957,58 @@ class UploadHandler(webbase.BaseFlask):
                 self.server.bin_GridFS.put(file.stream,filename=file.sha,content_type=file.mimetype)
             file.close()
 
-    def post(self, flag=None):
+    def post(self):
         """Receive Envelopes and their attachments."""
 
         # If there are any files that were sent along with the envelope, save them out.
         self.receive_files()
 
-        # Send a JSON formatted reply to the JS upload-handler if necessary.
-        if flag == "fileonly":
-            details = []
-            for file in self.request.files:
-                detail = {}
-                detail['name'] = attached_file['filename']
-                detail['hash'] = attached_file['hash']
-                detail['size'] = attached_file['size']
-                detail['content_type'] = attached_file['content_type']
-                detail['url'] = server.serversettings.settings['webtav']['downloads_url'] + attached_file['hash']
-                details.append(detail)
-            details_json = json.dumps(details, separators=(',', ':'))
-            self.set_header("Content-Type", "application/json")
-            self.write(details_json)
-            return
-
-        # Add the binaries which are only referenced, not multipart posted.
-        # This is not unusual - The jQuery uploaded will upload them separately, for example.
-
-        for argument in self.request.arguments:
-            if argument.startswith("referenced_file") and argument.endswith('_name'):
-                r = re.compile('referenced_file(.*?)_name')
-                m = r.search(argument)
-                binarycount = m.group(1)
-                mybinary = Envelope.binary(sha512=self.get_argument(
-                    'referenced_file' + binarycount + '_hash'))
-                mybinary.dict['filesize_hint'] = self.get_argument(
-                    'referenced_file' + binarycount + '_size')
-                mybinary.dict['content_type'] = self.get_argument(
-                    'referenced_file' + binarycount + '_contenttype')
-                mybinary.dict['filename'] = self.get_argument(
-                    'referenced_file' + binarycount + '_name')
-                envelopebinarylist.append(mybinary.dict)
-
-
-
-        # Now that we have the file handled.. (Whew!) .. Let's do the Envelope
-        # Pull in our Form variables.
-        client_body = self.get_argument("body", None)
-        client_topic = self.get_argument("topic", None)
-        client_subject = self.get_argument("subject", None)
-
-        client_to = self.get_argument("to", None)
-        client_regarding = self.get_argument("regarding", None)
-
-        e = Envelope()
+        e = libtavern.envelope.Envelope()
         e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "message"
+        e.payload.dict['topic'] = self.get_argument("topic")
+        e.payload.dict['subject'] = self.get_argument("subject")
+        e.payload.dict['body'] = self.get_argument("body")
+        if self.get_argument("regarding", None):
+            e.payload.dict['regarding'] = self.get_argument("regarding")
 
-        if flag == 'message':
-            e.payload.dict['class'] = "message"
-            if client_topic is not None:
-                e.payload.dict['topic'] = client_topic
-            if client_subject is not None:
-                e.payload.dict['subject'] = client_subject
-            if client_body is not None:
-                e.payload.dict['body'] = client_body
-
-            if envelopebinarylist:
-                e.payload.dict['binaries'] = envelopebinarylist
-
-            e.payload.dict['author'] = OrderedDict()
-            e.payload.dict[
-                'author'][
-                'replyto'] = self.user.Keys[
-                'posted'][
-                -1].pubkey
-            e.payload.dict['author'][
-                'friendlyname'] = self.user.UserSettings['friendlyname']
-
-            e.addStamp(
-                stampclass='author',
-                friendlyname=self.user.UserSettings['friendlyname'],
-                keys=self.user.Keys['master'],
-                passkey=self.user.passkey)
-
-        elif flag == 'reply':
-            e.payload.dict['class'] = "message"
-            if client_regarding is not None:
-                e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one(
-                    'envelopes',
-                    {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict['topic'] = regardingmsg[
-                    'envelope'][
-                    'payload'][
-                    'topic']
-                e.payload.dict['subject'] = regardingmsg[
-                    'envelope'][
-                    'payload'][
-                    'subject']
-            if client_body is not None:
-                e.payload.dict['body'] = client_body
-            if envelopebinarylist:
-                e.payload.dict['binaries'] = envelopebinarylist
-
-            e.payload.dict['author'] = OrderedDict()
-            e.payload.dict['author']['replyto'] = self.user.Keys['posted'][-1].pubkey
-            e.payload.dict['author'][
-                'friendlyname'] = self.user.UserSettings['friendlyname']
-
-            e.addStamp(
-                stampclass='author',
-                friendlyname=self.user.UserSettings['friendlyname'],
-                keys=self.user.Keys['master'],
-                passkey=self.user.passkey)
-
-        elif flag == 'messagerevision':
-            e.payload.dict['class'] = "messagerevision"
-            if client_body is not None:
-                e.payload.dict['body'] = client_body
-            if client_regarding is not None:
-                e.payload.dict['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one(
-                    'envelopes',
-                    {'envelope.local.payload_sha512': client_regarding})
-                e.payload.dict['topic'] = regardingmsg[
-                    'envelope'][
-                    'payload'][
-                    'topic']
-                e.payload.dict['subject'] = regardingmsg[
-                    'envelope'][
-                    'payload'][
-                    'subject']
-            e.addStamp(
-                stampclass='author',
-                friendlyname=self.user.UserSettings['friendlyname'],
-                keys=self.user.Keys['master'],
-                passkey=self.user.passkey)
-
-        elif flag == 'privatemessage':
-            # For encrypted messages we want to actually create a whole
-            # sub-envelope inside of it!
-
-            single_use_key = self.user.get_pmkey()
-            single_use_key.unlock(self.user.passkey)
-
-            e.payload.dict['class'] = "privatemessage"
-            touser = Key(pub=client_to)
-            e.payload.dict['to'] = touser.pubkey
-            e.payload.dict['author'] = OrderedDict()
-            e.payload.dict['author']['replyto'] = single_use_key.pubkey
-
-            encrypted_msg = Envelope()
-            encrypted_msg.payload.dict['formatting'] = "markdown"
-            encrypted_msg.payload.dict['body'] = client_body
-            encrypted_msg.payload.dict['class'] = 'privatemessage'
-
-            if client_regarding is not None:
-                encrypted['regarding'] = client_regarding
-                regardingmsg = server.db.unsafe.find_one(
-                    'envelopes',
-                    {'envelope.local.payload_sha512': client_regarding})
-
-                # The message we're referencing is likey unreadable due to encryption.
-                # Pull in it's subject if possible.
-                decrypted_regarding_dict = self.user.decrypt(
-                    regardingmsg['payload']['encrypted'])
-                decrypted_regarding = Envelope()
-                decrypted_regarding.loaddict(decrypted_regarding_dict)
-
-                encrypted_msg.payload.dict[
-                    'subject'] = decrypted_regarding.payload.dict[
-                    'subject']
-            else:
-                encrypted_msg.payload.dict['subject'] = client_subject
-
-            if envelopebinarylist:
-                encrypted_msg.payload.dict['binaries'] = envelopebinarylist
-
-            encrypted_msg.payload.dict['author'] = OrderedDict()
-            encrypted_msg.payload.dict[
-                'author'][
-                'replyto'] = single_use_key.pubkey
-            encrypted_msg.payload.dict['author'][
-                'friendlyname'] = self.user.UserSettings['friendlyname']
-
-            if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-                gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
-                ip = self.request.remote_ip
-
-                # Don't check from home.
-                if ip == "127.0.0.1":
-                    ip = "8.8.8.8"
-
-                gir = gi.record_by_name(ip)
-                encrypted_msg.payload.dict['coords'] = str(gir['latitude']) + \
-                    "," + str(gir['longitude'])
-
-            # Add stamps to show we're the author (and optionally) we're the
-            # origin server
-            encrypted_msg.addStamp(
-                stampclass='author',
-                friendlyname=self.user.UserSettings['friendlyname'],
-                keys=self.user.Keys['master'],
-                passkey=self.user.passkey)
-            if server.serversettings.settings['mark-origin']:
-                    encrypted_msg.addStamp(
-                        stampclass='origin',
-                        keys=server.ServerKeys,
-                        hostname=server.serversettings.settings['hostname'])
-
-            # Now that we've created the inner message, convert it to text,
-            # store it in the outer message.
-            encrypted_pmstr = encrypted_msg.text()
-
-            e.payload.dict['encrypted'] = single_use_key.encrypt(
-                encrypt_to=touser.pubkey,
-                encryptstring=encrypted_pmstr)
-
-        # For all classses of messages-
-        if self.user.UserSettings['include_location'] or 'include_location' in self.request.arguments:
-            gi = pygeoip.GeoIP('data/GeoLiteCity.dat')
-            ip = self.request.remote_ip
-
-            # Don't check from home.
-            if ip == "127.0.0.1":
-                ip = "8.8.8.8"
-
-            gir = gi.record_by_name(ip)
-            e.payload.dict['coords'] = str(gir['latitude']) + \
-                "," + str(gir['longitude'])
-
-        if server.serversettings.settings['mark-origin']:
-                e.addStamp(
-                    stampclass='origin',
-                    keys=server.ServerKeys,
-                    hostname=server.serversettings.settings['hostname'])
-
-        # Send to the server
-        newmsgid = server.receiveEnvelope(env=e)
-        if newmsgid:
-            if client_to is None:
-                if client_regarding is not None:
-                    self.redirect('/message/' + server.getTopMessage(
-                        newmsgid) + "?jumpto=" + newmsgid, permanent=False)
-                else:
-                    self.redirect('/message/' + newmsgid, permanent=False)
-            else:
-                self.redirect('/showprivates')
+        res = self.sign_and_deliver(envelope=e)
+        if res:
+            self.redirect(res)
         else:
             self.write("Failure to insert message.")
 
+class UploadMessageRevisionHandler(UploadMessageHandler):
+    """Upload a revision to an earlier message."""
 
-class FileOnlyUploadHandler(UploadHandler):
+    def post(self):
+        """Receive Envelopes and their attachments."""
+
+        # If there are any files that were sent along with the envelope, save them out.
+        self.receive_files()
+
+
+        e = libtavern.envelope.Envelope()
+        e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "messagerevision"
+        e.payload.dict['topic'] = self.get_argument("topic")
+        e.payload.dict['subject'] = self.get_argument("subject")
+        e.payload.dict['body'] = self.get_argument("body")
+        e.payload.dict['regarding'] = self.get_argument("regarding")
+
+        # Save binaries (if any) from original.
+        original = libtavern.envelope.Envelope()
+        original.loadmongo(mongo_id=self.get_argument("regarding"))
+        if 'attachments' in original.dict['envelope']['payload']:
+            e.payload.dict['attachments'] = original.dict['envelope']['payload']['attachments']
+
+        res = self.sign_and_deliver(envelope=e)
+        if res:
+            self.redirect(res)
+        else:
+            self.write("Failure to insert message.")
+
+class UploadAttachmentHandler(UploadMessageHandler):
     def post(self):
         """Receive a POST request containing a file from JS, and return the JSON formatted reply it's expecting."""
 
@@ -1227,6 +1029,51 @@ class FileOnlyUploadHandler(UploadHandler):
         self.set_header("Content-Type", "application/json")
         self.write(details_json)
         return
+
+class UploadPrivateMessageHandler(UploadMessageHandler):
+    """Receive text, encrypt, send to dest."""
+
+    def post(self):
+
+        # If there are any files that were sent along with the envelope, save them out.
+        self.receive_files()
+
+        e = libtavern.envelope.Envelope()
+        e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "privatemessage"
+        e.payload.dict['to'] = self.get_argument("regarding")
+
+        # Give a new key as the replyto, so that even if a key leaks, you only lose THAT message.
+        single_use_key = self.user.get_pmkey()
+        single_use_key.unlock(self.user.passkey)
+        e.payload.dict['author'] = {}
+        e.payload.dict['author']['replyto'] = single_use_key.pubkey
+        e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
+
+        # We'll use our Envelope as a wrapper, and create a whole second message inside of it.
+        enc = libtavern.envelope.Envelope()
+        enc.payload.dict['formatting'] = "markdown"
+        enc.payload.dict['class'] = 'message'
+        enc.payload.dict['topic'] = "Private Message" # This is ignored
+        enc.payload.dict['subject'] = self.get_argument("subject")
+        enc.payload.dict['body'] = self.get_argument("body")
+        if self.get_argument("regarding", None):
+            enc.payload.dict['regarding'] = self.get_argument("regarding")
+
+        if self.request.files:
+            enc.payload.dict['attachments'] = []
+            for file in self.request.files:
+                enc.payload.dict['attachments'].append(file.sha)
+
+        # Sign the inner-message
+        enc.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+
+        # Encrypt the inner envelope, store in outer env.
+        e.payload.dict['encrypted'] = single_use_key.encrypt(encryptstring=enc.text(),encrypt_to=e.payload.dict['to'])
+        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        server.receiveEnvelope(env=e)
+        self.redirect("/pms")
+
 
 def main():
     """
@@ -1278,7 +1125,12 @@ def main():
     # Create an instance of Flask, so we can add it to the Tornado routing table, below.
     flask_app = flask.Flask(__name__)
     flask_app.config.update(flask_settings)
-    flask_app.add_url_rule('/upload', view_func=UploadHandler.as_view('UploadHandler'))
+    flask_app.add_url_rule('/new/message', view_func=UploadMessageHandler.as_view('UploadMessageHandler'))
+    flask_app.add_url_rule('/new/attachment', view_func=UploadAttachmentHandler.as_view('UploadAttachmentHandler'))
+    flask_app.add_url_rule('/new/pm', view_func=UploadPrivateMessageHandler.as_view('UploadPrivateMessageHandler'))
+    flask_app.add_url_rule('/new/revision', view_func=UploadMessageRevisionHandler.as_view('UploadMessageRevisionHandler'))
+
+
     flask_wsgi = tornado.wsgi.WSGIContainer(flask_app)
 
     # Parse -v, -vvv, etc for verbosity, starting with the level in settings.
@@ -1305,13 +1157,6 @@ def main():
             (r"/t/(.*)/settings", TopicPropertiesHandler),
             (r"/t/(.*)/new", NewMessageHandler),
             (r"/t/(.*)", TopicHandler),
-            (r"/new", NewMessageHandler),
-            (r"/new/attachment", FileOnlyUploadHandler),
-
-
-         #   (r"/new/(.*)", ReceiveEnvelopeHandler),
-         #   (r"/new/file/(.*)", ReceiveEnvelopeHandler),
-
             (r"/all/saved", AllSavedHandler),
             (r"/all", AllMessagesHandler),
 
@@ -1352,7 +1197,11 @@ def main():
             (r"/avatar/(.*)", AvatarHandler),
             # (r"/binaries/(.*)/(.*)", BinariesHandler),
             # (r"/binaries/(.*)", BinariesHandler)
-            (r"/upload", tornado.web.FallbackHandler, dict(fallback=flask_wsgi)),
+            (r"/new/message", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
+            (r"/new/attachment", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
+            (r"/new/pm", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
+            (r"/new/revision", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
+            (r"/new", NewMessageHandler), # The Form
             (r".*", CatchallHandler),
             ]
 

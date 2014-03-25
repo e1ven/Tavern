@@ -701,7 +701,7 @@
         <span class="c"># Store our Envelope</span>
         <span class="n">c</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
 
-        <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
 
 <span class="c">#    @libtavern.utils.memorise(ttl=defaultsettings.settings[&#39;cache&#39;][&#39;formatText&#39;][&#39;seconds&#39;], maxsize=defaultsettings.settings[&#39;cache&#39;][&#39;formatText&#39;][&#39;size&#39;])</span></div>
 <div class="viewcode-block" id="Server.formatText"><a class="viewcode-back" href="../../libtavern.html#libtavern.server.Server.formatText">[docs]</a>    <span class="k">def</span> <span class="nf">formatText</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">formatting</span><span class="o">=</span><span class="s">&#39;markdown&#39;</span><span class="p">):</span>

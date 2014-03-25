@@ -560,26 +560,34 @@ class User(libtavern.baseobj.Baseobj):
 
     def load_mongo_by_pubkey(self, pubkey):
         """Returns a user object for a given pubkey."""
-
         # Get Formatted key for searching.
         tmpkey = libtavern.key.Key(pub=pubkey)
         user = self.server.db.safe.find_one('users',{"keys.master.pubkey": tmpkey.pubkey})
-
         if user is not None:
             # If we find a local user, load in their priv and pub keys.
-            self.load_string(json.dumps(user))
+            return self.load_string(json.dumps(user))
         else:
             return None
 
+    def is_username_free(self,username):
+        """
+        Is a given username free
+        :param username: The Username to check
+        :return: True if it is unused, False if it is used.
+        """
+        return self.server.db.safe.count('users',{"username": username}) == 0
+
+    class UsernameNotInMongoError(Exception):
+        pass
+
     def load_mongo_by_username(self, username):
         # Local server Only
-        user = self.server.db.safe.find_one('users',
-                                            {"username": username})
-        if user is None:
-            return None
-
+        user = self.server.db.safe.find_one('users',{"username": username})
+        if not user:
+            raise self.UsernameNotInMongoError("It's not there.")
         self.load_string(json.dumps(user))
-    
+        return True
+
     def load_mongo_by_sessionid(self,sessionid):
         """
         Load in a user, via their sessionid

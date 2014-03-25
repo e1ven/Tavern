@@ -1,7 +1,7 @@
 {% extends "messageform.html" %}
 
 {% block submitblock %}
-		<form data-persist="garlic" enctype="multipart/form-data" action="/uploadenvelope/messagerevision" method="post" class="messageform" id='{{timeid}}'>
+		<form data-persist="garlic" enctype="multipart/form-data" action="/new/revision" method="post" class="messageform" id='{{timeid}}'>
 			{% module xsrf_form_html() %}
 			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
 

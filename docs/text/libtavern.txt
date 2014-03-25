@@ -121,7 +121,7 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
 
       Mark it in the local area.
 
-   class class Envelope.binary(sha512)
+   class class Envelope.attachment(sha512)
 
       Bases: "builtins.object"
 
@@ -147,7 +147,7 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
 
    Envelope.mungebins()
 
-      Store details for all binaries, and create thumbnails for
+      Store details for all attachments, and create thumbnails for
       images.
 
    Envelope.prettytext(striplocal=False)
@@ -523,14 +523,18 @@ class class libtavern.user.User(*args, **kwargs)
 
    Bases: "libtavern.baseobj.Baseobj"
 
-   add_email(email)
+   exception exception UsernameNotInMongoError
 
-   changepass(newpassword, oldpasskey=None)
+      Bases: "builtins.Exception"
+
+   User.add_email(email)
+
+   User.changepass(newpassword, oldpasskey=None)
 
       Change the User's password. Since this password is used to
       encrypt all of the keys, we need to re-encrypt them as well.
 
-   decrypt(text, passkey=None)
+   User.decrypt(text, passkey=None)
 
       Decrypt a message sent to me, using one of my communication
       keys.
@@ -540,21 +544,21 @@ class class libtavern.user.User(*args, **kwargs)
       clients don't start sending PMs to the master key, and
       compromise security.
 
-   ensure_keys(AllowGuestKey=True)
+   User.ensure_keys(AllowGuestKey=True)
 
       Generate the Keys for a User()
 
-   follow_topic(topic)
+   User.follow_topic(topic)
 
-   follows_topic(topic)
+   User.follows_topic(topic)
 
       Does this user follow the topic?
 
-   from_dict(userdict)
+   User.from_dict(userdict)
 
       Demarshall a user obj from a dictionary.
 
-   gatherTrust(askingabout, incomingtrust=250)
+   User.gatherTrust(askingabout, incomingtrust=250)
 
       Return how much I trust a given ID, rather than a given post.
       This is determined by several factors, but the base algorithm
@@ -565,44 +569,49 @@ class class libtavern.user.User(*args, **kwargs)
          person] [Each generation of friends gets their trust
          multiplied by .4, since you trust them less and less]
 
-   getRatings(postInQuestion)
+   User.getRatings(postInQuestion)
 
       Get the ratings of a specific message.
 
-   get_note(noteabout)
+   User.get_note(noteabout)
 
       Retrieve any note by user A about user B.
 
-   get_pubkeys()
+   User.get_pubkeys()
 
       Returns a list of all public keys for a user. Typically used to
       search for messages belonging to that user. :return: A list of
       all public keys.
 
-   load_file(filename)
+   User.is_username_free(username)
 
-   load_mongo_by_pubkey(pubkey)
+      Is a given username free :param username: The Username to check
+      :return: True if it is unused, False if it is used.
+
+   User.load_file(filename)
+
+   User.load_mongo_by_pubkey(pubkey)
 
       Returns a user object for a given pubkey.
 
-   load_mongo_by_sessionid(sessionid)
+   User.load_mongo_by_sessionid(sessionid)
 
       Load in a user, via their sessionid
 
-   load_mongo_by_username(username)
+   User.load_mongo_by_username(username)
 
-   load_publicinfo_by_pubkey(pubkey)
+   User.load_publicinfo_by_pubkey(pubkey)
 
       Retrieves publicly available information for a given user. This
       does leak what messages the server has received. But shouldn't
       give them anything about a user they couldn't get from another
       server.
 
-   load_string(incomingstring)
+   User.load_string(incomingstring)
 
-   make_hashes()
+   User.make_hashes()
 
-   new_posted_key()
+   User.new_posted_key()
 
       Generate a new communication key. This key might be attached to
       a forum message, or a private message.
@@ -611,29 +620,29 @@ class class libtavern.user.User(*args, **kwargs)
       eventually leak it will be difficult to decode old messages,
       who's keys have been deleted.
 
-   remove_email(email)
+   User.remove_email(email)
 
-   save_file(filename=None)
+   User.save_file(filename=None)
 
-   save_mongo(overwriteguest=False)
+   User.save_mongo(overwriteguest=False)
 
-   save_note(noteabout, note='')
+   User.save_note(noteabout, note='')
 
       Save a note to mongo about a user
 
-   save_session()
+   User.save_session()
 
       Save a session out to the DB.
 
-   to_dict()
+   User.to_dict()
 
       Marshall out the user obj a dictionary.
 
-   translateTrustToWords(trust)
+   User.translateTrustToWords(trust)
 
-   unfollow_topic(topic)
+   User.unfollow_topic(topic)
 
-   verify_password(guessed_password, tryinverted=True)
+   User.verify_password(guessed_password, tryinverted=True)
 
       Check a proposed password, to see if it's able to open and load
       a user's account.

@@ -188,7 +188,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">privkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decryptprivkey</span><span class="p">(</span><span class="n">oldpasskey</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Attempted to change password with incorrect password&quot;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;KeyPassError&#39;</span><span class="p">,</span><span class="s">&quot;Attempted to change password with incorrect password&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">encryptedprivkey</span> <span class="o">=</span> <span class="bp">None</span>

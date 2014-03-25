@@ -349,8 +349,8 @@ class Envelope(libtavern.baseobj.Baseobj):
             self.dict['envelope']['local'][
                 'short_body'] = short_body
 
-        # Process any binaries which are listed in the envelope
-        if 'binaries' in self.dict['envelope']['payload']:
+        # Process any attachments which are listed in the envelope
+        if 'attachments' in self.dict['envelope']['payload']:
             self.mungebins()
 
         if 'body' in self.dict['envelope']['payload']:
@@ -385,24 +385,24 @@ class Envelope(libtavern.baseobj.Baseobj):
 
     def mungebins(self):
         """
-        Store details for all binaries, and create thumbnails for images.
+        Store details for all attachments, and create thumbnails for images.
         """
 
         attachmentlist = []
-        for binary in self.dict['envelope']['payload']['binaries']:
+        for attachment in self.dict['envelope']['payload']['attachments']:
             try:
-                with self.server.bin_GridFS.get_last_version(filename=binary['sha_512']) as attachment:
+                with self.server.bin_GridFS.get_last_version(filename=attachment['sha512']) as attachment:
                     desc = {}
-                    desc['sha_512'] = binary['sha_512']
-                    desc['filename'] = binary.get('filename','Unknown_File')
+                    desc['sha512'] = attachment['sha512']
+                    desc['filename'] = attachment.get('filename','Unknown_File')
                     desc['detected_mime'] = magic.from_buffer(attachment.read(), mime=True).decode('utf-8')
-                    desc['displayable'] = libtavern.utils.make_thumbnail(attachment,binary['sha_512'] + '-thumb',desc['detected_mime'])
+                    desc['displayable'] = libtavern.utils.make_thumbnail(attachment,attachment['sha_512'] + '-thumb',desc['detected_mime'])
                     desc['filesize'] = attachment.length
                     attachmentlist.append(attachmentdesc)
             except:
                 continue
 
-            # Use the first displayable binary as a link for Pinterest and FB
+            # Use the first displayable attachment as a link for Pinterest and FB
             if not self.dict['envelope']['local'].get('medialink') and desc['displayable']:
                 self.dict['envelope']['local']['medialink'] = desc['displayable']
 
@@ -536,11 +536,11 @@ class Envelope(libtavern.baseobj.Baseobj):
             self.saveMongo()
             return True
 
-    class binary(object):
+    class attachment(object):
 
         def __init__(self, sha512):
             self.dict = OrderedDict()
-            self.dict['sha_512'] = sha512
+            self.dict['sha512'] = sha512
 
     def __init2__(self):
         self.dict = OrderedDict()
