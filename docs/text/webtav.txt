@@ -20,49 +20,6 @@ class class webtav.flasknado.Flasknado(*args, **kwargs)
 
       Adds the given response header and value.
 
-   check_xsrf_cookie()
-
-      Verifies that the "_xsrf" cookie matches the "_xsrf" argument.
-
-      To prevent cross-site request forgery, we set an "_xsrf" cookie
-      and include the same value as a non-cookie field with all "POST"
-      requests. If the two do not match, we reject the form submission
-      as a potential forgery.
-
-      The "_xsrf" value may be set as either a form field named
-      "_xsrf" or in a custom HTTP header named "X-XSRFToken" or
-      "X-CSRFToken" (the latter is accepted for compatibility with
-      Django).
-
-      See http://en.wikipedia.org/wiki/Cross-site_request_forgery
-
-      Prior to release 1.1.1, this check was ignored if the HTTP
-      header "X-Requested-With: XMLHTTPRequest" was present.  This
-      exception has been shown to be insecure and has been removed.
-      For more information please see
-      http://www.djangoproject.com/weblog/2011/feb/08/security/
-      http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-
-      in-ruby-on-rails
-
-   clear_all_cookies(path='/', domain=None)
-
-      Deletes all the cookies the user sent with this request.
-
-      See *clear_cookie* for more information on the path and domain
-      parameters.
-
-      Changed in version 3.2: Added the "path" and "domain"
-      parameters.
-
-   clear_cookie(name, path='/', domain=None)
-
-      Deletes the cookie with the given name.
-
-      Due to limitations of the cookie protocol, you must pass the
-      same path and domain to clear a cookie as were used when that
-      cookie was set (but there is no way to find out on the server
-      side which values were used for a given cookie).
-
    clear_header(name)
 
       Clears an outgoing header, undoing a previous *set_header* call.
@@ -120,22 +77,6 @@ class class webtav.flasknado.Flasknado(*args, **kwargs)
 
       The returned values are always unicode.
 
-   get_body_argument(name, default=[], strip=True)
-
-      Returns the value of the argument with the given name from the
-      request body.
-
-      If default is not provided, the argument is considered to be
-      required, and we raise a *MissingArgumentError* if it is
-      missing.
-
-      If the argument appears in the url more than once, we return the
-      last value.
-
-      The returned value is always unicode.
-
-      New in version 3.2.
-
    get_body_arguments(name, strip=True)
 
       Returns a list of the body arguments with the given name.
@@ -145,10 +86,6 @@ class class webtav.flasknado.Flasknado(*args, **kwargs)
       The returned values are always unicode.
 
       New in version 3.2.
-
-   get_cookie(name, default=None)
-
-      Gets the value of the cookie with the given name, else default.
 
    get_query_argument(name, default=[], strip=True)
 
@@ -203,52 +140,6 @@ class class webtav.flasknado.Flasknado(*args, **kwargs)
    set_header(name, value)
 
       Sets the given response header name and value.
-
-   set_secure_cookie(name, value, **kwargs)
-
-      Signs and timestamps a cookie so it cannot be forged.
-
-      You must specify the "cookie_secret" setting in your Tornado
-      Application to use this method. It should be a long, random
-      sequence of bytes to be used as the HMAC secret for the
-      signature.
-
-      To read a cookie set with this method, use
-      *get_secure_cookie()*.
-
-      Note that the "expires_days" parameter sets the lifetime of the
-      cookie in the browser, but is independent of the "max_age_days"
-      parameter to *get_secure_cookie*.
-
-      Secure cookies may contain arbitrary byte values, not just
-      unicode strings (unlike regular cookies)
-
-   xsrf_form_html()
-
-      An HTML "<input/>" element to be included with all POST forms.
-
-      It defines the "_xsrf" input value, which we check on all POST
-      requests to prevent cross-site request forgery. If you have set
-      the "xsrf_cookies" application setting, you must include this
-      HTML within all of your HTML forms.
-
-      In a template, this method should be called with "{% module
-      xsrf_form_html() %}"
-
-      See *check_xsrf_cookie()* above for more information.
-
-   xsrf_token
-
-      The XSRF value is a randomly generated string that is set in
-      both POST requests and cookies.
-
-      Overwritten from the Tornado default to use systemrandom rather
-      than uuid. Like tornado, this method will set a cookie with the
-      xsrf value if it does not currently exist.
-
-webtav.flasknado.create_signed_value(secret, name, value)
-
-webtav.flasknado.decode_signed_value(secret, name, value, max_age_days=31)
 
 
 webtav.uimodules module

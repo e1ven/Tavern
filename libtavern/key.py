@@ -13,6 +13,7 @@ import functools
 import time
 import libtavern.utils
 import libtavern.baseobj
+import datetime
 
 # We're not using  @memorise because we don't WANT cached copies of the
 # keys hanging around, even though it'd be faster ;()

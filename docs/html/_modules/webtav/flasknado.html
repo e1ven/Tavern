@@ -56,6 +56,7 @@
 <span class="kn">import</span> <span class="nn">flask</span>
 <span class="kn">from</span> <span class="nn">flask.views</span> <span class="kn">import</span> <span class="n">MethodView</span>
 <span class="kn">from</span> <span class="nn">tornado.escape</span> <span class="kn">import</span> <span class="n">utf8</span><span class="p">,</span> <span class="n">_unicode</span>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">from</span> <span class="nn">tornado.util</span> <span class="kn">import</span> <span class="n">bytes_type</span><span class="p">,</span> <span class="n">import_object</span><span class="p">,</span> <span class="n">ObjectDict</span><span class="p">,</span> <span class="n">raise_exc_info</span><span class="p">,</span> <span class="n">unicode_type</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">libtavern.server</span>
@@ -116,22 +117,22 @@
 <span class="sd">        The returned values are always unicode.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_arguments</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">,</span> <span class="n">strip</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Flasknado.get_body_argument"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.get_body_argument">[docs]</a>    <span class="k">def</span> <span class="nf">get_body_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">_ARG_DEFAULT</span><span class="p">,</span> <span class="n">strip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the value of the argument with the given name</span>
-<span class="sd">        from the request body.</span>
 
-<span class="sd">        If default is not provided, the argument is considered to be</span>
-<span class="sd">        required, and we raise a `MissingArgumentError` if it is missing.</span>
+        <span class="k">def</span> <span class="nf">get_body_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">_ARG_DEFAULT</span><span class="p">,</span> <span class="n">strip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+            <span class="sd">&quot;&quot;&quot;Returns the value of the argument with the given name</span>
+<span class="sd">            from the request body.</span>
 
-<span class="sd">        If the argument appears in the url more than once, we return the</span>
-<span class="sd">        last value.</span>
+<span class="sd">            If default is not provided, the argument is considered to be</span>
+<span class="sd">            required, and we raise a `MissingArgumentError` if it is missing.</span>
 
-<span class="sd">        The returned value is always unicode.</span>
+<span class="sd">            If the argument appears in the url more than once, we return the</span>
+<span class="sd">            last value.</span>
 
-<span class="sd">        .. versionadded:: 3.2</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_argument</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body_arguments</span><span class="p">,</span> <span class="n">strip</span><span class="p">)</span>
+<span class="sd">            The returned value is always unicode.</span>
+
+<span class="sd">            .. versionadded:: 3.2</span>
+<span class="sd">            &quot;&quot;&quot;</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_argument</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body_arguments</span><span class="p">,</span> <span class="n">strip</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="Flasknado.get_body_arguments"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.get_body_arguments">[docs]</a>    <span class="k">def</span> <span class="nf">get_body_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">strip</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Returns a list of the body arguments with the given name.</span>
@@ -217,61 +218,10 @@
         <span class="sd">&quot;&quot;&quot;An alias for `self.request.cookies &lt;.httpserver.HTTPRequest.cookies&gt;`.&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">cookies</span>
 </div>
-<div class="viewcode-block" id="Flasknado.get_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.get_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">get_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Gets the value of the cookie with the given name, else default.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">cookies</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
-        <span class="k">return</span> <span class="n">default</span>
-
-</div>
 <div class="viewcode-block" id="Flasknado.set_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.set_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Sets the given cookie name/value with the given options.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     </div>
-<div class="viewcode-block" id="Flasknado.clear_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.clear_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">clear_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Deletes the cookie with the given name.</span>
-
-<span class="sd">        Due to limitations of the cookie protocol, you must pass the same</span>
-<span class="sd">        path and domain to clear a cookie as were used when that cookie</span>
-<span class="sd">        was set (but there is no way to find out on the server side</span>
-<span class="sd">        which values were used for a given cookie).</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">expires</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span> <span class="o">-</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">365</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">expires</span><span class="o">=</span><span class="n">expires</span><span class="p">,</span>
-                        <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Flasknado.clear_all_cookies"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.clear_all_cookies">[docs]</a>    <span class="k">def</span> <span class="nf">clear_all_cookies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="s">&quot;/&quot;</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Deletes all the cookies the user sent with this request.</span>
-
-<span class="sd">        See `clear_cookie` for more information on the path and domain</span>
-<span class="sd">        parameters.</span>
-
-<span class="sd">        .. versionchanged:: 3.2</span>
-
-<span class="sd">           Added the ``path`` and ``domain`` parameters.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">clear_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">path</span><span class="p">,</span> <span class="n">domain</span><span class="o">=</span><span class="n">domain</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Flasknado.set_secure_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.set_secure_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">set_secure_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span><span class="n">value</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Signs and timestamps a cookie so it cannot be forged.</span>
-
-<span class="sd">        You must specify the ``cookie_secret`` setting in your Tornado </span>
-<span class="sd">        Application to use this method. It should be a long, random sequence</span>
-<span class="sd">        of bytes to be used as the HMAC secret for the signature.</span>
-
-<span class="sd">        To read a cookie set with this method, use `get_secure_cookie()`.</span>
-
-<span class="sd">        Note that the ``expires_days`` parameter sets the lifetime of the</span>
-<span class="sd">        cookie in the browser, but is independent of the ``max_age_days``</span>
-<span class="sd">        parameter to `get_secure_cookie`.</span>
-
-<span class="sd">        Secure cookies may contain arbitrary byte values, not just unicode</span>
-<span class="sd">        strings (unlike regular cookies)</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">signed</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">create_signed_value</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">set_cookie</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">signed</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</div>
 <div class="viewcode-block" id="Flasknado.create_signed_value"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.create_signed_value">[docs]</a>    <span class="k">def</span> <span class="nf">create_signed_value</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Signs and timestamps a string so it cannot be forged.</span>
 
@@ -307,72 +257,6 @@
             <span class="n">status</span> <span class="o">=</span> <span class="mi">301</span> <span class="k">if</span> <span class="n">permanent</span> <span class="k">else</span> <span class="mi">302</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">location</span><span class="o">=</span><span class="n">url</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="n">status</span><span class="p">)</span>
 </div>
-    <span class="nd">@property</span>
-<div class="viewcode-block" id="Flasknado.xsrf_token"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.xsrf_token">[docs]</a>    <span class="k">def</span> <span class="nf">xsrf_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        The XSRF value is a randomly generated string that is set in both POST requests and cookies.</span>
-
-<span class="sd">        Overwritten from the Tornado default to use systemrandom rather than uuid.</span>
-<span class="sd">        Like tornado, this method will set a cookie with the xsrf value if it does not currently exist.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c"># Only generate once/session</span>
-        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&quot;_xsrf_token&quot;</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
-        <span class="c"># Use cookie one if it exists, otherwise random str.</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_signed_cookie</span><span class="p">(</span><span class="s">&#39;_xsrf&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
-            <span class="c"># Generate a token, save it to a cookie.</span>
-            <span class="n">token</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">set_secure_cookie</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span><span class="n">value</span><span class="o">=</span><span class="n">token</span><span class="p">,</span><span class="n">httponly</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">max_age</span><span class="o">=</span><span class="mi">31556952</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span> <span class="o">=</span> <span class="n">token</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xsrf_token</span>
-</div>
-<div class="viewcode-block" id="Flasknado.check_xsrf_cookie"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.check_xsrf_cookie">[docs]</a>    <span class="k">def</span> <span class="nf">check_xsrf_cookie</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Verifies that the ``_xsrf`` cookie matches the ``_xsrf`` argument.</span>
-
-<span class="sd">        To prevent cross-site request forgery, we set an ``_xsrf``</span>
-<span class="sd">        cookie and include the same value as a non-cookie</span>
-<span class="sd">        field with all ``POST`` requests. If the two do not match, we</span>
-<span class="sd">        reject the form submission as a potential forgery.</span>
-
-<span class="sd">        The ``_xsrf`` value may be set as either a form field named ``_xsrf``</span>
-<span class="sd">        or in a custom HTTP header named ``X-XSRFToken`` or ``X-CSRFToken``</span>
-<span class="sd">        (the latter is accepted for compatibility with Django).</span>
-
-<span class="sd">        See http://en.wikipedia.org/wiki/Cross-site_request_forgery</span>
-
-<span class="sd">        Prior to release 1.1.1, this check was ignored if the HTTP header</span>
-<span class="sd">        ``X-Requested-With: XMLHTTPRequest`` was present.  This exception</span>
-<span class="sd">        has been shown to be insecure and has been removed.  For more</span>
-<span class="sd">        information please see</span>
-<span class="sd">        http://www.djangoproject.com/weblog/2011/feb/08/security/</span>
-<span class="sd">        http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span>
-                 <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Xsrftoken&quot;</span><span class="p">)</span> <span class="ow">or</span>
-                 <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Csrftoken&quot;</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;HTTPError&quot;</span><span class="p">,</span><span class="s">&quot;&#39;_xsrf&#39; argument missing from POST&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span> <span class="o">!=</span> <span class="n">token</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;HTTPError&quot;</span><span class="p">,</span><span class="s">&quot;XSRF cookie does not match POST argument&quot;</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="Flasknado.xsrf_form_html"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.Flasknado.xsrf_form_html">[docs]</a>    <span class="k">def</span> <span class="nf">xsrf_form_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;An HTML ``&lt;input/&gt;`` element to be included with all POST forms.</span>
-
-<span class="sd">        It defines the ``_xsrf`` input value, which we check on all POST</span>
-<span class="sd">        requests to prevent cross-site request forgery. If you have set</span>
-<span class="sd">        the ``xsrf_cookies`` application setting, you must include this</span>
-<span class="sd">        HTML within all of your HTML forms.</span>
-
-<span class="sd">        In a template, this method should be called with ``{% module</span>
-<span class="sd">        xsrf_form_html() %}``</span>
-
-<span class="sd">        See `check_xsrf_cookie()` above for more information.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="s">&#39;&lt;input type=&quot;hidden&quot; name=&quot;_xsrf&quot; value=&quot;&#39;</span> <span class="o">+</span> \
-            <span class="n">tornado</span><span class="o">.</span><span class="n">escape</span><span class="o">.</span><span class="n">xhtml_escape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsrf_token</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&quot;/&gt;&#39;</span>
-
-</div>
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create the base object for all requests to our Tavern webserver.&quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">server</span> <span class="o">=</span> <span class="n">server</span>
@@ -382,61 +266,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">request</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">HTTPRequest</span><span class="p">(</span><span class="n">flask</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">environ</span><span class="p">)</span>
         <span class="c"># Retrieve our carefully stored Tornado app server.</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="n">request</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="p">,</span><span class="n">application</span><span class="o">=</span><span class="n">flask</span><span class="o">.</span><span class="n">current_app</span><span class="o">.</span><span class="n">tornado</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-
 </div>
-<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">hmac</span><span class="p">,</span> <span class="s">&#39;compare_digest&#39;</span><span class="p">):</span>  <span class="c"># python 3.3</span>
-    <span class="n">_time_independent_equals</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">compare_digest</span>
-<span class="k">else</span><span class="p">:</span>
-    <span class="k">def</span> <span class="nf">_time_independent_equals</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">):</span>
-            <span class="k">return</span> <span class="bp">False</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">int</span><span class="p">):</span>  <span class="c"># python3 byte strings</span>
-            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-                <span class="n">result</span> <span class="o">|=</span> <span class="n">x</span> <span class="o">^</span> <span class="n">y</span>
-        <span class="k">else</span><span class="p">:</span>  <span class="c"># python2</span>
-            <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">):</span>
-                <span class="n">result</span> <span class="o">|=</span> <span class="nb">ord</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">^</span> <span class="nb">ord</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span> <span class="o">==</span> <span class="mi">0</span>
-
-<div class="viewcode-block" id="create_signed_value"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.create_signed_value">[docs]</a><span class="k">def</span> <span class="nf">create_signed_value</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="n">utf8</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">())))</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
-    <span class="n">signature</span> <span class="o">=</span> <span class="n">_create_signature</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">)</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">b</span><span class="s">&quot;|&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">value</span><span class="p">,</span> <span class="n">timestamp</span><span class="p">,</span> <span class="n">signature</span><span class="p">])</span>
-    <span class="k">return</span> <span class="n">value</span>
-</div>
-<div class="viewcode-block" id="decode_signed_value"><a class="viewcode-back" href="../../webtav.html#webtav.flasknado.decode_signed_value">[docs]</a><span class="k">def</span> <span class="nf">decode_signed_value</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">max_age_days</span><span class="o">=</span><span class="mi">31</span><span class="p">):</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">value</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="n">parts</span> <span class="o">=</span> <span class="n">utf8</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;|&quot;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="n">signature</span> <span class="o">=</span> <span class="n">_create_signature</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">_time_independent_equals</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">signature</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
-    <span class="k">if</span> <span class="n">timestamp</span> <span class="o">&lt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">max_age_days</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="n">timestamp</span> <span class="o">&gt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">+</span> <span class="mi">31</span> <span class="o">*</span> <span class="mi">86400</span><span class="p">:</span>
-        <span class="c"># _cookie_signature does not hash a delimiter between the</span>
-        <span class="c"># parts of the cookie, so an attacker could transfer trailing</span>
-        <span class="c"># digits from the payload to the timestamp without altering the</span>
-        <span class="c"># signature.  For backwards compatibility, sanity-check timestamp</span>
-        <span class="c"># here instead of modifying _cookie_signature.</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="k">if</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="n">b</span><span class="s">&quot;0&quot;</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">None</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64decode</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-        <span class="k">return</span> <span class="bp">None</span>
-</div>
-<span class="k">def</span> <span class="nf">_create_signature</span><span class="p">(</span><span class="n">secret</span><span class="p">,</span> <span class="o">*</span><span class="n">parts</span><span class="p">):</span>
-    <span class="nb">hash</span> <span class="o">=</span> <span class="n">hmac</span><span class="o">.</span><span class="n">new</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="n">secret</span><span class="p">),</span> <span class="n">digestmod</span><span class="o">=</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha1</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">part</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
-        <span class="nb">hash</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">utf8</span><span class="p">(</span><span class="n">part</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">utf8</span><span class="p">(</span><span class="nb">hash</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span>
+<span class="n">_create_signature</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">_create_signature</span>
+<span class="n">_time_independent_equals</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">_time_independent_equals</span>
+<span class="n">create_signed_value</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">create_signed_value</span>
+<span class="n">decode_signed_value</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">decode_signed_value</span>
 </pre></div>
 
           </div>

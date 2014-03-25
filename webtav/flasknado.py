@@ -6,6 +6,7 @@ import re
 import flask
 from flask.views import MethodView
 from tornado.escape import utf8, _unicode
+import tornado.web
 from tornado.util import bytes_type, import_object, ObjectDict, raise_exc_info, unicode_type
 import tornado.escape
 import libtavern.server
@@ -67,21 +68,21 @@ class Flasknado(MethodView):
         """
         return self._get_arguments(name, self.request.arguments, strip)
 
-    def get_body_argument(self, name, default=_ARG_DEFAULT, strip=True):
-        """Returns the value of the argument with the given name
-        from the request body.
+        def get_body_argument(self, name, default=_ARG_DEFAULT, strip=True):
+            """Returns the value of the argument with the given name
+            from the request body.
 
-        If default is not provided, the argument is considered to be
-        required, and we raise a `MissingArgumentError` if it is missing.
+            If default is not provided, the argument is considered to be
+            required, and we raise a `MissingArgumentError` if it is missing.
 
-        If the argument appears in the url more than once, we return the
-        last value.
+            If the argument appears in the url more than once, we return the
+            last value.
 
-        The returned value is always unicode.
+            The returned value is always unicode.
 
-        .. versionadded:: 3.2
-        """
-        return self._get_argument(name, default, self.request.body_arguments, strip)
+            .. versionadded:: 3.2
+            """
+            return self._get_argument(name, default, self.request.body_arguments, strip)
 
     def get_body_arguments(self, name, strip=True):
         """Returns a list of the body arguments with the given name.
@@ -167,61 +168,10 @@ class Flasknado(MethodView):
         """An alias for `self.request.cookies <.httpserver.HTTPRequest.cookies>`."""
         return self.request.cookies
 
-    def get_cookie(self, name, default=None):
-        """Gets the value of the cookie with the given name, else default."""
-        if self.request.cookies is not None and name in self.request.cookies:
-            return self.request.cookies[name].value
-        return default
-
-
     def set_cookie(name,value,**kwargs):
         """Sets the given cookie name/value with the given options."""
         self.response.set_cookie(name, value,**kwargs)
     
-    def clear_cookie(self, name, path="/", domain=None):
-        """Deletes the cookie with the given name.
-
-        Due to limitations of the cookie protocol, you must pass the same
-        path and domain to clear a cookie as were used when that cookie
-        was set (but there is no way to find out on the server side
-        which values were used for a given cookie).
-        """
-        expires = datetime.datetime.utcnow() - datetime.timedelta(days=365)
-        self.set_cookie(name, value="", path=path, expires=expires,
-                        domain=domain)
-
-    def clear_all_cookies(self, path="/", domain=None):
-        """Deletes all the cookies the user sent with this request.
-
-        See `clear_cookie` for more information on the path and domain
-        parameters.
-
-        .. versionchanged:: 3.2
-
-           Added the ``path`` and ``domain`` parameters.
-        """
-        for name in self.request.cookies:
-            self.clear_cookie(name, path=path, domain=domain)
-
-    def set_secure_cookie(name,value,**kwargs):
-        """Signs and timestamps a cookie so it cannot be forged.
-
-        You must specify the ``cookie_secret`` setting in your Tornado 
-        Application to use this method. It should be a long, random sequence
-        of bytes to be used as the HMAC secret for the signature.
-
-        To read a cookie set with this method, use `get_secure_cookie()`.
-
-        Note that the ``expires_days`` parameter sets the lifetime of the
-        cookie in the browser, but is independent of the ``max_age_days``
-        parameter to `get_secure_cookie`.
-
-        Secure cookies may contain arbitrary byte values, not just unicode
-        strings (unlike regular cookies)
-        """
-        signed = self.create_signed_value(name, value)
-        self.response.set_cookie(name, signed, **kwargs)
-
     def create_signed_value(self, name, value):
         """Signs and timestamps a string so it cannot be forged.
 
@@ -257,72 +207,6 @@ class Flasknado(MethodView):
             status = 301 if permanent else 302
         self.response = flask.redirect(location=url,code=status)
 
-    @property
-    def xsrf_token(self):
-        """
-        The XSRF value is a randomly generated string that is set in both POST requests and cookies.
-
-        Overwritten from the Tornado default to use systemrandom rather than uuid.
-        Like tornado, this method will set a cookie with the xsrf value if it does not currently exist.
-        """
-        # Only generate once/session
-        if hasattr(self, "_xsrf_token"):
-            return self._xsrf_token
-        # Use cookie one if it exists, otherwise random str.
-        token = self.get_signed_cookie('_xsrf',None)
-        if not token:
-            # Generate a token, save it to a cookie.
-            token = libtavern.utils.randstr(16)
-            self.set_secure_cookie(name="_xsrf",value=token,httponly=True, max_age=31556952 * 2)
-        self._xsrf_token = token
-        return self._xsrf_token
-
-    def check_xsrf_cookie(self):
-        """Verifies that the ``_xsrf`` cookie matches the ``_xsrf`` argument.
-
-        To prevent cross-site request forgery, we set an ``_xsrf``
-        cookie and include the same value as a non-cookie
-        field with all ``POST`` requests. If the two do not match, we
-        reject the form submission as a potential forgery.
-
-        The ``_xsrf`` value may be set as either a form field named ``_xsrf``
-        or in a custom HTTP header named ``X-XSRFToken`` or ``X-CSRFToken``
-        (the latter is accepted for compatibility with Django).
-
-        See http://en.wikipedia.org/wiki/Cross-site_request_forgery
-
-        Prior to release 1.1.1, this check was ignored if the HTTP header
-        ``X-Requested-With: XMLHTTPRequest`` was present.  This exception
-        has been shown to be insecure and has been removed.  For more
-        information please see
-        http://www.djangoproject.com/weblog/2011/feb/08/security/
-        http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails
-        """
-        token = (self.get_argument("_xsrf", None) or
-                 self.request.headers.get("X-Xsrftoken") or
-                 self.request.headers.get("X-Csrftoken"))
-        if not token:
-            raise Exception("HTTPError","'_xsrf' argument missing from POST")
-        if self.xsrf_token != token:
-            raise Exception("HTTPError","XSRF cookie does not match POST argument")
-
-    def xsrf_form_html(self):
-        """An HTML ``<input/>`` element to be included with all POST forms.
-
-        It defines the ``_xsrf`` input value, which we check on all POST
-        requests to prevent cross-site request forgery. If you have set
-        the ``xsrf_cookies`` application setting, you must include this
-        HTML within all of your HTML forms.
-
-        In a template, this method should be called with ``{% module
-        xsrf_form_html() %}``
-
-        See `check_xsrf_cookie()` above for more information.
-        """
-        return '<input type="hidden" name="_xsrf" value="' + \
-            tornado.escape.xhtml_escape(self.xsrf_token) + '"/>'
-
-
     def __init__(self,*args,**kwargs):
         """Create the base object for all requests to our Tavern webserver."""
         self.server = server
@@ -333,57 +217,7 @@ class Flasknado(MethodView):
         # Retrieve our carefully stored Tornado app server.
         super().__init__(*args,request=self.request,application=flask.current_app.tornado,**kwargs)
 
-
-if hasattr(hmac, 'compare_digest'):  # python 3.3
-    _time_independent_equals = hmac.compare_digest
-else:
-    def _time_independent_equals(a, b):
-        if len(a) != len(b):
-            return False
-        result = 0
-        if isinstance(a[0], int):  # python3 byte strings
-            for x, y in zip(a, b):
-                result |= x ^ y
-        else:  # python2
-            for x, y in zip(a, b):
-                result |= ord(x) ^ ord(y)
-        return result == 0
-
-def create_signed_value(secret, name, value):
-    timestamp = utf8(str(int(time.time())))
-    value = base64.b64encode(utf8(value))
-    signature = _create_signature(secret, name, value, timestamp)
-    value = b"|".join([value, timestamp, signature])
-    return value
-
-def decode_signed_value(secret, name, value, max_age_days=31):
-    if not value:
-        return None
-    parts = utf8(value).split(b"|")
-    if len(parts) != 3:
-        return None
-    signature = _create_signature(secret, name, parts[0], parts[1])
-    if not _time_independent_equals(parts[2], signature):
-        return None
-    timestamp = int(parts[1])
-    if timestamp < time.time() - max_age_days * 86400:
-        return None
-    if timestamp > time.time() + 31 * 86400:
-        # _cookie_signature does not hash a delimiter between the
-        # parts of the cookie, so an attacker could transfer trailing
-        # digits from the payload to the timestamp without altering the
-        # signature.  For backwards compatibility, sanity-check timestamp
-        # here instead of modifying _cookie_signature.
-        return None
-    if parts[1].startswith(b"0"):
-        return None
-    try:
-        return base64.b64decode(parts[0])
-    except Exception:
-        return None
-
-def _create_signature(secret, *parts):
-    hash = hmac.new(utf8(secret), digestmod=hashlib.sha1)
-    for part in parts:
-        hash.update(utf8(part))
-    return utf8(hash.hexdigest())
+_create_signature = tornado.web._create_signature
+_time_independent_equals = tornado.web._time_independent_equals
+create_signed_value = tornado.web.create_signed_value
+decode_signed_value = tornado.web.decode_signed_value
