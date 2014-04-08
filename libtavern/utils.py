@@ -202,7 +202,10 @@ def to_json(obj):
     """Returns a string containing a JSON representation of the object.
     Moved out from using json.dumps everywhere, to ensure the params are standardized.
     """
-    return json.dumps(obj=obj,skipkeys=False,ensure_ascii=False,)
+    return json.dumps(obj=obj,skipkeys=False,
+                      ensure_ascii=False,check_circular=True,
+                      allow_nan=True,indent=None,
+                      separators=(',', ':'),sort_keys=True)
 
 class TavernCache(object):
         """
@@ -314,7 +317,7 @@ class memorise(object):
                                                 tempkey[key] = objresolve(
                                                     args[0], key)
                                                 keys.append(tempkey)
-                                keys = json.dumps(keys, separators=(',', ':'))
+                                keys = to_json(keys)
                                 if static:
                                 # Get the class name from the cls argument
                                         class_name = args[0].__name__

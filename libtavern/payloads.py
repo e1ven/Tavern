@@ -8,6 +8,7 @@ import libtavern.key
 import libtavern.utils
 import libtavern.topic
 import collections
+import hashlib
 
 class BasePayload(libtavern.baseobj.Baseobj):
     """This is the baseclass for all other Payloads. No message should stay in this state.
@@ -70,7 +71,7 @@ class BasePayload(libtavern.baseobj.Baseobj):
         :return str: JSON of the payload.
         """
         self.format()
-        return json.dumps(self.dict, separators=(',', ':'))
+        return libtavern.utils.to_json(self.dict)
 
     @property
     def validates(self):

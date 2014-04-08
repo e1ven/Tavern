@@ -58,6 +58,7 @@
 <span class="kn">import</span> <span class="nn">libtavern.utils</span>
 <span class="kn">import</span> <span class="nn">libtavern.topic</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
 
 <div class="viewcode-block" id="BasePayload"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload">[docs]</a><span class="k">class</span> <span class="nc">BasePayload</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This is the baseclass for all other Payloads. No message should stay in this state.</span>
@@ -120,7 +121,7 @@
 <span class="sd">        :return str: JSON of the payload.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
-        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">to_json</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
 </div>
     <span class="nd">@property</span>
 <div class="viewcode-block" id="BasePayload.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

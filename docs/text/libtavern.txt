@@ -110,8 +110,6 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
       Store details for all attachments, and create thumbnails for
       images.
 
-   prettytext(striplocal=False)
-
    registerpayload()
 
    reloadfile()
@@ -426,8 +424,6 @@ class class libtavern.server.Server(slot='default')
    getTopMessage(messageid)
 
    get_all_user_posts(pubkey, limit=1000)
-
-   prettytext()
 
    receive_envelope(env=None)
 

@@ -12,6 +12,7 @@ import libtavern.baseobj
 import libtavern.key
 import libtavern.utils
 import libtavern.topic
+import libtavern.payloads
 
 class Envelope(libtavern.baseobj.Baseobj):
     """
@@ -355,25 +356,25 @@ class Envelope(libtavern.baseobj.Baseobj):
         self.dict['envelope']['local']['citedby'] = []
         self.dict['envelope']['stamps'] = []
 
-        self.payload = PayloadBase(self.dict['envelope']['payload'])
+        self.payload = libtavern.payloads.BasePayload(self.dict['envelope']['payload'])
 
     def registerpayload(self):
         if 'payload' in self.dict['envelope']:
             if 'class' in self.dict['envelope']['payload']:
                 if self.dict['envelope']['payload']['class'] == "message":
-                    self.payload = Envelope.Message(
+                    self.payload = libtavern.payloads.Message(
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "messagerating":
-                    self.payload = Envelope.Rating(
+                    self.payload = libtavern.payloads.Rating(
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "usertrust":
-                    self.payload = Envelope.UserTrust(
+                    self.payload = libtavern.payloads.UserTrust(
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "privatemessage":
-                    self.payload = Envelope.PrivateMessage(
+                    self.payload = libtavern.payloads.PrivateMessage(
                         self.dict['envelope']['payload'])
                 elif self.dict['envelope']['payload']['class'] == "messagerevision":
-                    self.payload = Envelope.MessageRevision(
+                    self.payload = libtavern.payloads.MessageRevision(
                         self.dict['envelope']['payload'])
                 else:
                     self.server.logger.info(
@@ -386,7 +387,7 @@ class Envelope(libtavern.baseobj.Baseobj):
             return True
 
     def loaddict(self, importdict):
-        newstr = json.dumps(importdict, separators=(',', ':'))
+        newstr =libtavern.utils.to_json(importdict)
         return self.loadstring(newstr)
 
     def loadstring(self, importstring):
@@ -430,12 +431,7 @@ class Envelope(libtavern.baseobj.Baseobj):
 
     def text(self, striplocal=False):
         self.flatten()
-        newstr = json.dumps(self.dict, separators=(',', ':'))
-        return newstr
-
-    def prettytext(self, striplocal=False):
-        self.flatten()
-        newstr = json.dumps(self.dict, indent=2, separators=(', ', ': '))
+        newstr = libtavern.utils.to_json(self.dict)
         return newstr
 
     def savefile(self, directory='.'):

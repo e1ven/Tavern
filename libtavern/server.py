@@ -442,11 +442,6 @@ class Server(libtavern.utils.instancer):
         self.logger.info("Tavern Server (" + self.slot + ") is stopping.")
         self.keygen.stop()
 
-    def prettytext(self):
-        newstr = json.dumps(
-            self.serversettings.settings, indent=2, separators=(', ', ': '))
-        return newstr
-
  #   @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['error_envelope']['seconds'], maxsize=defaultsettings.settings['cache']['error_envelope']['size'])
     def error_envelope(self, subject="Error", topic="sitecontent", body=None):
 
@@ -609,7 +604,7 @@ class Server(libtavern.utils.instancer):
     def get_all_user_posts(self, pubkey, limit=1000):
         envelopes = []
         for envelope in self.db.safe.find('envelopes', {'envelope.local.author.pubkey': pubkey, 'envelope.payload.class': 'message'}, limit=limit, sortkey='envelope.local.time_added', sortdirection='descending'):
-            messagetext = json.dumps(envelope, separators=(',', ':'))
+            messagetext = libtavern.utils.to_json(envelope)
             e = libtavern.envelope.Envelope(server=self)
             e.loadstring(messagetext)
             envelopes.append(e)

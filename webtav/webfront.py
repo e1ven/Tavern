@@ -1027,7 +1027,7 @@ class UploadAttachmentHandler(UploadMessageHandler):
             detail['content_type'] = file.mimetype
             detail['url'] = server.serversettings.settings['webtav']['downloads_url'] + file.sha
             details.append(detail)
-        details_json = json.dumps(details, separators=(',', ':'))
+        details_json = libtavern.utils.to_json(details)
         self.set_header("Content-Type", "application/json")
         self.write(details_json)
         return

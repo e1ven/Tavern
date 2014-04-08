@@ -252,7 +252,10 @@
     <span class="sd">&quot;&quot;&quot;Returns a string containing a JSON representation of the object.</span>
 <span class="sd">    Moved out from using json.dumps everywhere, to ensure the params are standardized.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span><span class="n">skipkeys</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">False</span><span class="p">,)</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span><span class="n">skipkeys</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span>
+                      <span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">check_circular</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span>
+                      <span class="n">allow_nan</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span><span class="n">indent</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+                      <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">),</span><span class="n">sort_keys</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </div>
 <span class="k">class</span> <span class="nc">TavernCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -364,7 +367,7 @@
                                                 <span class="n">tempkey</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">objresolve</span><span class="p">(</span>
                                                     <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">key</span><span class="p">)</span>
                                                 <span class="n">keys</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tempkey</span><span class="p">)</span>
-                                <span class="n">keys</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">keys</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+                                <span class="n">keys</span> <span class="o">=</span> <span class="n">to_json</span><span class="p">(</span><span class="n">keys</span><span class="p">)</span>
                                 <span class="k">if</span> <span class="n">static</span><span class="p">:</span>
                                 <span class="c"># Get the class name from the cls argument</span>
                                         <span class="n">class_name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">__name__</span>

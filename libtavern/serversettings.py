@@ -55,7 +55,7 @@ class ServerSettings(libtavern.utils.instancer):
         newsettings = self.settings
 
         with open(directory + filename, 'w') as filehandle:
-            filehandle.write(json.dumps(newsettings, separators=(',', ':')))
+            filehandle.write(libtavern.utils.to_json(newsettings))
 
     def updateconfig(self):
 

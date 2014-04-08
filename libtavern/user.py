@@ -565,7 +565,7 @@ class User(libtavern.baseobj.Baseobj):
         user = self.server.db.safe.find_one('users',{"keys.master.pubkey": tmpkey.pubkey})
         if user is not None:
             # If we find a local user, load in their priv and pub keys.
-            return self.load_string(json.dumps(user))
+            return self.load_string(libtavern.utils.to_json(user))
         else:
             return None
 
@@ -585,7 +585,7 @@ class User(libtavern.baseobj.Baseobj):
         user = self.server.db.safe.find_one('users',{"username": username})
         if not user:
             raise self.UsernameNotInMongoError("It's not there.")
-        self.load_string(json.dumps(user))
+        self.load_string(libtavern.utils.to_json(user))
         return True
 
     def load_mongo_by_sessionid(self,sessionid):
@@ -634,7 +634,7 @@ class User(libtavern.baseobj.Baseobj):
 
         userdict = self.to_dict()
         with open(filename, 'w') as filehandle:
-            filehandle.write(json.dumps(userdict, separators=(',', ':')))
+            filehandle.write(libtavern.utils.to_json(userdict))
 
     def save_mongo(self,overwriteguest=False):
         userdict = self.to_dict()
