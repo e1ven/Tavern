@@ -308,7 +308,7 @@ class User(libtavern.baseobj.Baseobj):
             'envelopes',
             {"envelope.payload.class": "messagerating",
              "envelope.payload.rating": {"$exists": "true"},
-             "envelope.local.regardingAuthor": askingabout})
+             "envelope.local.regarding_author": askingabout})
         for rating in allratings:
             ratingtally += rating['envelope']['payload']['rating']
 
@@ -649,7 +649,7 @@ class User(libtavern.baseobj.Baseobj):
         Save a session out to the DB.
         """
         sessiondict = {}
-        sessiondict['sessionid'] = libtavern.utils.randstr(100)
+        sessiondict['sessionid'] = hex(libtavern.utils.randbits(128)).lstrip("0x")
         sessiondict['expires'] = libtavern.utils.gettime(format='timestamp') + self.server.serversettings.settings['webtav']['session_lifetime']
         sessiondict['pubkey'] = self.Keys['master'].pubkey
         self.server.sessions.safe.save('sessions', sessiondict)

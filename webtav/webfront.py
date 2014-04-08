@@ -919,11 +919,12 @@ class UploadMessageHandler(webbase.BaseFlask):
         envelope.addStamp(stampclass='author',friendlyname=self.user.friendlyname,keys=self.user.Keys['master'],passkey=self.user.passkey)
 
         # Opt-in way to debug/explore network.
-        if server.serversettings.settings['mark-seen']:
+        if self.server.serversettings.settings['mark-seen']:
                 envelope.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
         # Send to the server
-        return server.receiveEnvelope(env=envelope)
+        if self.server.receive_envelope(env=envelope):
+            print("Message submitted.")
 
     def receive_files(self):
         """
@@ -957,6 +958,7 @@ class UploadMessageHandler(webbase.BaseFlask):
                 self.server.bin_GridFS.put(file.stream,filename=file.sha,content_type=file.mimetype)
             file.close()
 
+    @webbase.BaseTornado.requires_acct
     def post(self):
         """Receive Envelopes and their attachments."""
 
@@ -1071,7 +1073,7 @@ class UploadPrivateMessageHandler(UploadMessageHandler):
         # Encrypt the inner envelope, store in outer env.
         e.payload.dict['encrypted'] = single_use_key.encrypt(encryptstring=enc.text(),encrypt_to=e.payload.dict['to'])
         e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
-        server.receiveEnvelope(env=e)
+        self.server.receive_envelope(env=e)
         self.redirect("/pms")
 
 

@@ -12,6 +12,7 @@ import tornado.escape
 import tornado.httputil
 import flask
 from flask.views import MethodView
+from functools import wraps
 import webtav.flasknado
 
 server = libtavern.server.Server()
@@ -53,7 +54,7 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         self._xsrf_token = token
         return self._xsrf_token
 
-    def set_secure_cookie(self,name,value,**kwargs):
+    def set_secure_cookie(self,name,value,*args,**kwargs):
 
         # Set secure flag when connecting over HTTPS
         # If so, set secure flag on cookie by default.
@@ -66,7 +67,7 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
             except KeyError:
                 pass
 
-        self.set_cookie(name, self.create_signed_value(name, value), **kwargs)
+        self.set_cookie(name, self.create_signed_value(name, value),*args, **kwargs)
 
     def get_signed_cookie(self,name,value=None,max_age_days=31):
         """
@@ -274,10 +275,6 @@ class BaseTornado(XSRFBaseHandler):
         if self.user.has_unique_key:
             if self.user.passkey is not None:
                 self.set_secure_cookie('passkey', self.user.passkey, httponly=True, max_age=31556952 * 2)
-
-        # Before we save out the sessionid, make sure the user is valid
-        if self.user.ensure_keys():
-            self.user.save_mongo()
         self.set_secure_cookie('sessionid', self.user.save_session(), httponly=True, max_age=31556952 * 2)
 
     def setheaders(self):
@@ -410,6 +407,20 @@ class BaseTornado(XSRFBaseHandler):
         return namespace
 
 
+    def requires_acct(f):
+        @wraps(f)
+        def decorated(*args, **kwargs):
+            # Pull in the `self` argument, so we can access members
+            handler = args[0]
+            handler.server.logger.debug("This function requires a unique acct")
+            if not handler.user.has_unique_key or not handler.user.passkey:
+                handler.server.logger.debug("The user now has one ;)")
+                handler.user.ensure_keys(AllowGuestKey=False)
+                handler.save_session()
+            return f(*args, **kwargs)
+        return decorated
+
+
 class BaseFlask(webtav.flasknado.Flasknado,BaseTornado):
     """
     Create a basic Flask object which looks and smells very much like a Tornado object.
@@ -451,3 +462,5 @@ class FlaskHandler(XSRFBaseHandler):
     def prepare(self):
         self.fallback(self.request)
         self._finished = True
+
+

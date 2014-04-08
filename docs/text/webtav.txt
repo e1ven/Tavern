@@ -133,7 +133,7 @@ class class webtav.flasknado.Flasknado(*args, **kwargs)
       (temporary) is chosen based on the "permanent" argument. The
       default is 302 (temporary).
 
-   set_cookie(name, value, **kwargs)
+   set_cookie(name, value, *args, **kwargs)
 
       Sets the given cookie name/value with the given options.
 
@@ -258,6 +258,8 @@ class class webtav.webbase.BaseTornado(*args, **kwargs)
 
       Generates a new user (usually guest) if it can't find one.
 
+   requires_acct(f)
+
    save_session()
 
       Saves the current user to a session cookie. These are encrypted
@@ -326,7 +328,7 @@ class class webtav.webbase.XSRFBaseHandler(application, request, **kwargs)
 
       Returns if the connection is loaded over https
 
-   set_secure_cookie(name, value, **kwargs)
+   set_secure_cookie(name, value, *args, **kwargs)
 
    xsrf_token
 

@@ -93,7 +93,7 @@ class Simulation():
 
                 e.addStamp(stampclass='author',friendlyname=user.UserSettings['friendlyname'],keys=user.Keys['master'],passkey=user.passkey)
 
-                msgid = node.server.receiveEnvelope(env=e)
+                msgid = node.server.receive_envelope(env=e)
                 print("Sent " + msgid + "to server- " + str(node.servernum))
 
         # # Optionally shuffle.

@@ -160,6 +160,10 @@ A message is the core unit of exchange in Tavern.
 
 Each Tavern Envelope is contained in a JSON dictionary.
 
+TODO- Messages are valid JSON
+(http://www.ietf.org/rfc/rfc4627.txt?number=4627) Keys must be ASCII,
+but values can be Unicode.
+
 The order of fields must be alphabetical - This is to ensure that we
 can separate them later, but re-assemble them in the same order. The
 envelope should be of the most compact JSON.

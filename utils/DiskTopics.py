@@ -55,7 +55,7 @@ def writetopic(topic, since=0, limit=0, skip=0, directory=None):
 
         id = envelope['envelope']['local']['payload_sha512']
         e.loadmongo(id)
-        e.validate()
+        e.validates()
 
         if 'topic' in e.payload.dict:
             topic = e.payload.dict['topic']

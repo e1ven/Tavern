@@ -1,0 +1,348 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>libtavern.payloads &mdash; Tavern  documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+    <link rel="top" title="Tavern  documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for libtavern.payloads</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains the various Payloads that an envelope can contain.</span>
+<span class="sd">Each Payload inherits from the BasePayload class, then overrides/extends</span>
+<span class="sd">Validate and add_to_parent</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
+<span class="kn">import</span> <span class="nn">libtavern.key</span>
+<span class="kn">import</span> <span class="nn">libtavern.utils</span>
+<span class="kn">import</span> <span class="nn">libtavern.topic</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<div class="viewcode-block" id="BasePayload"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload">[docs]</a><span class="k">class</span> <span class="nc">BasePayload</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This is the baseclass for all other Payloads. No message should stay in this state.</span>
+<span class="sd">    envelope.register_payload should convert it to it&#39;s rightful type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initialdict</span><span class="o">=</span><span class="p">{}):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(</span><span class="n">initialdict</span><span class="p">)</span>
+
+<div class="viewcode-block" id="BasePayload.alphabetize"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.alphabetize">[docs]</a>    <span class="k">def</span> <span class="nf">alphabetize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldobj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;To ensure that we can break a message apart, and later put it back in the same order,</span>
+<span class="sd">        all fiends in a message MUST be in alphabetical order.&quot;&quot;&quot;</span>
+
+        <span class="c"># Recursively loop through all the keys/items</span>
+        <span class="c"># If we can sort them, do so, if not, just return it.</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="n">oldlist</span> <span class="o">=</span> <span class="n">oldobj</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+            <span class="n">newdict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">()</span>
+
+            <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">oldlist</span><span class="p">):</span>
+                <span class="n">newdict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabetize</span><span class="p">(</span><span class="n">oldobj</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">newdict</span>
+
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Sequence</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">oldobj</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">newlist</span> <span class="o">=</span> <span class="p">[]</span>
+
+            <span class="c"># If this is an array of collections.OrderedDicts, for example, we can&#39;t sort them.</span>
+            <span class="c"># So leave them as they are.</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">oldlist</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">oldobj</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                <span class="n">oldlist</span> <span class="o">=</span> <span class="n">oldobj</span>
+
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">oldlist</span><span class="p">:</span>
+                <span class="n">newlist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alphabetize</span><span class="p">(</span><span class="n">row</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">newlist</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">oldobj</span>
+</div>
+<div class="viewcode-block" id="BasePayload.format"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.format">[docs]</a>    <span class="k">def</span> <span class="nf">format</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Format a Payload to spec.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alphabetize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BasePayload.hash"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.hash">[docs]</a>    <span class="k">def</span> <span class="nf">hash</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a hashed version of the payload JSON, used as the contentid.</span>
+<span class="sd">        :return str: hashed version of payload JSON.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">h</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">()</span>
+        <span class="n">h</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="BasePayload.text"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.text">[docs]</a>    <span class="k">def</span> <span class="nf">text</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a JSON version of the formatted payload object.</span>
+<span class="sd">        :return str: JSON of the payload.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">,</span> <span class="n">separators</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">,</span> <span class="s">&#39;:&#39;</span><span class="p">))</span>
+</div>
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="BasePayload.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does this obj do the minimum to be considered a payload at all?</span>
+<span class="sd">        This should always be overridden, but may be called by children.</span>
+<span class="sd">        :return True/False: Is this a valid payload</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alphabetize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="BasePayload.add_to_parent"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.add_to_parent">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; Called on a child envelope, so it can store it&#39;s id in it&#39;s parent.</span>
+<span class="sd">        For example, if we received a message reply, reply.add_to_parent would mark it&#39;s id in the original</span>
+<span class="sd">        :param Envelope parent: The original envelope which this is modifying</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; I am :: &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; Adding a cite on my parent :: &quot;</span> <span class="o">+</span> <span class="n">parent</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">add_cite</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">add_ancestor</span><span class="p">(</span><span class="n">new</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">])</span>
+</div></div>
+<div class="viewcode-block" id="Message"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Message">[docs]</a><span class="k">class</span> <span class="nc">Message</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A message is a post that is designed to be shared with the world.</span>
+<span class="sd">    These would be similar to a Usenet post or reddit comment.</span>
+<span class="sd">    Note - Both the original message, and any replies, are both Messages.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="Message.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Message.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        :return: True/False - Does this follow the rules of a message?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;subject&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No subject&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;body&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Body&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Topic&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;formatting&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No Formatting&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;markdown&#39;</span><span class="p">,</span> <span class="s">&#39;plaintext&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Formatting not in pre-approved list&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Topic too long&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="mi">200</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Subject too long&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># If this is a reply, verify the original is also a &#39;message&#39;</span>
+        <span class="k">if</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
+                <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;This envelope was trying to modify something that was not a message.&quot;</span><span class="p">)</span>
+                    <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+
+</div></div>
+<div class="viewcode-block" id="PrivateMessage"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.PrivateMessage">[docs]</a><span class="k">class</span> <span class="nc">PrivateMessage</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PrivateMessage.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.PrivateMessage.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;to&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No &#39;to&#39; field&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="c"># if &#39;topic&#39; in self.dict:</span>
+        <span class="c">#     self.server.logger.debug(&quot;Topic not allowed in privmessage.&quot;)</span>
+        <span class="c">#     return False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="Rating"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Rating">[docs]</a><span class="k">class</span> <span class="nc">Rating</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Rating.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Rating.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super fails&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;rating&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No rating number&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;rating&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&quot;Evelope ratings must be either -1, 1, or 0.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="Rating.add_to_parent"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Rating.add_to_parent">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If we receive an message rating, this message will note that rating in the original message.</span>
+<span class="sd">        :param Envelope parent: The original message which we rated.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_to_parent</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="c"># Note the author of the message we rated in the Rating.</span>
+        <span class="c"># This lets us search later, to see how people feel about us ;)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;regarding_author&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="UserTrust"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.UserTrust">[docs]</a><span class="k">class</span> <span class="nc">UserTrust</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+
+<div class="viewcode-block" id="UserTrust.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.UserTrust.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;trusted_pubkey&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No trusted_pubkey to set trust for.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;trust&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="o">-</span><span class="mi">100</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">100</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&quot;Message ratings must be either -100, 0, or 100&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="s">&#39;topic&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&quot;User trust must be per topic. Please include a topic.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div></div>
+<div class="viewcode-block" id="MessageRevision"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.MessageRevision">[docs]</a><span class="k">class</span> <span class="nc">MessageRevision</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageRevision.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.MessageRevision.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&quot;Message Revisions must refer to an original message.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># See if we have the original. If so, is the right type?</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
+            <span class="k">print</span><span class="p">(</span><span class="s">&quot;We have the original message this revision refers to&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+                <span class="k">print</span><span class="p">(</span><span class="s">&quot;Message Revisions must refer to a message.&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">return</span> <span class="bp">True</span>
+</div>
+<div class="viewcode-block" id="MessageRevision.add_to_parent"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.MessageRevision.add_to_parent">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        If we receive an edit to an existing message, this method will let us note that in the original.</span>
+<span class="sd">        :param Envelope parent: The original envelope which was edited.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">add_to_parent</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;edits&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Don&#39;t add the same edit twice.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span> <span class="ow">in</span> <span class="n">original</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;We&#39;ve already stored this edit.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="c"># Ensure the edit is by the same author as the original.</span>
+        <span class="c"># Do this here, rather than in validate, since we can receive messages in either order.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">parent</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;pubkey&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Invalid Revision. Author pubkey must match original message.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newmessage</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+
+        <span class="c"># Order messages by Priority - Each edit should increase the priority by one.</span>
+        <span class="c"># Depending on which messages a server had received, they might not always do so, however.</span>
+        <span class="c"># If this comes up, use the date received as a tie breaker.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
+            <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">],(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">])))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/logo.png" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+    </div>
+  </body>
+</html>

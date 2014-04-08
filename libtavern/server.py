@@ -488,165 +488,77 @@ class Server(libtavern.utils.instancer):
 
     # Cache to failfast on receiving dups
 #    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['receiveEnvelope']['seconds'], maxsize=defaultsettings.settings['cache']['receiveEnvelope']['size'])
-    def receiveEnvelope(self, envstr=None, env=None):
-        """Receive an envelope for processing in the server.
-
-        Can take either a string, or an envelope obj.
-
+    def receive_envelope(self, env=None):
         """
-        if envstr is None and env is None:
-            raise Exception(
-                'receiveEnvelope MUST receive an envelope. Really! ;)')
-
-        if env is not None:
-            # If we get an envelope, flatten it - The caller may not have.
-            c = env.flatten()
-        else:
-            c = libtavern.envelope.Envelope(server=self)
-            c.loadstring(importstring=envstr)
+        Receives an envelope, validates it, and saves it to the DB.
+        :param Envelope env: The new Envelope object to receive and process
+        :return: The URL of the newly submitted message.
+        """
+        if not env:
+            raise Exception('receiveEnvelope MUST receive an envelope. Really! ;)')
 
         # Fill-out the message's local fields.
-        c.munge()
+        env.munge()
         # Make sure the message is valid, meets our standards, and is good to
         # accept and save.
-        if not c.validate():
-            self.logger.info(
-                "Received an Envelope which does not validate-  " + c.payload.hash())
-            self.logger.debug(c.text())
+        if not env.validate():
+            self.logger.info("Received an Envelope which does not validate-  " + env.payload.hash())
+            self.logger.debug(env.text())
             return False
 
-        existing = self.db.unsafe.find_one(
-            'envelopes', {'envelope.local.payload_sha512': c.dict['envelope']['local']['payload_sha512']})
-
+        existing = self.db.unsafe.find_one('envelopes', {'envelope.local.payload_sha512': env.dict['envelope']['local']['payload_sha512']})
         if existing is not None:
             self.logger.debug("We already have that msg.")
-            return c.dict['envelope']['local']['payload_sha512']
+            return self.url_for(envelope=c)
 
         # Sign the message to saw we saw it.
         if self.serversettings.settings['mark-seen']:
-            c.addStamp(
+            env.addStamp(
                 stampclass='server',
                 passkey=self.serveruser.passkey,
                 keys=self.serveruser.Keys['master'],
                 hostname=self.serversettings.settings['hostname'])
 
-        # Store the time, in full UTC (with precision). This is used to skip
-        # pages in the viewer later.
-        c.dict['envelope']['local']['time_added'] = libtavern.utils.gettime(format='longstr')
+        # Store the time, in full UTC (with precision). This is used to skip pages in the viewer later.
+        env.dict['envelope']['local']['time_added'] = libtavern.utils.gettime(format='longstr')
 
-        if c.dict['envelope']['payload']['class'] == "message":
+        # If this env references another env, add this id to the original.
+        # This lets us easily retrieve all children later without a db search.
+        if 'regarding' in env.dict['envelope']['payload']:
+            original = libtavern.envelope.Envelope(server=self)
+            if original.loadmongo(mongo_id=env.dict['envelope']['payload']['regarding']):
+                self.logger.debug(" I am :: " + env.dict['envelope']['local']['payload_sha512'])
+                self.logger.debug(" Adding a cite on my parent :: " + original.dict['envelope']['local']['payload_sha512'])
 
-            # If the message referenes anyone, mark the original, for ease of finding it later.
-            # Do this in the 'local' block, so we don't waste bits passing this on to others.
-            # Partners can calculate this when they receive it.
+                original.add_cite(env.dict['envelope']['local']['payload_sha512'])
+                env.add_ancestor(env.dict['envelope']['payload']['regarding'])
 
-            if 'regarding' in c.dict['envelope']['payload']:
-                repliedTo = libtavern.envelope.Envelope(server=self)
-                if repliedTo.loadmongo(mongo_id=c.dict['envelope']['payload']['regarding']):
-                    self.logger.debug(
-                        " I am :: " + c.dict['envelope']['local']['payload_sha512'])
-                    self.logger.debug(
-                        " Adding a cite on my parent :: " +
-                        repliedTo.dict[
-                            'envelope'][
-                            'local'][
-                            'payload_sha512'])
-                    repliedTo.addcite(
-                        c.dict[
-                            'envelope'][
-                            'local'][
-                            'payload_sha512'])
-                    c.addAncestor(c.dict['envelope']['payload']['regarding'])
+                # A message edit has two factors - Time, and Class
+                if env.dict['envelope']['payload']['class'] == "messagerevision":
+                    original.add_edit(env.dict['envelope']['local']['payload_sha512'])
 
-            self.logger.debug("id is :" + c.dict['envelope']['local']['payload_sha512'])
+        # Messages may not arrive in order. We might receive a reply before the original, or an edit before the post.
+        # Check the existing messages to see if anyone referenced -us-.
+        for citedict in self.db.unsafe.find('envelopes', {'envelope.payload.regarding': env.dict['envelope']['local']['payload_sha512']}):
+            self.logger.debug(" I am :: " + env.dict['envelope']['local']['payload_sha512'])
+            self.logger.debug(" Found pre-existing cite at :: " + citedict['envelope']['local']['payload_sha512'])
 
-            # It could also be that this message is cited BY others we already have!
-            # Sometimes we received them out of order. Better check.
-            for citedict in self.db.unsafe.find('envelopes', {'envelope.payload.regarding': c.dict['envelope']['local']['payload_sha512']}):
-                self.logger.debug('found existing cite, bad order. ')
-                self.logger.debug(
-                    " I am :: " + c.dict['envelope']['local']['payload_sha512'])
-                self.logger.debug(" Found pre-existing cite at :: " +
-                                  citedict['envelope']['local']['payload_sha512'])
+            # If we find one, handle it according to what class it is.
+            if citedict['envelope']['payload']['class'] == 'message':
+                citedme = libtavern.envelope.Envelope(server=self)
+                citedme.loaddict(citedict)
+                env.add_cite(citedme.dict['envelope']['local']['payload_sha512'])
+                citedme.add_ancestor(env.dict['envelope']['local']['payload_sha512'])
 
-                # If it's a message, write that in the reply, and in me.
-                if citedict['envelope']['payload']['class'] == 'message':
-                    citedme = libtavern.envelope.Envelope(server=self)
-                    citedme.loaddict(citedict)
-                    c.addcite(
-                        citedme.dict[
-                            'envelope'][
-                            'local'][
-                            'payload_sha512'])
-                    citedme.addAncestor(
-                        c.dict[
-                            'envelope'][
-                            'local'][
-                            'payload_sha512'])
-                    citedme.saveMongo()
+            elif citedict['envelope']['payload']['class'] == 'messagerevision':
+                env.add_edit(citedict['envelope']['local']['payload_sha512'])
 
-                # If it's an edit, write that in me.
-                elif citedict['envelope']['payload']['class'] == 'messagerevision':
-                    c.addEdit(citedict['envelope']['local']['payload_sha512'])
+            elif citedict['envelope']['payload']['class'] == 'messagerating':
+                citedme = libtavern.envelope.Envelope(server=self)
+                citedme.loaddict(citedict)
+                citedme.dict['envelope']['local']['regardingAuthor'] = c.dict['envelope']['payload']['author']
+                citedme.saveMongo()
 
-                elif citedict['envelope']['payload']['class'] == 'messagerating':
-                    citedme = libtavern.envelope.Envelope(server=self)
-                    citedme.loaddict(citedict)
-                    citedme.dict[
-                        'envelope'][
-                        'local'][
-                        'regardingAuthor'] = c.dict[
-                        'envelope'][
-                        'payload'][
-                        'author']
-                    citedme.saveMongo()
-
-        elif c.dict['envelope']['payload']['class'] == "messagerating":
-            # If this is a rating, cache the AUTHOR of the rated message.
-            regardingPost = self.db.unsafe.find_one(
-                'envelopes',
-                {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
-            if regardingPost is not None:
-                c.dict[
-                    'envelope'][
-                    'local'][
-                    'regardingAuthor'] = regardingPost[
-                    'envelope'][
-                    'payload'][
-                    'author']
-
-        elif c.dict['envelope']['payload']['class'] == "messagerevision":
-            # This is an edit to an existing message.
-
-            regardingPost = self.db.unsafe.find_one(
-                'envelopes',
-                {'envelope.local.payload_sha512': c.dict['envelope']['payload']['regarding']})
-            if regardingPost is not None:
-                if 'priority' in c.dict['envelope']['payload']:
-                    c.dict[
-                        'envelope'][
-                        'local'][
-                        'priority'] = c.dict[
-                        'envelope'][
-                        'payload'][
-                        'priority']
-                else:
-                    c.dict['envelope']['local']['priority'] = 0
-
-                # Store this edit.
-                # Save this message out to mongo, so we can then retrieve it in
-                # addEdit().
-                c.saveMongo()
-
-                # Modify the original message.
-                r = libtavern.envelope.Envelope(server=self)
-                r.loaddict(regardingPost)
-                r.addEdit(c.dict['envelope']['local']['payload_sha512'])
-
-                # Ensure we have the freshest version in memory.
-                c.reloadmongo()
-            else:
-                self.logger.debug("Received an edit without the original")
 
         # Store our Envelope
         c.saveMongo()

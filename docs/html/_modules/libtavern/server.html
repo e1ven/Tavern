@@ -538,165 +538,77 @@
 
     <span class="c"># Cache to failfast on receiving dups</span>
 <span class="c">#    @libtavern.utils.memorise(ttl=defaultsettings.settings[&#39;cache&#39;][&#39;receiveEnvelope&#39;][&#39;seconds&#39;], maxsize=defaultsettings.settings[&#39;cache&#39;][&#39;receiveEnvelope&#39;][&#39;size&#39;])</span></div>
-<div class="viewcode-block" id="Server.receiveEnvelope"><a class="viewcode-back" href="../../libtavern.html#libtavern.server.Server.receiveEnvelope">[docs]</a>    <span class="k">def</span> <span class="nf">receiveEnvelope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">envstr</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Receive an envelope for processing in the server.</span>
-
-<span class="sd">        Can take either a string, or an envelope obj.</span>
-
+<div class="viewcode-block" id="Server.receive_envelope"><a class="viewcode-back" href="../../libtavern.html#libtavern.server.Server.receive_envelope">[docs]</a>    <span class="k">def</span> <span class="nf">receive_envelope</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">env</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receives an envelope, validates it, and saves it to the DB.</span>
+<span class="sd">        :param Envelope env: The new Envelope object to receive and process</span>
+<span class="sd">        :return: The URL of the newly submitted message.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">envstr</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">env</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-                <span class="s">&#39;receiveEnvelope MUST receive an envelope. Really! ;)&#39;</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="n">env</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-            <span class="c"># If we get an envelope, flatten it - The caller may not have.</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">c</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-            <span class="n">c</span><span class="o">.</span><span class="n">loadstring</span><span class="p">(</span><span class="n">importstring</span><span class="o">=</span><span class="n">envstr</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">env</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;receiveEnvelope MUST receive an envelope. Really! ;)&#39;</span><span class="p">)</span>
 
         <span class="c"># Fill-out the message&#39;s local fields.</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">munge</span><span class="p">()</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">munge</span><span class="p">()</span>
         <span class="c"># Make sure the message is valid, meets our standards, and is good to</span>
         <span class="c"># accept and save.</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
-                <span class="s">&quot;Received an Envelope which does not validate-  &quot;</span> <span class="o">+</span> <span class="n">c</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">())</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">env</span><span class="o">.</span><span class="n">validate</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Received an Envelope which does not validate-  &quot;</span> <span class="o">+</span> <span class="n">env</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">hash</span><span class="p">())</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
             <span class="k">return</span> <span class="bp">False</span>
 
-        <span class="n">existing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
-            <span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]})</span>
-
+        <span class="n">existing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]})</span>
         <span class="k">if</span> <span class="n">existing</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;We already have that msg.&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">c</span><span class="p">)</span>
 
         <span class="c"># Sign the message to saw we saw it.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;mark-seen&#39;</span><span class="p">]:</span>
-            <span class="n">c</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
+            <span class="n">env</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span>
                 <span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;server&#39;</span><span class="p">,</span>
                 <span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">serveruser</span><span class="o">.</span><span class="n">passkey</span><span class="p">,</span>
                 <span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">serveruser</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span>
                 <span class="n">hostname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;hostname&#39;</span><span class="p">])</span>
 
-        <span class="c"># Store the time, in full UTC (with precision). This is used to skip</span>
-        <span class="c"># pages in the viewer later.</span>
-        <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;longstr&#39;</span><span class="p">)</span>
+        <span class="c"># Store the time, in full UTC (with precision). This is used to skip pages in the viewer later.</span>
+        <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;longstr&#39;</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;message&quot;</span><span class="p">:</span>
+        <span class="c"># If this env references another env, add this id to the original.</span>
+        <span class="c"># This lets us easily retrieve all children later without a db search.</span>
+        <span class="k">if</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
+            <span class="n">original</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">original</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; I am :: &quot;</span> <span class="o">+</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; Adding a cite on my parent :: &quot;</span> <span class="o">+</span> <span class="n">original</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
-            <span class="c"># If the message referenes anyone, mark the original, for ease of finding it later.</span>
-            <span class="c"># Do this in the &#39;local&#39; block, so we don&#39;t waste bits passing this on to others.</span>
-            <span class="c"># Partners can calculate this when they receive it.</span>
+                <span class="n">original</span><span class="o">.</span><span class="n">add_cite</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">add_ancestor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">])</span>
 
-            <span class="k">if</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
-                <span class="n">repliedTo</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-                <span class="k">if</span> <span class="n">repliedTo</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s">&quot; I am :: &quot;</span> <span class="o">+</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                        <span class="s">&quot; Adding a cite on my parent :: &quot;</span> <span class="o">+</span>
-                        <span class="n">repliedTo</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                            <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                    <span class="n">repliedTo</span><span class="o">.</span><span class="n">addcite</span><span class="p">(</span>
-                        <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                            <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">addAncestor</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">])</span>
+                <span class="c"># A message edit has two factors - Time, and Class</span>
+                <span class="k">if</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;messagerevision&quot;</span><span class="p">:</span>
+                    <span class="n">original</span><span class="o">.</span><span class="n">add_edit</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
-            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;id is :&quot;</span> <span class="o">+</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+        <span class="c"># Messages may not arrive in order. We might receive a reply before the original, or an edit before the post.</span>
+        <span class="c"># Check the existing messages to see if anyone referenced -us-.</span>
+        <span class="k">for</span> <span class="n">citedict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]}):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; I am :: &quot;</span> <span class="o">+</span> <span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; Found pre-existing cite at :: &quot;</span> <span class="o">+</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
-            <span class="c"># It could also be that this message is cited BY others we already have!</span>
-            <span class="c"># Sometimes we received them out of order. Better check.</span>
-            <span class="k">for</span> <span class="n">citedict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;envelopes&#39;</span><span class="p">,</span> <span class="p">{</span><span class="s">&#39;envelope.payload.regarding&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">]}):</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;found existing cite, bad order. &#39;</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
-                    <span class="s">&quot; I am :: &quot;</span> <span class="o">+</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot; Found pre-existing cite at :: &quot;</span> <span class="o">+</span>
-                                  <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+            <span class="c"># If we find one, handle it according to what class it is.</span>
+            <span class="k">if</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
+                <span class="n">citedme</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">citedme</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">citedict</span><span class="p">)</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">add_cite</span><span class="p">(</span><span class="n">citedme</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+                <span class="n">citedme</span><span class="o">.</span><span class="n">add_ancestor</span><span class="p">(</span><span class="n">env</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
-                <span class="c"># If it&#39;s a message, write that in the reply, and in me.</span>
-                <span class="k">if</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
-                    <span class="n">citedme</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">citedict</span><span class="p">)</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">addcite</span><span class="p">(</span>
-                        <span class="n">citedme</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                            <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">addAncestor</span><span class="p">(</span>
-                        <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                            <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                            <span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
+            <span class="k">elif</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;messagerevision&#39;</span><span class="p">:</span>
+                <span class="n">env</span><span class="o">.</span><span class="n">add_edit</span><span class="p">(</span><span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
-                <span class="c"># If it&#39;s an edit, write that in me.</span>
-                <span class="k">elif</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;messagerevision&#39;</span><span class="p">:</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">addEdit</span><span class="p">(</span><span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
+            <span class="k">elif</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;messagerating&#39;</span><span class="p">:</span>
+                <span class="n">citedme</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+                <span class="n">citedme</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">citedict</span><span class="p">)</span>
+                <span class="n">citedme</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;regardingAuthor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;author&#39;</span><span class="p">]</span>
+                <span class="n">citedme</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
 
-                <span class="k">elif</span> <span class="n">citedict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;messagerating&#39;</span><span class="p">:</span>
-                    <span class="n">citedme</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">citedict</span><span class="p">)</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                        <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;regardingAuthor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                        <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;payload&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;author&#39;</span><span class="p">]</span>
-                    <span class="n">citedme</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
-
-        <span class="k">elif</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;messagerating&quot;</span><span class="p">:</span>
-            <span class="c"># If this is a rating, cache the AUTHOR of the rated message.</span>
-            <span class="n">regardingPost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
-                <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
-                <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">]})</span>
-            <span class="k">if</span> <span class="n">regardingPost</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                    <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                    <span class="s">&#39;regardingAuthor&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">regardingPost</span><span class="p">[</span>
-                    <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                    <span class="s">&#39;payload&#39;</span><span class="p">][</span>
-                    <span class="s">&#39;author&#39;</span><span class="p">]</span>
-
-        <span class="k">elif</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;messagerevision&quot;</span><span class="p">:</span>
-            <span class="c"># This is an edit to an existing message.</span>
-
-            <span class="n">regardingPost</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">unsafe</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span>
-                <span class="s">&#39;envelopes&#39;</span><span class="p">,</span>
-                <span class="p">{</span><span class="s">&#39;envelope.local.payload_sha512&#39;</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;regarding&#39;</span><span class="p">]})</span>
-            <span class="k">if</span> <span class="n">regardingPost</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-                <span class="k">if</span> <span class="s">&#39;priority&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">]:</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                        <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;local&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;priority&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span>
-                        <span class="s">&#39;envelope&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;payload&#39;</span><span class="p">][</span>
-                        <span class="s">&#39;priority&#39;</span><span class="p">]</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-
-                <span class="c"># Store this edit.</span>
-                <span class="c"># Save this message out to mongo, so we can then retrieve it in</span>
-                <span class="c"># addEdit().</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
-
-                <span class="c"># Modify the original message.</span>
-                <span class="n">r</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-                <span class="n">r</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">regardingPost</span><span class="p">)</span>
-                <span class="n">r</span><span class="o">.</span><span class="n">addEdit</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
-
-                <span class="c"># Ensure we have the freshest version in memory.</span>
-                <span class="n">c</span><span class="o">.</span><span class="n">reloadmongo</span><span class="p">()</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Received an edit without the original&quot;</span><span class="p">)</span>
 
         <span class="c"># Store our Envelope</span>
         <span class="n">c</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>

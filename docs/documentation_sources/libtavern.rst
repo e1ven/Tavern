@@ -52,6 +52,14 @@ libtavern.lockedkey module
     :undoc-members:
     :show-inheritance:
 
+libtavern.payloads module
+-------------------------
+
+.. automodule:: libtavern.payloads
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 libtavern.server module
 -----------------------
 

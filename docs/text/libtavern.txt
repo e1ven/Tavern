@@ -50,123 +50,87 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
 
    Bases: "libtavern.baseobj.Baseobj"
 
-   class class Message(*args, **kwargs)
+   An Envelope is the core unit of exchange in Tavern Ecosystem. Each
+   bit of content - A Message, PM, or rating, is a type of envelope.
+   The Envelope can contain any arbitrary data, but contains two
+   elements.
 
-      Bases: "libtavern.envelope.Payload"
+      A Payload - The Payload is the content of the envelope, and can
+      never be altered. An example of a Payload is the subject/body of
+      a forum post. A hash of the payload is used to identify the
+      entire envelope.
 
-      validate()
+      Stamps- Stamps are signed bits of text which are added onto an
+      envelope. They are assertions about the message, signed with a
+      public key. An example might be 'This envelope passed through my
+      server -Bob', or
 
-   class class Envelope.MessageRevision(*args, **kwargs)
+         'This envelope contains a URL that is a virus -Mary', or
+         'This envelope was posted with Tavernriffic 1.2.3'
 
-      Bases: "libtavern.envelope.Payload"
+   addStamp(stampclass, keys, passkey=None, **kwargs)
 
-      validate()
+      Adds a stamp of type *class* to the current envelope.
 
-   class class Envelope.Payload(*args, **kwargs)
-
-      Bases: "libtavern.baseobj.Baseobj"
-
-      alphabetizeAllItems(oldobj)
-
-         To ensure our messages are reconstructable, the message, and
-         all fields should be in alphabetical order.
-
-      format()
-
-      hash()
-
-      text()
-
-      validate()
-
-   class class Envelope.PrivateMessage(*args, **kwargs)
-
-      Bases: "libtavern.envelope.Payload"
-
-      validate()
-
-   class class Envelope.Rating(*args, **kwargs)
-
-      Bases: "libtavern.envelope.Payload"
-
-      validate()
-
-   class class Envelope.UserTrust(*args, **kwargs)
-
-      Bases: "libtavern.envelope.Payload"
-
-      validate()
-
-   Envelope.addAncestor(ancestorid)
+   add_ancestor(ancestorid)
 
       A new Ancestor has been found (parent, parent's parent, etc) for
       this message.
 
       Set it locally, and tell all my children, if I have any
 
-   Envelope.addEdit(editid)
-
-      Another message has come in that says it's an edit of this one.
-
-      Note - This will NOT recurse. Ensure a edit is an edit to the
-      original, not an edit of an edit.
-
-   Envelope.addStamp(stampclass, keys, passkey=None, **kwargs)
-
-      Adds a stamp of type *class* to the current envelope.
-
-   Envelope.addcite(citedby)
+   add_cite(citedby)
 
       Another message has referenced this one.
 
       Mark it in the local area.
 
-   class class Envelope.attachment(sha512)
+   countChildren()
 
-      Bases: "builtins.object"
+   flatten(striplocal=False)
 
-   Envelope.countChildren()
-
-   Envelope.flatten(striplocal=False)
-
-   Envelope.get_original()
+   get_original()
 
       Returns the original message, without any edits
 
-   Envelope.loaddict(importdict)
+   loaddict(importdict)
 
-   Envelope.loadfile(filename)
+   loadfile(filename)
 
-   Envelope.loadmongo(mongo_id)
+   loadmongo(mongo_id)
 
-   Envelope.loadstring(importstring)
+   loadstring(importstring)
 
-   Envelope.munge()
+   munge()
 
       Set things in the local block of the message.
 
-   Envelope.mungebins()
+   mungebins()
 
       Store details for all attachments, and create thumbnails for
       images.
 
-   Envelope.prettytext(striplocal=False)
+   prettytext(striplocal=False)
 
-   Envelope.registerpayload()
+   registerpayload()
 
-   Envelope.reloadfile()
+   reloadfile()
 
-   Envelope.reloadmongo()
+   reloadmongo()
 
-   Envelope.saveMongo()
+   saveMongo()
 
-   Envelope.savefile(directory='.')
+   savefile(directory='.')
 
-   Envelope.text(striplocal=False)
+   text(striplocal=False)
 
-   Envelope.validate()
+   validate()
 
       Ensures an envelope is valid, legal, and according to spec.
+
+class class libtavern.envelope.attachment(sha512)
+
+   Bases: "builtins.object"
 
 
 libtavern.key module
@@ -306,6 +270,104 @@ class class libtavern.lockedkey.LockedKey(*args, **kwargs)
       Sets self.privkey to be the public key, if possible.
 
 
+libtavern.payloads module
+=========================
+
+This module contains the various Payloads that an envelope can
+contain. Each Payload inherits from the BasePayload class, then
+overrides/extends Validate and add_to_parent
+
+class class libtavern.payloads.BasePayload(*args, **kwargs)
+
+   Bases: "libtavern.baseobj.Baseobj"
+
+   This is the baseclass for all other Payloads. No message should
+   stay in this state. envelope.register_payload should convert it to
+   it's rightful type.
+
+   add_to_parent(parent)
+
+      Called on a child envelope, so it can store it's id in it's
+      parent. For example, if we received a message reply,
+      reply.add_to_parent would mark it's id in the original :param
+      Envelope parent: The original envelope which this is modifying
+
+   alphabetize(oldobj)
+
+      To ensure that we can break a message apart, and later put it
+      back in the same order, all fiends in a message MUST be in
+      alphabetical order.
+
+   format()
+
+      Format a Payload to spec.
+
+   hash()
+
+      Returns a hashed version of the payload JSON, used as the
+      contentid. :return str: hashed version of payload JSON.
+
+   text()
+
+      Returns a JSON version of the formatted payload object. :return
+      str: JSON of the payload.
+
+   validates
+
+      Does this obj do the minimum to be considered a payload at all?
+      This should always be overridden, but may be called by children.
+      :return True/False: Is this a valid payload
+
+class class libtavern.payloads.Message(*args, **kwargs)
+
+   Bases: "libtavern.payloads.BasePayload"
+
+   A message is a post that is designed to be shared with the world.
+   These would be similar to a Usenet post or reddit comment. Note -
+   Both the original message, and any replies, are both Messages.
+
+   validates
+
+      Returns:
+         True/False - Does this follow the rules of a message?
+
+class class libtavern.payloads.MessageRevision(*args, **kwargs)
+
+   Bases: "libtavern.payloads.BasePayload"
+
+   add_to_parent(parent)
+
+      If we receive an edit to an existing message, this method will
+      let us note that in the original. :param Envelope parent: The
+      original envelope which was edited.
+
+   validates()
+
+class class libtavern.payloads.PrivateMessage(*args, **kwargs)
+
+   Bases: "libtavern.payloads.BasePayload"
+
+   validates()
+
+class class libtavern.payloads.Rating(*args, **kwargs)
+
+   Bases: "libtavern.payloads.BasePayload"
+
+   add_to_parent(parent)
+
+      If we receive an message rating, this message will note that
+      rating in the original message. :param Envelope parent: The
+      original message which we rated.
+
+   validates()
+
+class class libtavern.payloads.UserTrust(*args, **kwargs)
+
+   Bases: "libtavern.payloads.BasePayload"
+
+   validates()
+
+
 libtavern.server module
 =======================
 
@@ -367,11 +429,11 @@ class class libtavern.server.Server(slot='default')
 
    prettytext()
 
-   receiveEnvelope(envstr=None, env=None)
+   receive_envelope(env=None)
 
-      Receive an envelope for processing in the server.
-
-      Can take either a string, or an envelope obj.
+      Receives an envelope, validates it, and saves it to the DB.
+      :param Envelope env: The new Envelope object to receive and
+      process :return: The URL of the newly submitted message.
 
    start()
 
@@ -735,6 +797,10 @@ libtavern.utils.proveWork(input, difficulty)
    Produces a Proof-of-work SHA collision based on HashCash. This is
    useful for avoiding spam.
 
+libtavern.utils.randbits(bits)
+
+   Return *bits* random bits
+
 class class libtavern.utils.randomWords(*args, **kwargs)
 
    Bases: "libtavern.baseobj.Baseobj"
@@ -749,6 +815,15 @@ class class libtavern.utils.randomWords(*args, **kwargs)
       a string.
 
 libtavern.utils.randstr(length)
+
+   Returns a string of length *length* of random ascii letters and
+   numbers
+
+libtavern.utils.to_json(obj)
+
+   Returns a string containing a JSON representation of the object.
+   Moved out from using json.dumps everywhere, to ensure the params
+   are standardized.
 
 
 Module contents

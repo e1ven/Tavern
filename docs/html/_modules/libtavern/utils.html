@@ -63,7 +63,7 @@
 <span class="kn">import</span> <span class="nn">datetime</span>
 <span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
-<span class="kn">import</span> <span class="nn">zlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
 
 
 <div class="viewcode-block" id="file_info"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.file_info">[docs]</a><span class="k">def</span> <span class="nf">file_info</span><span class="p">(</span><span class="n">fileobj</span><span class="p">):</span>
@@ -237,12 +237,22 @@
 
 </div>
 <div class="viewcode-block" id="randstr"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randstr">[docs]</a><span class="k">def</span> <span class="nf">randstr</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a string of length `length` of random ascii letters and numbers&quot;&quot;&quot;</span>
     <span class="n">available</span> <span class="o">=</span> <span class="n">string</span><span class="o">.</span><span class="n">ascii_letters</span> <span class="o">+</span> <span class="n">string</span><span class="o">.</span><span class="n">digits</span>
     <span class="n">ran</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
         <span class="n">ran</span> <span class="o">+=</span> <span class="n">random</span><span class="o">.</span><span class="n">SystemRandom</span><span class="p">()</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">available</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">ran</span>
-
+</div>
+<div class="viewcode-block" id="randbits"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.randbits">[docs]</a><span class="k">def</span> <span class="nf">randbits</span><span class="p">(</span><span class="n">bits</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return `bits` random bits&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">SystemRandom</span><span class="p">()</span><span class="o">.</span><span class="n">getrandbits</span><span class="p">(</span><span class="n">bits</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="to_json"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.to_json">[docs]</a><span class="k">def</span> <span class="nf">to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns a string containing a JSON representation of the object.</span>
+<span class="sd">    Moved out from using json.dumps everywhere, to ensure the params are standardized.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">obj</span><span class="o">=</span><span class="n">obj</span><span class="p">,</span><span class="n">skipkeys</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span><span class="n">ensure_ascii</span><span class="o">=</span><span class="bp">False</span><span class="p">,)</span>
 </div>
 <span class="k">class</span> <span class="nc">TavernCache</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

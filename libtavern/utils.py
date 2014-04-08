@@ -13,7 +13,7 @@ import libtavern.baseobj
 import datetime
 import string
 from PIL import Image
-import zlib
+import json
 
 
 def file_info(fileobj):
@@ -187,12 +187,22 @@ def chunks(s, n):
 
 
 def randstr(length):
+    """Returns a string of length `length` of random ascii letters and numbers"""
     available = string.ascii_letters + string.digits
     ran = ''
     for i in range(length):
         ran += random.SystemRandom().choice(available)
     return ran
 
+def randbits(bits):
+    """Return `bits` random bits"""
+    return random.SystemRandom().getrandbits(bits)
+
+def to_json(obj):
+    """Returns a string containing a JSON representation of the object.
+    Moved out from using json.dumps everywhere, to ensure the params are standardized.
+    """
+    return json.dumps(obj=obj,skipkeys=False,ensure_ascii=False,)
 
 class TavernCache(object):
         """

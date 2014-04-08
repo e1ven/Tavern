@@ -21,6 +21,8 @@ extend and use in various projects.
 
   * libtavern.lockedkey module
 
+  * libtavern.payloads module
+
   * libtavern.server module
 
   * libtavern.serversettings module

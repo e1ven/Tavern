@@ -1,9 +1,7 @@
 import json
-import hashlib
 import os
-from collections import *
 import lzma
-import collections
+from collections import OrderedDict
 
 # To detect/resize images
 import magic
@@ -16,79 +14,22 @@ import libtavern.utils
 import libtavern.topic
 
 class Envelope(libtavern.baseobj.Baseobj):
+    """
+    An Envelope is the core unit of exchange in Tavern Ecosystem.
+    Each bit of content - A Message, PM, or rating, is a type of envelope.
+    The Envelope can contain any arbitrary data, but contains two elements.
 
-    class Payload(libtavern.baseobj.Baseobj):
+        A Payload - The Payload is the content of the envelope, and can never be altered.
+        An example of a Payload is the subject/body of a forum post.
+        A hash of the payload is used to identify the entire envelope.
 
-        def __init2__(self, initialdict):
-            self.dict = OrderedDict(initialdict)
+        Stamps- Stamps are signed bits of text which are added onto an envelope.
+        They are assertions about the message, signed with a public key.
+        An example might be 'This envelope passed through my server -Bob', or
+            'This envelope contains a URL that is a virus -Mary', or
+            'This envelope was posted with Tavernriffic 1.2.3'
 
-        def alphabetizeAllItems(self, oldobj):
-            """To ensure our messages are reconstructable, the message, and all
-            fields should be in alphabetical order."""
-            # Recursively loop through all the keys/items
-            # If we can sort them, do so, if not, just return it.
-            if isinstance(oldobj, collections.Mapping):
-                oldlist = oldobj.keys()
-                newdict = OrderedDict()
-
-                for key in sorted(oldlist):
-                    newdict[key] = self.alphabetizeAllItems(oldobj[key])
-                return newdict
-
-            elif isinstance(oldobj, collections.Sequence) and not isinstance(oldobj, str):
-                newlist = []
-
-                # If this is an array of OrderedDicts, for example, we can't sort them.
-                # So leave them as they are.
-                try:
-                    oldlist = sorted(oldobj)
-                except TypeError:
-                    oldlist = oldobj
-
-                for row in oldlist:
-                    newlist.append(self.alphabetizeAllItems(row))
-                return newlist
-
-            else:
-                return oldobj
-
-        def format(self):
-            self.dict = self.alphabetizeAllItems(self.dict)
-
-        def hash(self):
-            self.format()
-            h = hashlib.sha512()
-            h.update(self.text().encode('utf-8'))
-            return h.hexdigest()
-
-        def text(self):
-            self.format()
-            newstr = json.dumps(self.dict, separators=(',', ':'))
-            return newstr
-
-        def validate(self):
-            self.format()
-            return True
-
-    class MessageRevision(Payload):
-
-        def validate(self):
-            if not Envelope.Payload(self.dict).validate():
-                self.server.logger.debug("Super does not Validate")
-                return False
-            if not 'regarding' in self.dict:
-                self.server.logger.debug(
-                    "Message Revisions must refer to an original message.")
-                return False
-
-            # See if we have the original. If so, is the right type?
-            e = Envelope()
-            if e.loadmongo(self.dict['regarding']):
-                print("We have the original message this revision refers to")
-                if e.dict['envelope']['payload']['class'] != 'message':
-                    print("Message Revisions must refer to a message.")
-                    return False
-            return True
+    """
 
     def get_original(self):
         """
@@ -98,97 +39,6 @@ class Envelope(libtavern.baseobj.Baseobj):
         env.loadmongo(mongo_id=env.dict['envelope']['payload']['regarding'])
         return env
 
-    class Message(Payload):
-
-        def validate(self):
-            if not Envelope.Payload(self.dict).validate():
-                self.server.logger.debug("Super does not Validate")
-                return False
-            if 'subject' not in self.dict:
-                self.server.logger.debug("No subject")
-                return False
-            if 'body' not in self.dict:
-                self.server.logger.debug("No Body")
-                return False
-            if 'topic' not in self.dict:
-                self.server.logger.debug("No Topic")
-                return False
-            if 'formatting' not in self.dict:
-                self.server.logger.debug("No Formatting")
-                return False
-            if self.dict['formatting'] not in ['markdown', 'plaintext']:
-                self.server.logger.debug("Formatting not in pre-approved list")
-                return False
-            if 'topic' in self.dict:
-                if len(self.dict['topic']) > 200:
-                    self.server.logger.debug("Topic too long")
-                    return False
-
-            if 'subject' in self.dict:
-                if len(self.dict['subject']) > 200:
-                    self.server.logger.debug("Subject too long")
-                    return False
-
-            # See if we have the original. If so, is the right type?
-            if 'regarding' in self.dict:
-                e = Envelope()
-                if e.loadmongo(self.dict['regarding']):
-                    print(
-                        "We have the original message this revision refers to")
-                    if e.dict['envelope']['payload']['class'] != 'message':
-                        print("Message can only reply to other messages.")
-                        return False
-
-            return True
-
-
-    class PrivateMessage(Payload):
-
-        def validate(self):
-            if not Envelope.Payload(self.dict).validate():
-                self.server.logger.debug("Super does not Validate")
-                return False
-            if 'to' not in self.dict:
-                self.server.logger.debug("No 'to' field")
-                return False
-            # if 'topic' in self.dict:
-            #     self.server.logger.debug("Topic not allowed in privmessage.")
-            #     return False
-            return True
-
-    class Rating(Payload):
-
-        def validate(self):
-            if not Envelope.Payload(self.dict).validate():
-                self.server.logger.debug("Super fails")
-                return False
-            if 'rating' not in self.dict:
-                self.server.logger.debug("No rating number")
-                return False
-            if self.dict['rating'] not in [-1, 0, 1]:
-                self.server.logger.debug(
-                    "Evelope ratings must be either -1, 1, or 0.")
-                return False
-
-            return True
-
-    class UserTrust(Payload):
-
-        def validate(self):
-            if not Envelope.Payload(self.dict).validate():
-                return False
-            if 'trusted_pubkey' not in self.dict:
-                self.server.logger.debug("No trusted_pubkey to set trust for.")
-                return False
-            if self.dict['trust'] not in [-100, 0, 100]:
-                self.server.logger.debug(
-                    "Message ratings must be either -100, 0, or 100")
-                return False
-            if 'topic' not in self.dict:
-                self.server.logger.debug(
-                    "User trust must be per topic. Please include a topic.")
-                return False
-            return True
 
     def validate(self):
         """Ensures an envelope is valid, legal, and according to spec."""
@@ -290,7 +140,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         #             return False
 
         # Do this last, so we don't waste time if the stamps are bad.
-        if not self.payload.validate():
+        if not self.payload.validates():
             self.server.logger.info("Payload does not validate.")
             return False
 
@@ -448,7 +298,7 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         self.dict['envelope']['stamps'].append(fullstamp)
 
-    def addAncestor(self, ancestorid):
+    def add_ancestor(self, ancestorid):
         """A new Ancestor has been found (parent, parent's parent, etc) for
         this message.
 
@@ -479,12 +329,12 @@ class Envelope(libtavern.baseobj.Baseobj):
                 for childid in self.dict['envelope']['local']['citedby']:
                     child = Envelope()
                     if child.loadmongo(mongo_id=childid):
-                        child.addAncestor(ancestorid)
+                        child.add_ancestor(ancestorid)
                         child.saveMongo()
 
             self.saveMongo()
 
-    def addcite(self, citedby):
+    def add_cite(self, citedby):
         """Another message has referenced this one.
 
         Mark it in the local area.
@@ -497,51 +347,6 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         self.saveMongo()
 
-    def addEdit(self, editid):
-        """Another message has come in that says it's an edit of this one.
-
-        Note - This will NOT recurse. Ensure a edit is an edit to the original, not an edit of an edit.
-
-        """
-        newmessage = Envelope()
-
-        if not 'edits' in self.dict['envelope']['local']:
-            self.dict['envelope']['local']['edits'] = []
-
-        # Check to see if we already have this edit
-        for edit in self.dict['envelope']['local']['edits']:
-            if edit['envelope']['local']['payload_sha512'] == editid:
-                # We already have this message
-                print("We've already stored this edit.")
-                return False
-
-        if newmessage.loadmongo(mongo_id=editid):
-
-            # Ensure the two messages have the same author. If not, abort.
-            # Do this here, rather in validate, so we can receive them in
-            # either order.
-            if self.dict['envelope']['local']['author']['pubkey'] != newmessage.dict['envelope']['local']['author']['pubkey']:
-                print(
-                    "Invalid Revision. Author pubkey must match original message.")
-                return False
-
-            self.dict['envelope']['local']['edits'].append(newmessage.dict)
-
-            # Order by Priority, then date if they match
-            # This will ensure that ['edits'][-1] is the one we want to
-            # display.
-            self.dict['envelope']['local']['edits'].sort(
-                key=lambda e: (e['envelope']['local']['priority'],
-                               (e['envelope']['local']['time_added'])))
-            self.saveMongo()
-            return True
-
-    class attachment(object):
-
-        def __init__(self, sha512):
-            self.dict = OrderedDict()
-            self.dict['sha512'] = sha512
-
     def __init2__(self):
         self.dict = OrderedDict()
         self.dict['envelope'] = OrderedDict()
@@ -550,7 +355,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         self.dict['envelope']['local']['citedby'] = []
         self.dict['envelope']['stamps'] = []
 
-        self.payload = Envelope.Payload(self.dict['envelope']['payload'])
+        self.payload = PayloadBase(self.dict['envelope']['payload'])
 
     def registerpayload(self):
         if 'payload' in self.dict['envelope']:
@@ -587,8 +392,8 @@ class Envelope(libtavern.baseobj.Baseobj):
     def loadstring(self, importstring):
         self.dict = json.loads(
             importstring,
-            object_pairs_hook=collections.OrderedDict,
-            object_hook=collections.OrderedDict)
+            object_pairs_hook=OrderedDict,
+            object_hook=OrderedDict)
         return self.registerpayload()
 
     def loadfile(self, filename):
@@ -646,3 +451,9 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         self.dict['_id'] = self.payload.hash()
         self.server.db.unsafe.save('envelopes', self.dict)
+
+class attachment(object):
+
+    def __init__(self, sha512):
+        self.dict = OrderedDict()
+        self.dict['sha512'] = sha512
