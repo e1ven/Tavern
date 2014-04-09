@@ -164,7 +164,7 @@ chown -R "$user" "$installroot"
 
 # INSTALL NGINX
 
-NGINX_VER=1.5.7
+NGINX_VER=1.5.13
 if [ -f $installroot/utils/nginx/sbin/nginx ]
 then
     # If it's installed, remove if it's an old version.
@@ -209,7 +209,7 @@ ln -s $installroot/datafiles/nginx-config $installroot/utils/nginx/conf
 
 # INSTALL MONGODB
 
-MONGO_VER=2.4.9
+MONGO_VER=2.6.0
 if [ ! -f $installroot/utils/mongodb/bin/mongod ]
 then
     echo "Installing MongoDB $MONGO_VER"

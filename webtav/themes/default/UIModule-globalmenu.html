@@ -8,7 +8,7 @@
                             <a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey) }}">
                                 <img class="avatar" id="youravatar" alt= "Your Avatar" src="{{handler.server.external.getavatar(myid=handler.user.Keys['master'].pubkey,datauri=handler.datauri,height=100,width=100)}}"/>
                             </a>
-                            {% if handler.user.has_login %}
+                            {% if handler.user.can_login %}
                                 <p>You are logged in as: <br>
                                 <a href="{{url_for(pubkey=handler.user.Keys['master'].pubkey)}}">{{handler.user.username}}</a>.</p>
                             {% else %}

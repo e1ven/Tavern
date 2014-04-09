@@ -146,7 +146,8 @@ class BaseTornado(XSRFBaseHandler):
         # We don't re-save serversettings, since we only want it saved if it was intentionally set.
         # TODO: Find some other way of finding this out without checking every request.
         if self.server.serversettings.settings['webtav']['main_url'] is None:
-            server.serversettings.settings['webtav']['main_url'] = self.request.protocol + "://" + self.request.host
+            self.server.serversettings.settings['webtav']['main_url'] = self.request.protocol + "://" + self.request.host
+            self.server.serversettings.saveconfig()
             print("Detected URL as " + server.serversettings.settings['webtav']['main_url'])
 
 

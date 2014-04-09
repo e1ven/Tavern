@@ -195,10 +195,8 @@ class Envelope(libtavern.baseobj.Baseobj):
         # Get a short version of the body, to use as a preview.
         # First line only.
         if 'body' in self.dict['envelope']['payload']:
-            short_body = self.dict['envelope']['payload'][
-                'body'].split('\n', 1)[0][:60].strip()
-            self.dict['envelope']['local'][
-                'short_body'] = short_body
+            short_body = libtavern.utils.smart_truncate(st=self.dict['envelope']['payload']['body'],maxlen=60)
+            self.dict['envelope']['local']['short_body'] = short_body
 
         # Process any attachments which are listed in the envelope
         if 'attachments' in self.dict['envelope']['payload']:

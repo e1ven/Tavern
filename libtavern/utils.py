@@ -4,7 +4,6 @@ import itertools
 from functools import wraps
 import inspect
 from collections import OrderedDict
-import json
 import time
 from io import open
 import hashlib
@@ -15,6 +14,17 @@ import string
 from PIL import Image
 import json
 
+def smart_truncate(st,maxlen,suffix=""):
+    """
+    Truncates a string to no-more-than len characters, stopping at the final word.
+    This avoids sentences which end in mid sentence.
+    :param string st: The String to truncate
+    :param int maxlen: The maximum length of the final string
+    :return string: The truncated string
+    """
+    length = maxlen - len(suffix)
+    newstr = st[:length].rsplit(' ',1)[0] + suffix
+    return newstr
 
 def file_info(fileobj):
     """

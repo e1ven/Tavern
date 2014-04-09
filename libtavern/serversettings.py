@@ -138,6 +138,34 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['webtav']['flask'] = {}
 
 
+        # Password Storage
+        # N - Overall CPU/Memory cost. Should be a power of two.
+        # r - Memory cost - Adjusts blocksize
+        # p - Number of parallel loops
+
+        # Per http://www.tarsnap.com/scrypt/scrypt-slides.pdf
+        # (N = 2^14, r = 8, p = 1) for < 100ms (interactive use), and
+        # (N = 2^20, r = 8, p = 1) for < 5s (sensitive storage).
+
+
+        if not 'auth' in self.settings:
+            self.settings['auth'] = {}
+        if not 'scrypt' in self.settings['auth']:
+            self.settings['auth']['scrypt'] = {}
+        if not 'N' in self.settings['auth']['scrypt']:
+            self.settings['auth']['scrypt']['N'] = 16384
+        if not 'r' in self.settings['auth']['scrypt']:
+            self.settings['auth']['scrypt']['r'] = 8
+        if not 'p' in self.settings['auth']['scrypt']:
+            self.settings['auth']['scrypt']['p'] = 1
+
+
+
+
+
+
+
+
         # Set the default DBs
         if not 'DB' in self.settings:
             self.settings['DB'] = {}

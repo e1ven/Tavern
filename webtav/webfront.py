@@ -12,6 +12,7 @@ import libtavern.envelope
 import libtavern.utils
 import libtavern.key
 import libtavern.topic
+import libtavern.user
 
 import webtav.webbase as webbase
 from webtav.webbase import weberror
@@ -292,57 +293,44 @@ class RegisterHandler(webbase.BaseTornado):
         self.save_session()
         self.redirect(self.server.url_for(base=True))
 
-# def LoginHandler_get(slug=None):
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title="Login to your account", rsshead=None, type=None))
-#     self.write(self.render_string('loginform.html', slug=slug))
-#     self.write(self.render_string('footer.html'))
+class LoginHandler(webbase.BaseTornado):
+    """
+    Allow a user to login to the site.
+    Checks a username against mongo, and sees if their password unlocks the key.
+    """
 
+    def get(self):
+        """
+        Display the login form.
+        """
+        self.title = "Log in to your Tavern account"
+        self.canon = self.server.url_for(base=True) + "/login"
+        self.render('View-login.html')
 
-# def LoginHandler_post():
-#     self.getvars()
-#     self.write(self.render_string('header.html',
-#                title='Login to your account', rsshead=None, type=None))
+    def post(self):
+        """
+        Receive/Process the login form.
+        """
+        username = self.get_argument("username")
+        password = self.get_argument("pass")
 
-#     successredirect = '/'
-#     client_username = self.get_argument("username")
-#     client_password = self.get_argument("pass")
-#     if 'slug' in self.request.arguments:
-#         slug = self.get_argument("slug")
-#         sluglookup = self.server.db.unsafe.find_one('redirects', {'slug': slug})
-#         if sluglookup is not None:
-#             if sluglookup['url'] is not None:
-#                 successredirect = sluglookup['url']
+        # Load the user, see if we can match the pass.
+        u = libtavern.user.User()
+        if not u.load_mongo_by_username(username=username.lower()):
+            raise weberror(short="That username can't be found", long="I'm sorry, but there's no record of that username on this Server. Perhaps you originally logged in via another method?.",code=400)
 
-#     u = User()
-#     if u.load_mongo_by_username(username=client_username.lower()):
-# The username exists.
+        if not u.verify_password(password):
+            raise weberror(short="That password doesn't look right", long="The password you gave doesn't match the one on-file for the account.",code=400)
 
-#         if u.verify_password(client_password):
-#             self.user = u
-# You are successfully Authenticated.
+        # If we've made it here, user/pass matches. We're good.
+        self.user = u
+        self.save_session()
+        self.write("You have successfully logged in.")
 
-#             self.clear_cookie('tavern_passkey')
-#             self.set_secure_cookie(
-#                 "tavern_passkey",
-#                 self.user.Keys['master'].get_passkey(client_password),
-#                 httponly=True,
-#                 expires_days=999)
-#             self.user.lastauth = int(time.time())
-
-#             self.setvars()
-#             self.server.logger.debug("Login Successful.")
-#             bottle.redirect(successredirect)
-#         else:
-#             self.server.logger.debug("Username/password fail.")
-# bottle.redirect("http://Google.com")
-
-
-# def LogoutHandler_post():
-#     self.clear_all_cookies()
-#     bottle.redirect("/")
-
+class LogoutHandler(webbase.BaseTornado):
+    def post(self):
+        self.clear_all_cookies()
+        self.redirect(self.server.url_for(base=True))
 
 # def ChangepasswordHandler_get():
 #     self.getvars()
@@ -1180,10 +1168,9 @@ def main():
             # (r"/reply/(.*)", ReplyHandler),
             # (r"/pm/(.*)", NewPrivateMessageHandler),
             (r"/register", RegisterHandler),
-            # (r"/login/(.*)", LoginHandler),
-            # (r"/login", LoginHandler),
+            (r"/login", LoginHandler),
             # (r"/changepassword", ChangepasswordHandler),
-            # (r"/logout", LogoutHandler),
+            (r"/logout", LogoutHandler),
 
 
             # (r"/vote", RatingHandler),

@@ -1,23 +1,17 @@
-import os
 import re
-import string
 import hashlib
 import base64
 import logging
-import functools
 import gnupg
 import tempfile
 import shutil
-import time
-import functools
-import time
 import libtavern.utils
 import libtavern.baseobj
 import datetime
+import functools
 
-# We're not using  @memorise because we don't WANT cached copies of the
-# keys hanging around, even though it'd be faster ;()
-
+# NOTE - Do not use @memorise on these functions!
+# Yes, encrypting and decrypting is slow, but storing the results in memory is bad-bad-bad.
 
 class Key(libtavern.baseobj.Baseobj):
     def privatekeyaccess(fn):

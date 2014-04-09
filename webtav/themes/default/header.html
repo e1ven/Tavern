@@ -23,21 +23,14 @@
 		<meta property="og:blog" content="article"/>
 	{% end %}
 	<meta http-equiv="content-type" content="text/html; charset=UTF-8">
-
-
-
-    <meta NAME="Description" CONTENT="Tavern ;) - {{handler.title}}">
-
 	<meta http-equiv="X-Frame-Options" content="deny">
 	<meta property="og:site_name" content="Tavern"/>
+    <title> Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{ handler.title }} </title>
 
-	<title>
-		{% if handler.title %}
-		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  {{ handler.title }}
-		{% else %}
-		Tavern ;) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Discuss what matters.
-		{% end %}
-	</title>
+    {% if handler.displayenvelope %}
+        <meta NAME="Description" CONTENT="{{handler.displayenvelope.dict['envelope']['local']['short_body']}}">
+    {% end if %}
+
 	<meta property="og:title" content="	Tavern :: {{ handler.title }}"/>
 
 	<link rel="alternate" type="application/rss+xml" title="Updates on {{ handler.topic }}" href="/rss/topic/{{ handler.topic }}" /> 

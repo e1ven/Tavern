@@ -19,13 +19,7 @@ Browser Firefox 2.0.0.18 Windows 2003 Server
 Browser Safari 3.2 OS X 10.5 Leopard
 """
 
-import os
-
-import urllib.request
-import urllib.error
-import urllib.parse
 import re
-import time
 import libtavern.baseobj
 
 class UASException(Exception):

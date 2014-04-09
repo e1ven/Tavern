@@ -11,14 +11,6 @@ import libtavern.topic
 
 import enum
 
-            # if self.has_unique_key:
-            #     # This user is registered, they may have posted here before...
-            #     posts = self.server.get_all_user_posts(self.Keys['master'].pubkey)
-            #     if len(posts) > 0:
-            #         self.friendlyname = posts[0].dict['envelope']['local']['author']['friendlyname']
-            #
-            #
-
 class keygen(enum.Enum):
     useguest = 1  # use the Guest key
     generate = 2  # Generate a new key for this user
@@ -39,7 +31,6 @@ class User(libtavern.baseobj.Baseobj):
         self.Keys['master'] = None
 
         self.has_set_password = False
-        self.has_login = False
         self.has_unique_key = False
 
         self.passkey = None
@@ -79,8 +70,23 @@ class User(libtavern.baseobj.Baseobj):
         # After calling user(), you should always call a .generate() or .load() function.
         # If you do neither, and try to retrieve these, we want an exception
 
+    @property
+    def can_login(self):
+        """
+        Does this user have the ability to log in, either via a username, email, twitter, etc
+        :return: True if the user can log in (somehow), False otherwise
+        """
+        if len(self.emails) > 0:
+            return True
+        if self.username is not None:
+            if self.has_set_password is True:
+                return True
+        return False
 
     def make_hashes(self):
+        """
+        Ensure that we have the hashed versions of the Pubkey for this user.
+        """
         if self.Keys['master'] is not None:
             self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
             self.author_sha512 = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
@@ -91,7 +97,8 @@ class User(libtavern.baseobj.Baseobj):
 
     def ensure_keys(self,AllowGuestKey=True):
         """
-        Generate the Keys for a User()
+        Ensures that the user has a Master key.
+        :param AllowGuestKey: If True (default), We will share a SINGLE key. Used for non-logged-in users.
         """
         if not isinstance(AllowGuestKey,bool) and not isinstance(AllowGuestKey,keygen):
             raise Exception('AllowGuestKey must be either True, False or Enum')
@@ -112,13 +119,13 @@ class User(libtavern.baseobj.Baseobj):
 
     def new_posted_key(self):
         """
-        Generate a new communication key.
-        This key might be attached to a forum message, or a private message.
+        Generate a new key that can be used to send messages to this user.
+        This key can then be shared, such as in a forum message or PM.
 
-        By generating a new key for each message, even if our key does eventually leak
-        it will be difficult to decode old messages, who's keys have been deleted.
+        Generating new keys for each message helps ensure that even if a key ever leaks
+        that particular key only unlocks a very few messages.
+        :return LockedKey: The newly generated key
         """
-
         if self.passkey is None:
             raise Exception("Must have a valid passkey to run this method")
 
@@ -131,9 +138,12 @@ class User(libtavern.baseobj.Baseobj):
 
 
     def verify_password(self, guessed_password, tryinverted=True):
-        """Check a proposed password, to see if it's able to open and load a
-        user's account."""
-
+        """
+        Attempts to unlock the master key for a user, given a password.
+        :param guessed_password: The password to use to unlock
+        :param tryinverted: Try the inverted version of the password as well | iNVerted -> InvERTED
+        :return: True/False - Is the password right?
+        """
         successful = False
         try:
             tmp_passkey = self.Keys['master'].get_passkey(password)
@@ -156,7 +166,11 @@ class User(libtavern.baseobj.Baseobj):
 
 
     def get_note(self, noteabout):
-        """Retrieve any note by user A about user B."""
+        """
+        Retrieve notes set by current user (self) about the specified user.
+        :param noteabout: Look for notes about this user
+        :return string: The Note for the requested user. (or None)
+        """
         # Make sure the key we're asking about is formatted right.
         # I don't trust myself ;)
 
@@ -398,14 +412,26 @@ class User(libtavern.baseobj.Baseobj):
         return combinedrating
 
     def add_email(self,email):
+        """
+        Add an email to a user obj
+        :param email: The email to add
+        """
         self.emails[email] = {}
         self.emails[email]['confirmed'] = False
         self.emails[email]['added'] = libtavern.utils.gettime(format='timestamp')
 
     def remove_email(self,email):
+        """
+        Remove an email from a user obj
+        :param email: The email to remove
+        """
         del(self.emails[email])
 
     def follow_topic(self, topic):
+        """
+        Adds a topic to a user's followed_topics
+        :param Topic/string topic: The topic object or string to add
+        """
         newtopic = libtavern.topic.Topic(topic)
         matched = False
         for tp in self.followed_topics:
@@ -415,13 +441,22 @@ class User(libtavern.baseobj.Baseobj):
             self.followed_topics.append(newtopic)
 
     def unfollow_topic(self, topic):
+        """
+        Removes a topic from a User's followed_topics
+        :param Topic/string topic: The topic or string to remove
+        """
         newtopic = libtavern.topic.Topic(topic)
         for tp in self.followed_topics:
             if tp.sortname == newtopic.sortname:
                 self.followed_topics.remove(tp)
 
     def follows_topic(self,topic):
-        """Does this user follow the topic?"""
+        """
+        Does the user follow a given topic?
+        :param Topic/string topic: The topic or string to check against.
+        :return: True/False - Does the user follow that topic?
+        """
+
         newtopic = libtavern.topic.Topic(topic)
         matched = False
         for tp in self.followed_topics:
