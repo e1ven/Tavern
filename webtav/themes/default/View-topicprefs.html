@@ -20,7 +20,7 @@
 					<li>
 					<abbr title="Moderator@{{mod['_id']['moderator_pubkey_sha512']}}">
 						<a href="{{url_for(pubkey=mod['_id']['moderator'])}}">
-		    				<img class="avatar" alt="User Avatar for post" src="/avatar/{{''.join(mod['_id']['moderator'].split())}}.png?set=any&amp;bgset=any&amp;size=40x40"/>
+		    				<img class="avatar" alt="User Avatar for post" src="{{handler.server.external.getavatar(myid={{''.join(mod['_id']['moderator'].split()),datauri=handler.datauri,height=40,width=40)}}"/>
 		    			</a>
 		    			<a href="{{url_for(pubkey=mod['_id']['moderator'])}}">
 		    				<b>Moderator</b>@{{mod['_id']['moderator_pubkey_sha512'][0:6]}}..<br />
