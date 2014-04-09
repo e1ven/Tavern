@@ -403,6 +403,27 @@ class class webtav.webfront.EntryHandler(*args, **kwargs)
       Currently, this redirects everyone. Eventually, it may give a
       different experience for first-time visitors.
 
+class class webtav.webfront.LoginHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseTornado"
+
+   Allow a user to login to the site. Checks a username against mongo,
+   and sees if their password unlocks the key.
+
+   get()
+
+      Display the login form.
+
+   post()
+
+      Receive/Process the login form.
+
+class class webtav.webfront.LogoutHandler(*args, **kwargs)
+
+   Bases: "webtav.webbase.BaseTornado"
+
+   post()
+
 class class webtav.webfront.MessageHandler(*args, **kwargs)
 
    Bases: "webtav.webbase.BaseTornado"

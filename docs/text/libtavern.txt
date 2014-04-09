@@ -228,17 +228,33 @@ class class libtavern.lockedkey.LockedKey(*args, **kwargs)
 
    Bases: "libtavern.key.Key"
 
-   A securely locked away key, which uses a secret only stored in the
-   client to unlock. If our DB is ever compromised, this will prevent
-   bad guys from easily impersonating users. This also prevents us
-   from evesdropping on private messages.
+   LockedKey extends Key to provide a version where the private key is
+   encrypted.
 
-   Class is basically a wrapper around Keys.py
+   When you first create a lockedkey, you provide a password. This
+   password is hashed using scrypt, and a 'passkey' (the hash) is
+   generated. The private key is then encrypted using this passkey, by
+   way of scrypt enc.
 
-   We aren't just using gpg passphrases because there is no easy way
-   to progratically change them.
+   This passkey is then given to the user as a cookie. It is not
+   stored on the server.
+
+   If this is stolen from the user, it will not let them log in, since
+   it is not the original. If our DB is leaked, the keys will be
+   unreadable without these passkeys.
+
+   Implementation Note - We aren't using GPG passphrases for two
+   reasons-
+      1. We want to be able to support non GPG keys
+
+      2. There is no crossplatform way of changing GPG keys via
+         library ;(
 
    changepass(oldpasskey, newpassword)
+
+      Changes the stored password. :param oldpasskey: The Old password
+      :param newpassword: The New password :return: True, or
+      Exception.
 
    from_dict(keydict, passkey=None)
 
@@ -246,26 +262,48 @@ class class libtavern.lockedkey.LockedKey(*args, **kwargs)
 
    generate(password=None, passkey=None, random=False, autoexpire=False)
 
-      Generate a new set of keys. Store only the encrypted version
+      Generates a new set of public and private keys. Stores only the
+      encrypted version of the key in the object. Must receive either
+      a password, passkey, or random flag.
+
+      Parameters:
+         * **password** (*string*) -- The password to encrypt the
+           new privkey with
+
+         * **passkey** (*string*) -- The passkey to encrypt the new
+           privkey with
+
+         * **random** (*True/False*) -- If True, generates a random
+           password to encrypt with.
+
+         * **autoexpire** -- Sets the expiration date for the key to
+           next month.
+
+      Returns:
+         Returns the new password if random == True, else returns None
 
    get_passkey(password)
 
-      Returns the hashed version of the password.
-
-      Broken out into a method, so we can swap it if nec.
+      Use scrypt to hash the password according to a work factor
+      defined in settings. :param password: The password to hash
+      :return: base64 encoded version of the private key
 
    lock(passkey=None)
 
-      Remove the private key from Python obj.
+      Removes the Private Key from memory on a given object. :param
+      passkey: The Passkey for this object :return True: Returns True
+      on success, raises Exception on failure (should never fail)
 
    to_dict()
 
-      Saves the key objects as a python dictionary. Does -not- save
-      out the privkey or passkey!
+      Writes the key to a dictionary object. Does -not- save the
+      privkey or passkey. :return: A dictionary version of the key
 
    unlock(passkey=None)
 
-      Sets self.privkey to be the public key, if possible.
+      Restores the Private Key (.privkey) attribute in the object
+      :param passkey: The Passkey to unlock this private key. :return
+      True: Returns True on success, raises Exception on failure
 
 
 libtavern.payloads module
@@ -587,6 +625,14 @@ class class libtavern.user.User(*args, **kwargs)
 
    User.add_email(email)
 
+      Add an email to a user obj :param email: The email to add
+
+   User.can_login
+
+      Does this user have the ability to log in, either via a
+      username, email, twitter, etc :return: True if the user can log
+      in (somehow), False otherwise
+
    User.changepass(newpassword, oldpasskey=None)
 
       Change the User's password. Since this password is used to
@@ -604,13 +650,20 @@ class class libtavern.user.User(*args, **kwargs)
 
    User.ensure_keys(AllowGuestKey=True)
 
-      Generate the Keys for a User()
+      Ensures that the user has a Master key. :param AllowGuestKey: If
+      True (default), We will share a SINGLE key. Used for non-logged-
+      in users.
 
    User.follow_topic(topic)
 
+      Adds a topic to a user's followed_topics :param Topic/string
+      topic: The topic object or string to add
+
    User.follows_topic(topic)
 
-      Does this user follow the topic?
+      Does the user follow a given topic? :param Topic/string topic:
+      The topic or string to check against. :return: True/False - Does
+      the user follow that topic?
 
    User.from_dict(userdict)
 
@@ -633,7 +686,9 @@ class class libtavern.user.User(*args, **kwargs)
 
    User.get_note(noteabout)
 
-      Retrieve any note by user A about user B.
+      Retrieve notes set by current user (self) about the specified
+      user. :param noteabout: Look for notes about this user :return
+      string: The Note for the requested user. (or None)
 
    User.get_pubkeys()
 
@@ -669,16 +724,23 @@ class class libtavern.user.User(*args, **kwargs)
 
    User.make_hashes()
 
+      Ensure that we have the hashed versions of the Pubkey for this
+      user.
+
    User.new_posted_key()
 
-      Generate a new communication key. This key might be attached to
-      a forum message, or a private message.
+      Generate a new key that can be used to send messages to this
+      user. This key can then be shared, such as in a forum message or
+      PM.
 
-      By generating a new key for each message, even if our key does
-      eventually leak it will be difficult to decode old messages,
-      who's keys have been deleted.
+      Generating new keys for each message helps ensure that even if a
+      key ever leaks that particular key only unlocks a very few
+      messages. :return LockedKey: The newly generated key
 
    User.remove_email(email)
+
+      Remove an email from a user obj :param email: The email to
+      remove
 
    User.save_file(filename=None)
 
@@ -700,10 +762,16 @@ class class libtavern.user.User(*args, **kwargs)
 
    User.unfollow_topic(topic)
 
+      Removes a topic from a User's followed_topics :param
+      Topic/string topic: The topic or string to remove
+
    User.verify_password(guessed_password, tryinverted=True)
 
-      Check a proposed password, to see if it's able to open and load
-      a user's account.
+      Attempts to unlock the master key for a user, given a password.
+      :param guessed_password: The password to use to unlock :param
+      tryinverted: Try the inverted version of the password as well |
+      iNVerted -> InvERTED :return: True/False - Is the password
+      right?
 
 class class libtavern.user.keygen
 
@@ -814,6 +882,13 @@ libtavern.utils.randstr(length)
 
    Returns a string of length *length* of random ascii letters and
    numbers
+
+libtavern.utils.smart_truncate(st, maxlen, suffix='')
+
+   Truncates a string to no-more-than len characters, stopping at the
+   final word. This avoids sentences which end in mid sentence. :param
+   string st: The String to truncate :param int maxlen: The maximum
+   length of the final string :return string: The truncated string
 
 libtavern.utils.to_json(obj)
 

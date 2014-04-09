@@ -48,26 +48,20 @@
           <div class="body">
             
   <h1>Source code for libtavern.key</h1><div class="highlight"><pre>
-<span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">re</span>
-<span class="kn">import</span> <span class="nn">string</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
 <span class="kn">import</span> <span class="nn">base64</span>
 <span class="kn">import</span> <span class="nn">logging</span>
-<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">gnupg</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
 <span class="kn">import</span> <span class="nn">shutil</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">functools</span>
-<span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">libtavern.utils</span>
 <span class="kn">import</span> <span class="nn">libtavern.baseobj</span>
 <span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">functools</span>
 
-<span class="c"># We&#39;re not using  @memorise because we don&#39;t WANT cached copies of the</span>
-<span class="c"># keys hanging around, even though it&#39;d be faster ;()</span>
-
+<span class="c"># NOTE - Do not use @memorise on these functions!</span>
+<span class="c"># Yes, encrypting and decrypting is slow, but storing the results in memory is bad-bad-bad.</span>
 
 <div class="viewcode-block" id="Key"><a class="viewcode-back" href="../../libtavern.html#libtavern.key.Key">[docs]</a><span class="k">class</span> <span class="nc">Key</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">baseobj</span><span class="o">.</span><span class="n">Baseobj</span><span class="p">):</span>
 <div class="viewcode-block" id="Key.privatekeyaccess"><a class="viewcode-back" href="../../libtavern.html#libtavern.key.Key.privatekeyaccess">[docs]</a>    <span class="k">def</span> <span class="nf">privatekeyaccess</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>

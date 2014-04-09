@@ -379,16 +379,29 @@ the message matches Not just the signature.</p>
 <dt id="libtavern.lockedkey.LockedKey">
 <em class="property">class </em><tt class="descclassname">libtavern.lockedkey.</tt><tt class="descname">LockedKey</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#libtavern.key.Key" title="libtavern.key.Key"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.key.Key</span></tt></a></p>
-<p>A securely locked away key, which uses a secret only stored in the
-client to unlock. If our DB is ever compromised, this will prevent bad guys
-from easily impersonating users. This also prevents us from evesdropping on
-private messages.</p>
-<p>Class is basically a wrapper around Keys.py</p>
-<p>We aren&#8217;t just using gpg passphrases because there is no easy way to progratically change them.</p>
+<p>LockedKey extends Key to provide a version where the private key is encrypted.</p>
+<p>When you first create a lockedkey, you provide a password.
+This password is hashed using scrypt, and a &#8216;passkey&#8217; (the hash) is generated.
+The private key is then encrypted using this passkey, by way of scrypt enc.</p>
+<p>This passkey is then given to the user as a cookie. It is not stored on the server.</p>
+<p>If this is stolen from the user, it will not let them log in, since it is not the original.
+If our DB is leaked, the keys will be unreadable without these passkeys.</p>
+<dl class="docutils">
+<dt>Implementation Note - We aren&#8217;t using GPG passphrases for two reasons-</dt>
+<dd><ol class="first last arabic simple">
+<li>We want to be able to support non GPG keys</li>
+<li>There is no crossplatform way of changing GPG keys via library ;(</li>
+</ol>
+</dd>
+</dl>
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.changepass">
 <tt class="descname">changepass</tt><big>(</big><em>oldpasskey</em>, <em>newpassword</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.changepass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.changepass" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Changes the stored password.
+:param oldpasskey: The Old password
+:param newpassword: The New password
+:return: True, or Exception.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.from_dict">
@@ -399,34 +412,57 @@ private messages.</p>
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.generate">
 <tt class="descname">generate</tt><big>(</big><em>password=None</em>, <em>passkey=None</em>, <em>random=False</em>, <em>autoexpire=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.generate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.generate" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a new set of keys.
-Store only the encrypted version</p>
+<dd><p>Generates a new set of public and private keys.
+Stores only the encrypted version of the key in the object.
+Must receive either a password, passkey, or random flag.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>password</strong> (<em>string</em>) &#8211; The password to encrypt the new privkey with</li>
+<li><strong>passkey</strong> (<em>string</em>) &#8211; The passkey to encrypt the new privkey with</li>
+<li><strong>random</strong> (<em>True/False</em>) &#8211; If True, generates a random password to encrypt with.</li>
+<li><strong>autoexpire</strong> &#8211; Sets the expiration date for the key to next month.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Returns the new password if random == True, else returns None</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.get_passkey">
 <tt class="descname">get_passkey</tt><big>(</big><em>password</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.get_passkey"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.get_passkey" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the hashed version of the password.</p>
-<p>Broken out into a method, so we can swap it if nec.</p>
+<dd><p>Use scrypt to hash the password according to a work factor defined in settings.
+:param password: The password to hash
+:return: base64 encoded version of the private key</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.lock">
 <tt class="descname">lock</tt><big>(</big><em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.lock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.lock" title="Permalink to this definition">¶</a></dt>
-<dd><p>Remove the private key from Python obj.</p>
+<dd><p>Removes the Private Key from memory on a given object.
+:param passkey: The Passkey for this object
+:return True: Returns True on success, raises Exception on failure (should never fail)</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.to_dict">
 <tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>Saves the key objects as a python dictionary.
-Does -not- save out the privkey or passkey!</p>
+<dd><p>Writes the key to a dictionary object. Does -not- save the privkey or passkey.
+:return: A dictionary version of the key</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.lockedkey.LockedKey.unlock">
 <tt class="descname">unlock</tt><big>(</big><em>passkey=None</em><big>)</big><a class="reference internal" href="_modules/libtavern/lockedkey.html#LockedKey.unlock"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.lockedkey.LockedKey.unlock" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets self.privkey to be the public key, if possible.</p>
+<dd><p>Restores the Private Key (.privkey) attribute in the object
+:param passkey: The Passkey to unlock this private key.
+:return True: Returns True on success, raises Exception on failure</p>
 </dd></dl>
 
 </dd></dl>
@@ -914,7 +950,16 @@ param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)<
 <dl class="method">
 <dt id="libtavern.user.User.add_email">
 <tt class="descclassname">User.</tt><tt class="descname">add_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.add_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.add_email" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Add an email to a user obj
+:param email: The email to add</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="libtavern.user.User.can_login">
+<tt class="descclassname">User.</tt><tt class="descname">can_login</tt><a class="reference internal" href="_modules/libtavern/user.html#User.can_login"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.can_login" title="Permalink to this definition">¶</a></dt>
+<dd><p>Does this user have the ability to log in, either via a username, email, twitter, etc
+:return: True if the user can log in (somehow), False otherwise</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.changepass">
@@ -934,18 +979,23 @@ This is intentional, so that other clients don&#8217;t start sending PMs to the 
 <dl class="method">
 <dt id="libtavern.user.User.ensure_keys">
 <tt class="descclassname">User.</tt><tt class="descname">ensure_keys</tt><big>(</big><em>AllowGuestKey=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.ensure_keys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.ensure_keys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate the Keys for a User()</p>
+<dd><p>Ensures that the user has a Master key.
+:param AllowGuestKey: If True (default), We will share a SINGLE key. Used for non-logged-in users.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.follow_topic">
 <tt class="descclassname">User.</tt><tt class="descname">follow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follow_topic" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Adds a topic to a user&#8217;s followed_topics
+:param Topic/string topic: The topic object or string to add</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.follows_topic">
 <tt class="descclassname">User.</tt><tt class="descname">follows_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.follows_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.follows_topic" title="Permalink to this definition">¶</a></dt>
-<dd><p>Does this user follow the topic?</p>
+<dd><p>Does the user follow a given topic?
+:param Topic/string topic: The topic or string to check against.
+:return: True/False - Does the user follow that topic?</p>
 </dd></dl>
 
 <dl class="method">
@@ -976,7 +1026,9 @@ This is determined by several factors, but the base algorithm is:</p>
 <dl class="method">
 <dt id="libtavern.user.User.get_note">
 <tt class="descclassname">User.</tt><tt class="descname">get_note</tt><big>(</big><em>noteabout</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.get_note"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.get_note" title="Permalink to this definition">¶</a></dt>
-<dd><p>Retrieve any note by user A about user B.</p>
+<dd><p>Retrieve notes set by current user (self) about the specified user.
+:param noteabout: Look for notes about this user
+:return string: The Note for the requested user. (or None)</p>
 </dd></dl>
 
 <dl class="method">
@@ -1033,21 +1085,25 @@ But shouldn&#8217;t give them anything about a user they couldn&#8217;t get from
 <dl class="method">
 <dt id="libtavern.user.User.make_hashes">
 <tt class="descclassname">User.</tt><tt class="descname">make_hashes</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.make_hashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.make_hashes" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Ensure that we have the hashed versions of the Pubkey for this user.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.new_posted_key">
 <tt class="descclassname">User.</tt><tt class="descname">new_posted_key</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.new_posted_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.new_posted_key" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a new communication key.
-This key might be attached to a forum message, or a private message.</p>
-<p>By generating a new key for each message, even if our key does eventually leak
-it will be difficult to decode old messages, who&#8217;s keys have been deleted.</p>
+<dd><p>Generate a new key that can be used to send messages to this user.
+This key can then be shared, such as in a forum message or PM.</p>
+<p>Generating new keys for each message helps ensure that even if a key ever leaks
+that particular key only unlocks a very few messages.
+:return LockedKey: The newly generated key</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.remove_email">
 <tt class="descclassname">User.</tt><tt class="descname">remove_email</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.remove_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.remove_email" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Remove an email from a user obj
+:param email: The email to remove</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.save_file">
@@ -1085,13 +1141,17 @@ it will be difficult to decode old messages, who&#8217;s keys have been deleted.
 <dl class="method">
 <dt id="libtavern.user.User.unfollow_topic">
 <tt class="descclassname">User.</tt><tt class="descname">unfollow_topic</tt><big>(</big><em>topic</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.unfollow_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.unfollow_topic" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Removes a topic from a User&#8217;s followed_topics
+:param Topic/string topic: The topic or string to remove</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.user.User.verify_password">
 <tt class="descclassname">User.</tt><tt class="descname">verify_password</tt><big>(</big><em>guessed_password</em>, <em>tryinverted=True</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User.verify_password"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.verify_password" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check a proposed password, to see if it&#8217;s able to open and load a
-user&#8217;s account.</p>
+<dd><p>Attempts to unlock the master key for a user, given a password.
+:param guessed_password: The password to use to unlock
+:param tryinverted: Try the inverted version of the password as well | iNVerted -&gt; InvERTED
+:return: True/False - Is the password right?</p>
 </dd></dl>
 
 </dd></dl>
@@ -1240,6 +1300,16 @@ string.</p>
 <dt id="libtavern.utils.randstr">
 <tt class="descclassname">libtavern.utils.</tt><tt class="descname">randstr</tt><big>(</big><em>length</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#randstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.randstr" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a string of length <cite>length</cite> of random ascii letters and numbers</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="libtavern.utils.smart_truncate">
+<tt class="descclassname">libtavern.utils.</tt><tt class="descname">smart_truncate</tt><big>(</big><em>st</em>, <em>maxlen</em>, <em>suffix=''</em><big>)</big><a class="reference internal" href="_modules/libtavern/utils.html#smart_truncate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.utils.smart_truncate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncates a string to no-more-than len characters, stopping at the final word.
+This avoids sentences which end in mid sentence.
+:param string st: The String to truncate
+:param int maxlen: The maximum length of the final string
+:return string: The truncated string</p>
 </dd></dl>
 
 <dl class="function">

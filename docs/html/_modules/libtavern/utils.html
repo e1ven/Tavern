@@ -54,7 +54,6 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">wraps</span>
 <span class="kn">import</span> <span class="nn">inspect</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">OrderedDict</span>
-<span class="kn">import</span> <span class="nn">json</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">io</span> <span class="kn">import</span> <span class="nb">open</span>
 <span class="kn">import</span> <span class="nn">hashlib</span>
@@ -65,7 +64,18 @@
 <span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
 <span class="kn">import</span> <span class="nn">json</span>
 
-
+<div class="viewcode-block" id="smart_truncate"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.smart_truncate">[docs]</a><span class="k">def</span> <span class="nf">smart_truncate</span><span class="p">(</span><span class="n">st</span><span class="p">,</span><span class="n">maxlen</span><span class="p">,</span><span class="n">suffix</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Truncates a string to no-more-than len characters, stopping at the final word.</span>
+<span class="sd">    This avoids sentences which end in mid sentence.</span>
+<span class="sd">    :param string st: The String to truncate</span>
+<span class="sd">    :param int maxlen: The maximum length of the final string</span>
+<span class="sd">    :return string: The truncated string</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">length</span> <span class="o">=</span> <span class="n">maxlen</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">suffix</span><span class="p">)</span>
+    <span class="n">newstr</span> <span class="o">=</span> <span class="n">st</span><span class="p">[:</span><span class="n">length</span><span class="p">]</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span><span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">suffix</span>
+    <span class="k">return</span> <span class="n">newstr</span>
+</div>
 <div class="viewcode-block" id="file_info"><a class="viewcode-back" href="../../libtavern.html#libtavern.utils.file_info">[docs]</a><span class="k">def</span> <span class="nf">file_info</span><span class="p">(</span><span class="n">fileobj</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Returns a SHA512 hash for a file without loading the entire file into memory</span>

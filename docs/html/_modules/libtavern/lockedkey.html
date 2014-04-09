@@ -50,27 +50,26 @@
   <h1>Source code for libtavern.lockedkey</h1><div class="highlight"><pre>
 <span class="kn">import</span> <span class="nn">scrypt</span>
 <span class="kn">import</span> <span class="nn">base64</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">libtavern.key</span>
 
 <div class="viewcode-block" id="LockedKey"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey">[docs]</a><span class="k">class</span> <span class="nc">LockedKey</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">key</span><span class="o">.</span><span class="n">Key</span><span class="p">):</span>
 
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A securely locked away key, which uses a secret only stored in the</span>
-<span class="sd">    client to unlock. If our DB is ever compromised, this will prevent bad guys</span>
-<span class="sd">    from easily impersonating users. This also prevents us from evesdropping on</span>
-<span class="sd">    private messages.</span>
+<span class="sd">    LockedKey extends Key to provide a version where the private key is encrypted.</span>
 
-<span class="sd">    Class is basically a wrapper around Keys.py</span>
+<span class="sd">    When you first create a lockedkey, you provide a password.</span>
+<span class="sd">    This password is hashed using scrypt, and a &#39;passkey&#39; (the hash) is generated.</span>
+<span class="sd">    The private key is then encrypted using this passkey, by way of scrypt enc.</span>
 
-<span class="sd">    We aren&#39;t just using gpg passphrases because there is no easy way to progratically change them.</span>
+<span class="sd">    This passkey is then given to the user as a cookie. It is not stored on the server.</span>
 
+<span class="sd">    If this is stolen from the user, it will not let them log in, since it is not the original.</span>
+<span class="sd">    If our DB is leaked, the keys will be unreadable without these passkeys.</span>
+
+<span class="sd">    Implementation Note - We aren&#39;t using GPG passphrases for two reasons-</span>
+<span class="sd">        1) We want to be able to support non GPG keys</span>
+<span class="sd">        2) There is no crossplatform way of changing GPG keys via library ;(</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-
-    <span class="c"># access_privatekey is an empty function that is called before every function that requires privatekey access.</span>
-    <span class="c"># We&#39;re adding it here so that objects that extend Key can overwrite it,</span>
-    <span class="c"># and unlock the privatekey in some way.</span>
 
     <span class="k">def</span> <span class="nf">__init2__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pub</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">priv</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span><span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">encryptedprivkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
 
@@ -90,7 +89,11 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">__init2__</span><span class="p">(</span><span class="n">pub</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="n">priv</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">privkey</span><span class="p">)</span>
 
 <div class="viewcode-block" id="LockedKey.lock"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.lock">[docs]</a>    <span class="k">def</span> <span class="nf">lock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Remove the private key from Python obj.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes the Private Key from memory on a given object.</span>
+<span class="sd">        :param passkey: The Passkey for this object</span>
+<span class="sd">        :return True: Returns True on success, raises Exception on failure (should never fail)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">privkey</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">encryptedprivkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="c"># Already locked!</span>
             <span class="k">print</span><span class="p">(</span><span class="s">&quot;Already locked.&quot;</span><span class="p">)</span>
@@ -107,12 +110,14 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">privkey</span> <span class="o">=</span> <span class="bp">None</span>
             <span class="k">return</span> <span class="bp">True</span>
 
-        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span>
-            <span class="s">&#39;KeyError&#39;</span><span class="p">,</span>
-            <span class="s">&quot;Asked to lock a key, but unable to do so.&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;KeyError&#39;</span><span class="p">,</span><span class="s">&quot;Asked to lock a key, but unable to do so.&quot;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="LockedKey.unlock"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.unlock">[docs]</a>    <span class="k">def</span> <span class="nf">unlock</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Sets self.privkey to be the public key, if possible.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Restores the Private Key (.privkey) attribute in the object</span>
+<span class="sd">        :param passkey: The Passkey to unlock this private key.</span>
+<span class="sd">        :return True: Returns True on success, raises Exception on failure</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">passkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="n">passkey</span>
@@ -128,12 +133,20 @@
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">privkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;KeyError&#39;</span><span class="p">,</span> <span class="s">&#39;Could not unlock key&#39;</span><span class="p">)</span>
+
 </div>
     <span class="k">def</span> <span class="nf">_encryptprivkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">privkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Internal-only method to encrypt the private key.</span>
-<span class="sd">        This is using the scrypt KDF to encrypt the privatekey.</span>
+<span class="sd">        Internal-Only method to encrypt the private key.</span>
+<span class="sd">        Uses the scrypt KDF to stretch the passkey, and then scrypt enc to encrypt/protect the key.</span>
+<span class="sd">        Note - This does not remove the private key - Use .lock() for that.</span>
+
+<span class="sd">        :param privkey: The Private Key to save and Protect</span>
+<span class="sd">        :param password: The Password to encrypt the Private Key with</span>
+<span class="sd">        :param passkey: The Passkey to encrypt the Private Key with</span>
+<span class="sd">        :return: base64 encoded version of the encrypted private key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
 
         <span class="k">if</span> <span class="n">privkey</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">privkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;KeyError&#39;</span><span class="p">,</span><span class="s">&#39;Invalid call to encryptedprivkey - No privkey found.&#39;</span><span class="p">)</span>
@@ -150,6 +163,12 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">encryptedprivkey</span>
 
     <span class="k">def</span> <span class="nf">_decryptprivkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">passkey</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Internal-Only method to decrypt the private key from the</span>
+<span class="sd">        :param passkey: The passkey to use to decrypt self.encryptedprivkey</span>
+<span class="sd">        :return string: The private key</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="sd">&quot;&quot;&quot;Decode and return the private key.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">passkey</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
             <span class="n">passkey</span> <span class="o">=</span> <span class="n">passkey</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
@@ -160,36 +179,43 @@
         <span class="k">return</span> <span class="n">result</span>
 
 <div class="viewcode-block" id="LockedKey.get_passkey"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.get_passkey">[docs]</a>    <span class="k">def</span> <span class="nf">get_passkey</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Returns the hashed version of the password.</span>
-
-<span class="sd">        Broken out into a method, so we can swap it if nec.</span>
-
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Use scrypt to hash the password according to a work factor defined in settings.</span>
+<span class="sd">        :param password: The password to hash</span>
+<span class="sd">        :return: base64 encoded version of the private key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Password cannot be null.&quot;</span><span class="p">)</span>
 
-        <span class="c"># N CPU cost parameter.  ( N should be a power of two &gt; 1)</span>
-        <span class="c"># r Memory cost parameter.</span>
-        <span class="c"># p Parallelization parameter.</span>
-        <span class="c"># r*p should be &lt; 2**30</span>
-        <span class="c"># Defaults to N=16384, r=8, p=1, buflen=64</span>
-
+        <span class="c"># N - Overall CPU/Memory cost. Should be a power of two.</span>
+        <span class="c"># r - Memory cost - Adjusts blocksize</span>
+        <span class="c"># p - Number of parallel loops</span>
         <span class="c"># Per http://www.tarsnap.com/scrypt/scrypt-slides.pdf</span>
         <span class="c"># (N = 2^14, r = 8, p = 1) for &lt; 100ms (interactive use), and</span>
         <span class="c"># (N = 2^20, r = 8, p = 1) for &lt; 5s (sensitive storage).</span>
 
+        <span class="n">N</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;N&#39;</span><span class="p">]</span>
+        <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;r&#39;</span><span class="p">]</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;p&#39;</span><span class="p">]</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span>
 
-        <span class="n">pkey</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">scrypt</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">salt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="mi">16384</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+        <span class="n">pkey</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">b64encode</span><span class="p">(</span><span class="n">scrypt</span><span class="o">.</span><span class="n">hash</span><span class="p">(</span><span class="n">password</span><span class="o">=</span><span class="n">password</span><span class="p">,</span> <span class="n">salt</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">pubkey</span><span class="p">,</span> <span class="n">N</span><span class="o">=</span><span class="n">N</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="n">r</span><span class="p">,</span> <span class="n">p</span><span class="o">=</span><span class="n">p</span><span class="p">))</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pkey</span>
 </div>
 <div class="viewcode-block" id="LockedKey.changepass"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.changepass">[docs]</a>    <span class="k">def</span> <span class="nf">changepass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">oldpasskey</span><span class="p">,</span> <span class="n">newpassword</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Changes the stored password.</span>
+<span class="sd">        :param oldpasskey: The Old password</span>
+<span class="sd">        :param newpassword: The New password</span>
+<span class="sd">        :return: True, or Exception.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">privkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decryptprivkey</span><span class="p">(</span><span class="n">oldpasskey</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;KeyPassError&#39;</span><span class="p">,</span><span class="s">&quot;Attempted to change password with incorrect password&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="bp">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">encryptedprivkey</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">encryptedprivkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encryptprivkey</span><span class="p">(</span><span class="n">privkey</span><span class="o">=</span><span class="n">privkey</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">newpassword</span><span class="p">)</span>
@@ -199,8 +225,15 @@
 </div>
 <div class="viewcode-block" id="LockedKey.generate"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.generate">[docs]</a>    <span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">passkey</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">random</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">autoexpire</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate a new set of keys.</span>
-<span class="sd">        Store only the encrypted version</span>
+<span class="sd">        Generates a new set of public and private keys.</span>
+<span class="sd">        Stores only the encrypted version of the key in the object.</span>
+<span class="sd">        Must receive either a password, passkey, or random flag.</span>
+
+<span class="sd">        :param string password: The password to encrypt the new privkey with</span>
+<span class="sd">        :param string passkey: The passkey to encrypt the new privkey with</span>
+<span class="sd">        :param True/False random: If True, generates a random password to encrypt with.</span>
+<span class="sd">        :param autoexpire: Sets the expiration date for the key to next month.</span>
+<span class="sd">        :return: Returns the new password if random == True, else returns None</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">password</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">passkey</span> <span class="ow">is</span> <span class="bp">None</span> <span class="ow">and</span> <span class="n">random</span> <span class="ow">is</span> <span class="bp">False</span><span class="p">:</span>
@@ -226,10 +259,9 @@
 </div>
 <div class="viewcode-block" id="LockedKey.to_dict"><a class="viewcode-back" href="../../libtavern.html#libtavern.lockedkey.LockedKey.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Saves the key objects as a python dictionary.</span>
-<span class="sd">        Does -not- save out the privkey or passkey!</span>
+<span class="sd">        Writes the key to a dictionary object. Does -not- save the privkey or passkey.</span>
+<span class="sd">        :return: A dictionary version of the key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="n">keydict</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="n">keydict</span><span class="p">[</span><span class="s">&#39;pubkey&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pubkey</span>

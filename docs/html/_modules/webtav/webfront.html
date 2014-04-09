@@ -62,6 +62,7 @@
 <span class="kn">import</span> <span class="nn">libtavern.utils</span>
 <span class="kn">import</span> <span class="nn">libtavern.key</span>
 <span class="kn">import</span> <span class="nn">libtavern.topic</span>
+<span class="kn">import</span> <span class="nn">libtavern.user</span>
 
 <span class="kn">import</span> <span class="nn">webtav.webbase</span> <span class="kn">as</span> <span class="nn">webbase</span>
 <span class="kn">from</span> <span class="nn">webtav.webbase</span> <span class="kn">import</span> <span class="n">weberror</span>
@@ -341,58 +342,45 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">u</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_session</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+</div></div>
+<div class="viewcode-block" id="LoginHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LoginHandler">[docs]</a><span class="k">class</span> <span class="nc">LoginHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Allow a user to login to the site.</span>
+<span class="sd">    Checks a username against mongo, and sees if their password unlocks the key.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-<span class="c"># def LoginHandler_get(slug=None):</span>
-<span class="c">#     self.getvars()</span>
-<span class="c">#     self.write(self.render_string(&#39;header.html&#39;,</span>
-<span class="c">#                title=&quot;Login to your account&quot;, rsshead=None, type=None))</span>
-<span class="c">#     self.write(self.render_string(&#39;loginform.html&#39;, slug=slug))</span>
-<span class="c">#     self.write(self.render_string(&#39;footer.html&#39;))</span>
+<div class="viewcode-block" id="LoginHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LoginHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Display the login form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Log in to your Tavern account&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/login&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-login.html&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LoginHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LoginHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Receive/Process the login form.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">username</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;username&quot;</span><span class="p">)</span>
+        <span class="n">password</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;pass&quot;</span><span class="p">)</span>
 
+        <span class="c"># Load the user, see if we can match the pass.</span>
+        <span class="n">u</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">User</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">u</span><span class="o">.</span><span class="n">load_mongo_by_username</span><span class="p">(</span><span class="n">username</span><span class="o">=</span><span class="n">username</span><span class="o">.</span><span class="n">lower</span><span class="p">()):</span>
+            <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That username can&#39;t be found&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m sorry, but there&#39;s no record of that username on this Server. Perhaps you originally logged in via another method?.&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
 
-<span class="c"># def LoginHandler_post():</span>
-<span class="c">#     self.getvars()</span>
-<span class="c">#     self.write(self.render_string(&#39;header.html&#39;,</span>
-<span class="c">#                title=&#39;Login to your account&#39;, rsshead=None, type=None))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">u</span><span class="o">.</span><span class="n">verify_password</span><span class="p">(</span><span class="n">password</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;That password doesn&#39;t look right&quot;</span><span class="p">,</span> <span class="nb">long</span><span class="o">=</span><span class="s">&quot;The password you gave doesn&#39;t match the one on-file for the account.&quot;</span><span class="p">,</span><span class="n">code</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
 
-<span class="c">#     successredirect = &#39;/&#39;</span>
-<span class="c">#     client_username = self.get_argument(&quot;username&quot;)</span>
-<span class="c">#     client_password = self.get_argument(&quot;pass&quot;)</span>
-<span class="c">#     if &#39;slug&#39; in self.request.arguments:</span>
-<span class="c">#         slug = self.get_argument(&quot;slug&quot;)</span>
-<span class="c">#         sluglookup = self.server.db.unsafe.find_one(&#39;redirects&#39;, {&#39;slug&#39;: slug})</span>
-<span class="c">#         if sluglookup is not None:</span>
-<span class="c">#             if sluglookup[&#39;url&#39;] is not None:</span>
-<span class="c">#                 successredirect = sluglookup[&#39;url&#39;]</span>
-
-<span class="c">#     u = User()</span>
-<span class="c">#     if u.load_mongo_by_username(username=client_username.lower()):</span>
-<span class="c"># The username exists.</span>
-
-<span class="c">#         if u.verify_password(client_password):</span>
-<span class="c">#             self.user = u</span>
-<span class="c"># You are successfully Authenticated.</span>
-
-<span class="c">#             self.clear_cookie(&#39;tavern_passkey&#39;)</span>
-<span class="c">#             self.set_secure_cookie(</span>
-<span class="c">#                 &quot;tavern_passkey&quot;,</span>
-<span class="c">#                 self.user.Keys[&#39;master&#39;].get_passkey(client_password),</span>
-<span class="c">#                 httponly=True,</span>
-<span class="c">#                 expires_days=999)</span>
-<span class="c">#             self.user.lastauth = int(time.time())</span>
-
-<span class="c">#             self.setvars()</span>
-<span class="c">#             self.server.logger.debug(&quot;Login Successful.&quot;)</span>
-<span class="c">#             bottle.redirect(successredirect)</span>
-<span class="c">#         else:</span>
-<span class="c">#             self.server.logger.debug(&quot;Username/password fail.&quot;)</span>
-<span class="c"># bottle.redirect(&quot;http://Google.com&quot;)</span>
-
-
-<span class="c"># def LogoutHandler_post():</span>
-<span class="c">#     self.clear_all_cookies()</span>
-<span class="c">#     bottle.redirect(&quot;/&quot;)</span>
-
+        <span class="c"># If we&#39;ve made it here, user/pass matches. We&#39;re good.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">u</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_session</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;You have successfully logged in.&quot;</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="LogoutHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LogoutHandler">[docs]</a><span class="k">class</span> <span class="nc">LogoutHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+<div class="viewcode-block" id="LogoutHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LogoutHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear_all_cookies</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
 
 <span class="c"># def ChangepasswordHandler_get():</span>
 <span class="c">#     self.getvars()</span>
@@ -1230,10 +1218,9 @@
             <span class="c"># (r&quot;/reply/(.*)&quot;, ReplyHandler),</span>
             <span class="c"># (r&quot;/pm/(.*)&quot;, NewPrivateMessageHandler),</span>
             <span class="p">(</span><span class="s">r&quot;/register&quot;</span><span class="p">,</span> <span class="n">RegisterHandler</span><span class="p">),</span>
-            <span class="c"># (r&quot;/login/(.*)&quot;, LoginHandler),</span>
-            <span class="c"># (r&quot;/login&quot;, LoginHandler),</span>
+            <span class="p">(</span><span class="s">r&quot;/login&quot;</span><span class="p">,</span> <span class="n">LoginHandler</span><span class="p">),</span>
             <span class="c"># (r&quot;/changepassword&quot;, ChangepasswordHandler),</span>
-            <span class="c"># (r&quot;/logout&quot;, LogoutHandler),</span>
+            <span class="p">(</span><span class="s">r&quot;/logout&quot;</span><span class="p">,</span> <span class="n">LogoutHandler</span><span class="p">),</span>
 
 
             <span class="c"># (r&quot;/vote&quot;, RatingHandler),</span>

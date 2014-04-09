@@ -61,14 +61,6 @@
 
 <span class="kn">import</span> <span class="nn">enum</span>
 
-            <span class="c"># if self.has_unique_key:</span>
-            <span class="c">#     # This user is registered, they may have posted here before...</span>
-            <span class="c">#     posts = self.server.get_all_user_posts(self.Keys[&#39;master&#39;].pubkey)</span>
-            <span class="c">#     if len(posts) &gt; 0:</span>
-            <span class="c">#         self.friendlyname = posts[0].dict[&#39;envelope&#39;][&#39;local&#39;][&#39;author&#39;][&#39;friendlyname&#39;]</span>
-            <span class="c">#</span>
-            <span class="c">#</span>
-
 <div class="viewcode-block" id="keygen"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.keygen">[docs]</a><span class="k">class</span> <span class="nc">keygen</span><span class="p">(</span><span class="n">enum</span><span class="o">.</span><span class="n">Enum</span><span class="p">):</span>
     <span class="n">useguest</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c"># use the Guest key</span>
     <span class="n">generate</span> <span class="o">=</span> <span class="mi">2</span>  <span class="c"># Generate a new key for this user</span>
@@ -89,7 +81,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">None</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">has_set_password</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">has_login</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="o">=</span> <span class="bp">False</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="o">=</span> <span class="bp">None</span>
@@ -129,8 +120,23 @@
         <span class="c"># After calling user(), you should always call a .generate() or .load() function.</span>
         <span class="c"># If you do neither, and try to retrieve these, we want an exception</span>
 
-
+    <span class="nd">@property</span>
+<div class="viewcode-block" id="User.can_login"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.can_login">[docs]</a>    <span class="k">def</span> <span class="nf">can_login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does this user have the ability to log in, either via a username, email, twitter, etc</span>
+<span class="sd">        :return: True if the user can log in (somehow), False otherwise</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">username</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">has_set_password</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+                <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
+</div>
 <div class="viewcode-block" id="User.make_hashes"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.make_hashes">[docs]</a>    <span class="k">def</span> <span class="nf">make_hashes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ensure that we have the hashed versions of the Pubkey for this user.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">author_wordhash</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">wordlist</span><span class="o">.</span><span class="n">wordhash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">author_sha512</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">sha512</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">pubkey</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
@@ -141,7 +147,8 @@
 </div>
 <div class="viewcode-block" id="User.ensure_keys"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.ensure_keys">[docs]</a>    <span class="k">def</span> <span class="nf">ensure_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate the Keys for a User()</span>
+<span class="sd">        Ensures that the user has a Master key.</span>
+<span class="sd">        :param AllowGuestKey: If True (default), We will share a SINGLE key. Used for non-logged-in users.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="p">,</span><span class="nb">bool</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="p">,</span><span class="n">keygen</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&#39;AllowGuestKey must be either True, False or Enum&#39;</span><span class="p">)</span>
@@ -162,13 +169,13 @@
 </div>
 <div class="viewcode-block" id="User.new_posted_key"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.new_posted_key">[docs]</a>    <span class="k">def</span> <span class="nf">new_posted_key</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate a new communication key.</span>
-<span class="sd">        This key might be attached to a forum message, or a private message.</span>
+<span class="sd">        Generate a new key that can be used to send messages to this user.</span>
+<span class="sd">        This key can then be shared, such as in a forum message or PM.</span>
 
-<span class="sd">        By generating a new key for each message, even if our key does eventually leak</span>
-<span class="sd">        it will be difficult to decode old messages, who&#39;s keys have been deleted.</span>
+<span class="sd">        Generating new keys for each message helps ensure that even if a key ever leaks</span>
+<span class="sd">        that particular key only unlocks a very few messages.</span>
+<span class="sd">        :return LockedKey: The newly generated key</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">passkey</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">Exception</span><span class="p">(</span><span class="s">&quot;Must have a valid passkey to run this method&quot;</span><span class="p">)</span>
 
@@ -181,9 +188,12 @@
 
 </div>
 <div class="viewcode-block" id="User.verify_password"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.verify_password">[docs]</a>    <span class="k">def</span> <span class="nf">verify_password</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">guessed_password</span><span class="p">,</span> <span class="n">tryinverted</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Check a proposed password, to see if it&#39;s able to open and load a</span>
-<span class="sd">        user&#39;s account.&quot;&quot;&quot;</span>
-
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Attempts to unlock the master key for a user, given a password.</span>
+<span class="sd">        :param guessed_password: The password to use to unlock</span>
+<span class="sd">        :param tryinverted: Try the inverted version of the password as well | iNVerted -&gt; InvERTED</span>
+<span class="sd">        :return: True/False - Is the password right?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">tmp_passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_passkey</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
@@ -206,7 +216,11 @@
 
 </div>
 <div class="viewcode-block" id="User.get_note"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.get_note">[docs]</a>    <span class="k">def</span> <span class="nf">get_note</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">noteabout</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Retrieve any note by user A about user B.&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Retrieve notes set by current user (self) about the specified user.</span>
+<span class="sd">        :param noteabout: Look for notes about this user</span>
+<span class="sd">        :return string: The Note for the requested user. (or None)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="c"># Make sure the key we&#39;re asking about is formatted right.</span>
         <span class="c"># I don&#39;t trust myself ;)</span>
 
@@ -448,14 +462,26 @@
         <span class="k">return</span> <span class="n">combinedrating</span>
 </div>
 <div class="viewcode-block" id="User.add_email"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.add_email">[docs]</a>    <span class="k">def</span> <span class="nf">add_email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">email</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Add an email to a user obj</span>
+<span class="sd">        :param email: The email to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">][</span><span class="s">&#39;confirmed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">][</span><span class="s">&#39;added&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="User.remove_email"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.remove_email">[docs]</a>    <span class="k">def</span> <span class="nf">remove_email</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">email</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove an email from a user obj</span>
+<span class="sd">        :param email: The email to remove</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">del</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">emails</span><span class="p">[</span><span class="n">email</span><span class="p">])</span>
 </div>
 <div class="viewcode-block" id="User.follow_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.follow_topic">[docs]</a>    <span class="k">def</span> <span class="nf">follow_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Adds a topic to a user&#39;s followed_topics</span>
+<span class="sd">        :param Topic/string topic: The topic object or string to add</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
         <span class="n">matched</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>
@@ -465,13 +491,22 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newtopic</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="User.unfollow_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.unfollow_topic">[docs]</a>    <span class="k">def</span> <span class="nf">unfollow_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topic</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes a topic from a User&#39;s followed_topics</span>
+<span class="sd">        :param Topic/string topic: The topic or string to remove</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">tp</span><span class="o">.</span><span class="n">sortname</span> <span class="o">==</span> <span class="n">newtopic</span><span class="o">.</span><span class="n">sortname</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">tp</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="User.follows_topic"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.follows_topic">[docs]</a>    <span class="k">def</span> <span class="nf">follows_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Does this user follow the topic?&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Does the user follow a given topic?</span>
+<span class="sd">        :param Topic/string topic: The topic or string to check against.</span>
+<span class="sd">        :return: True/False - Does the user follow that topic?</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">newtopic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="n">topic</span><span class="p">)</span>
         <span class="n">matched</span> <span class="o">=</span> <span class="bp">False</span>
         <span class="k">for</span> <span class="n">tp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">followed_topics</span><span class="p">:</span>

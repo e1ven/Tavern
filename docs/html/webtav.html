@@ -551,6 +551,37 @@ Eventually, it may give a different experience for first-time visitors.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="webtav.webfront.LoginHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">LoginHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#LoginHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.LoginHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
+<p>Allow a user to login to the site.
+Checks a username against mongo, and sees if their password unlocks the key.</p>
+<dl class="method">
+<dt id="webtav.webfront.LoginHandler.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#LoginHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.LoginHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Display the login form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.LoginHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#LoginHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.LoginHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receive/Process the login form.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.LogoutHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">LogoutHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#LogoutHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.LogoutHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
+<dl class="method">
+<dt id="webtav.webfront.LogoutHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#LogoutHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.LogoutHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="webtav.webfront.MessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">MessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>

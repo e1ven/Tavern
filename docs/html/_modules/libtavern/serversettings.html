@@ -188,6 +188,34 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;flask&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
 
 
+        <span class="c"># Password Storage</span>
+        <span class="c"># N - Overall CPU/Memory cost. Should be a power of two.</span>
+        <span class="c"># r - Memory cost - Adjusts blocksize</span>
+        <span class="c"># p - Number of parallel loops</span>
+
+        <span class="c"># Per http://www.tarsnap.com/scrypt/scrypt-slides.pdf</span>
+        <span class="c"># (N = 2^14, r = 8, p = 1) for &lt; 100ms (interactive use), and</span>
+        <span class="c"># (N = 2^20, r = 8, p = 1) for &lt; 5s (sensitive storage).</span>
+
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;auth&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;scrypt&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;N&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;N&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">16384</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;r&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;r&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;p&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;auth&#39;</span><span class="p">][</span><span class="s">&#39;scrypt&#39;</span><span class="p">][</span><span class="s">&#39;p&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+
+
+
+
+
+
+
         <span class="c"># Set the default DBs</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;DB&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;DB&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>

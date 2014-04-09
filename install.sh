@@ -27,7 +27,12 @@ function install_gem_if_nec
 
     if [ `gem list | grep "$1" >/dev/null; echo "$?"` -ne 0 ]
     then
-        sudo gem install "$1"
+        if [ -z "$2" ]
+        then
+            sudo gem install "$1" "--version=$2"
+        else
+            sudo gem install "$1"
+        fi
     fi
 }
 
@@ -130,13 +135,13 @@ then
     fi
        
     sudo -u "$user" brew install git exiv2 libmagic python3 Boost gnu-sed scons autoconf automake libtool libxml2 libxslt libksba \
-    libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget gpg
+    libmpc gmp libtiff libjpeg webp littlecms postgres pcre wget gpg || true
 fi
 
 echo "Installing Sass via Rubygems"
-install_gem_if_nec sass
+install_gem_if_nec sass 3.2
 install_gem_if_nec compass
-install_gem_if_nec bourbon
+install_gem_if_nec bourbon 3.1.8
 
 echo "Downloading current Tavern source"
 
@@ -160,7 +165,7 @@ else
         echo "The specified directory exists and does not appear to be a Tavern installation. Please remove, or re-run and specify a different directory."
     fi
 fi
-chown -R "$user" "$installroot"
+chown -R "$user" "$installroot" || true
 
 # INSTALL NGINX
 
@@ -172,6 +177,7 @@ then
     if [ "$CURRENT_VER" != "$NGINX_VER" ]
     then
       rm $installroot/utils/nginx/sbin/nginx
+      rm -rf $installroot/utils/nginx/conf || true
     fi
 fi
 
@@ -190,7 +196,8 @@ then
     wget https://github.com/vkholodkov/nginx-upload-module/archive/2.2.zip
     unzip 2.2.zip
 
-    ./configure --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module
+    # --with-cc-opt="-Wno-deprecated-declarations" is to bypass Apple openssl incompatibility. See :http://forum.nginx.org/read.php?2,249100,249104#msg-249104
+    ./configure --with-cc-opt="-Wno-deprecated-declarations" --prefix=$installroot/utils/nginx  --add-module="$nginxinstall/nginx-$NGINX_VER"/nginx-upload-module-2.2 --with-http_gzip_static_module --with-http_mp4_module --with-http_ssl_module
 
     make
     make install
@@ -206,10 +213,16 @@ rm -rf $installroot/utils/nginx/html || true
 
 ln -s $installroot/datafiles/nginx-config $installroot/utils/nginx/conf
 
-
 # INSTALL MONGODB
-
 MONGO_VER=2.6.0
+if [ -f $installroot/utils/mongodb/bin/mongod ]
+then
+    # If it's installed, remove if it's an old version.
+    if [ `$installroot/utils/mongodb/bin/mongod --version | grep $MONGO_VER|wc -l` -lt 1 ]
+    then
+      rm -rf $installroot/utils/mongodb/bin
+    fi
+fi
 if [ ! -f $installroot/utils/mongodb/bin/mongod ]
 then
     echo "Installing MongoDB $MONGO_VER"
@@ -271,7 +284,7 @@ fi
 mkdir -p "$installroot/logs"
 
 
-chown -R "$user" "$installroot"
+chown -R "$user" "$installroot" || true
 
 echo "Tavern is now installed."
 echo "This setup should be sufficent for testing and dev."
