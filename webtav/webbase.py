@@ -103,7 +103,7 @@ class XSRFBaseHandler(tornado.web.RequestHandler):
         http://www.djangoproject.com/weblog/2011/feb/08/security/
         http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails
         """
-        token = (self.get_argument("_xsrf", None) or
+        token = (self.get_body_argument("_xsrf", None) or
                  self.request.headers.get("X-Xsrftoken") or
                  self.request.headers.get("X-Csrftoken"))
         if not token:
@@ -206,7 +206,6 @@ class BaseTornado(XSRFBaseHandler):
         self.canon = None
         self.title = None
         self.messages = None
-        self.newmessage = "/newmessage"
         self.topic = libtavern.topic.Topic()
         self.displayenvelope = None
         self.scripts = []
@@ -413,9 +412,8 @@ class BaseTornado(XSRFBaseHandler):
         def decorated(*args, **kwargs):
             # Pull in the `self` argument, so we can access members
             handler = args[0]
-            handler.server.logger.debug("This function requires a unique acct")
             if not handler.user.has_unique_key or not handler.user.passkey:
-                handler.server.logger.debug("The user now has one ;)")
+                handler.server.logger.debug("This method requires a unique acct; Generating key for user")
                 handler.user.ensure_keys(AllowGuestKey=False)
                 handler.save_session()
             return f(*args, **kwargs)

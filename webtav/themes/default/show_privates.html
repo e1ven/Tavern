@@ -1,7 +1,7 @@
 {% extends 'tripane.html' %}
 
 {% block column2 %}
-	{% include 'column2-PrivateList.html' %}
+    {% include 'column2-PrivateList.html' %}
 {% end %}
 {% block column3 %}
 
@@ -11,7 +11,7 @@
             {% for cite in envelope.dict['envelope']['local']['citedby'] %}
                 {% raw handler.render_string('reply.html',messageid=cite) %}
            {% end %}
-        {% end %}  
+        {% end %}
     </div>
 
 {% end %}

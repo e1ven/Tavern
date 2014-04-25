@@ -1,42 +1,42 @@
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-	<tr height="10px">
-		<td colspan=2>
-			<hr id="column2HR">
-		</td>
-	</tr>
-	<tr>
-    	<td>
-        	<h4><a id="column2Topic" href="/showprivates}}">Private Messages</a>
+    <tr height="10px">
+        <td colspan=2>
+            <hr id="column2HR">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <h4><a id="column2Topic" href="/showprivates}}">Private Messages</a>
             </h4>
         </td>
         <td>
-    		<h4 id="column2MsgCount">{{len(messages)}} Messages</h4>
-    	</td>
+            <h4 id="column2MsgCount">{{len(messages)}} Messages</h4>
+        </td>
     </tr>
 </table>
 
 
-	<table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-		<tr>
-		<td valign="top">
+    <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
+        <tr>
+        <td valign="top">
             <ul class="messages">
             {% for message in messages %}
                 <li class="message {%if message.dict['envelope']['local']['payload_sha512'] == envelope.dict['envelope']['local']['payload_sha512']%} active{% end %}">
                     <abbr title="{{message.dict['envelope']['payload']['subject']}}">
                     <a class='internal messagelink' href="/pm/{{message.dict['parent']['envelope']['local']['payload_sha512']}}">
                       <h2><bdi>{{message.dict['envelope']['payload']['subject']}}</bdi></h2>
-                      <span class="bodypreview">{{message.dict['envelope']['local']['short_body']}}</span> 
+                      <span class="bodypreview">{{message.dict['envelope']['local']['short_body']}}</span>
                     </a>
                     {% if message.countChildren() > 0 %}
-                        <div class="replies"><div>{{message.countChildren()}}</div></div> 
+                        <div class="replies"><div>{{message.countChildren()}}</div></div>
                     {% end %}
                     </abbr>
                 </li>
             {% end %}
             </ul>
 
-          
 
-		</td>
+
+        </td>
     </tr>
 </table>

@@ -1,26 +1,25 @@
 {% extends "messageform.html" %}
 
-{% block submitblock %}
-		<form data-persist="garlic" enctype="multipart/form-data" action="/new/revision" method="post" class="messageform" id='{{timeid}}'>
-			{% module xsrf_form_html() %}
-			<input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
+{% block formblock %}
+        <form data-persist="garlic" enctype="multipart/form-data" action="/new/revision" method="post" class="messageform" id='{{timeid}}'>
+            <input type="hidden" name="regarding" value = "{{regarding}}"/><br/>
 
-			<p>
-				Feel free to change the text of your post below.<br/>
-				Please note, older versions will remain available.<br/>
+            <p>
+                Feel free to change the text of your post below.<br/>
+                Please note, older versions will remain available.<br/>
             </p>
 
-		    <div id="contenteditable">
-		    </div>
-		    <textarea name="body" rows=8 cols=80 id='textareabody'>{{oldtext}}</textarea>
-					
-			<br/><br/>
+            <div id="contenteditable">
+            </div>
+            <textarea name="body" rows=8 cols=80 id='textareabody'>{{oldtext}}</textarea>
 
-			<input class="single_file_upload" type="file" name="attached_file"/><br/>
+            <br/><br/>
 
-			<div id="filelist">
-			</div>
-			<input type="checkbox" name="include_location" {% if user.include_location %}checked{% end %}/>Include Location<br/>
-			<input type="submit" value="Submit Edit"/>
-		</form>
+            <input class="single_file_upload" type="file" name="attached_file"/><br/>
+
+            <div id="filelist">
+            </div>
+            <input type="checkbox" name="include_location" {% if user.include_location %}checked{% end %}/>Include Location<br/>
+            <input type="submit" value="Submit Edit"/>
+        </form>
 {% end %}

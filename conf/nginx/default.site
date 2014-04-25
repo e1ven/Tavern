@@ -4,14 +4,10 @@ map $uri $basename {
 }
 
 
-server 
+server
 {
   # Include the file in tmp that has the addresses/port to listen on.
   include listen.conf;
-
-  proxy_http_version 1.1;
-  proxy_set_header Connection "";
-  proxy_set_header X-Real-IP $remote_addr;
 
   error_page 405 =200 @405;
   location @405

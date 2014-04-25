@@ -13,7 +13,7 @@
     This file is estimated to be {{round(myattach['filesize'] / 1024.0 /1024.0,3)}} MB.<br>
 
 
-    It was first seen 
+    It was first seen
      <abbr title="{{libtavern.utils.gettime(timestamp=envelope['envelope']['local']['time_added'],format='printable')}}">
          <time datetime="{{libtavern.utils.gettime(timestamp=envelope['envelope']['local']['time_added',format='iso')}}">
              {{  libtavern.utils.gettime(format='relative',timestamp=envelope['envelope']['local']['time_added']) }}
@@ -53,21 +53,21 @@
               <source src="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}/{{myattach['filename']}}" >
             </audio>
             {% end %}
-        {% end %}   
+        {% end %}
 
 
         {% if 'displayable' in myattach %}
             {% if myattach['displayable'] is not False %}
                 <a href="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['sha_512']}}/{{myattach['filename']}}">
                 <img class='center' src="{{serversettings.settings['webtav']['downloads_url']}}{{myattach['displayable']}}" alt="Thumbnail of enclosed image"></a><br>
-            {% end %} 
-        {% end %} 
+            {% end %}
+        {% end %}
 
 
         </ul>
         <br><br>
 
-    {% end %} 
+    {% end %}
 
 
     <h1> Messages involving Attachment {{attachment}} </h1>

@@ -4,8 +4,8 @@
     <div class="infobox">
         <h1>Message History</h1>
 
-        {% for index,edit in enumerate(handler.edits) %}
-        	<li class='editline'>
+        {% for index,edit in enumerate(edits) %}
+            <li class='editline'>
                 <a href={{url_for(edit)}}
                     <time datetime="{{{utils.gettime(timestamp=edit.dict['envelope']['local']['time_added'],format='iso') }}">
                         Version # {{index}} - {{utils.gettime(timestamp=edit.dict['envelope']['local']['time_added'],format='printable') }}
@@ -14,9 +14,9 @@
 
                 {% module ShowMessage(envelope=edit,top=False) %}
 
-        	</li>
+            </li>
         {% end %}
-        <ul>	
+        <ul>
 
     </div>
 

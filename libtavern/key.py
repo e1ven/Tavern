@@ -57,7 +57,7 @@ class Key(libtavern.baseobj.Baseobj):
         self.expires = None
         self.gnuhome = tempfile.mkdtemp(dir='tmp/gpgfiles')
 
-    
+
         # If we are in debug mode, then pass debug to GPG
         if self.logger.getEffectiveLevel() < 10:
             verbose = True
@@ -279,7 +279,7 @@ class Key(libtavern.baseobj.Baseobj):
             # generated, since it's not based on current time
 
             # Calculate this by advancing the date until the month changes 2x
-            # then go to midnight, then back one second. 
+            # then go to midnight, then back one second.
 
             tmpdate = libtavern.utils.gettime(format='datetime')
             while tmpdate.month == libtavern.utils.gettime(format='datetime').month:
@@ -288,7 +288,7 @@ class Key(libtavern.baseobj.Baseobj):
 
             while tmpdate.month == next_month.month:
                 tmpdate += datetime.timedelta(days=1)
-            
+
             beginning_of_day = datetime.datetime(year=tmpdate.year,day=tmpdate.day,month=tmpdate.month,microsecond=0,tzinfo=datetime.timezone.utc)
             expires_on = beginning_of_day -  datetime.timedelta(seconds=1)
 
@@ -381,7 +381,7 @@ class Key(libtavern.baseobj.Baseobj):
             return False
         decrypted_string = decrypted.data.decode('utf-8')
         return decrypted_string
-    
+
 
     @privatekeyaccess
     def encrypt_file(self, newfile):
@@ -393,7 +393,7 @@ class Key(libtavern.baseobj.Baseobj):
         recipient._format_keys()
         self.gpg.import_keys(recipient.pubkey)
 
-        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.gettime(format='longstr') + libtavern.utils.randstr(50)
+        tmpfilename = "tmp/gpgfiles/" + str(libtavern.utils.gettime(format='milliseconds')) + libtavern.utils.randstr(50)
 
         self.gpg.encrypt_file(
             stream=oldfile,
@@ -407,7 +407,7 @@ class Key(libtavern.baseobj.Baseobj):
     @privatekeyaccess
     def decrypt_file(self, tmpfile):
 
-        tmpfilename = "tmp/gpgfiles/" + libtavern.utils.gettime(format='longstr') + libtavern.utils.randstr(50)
+        tmpfilename = "tmp/gpgfiles/" + str(libtavern.utils.gettime(format='milliseconds')) + libtavern.utils.randstr(50)
         self.gpg.decrypt_file(tmpfile, output=tmpfilename)
         return tmpfilename
 

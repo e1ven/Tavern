@@ -145,14 +145,11 @@ class User(libtavern.baseobj.Baseobj):
         :return: True/False - Is the password right?
         """
         successful = False
-        try:
-            tmp_passkey = self.Keys['master'].get_passkey(password)
-            if self.Keys['master'].unlock(tmp_passkey):
-                # We've successfully unlocked.
-                self.lastauth = libtavern.utils.gettime(format='timestamp')
-                successful = True
-        except:
-            pass
+        tmp_passkey = self.Keys['master'].get_passkey(guessed_password)
+        if self.Keys['master'].unlock(tmp_passkey):
+            # We've successfully unlocked.
+            self.lastauth = libtavern.utils.gettime(format='timestamp')
+            successful = True
 
         if successful:
             return True
@@ -494,6 +491,9 @@ class User(libtavern.baseobj.Baseobj):
             pub.append(key.pubkey)
         return pubs
 
+    class CantChangePassException(Exception):
+        pass
+
     def changepass(self, newpassword, oldpasskey=None):
         """
         Change the User's password.
@@ -513,8 +513,7 @@ class User(libtavern.baseobj.Baseobj):
             self.save_mongo()
             return True
 
-        else:
-            return False
+        raise self.CantChangePassException
 
     def to_dict(self):
         """

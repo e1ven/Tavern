@@ -1,19 +1,19 @@
 {# Get the messages for the middle column #}
 
 <table cellpadding="0" cellspacing="0" valign="top" role="presentation" width="100%">
-	<tr height="10px">
-		<td colspan=2>
-			<hr id="column2HR">
-		</td>
-	</tr>
-	<tr>
-    	<td>
-        	<h4><a id="column2Topic" href="{{url_for(topic=handler.topic)}}">{{handler.topic.name}}</a>
+    <tr height="10px">
+        <td colspan=2>
+            <hr id="column2HR">
+        </td>
+    </tr>
+    <tr>
+        <td>
+            <h4><a id="column2Topic" href="{{url_for(topic=handler.topic)}}">{{handler.topic.name}}</a>
             </h4>
         </td>
         <td>
-    		<h4 id="column2MsgCount">{{ handler.topic.count(include_replies=False)}} Messages</h4>
-    	</td>
+            <h4 id="column2MsgCount">{{ handler.topic.count(include_replies=False)}} Messages</h4>
+        </td>
     </tr>
     <tr>
         <td colspan=2>
@@ -28,22 +28,22 @@
     </tr>
     {% if not handler.specialtopic %}
     <tr>
-    	<td>    
+        <td>
             <a href="{{url_for(topic=handler.topic)}}/settings">
-    		   <button id="column2ButtonLeft" class="column2Buttons" type="button">
+               <button id="column2ButtonLeft" class="column2Buttons" type="button">
                 Topic Setting
-    			<span class="icon-wrench-circled navIcon"></span>
-    		   </button>
+                <span class="icon-wrench-circled navIcon"></span>
+               </button>
             </a>
-    	</td>
-    	<td>
-          <a href="{{url_for(topic=handler.topic)}}/newmessage" class="internal">
+        </td>
+        <td>
+          <a href="{{url_for(topic=handler.topic)}}/new" class="internal">
                <button id="column2ButtonRight" class="column2Buttons" type="button">
                 New Message
                 <span class="icon-pencil-circled navIcon"></span>
                </button>
             </a>
-			</td>
+            </td>
     </tr>
     {% end if %}
 </table>
@@ -101,6 +101,6 @@
         </table>
 
 
-		</td>
+        </td>
     </tr>
 </table>

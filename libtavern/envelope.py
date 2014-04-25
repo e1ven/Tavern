@@ -141,7 +141,7 @@ class Envelope(libtavern.baseobj.Baseobj):
         #             return False
 
         # Do this last, so we don't waste time if the stamps are bad.
-        if not self.payload.validates():
+        if not self.payload.validates:
             self.server.logger.info("Payload does not validate.")
             return False
 
@@ -356,33 +356,33 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         self.payload = libtavern.payloads.BasePayload(self.dict['envelope']['payload'])
 
+
     def registerpayload(self):
+        """
+        Load the appropriate payload class for this message
+        Returns true if successfully registered
+        """
+
         if 'payload' in self.dict['envelope']:
             if 'class' in self.dict['envelope']['payload']:
                 if self.dict['envelope']['payload']['class'] == "message":
-                    self.payload = libtavern.payloads.Message(
-                        self.dict['envelope']['payload'])
+                    self.payload = libtavern.payloads.Message(self.dict['envelope']['payload'])
+                    return True
                 elif self.dict['envelope']['payload']['class'] == "messagerating":
-                    self.payload = libtavern.payloads.Rating(
-                        self.dict['envelope']['payload'])
+                    self.payload = libtavern.payloads.Rating(self.dict['envelope']['payload'])
+                    return True
                 elif self.dict['envelope']['payload']['class'] == "usertrust":
-                    self.payload = libtavern.payloads.UserTrust(
-                        self.dict['envelope']['payload'])
+                    self.payload = libtavern.payloads.UserTrust(self.dict['envelope']['payload'])
+                    return True
                 elif self.dict['envelope']['payload']['class'] == "privatemessage":
-                    self.payload = libtavern.payloads.PrivateMessage(
-                        self.dict['envelope']['payload'])
+                    self.payload = libtavern.payloads.PrivateMessage(self.dict['envelope']['payload'])
+                    return True
                 elif self.dict['envelope']['payload']['class'] == "messagerevision":
-                    self.payload = libtavern.payloads.MessageRevision(
-                        self.dict['envelope']['payload'])
-                else:
-                    self.server.logger.info(
-                        "Rejecting message of class " +
-                        self.dict[
-                            'envelope'][
-                            'payload'][
-                            'class'])
-                    return False
-            return True
+                    self.payload = libtavern.payloads.MessageRevision(self.dict['envelope']['payload'])
+                    return True
+
+            # We couldn't detect what type of Payload this was ;(
+            raise libtavern.payloads.UnknownPayloadException
 
     def loaddict(self, importdict):
         newstr =libtavern.utils.to_json(importdict)
@@ -418,13 +418,16 @@ class Envelope(libtavern.baseobj.Baseobj):
         return self.loadfile(self.payload.hash() + ".7zTavernEnvelope")
 
     def flatten(self, striplocal=False):
-        self.registerpayload()
-        self.payload.format()
+        """
+        Pull in the .payload() to store in the local dict
+        """
         if striplocal:
             if 'local' in self.dict['envelope']:
                 del self.dict['envelope']['local']
         self.dict['envelope']['payload'] = self.payload.dict
         self.dict['envelope']['local']['payload_sha512'] = self.payload.hash()
+        self.registerpayload()
+        self.payload.format()
         return self
 
     def text(self, striplocal=False):

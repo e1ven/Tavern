@@ -81,8 +81,14 @@ class BasePayload(libtavern.baseobj.Baseobj):
         :return True/False: Is this a valid payload
         """
 
+        # Ensure we're already in order.
+        tmp = self.dict.copy()
         self.alphabetize(self.dict)
+        if tmp != self.dict:
+            self.server.logger.debug("Not in alphabetical order.")
+            return False
 
+        return True
 
     def add_to_parent(self,parent):
         """ Called on a child envelope, so it can store it's id in it's parent.
@@ -133,7 +139,7 @@ class Message(BasePayload):
 
         # If this is a reply, verify the original is also a 'message'
         if 'regarding' in self.dict:
-            e = Envelope(server=self.server)
+            e = libtavern.envelope.Envelope(server=self.server)
             if e.loadmongo(self.dict['regarding']):
                 if e.dict['envelope']['payload']['class'] != 'message':
                     self.server.logger.debug("This envelope was trying to modify something that was not a message.")
@@ -144,8 +150,9 @@ class Message(BasePayload):
 
 class PrivateMessage(BasePayload):
 
+    @property
     def validates(self):
-        if not BasePayload(self.dict).validates():
+        if not BasePayload(self.dict).validates:
             self.server.logger.debug("Super does not Validate")
             return False
         if 'to' not in self.dict:
@@ -158,8 +165,9 @@ class PrivateMessage(BasePayload):
 
 class Rating(BasePayload):
 
+    @property
     def validates(self):
-        if not BasePayload(self.dict).validates():
+        if not BasePayload(self.dict).validates:
             self.server.logger.debug("Super fails")
             return False
         if 'rating' not in self.dict:
@@ -188,8 +196,9 @@ class Rating(BasePayload):
 
 class UserTrust(BasePayload):
 
+    @property
     def validates(self):
-        if not BasePayload(self.dict).validates():
+        if not BasePayload(self.dict).validates:
             return False
         if 'trusted_pubkey' not in self.dict:
             self.server.logger.debug("No trusted_pubkey to set trust for.")
@@ -205,8 +214,10 @@ class UserTrust(BasePayload):
         return True
 
 class MessageRevision(BasePayload):
+
+    @property
     def validates(self):
-        if not BasePayload(self.dict).validates():
+        if not BasePayload(self.dict).validates:
             self.server.logger.debug("Super does not Validate")
             return False
         if not 'regarding' in self.dict:
@@ -254,4 +265,10 @@ class MessageRevision(BasePayload):
             key=lambda e: (e['envelope']['local']['priority'],(e['envelope']['local']['time_added'])))
         self.saveMongo()
 
+
+class UnknownPayloadException(Exception):
+    """
+    Raised when we can't identify the type of Payload
+    """
+    pass
 

@@ -118,8 +118,6 @@ class LockedKey(libtavern.key.Key):
         :param passkey: The passkey to use to decrypt self.encryptedprivkey
         :return string: The private key
         """
-
-        """Decode and return the private key."""
         if isinstance(passkey, str):
             passkey = passkey.encode('utf-8')
 

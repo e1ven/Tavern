@@ -41,7 +41,7 @@
         <form action="/usernote" method="post" class="usernote">
              {% module xsrf_form_html() %}
             <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
-            <input class="usernote" type="text" value="" name="note" 
+            <input class="usernote" type="text" value="" name="note"
             {% if note is None %}
                 {% set placeholder="Add a note to yourself about this user" %}
             {% else %}
@@ -53,4 +53,4 @@
             <i class="icon icon-twitter-squared"></i>
             <a href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}">Full Details</a>
         </div>
-</div>  
+</div>

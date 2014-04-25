@@ -24,8 +24,10 @@ import tornado.options
 import tornado.web
 import tornado.escape
 import tornado.wsgi
+
 import flask
 
+import pygeoip
 
 
 class EntryHandler(webbase.BaseTornado):
@@ -39,12 +41,10 @@ class EntryHandler(webbase.BaseTornado):
         self.redirect('/t/sitecontent',permanent=False)
 
 class MessageHandler(webbase.BaseTornado):
-    def get(self,topic,short_sub,messageid):
+    def get(self,messageid):
         """
         Displays a given message.
         Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons.
-        :param topic: (not used) - The topic that the message is in.
-        :param short_sub: (not used) - The Short version of the message's subject.
         :param messageid: The ID of the message
         """
 
@@ -63,7 +63,7 @@ class MessageHandler(webbase.BaseTornado):
         self.render('View-showmessage.html')
 
 class MessageHistoryHandler(webbase.BaseTornado):
-    def get(self, messageid, topic=None, short_name=None):
+    def get(self, messageid):
         """Display the various edits to a message."""
 
         e = libtavern.envelope.Envelope()
@@ -72,7 +72,7 @@ class MessageHistoryHandler(webbase.BaseTornado):
                                   long="I'm terribly sorry, but I can't find any history for the message that's been requested.")
 
         # Get the original message
-        if isinstance(e.payload, libtavern.envelope.Envelope.Message):
+        if isinstance(e.payload, libtavern.payloads.Message):
             original = e
         elif isinstance(e.payload, libtavern.envelope.Envelope.MessageRevision):
             original = e.get_original()
@@ -82,7 +82,6 @@ class MessageHistoryHandler(webbase.BaseTornado):
 
         # Create a list of unique message ids, and the time we first saw it.
         edits = []
-
         # Append in the original message's information
         edits.append(original)
 
@@ -93,17 +92,15 @@ class MessageHistoryHandler(webbase.BaseTornado):
                 e.loaddict(editdict)
                 if e not in edits:
                     edits.append(e)
-
         # Sort the edits.
         edits.sort(key=lambda e: (e.dict['envelope']['local']['priority'], (e.dict['envelope']['local']['time_added'])))
 
-        self.edits = edits
         self.displayenvelope = original
         self.topic = libtavern.topic.Topic(self.displayenvelope.dict['envelope']['payload']['topic'])
         self.canon = self.server.url_for(envelope=self.displayenvelope)
         self.title = "History for " + self.displayenvelope.dict['envelope']['payload']['subject']
 
-        self.render('View-messagehistory.html')
+        self.render('View-messagehistory.html',edits=edits)
 
 
 class TopicHandler(webbase.BaseTornado):
@@ -122,7 +119,7 @@ class TopicHandler(webbase.BaseTornado):
                 body="""The particular topic you're viewing doesn't have any posts in it yet.
                 You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.
                 Don't be nervous. Breathe. You can do this.
-                Click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage' +""" "Post Something!") button, and get started.
+                Click the [New Message]("""+self.server.url_for(topic=self.topic) + '/new' +""" "Post Something!") button, and get started.
                 We're rooting you.""")
 
         self.render('View-showmessage.html')
@@ -143,8 +140,7 @@ class AllMessagesHandler(webbase.BaseTornado):
                 topic="None",
                 body="""This Tavern server has __NO__ messages posted yet.
                 If it's public, it should sync up with some other servers soon.
-                If not, click the [New Message]("""+self.server.url_for(topic=self.topic) + '/newmessage'+""" "Post Something!") button, and get things started.""")
-
+                If not, click the [New Message]("""+self.server.url_for(topic=self.topic) + '/new'+""" "Post Something!") button, and get things started.""")
 
         self.render('View-showmessage.html')
 
@@ -267,7 +263,7 @@ class RegisterHandler(webbase.BaseTornado):
     def get(self):
         self.title = "Register for a new account"
         self.canon = self.server.url_for(envelope=self.displayenvelope)
-        self.render('View-newuser.html')
+        self.render('View-new_user.html')
 
     def post(self):
         """Create the user in the DB, as requested."""
@@ -284,14 +280,15 @@ class RegisterHandler(webbase.BaseTornado):
 
         # Create a temporary user, set it to current user.
         u.username = username
-        u.ensure_keys(AllowGuestKey=False)
-        u.changepass(newpassword=pass1,oldpasskey=u.passkey)
+        print(u.ensure_keys(AllowGuestKey=False))
+        print(u.passkey)
+        print(u.changepass(newpassword=pass1,oldpasskey=u.passkey))
         if email:
             self.user.add_email(email)
         u.save_mongo()
         self.user = u
         self.save_session()
-        self.redirect(self.server.url_for(base=True))
+        self.redirect(self.server.url_for(user=u))
 
 class LoginHandler(webbase.BaseTornado):
     """
@@ -335,8 +332,8 @@ class LogoutHandler(webbase.BaseTornado):
 # def ChangepasswordHandler_get():
 #     self.getvars()
 #       self.js = """{% block extraJS %}
-#     <script defer src="/static/scripts/zxcvbn.min.js?v={{serversettings.settings['static-revision']}}"></script>
-#     <script defer src="/static/scripts/register.min.js?v={{serversettings.settings['static-revision']}}"></script>
+#     <script defer src="/static/scripts/zxcvbn.min.js}}"></script>
+#     <script defer src="/static/scripts/register.min.js}}"></script>
 # {% end extraJS %}"""
 #     if not self.recentauth():
 #         numcharacters = 100 + libtavern.TavernUtils.randrange(1, 100)
@@ -669,14 +666,21 @@ class NewMessageHandler(webbase.BaseTornado):
         else:
             self.title = "New Message"
         self.canon = self.server.url_for(topic=self.topic) + "/new"
-        self.render('View-newmessage.html')
+        self.render('View-new_message.html')
 
+class NewReplyHandler(webbase.BaseTornado):
+    """
+    Creates a new message in reply to a message we already have.
+    """
+    def get(self,regarding):
+        e = libtavern.envelope.Envelope()
+        if not e.loadmongo(regarding):
+            raise weberror(short="The original message can't be found :(",
+                                  long="I'm terribly sorry, but I can't load the original message you are trying to reply to.")
 
-    def options(flag=None):
-        self.set_header('Access-Control-Allow-Methods',
-                        'OPTIONS, HEAD, GET, POST, PUT, DELETE')
-        self.set_header('Access-Control-Allow-Origin', '*')
-
+        self.displayenvelope = e
+        self.canon = self.server.url_for(envelope=e) + "/reply"
+        self.render('View-new_replymessage.html',regarding=e.dict['envelope']['local']['payload_sha512'])
 
 # def NewPrivateMessageHandler_get(urlto=None):
 #     self.getvars()
@@ -879,9 +883,12 @@ class XSRFHandler(webbase.XSRFBaseHandler):
         basepath = self.application.settings.get("template_path")
         return basepath + '/robots'
 
-class UploadMessageHandler(webbase.BaseFlask):
 
-    def sign_and_deliver(self,envelope):
+class UploadMessageHandler(webbase.BaseFlask):
+    """
+    Receive a message POSTed to the server.
+    """
+    def sign_and_deliver(self, envelope):
         """
         Sign the message with the Author's info, and upload to the server.
         :return: ID of insert (if successful)
@@ -903,6 +910,10 @@ class UploadMessageHandler(webbase.BaseFlask):
         envelope.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
         envelope.payload.dict['author']['friendlyname'] = self.user.friendlyname
 
+
+        # Import the Payload into the parent dict, then objectify it
+        envelope.flatten()
+
         # Add a Stamp, which signs the message with the Author's key.
         envelope.addStamp(stampclass='author',friendlyname=self.user.friendlyname,keys=self.user.Keys['master'],passkey=self.user.passkey)
 
@@ -912,12 +923,14 @@ class UploadMessageHandler(webbase.BaseFlask):
 
         # Send to the server
         if self.server.receive_envelope(env=envelope):
-            print("Message submitted.")
+            return True
+        return False
 
     def receive_files(self):
         """
-        Receive files, save them out.
+        Receive and store files.
         """
+
 
         # Each file in self.request.files is a Werkzeug FileStorage object.
         # http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.FileStorage
@@ -952,7 +965,6 @@ class UploadMessageHandler(webbase.BaseFlask):
 
         # If there are any files that were sent along with the envelope, save them out.
         self.receive_files()
-
         e = libtavern.envelope.Envelope()
         e.payload.dict['formatting'] = "markdown"
         e.payload.dict['class'] = "message"
@@ -964,13 +976,47 @@ class UploadMessageHandler(webbase.BaseFlask):
 
         res = self.sign_and_deliver(envelope=e)
         if res:
-            self.redirect(res)
+            self.redirect(server.url_for(envelope=e))
         else:
+            return "Oh Noes!"
             self.write("Failure to insert message.")
+
+
+class UploadMessageReplyHandler(UploadMessageHandler):
+    """Upload a reply to an earlier message."""
+
+    @webbase.BaseTornado.requires_acct
+    def post(self):
+        # If there are any files that were sent along with the envelope, save them out.
+        self.receive_files()
+
+        # Load original
+        original = libtavern.envelope.Envelope()
+        if not original.loadmongo(mongo_id=self.get_argument("regarding")):
+            raise weberror(short="The original message can't be found :(",
+                                  long="I'm terribly sorry, but I can't load the original message you are trying to reply to.")
+
+        e = libtavern.envelope.Envelope()
+        e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "message"
+        e.payload.dict['topic'] = original.payload.dict['topic']
+        e.payload.dict['subject'] = self.get_argument("subject",original.payload.dict['subject'])
+        e.payload.dict['body'] = self.get_argument("body")
+        e.payload.dict['regarding'] = self.get_argument("regarding")
+
+        res = self.sign_and_deliver(envelope=e)
+
+        if res:
+            return self.redirect(self.server.url_for(envelope=e))
+        else:
+            return "Oh Noes!"
+            self.write("Failure to insert message.")
+
 
 class UploadMessageRevisionHandler(UploadMessageHandler):
     """Upload a revision to an earlier message."""
 
+    @webbase.BaseTornado.requires_acct
     def post(self):
         """Receive Envelopes and their attachments."""
 
@@ -994,11 +1040,14 @@ class UploadMessageRevisionHandler(UploadMessageHandler):
 
         res = self.sign_and_deliver(envelope=e)
         if res:
-            self.redirect(res)
+            self.redirect(server.url_for(envelope=e))
         else:
+            return "Oh Noes!"
             self.write("Failure to insert message.")
 
 class UploadAttachmentHandler(UploadMessageHandler):
+
+    @webbase.BaseTornado.requires_acct
     def post(self):
         """Receive a POST request containing a file from JS, and return the JSON formatted reply it's expecting."""
 
@@ -1023,6 +1072,7 @@ class UploadAttachmentHandler(UploadMessageHandler):
 class UploadPrivateMessageHandler(UploadMessageHandler):
     """Receive text, encrypt, send to dest."""
 
+    @webbase.BaseTornado.requires_acct
     def post(self):
 
         # If there are any files that were sent along with the envelope, save them out.
@@ -1112,17 +1162,6 @@ def main():
     flask_settings.update(server.serversettings.settings['webtav']['flask'])
 
 
-    # Create an instance of Flask, so we can add it to the Tornado routing table, below.
-    flask_app = flask.Flask(__name__)
-    flask_app.config.update(flask_settings)
-    flask_app.add_url_rule('/new/message', view_func=UploadMessageHandler.as_view('UploadMessageHandler'))
-    flask_app.add_url_rule('/new/attachment', view_func=UploadAttachmentHandler.as_view('UploadAttachmentHandler'))
-    flask_app.add_url_rule('/new/pm', view_func=UploadPrivateMessageHandler.as_view('UploadPrivateMessageHandler'))
-    flask_app.add_url_rule('/new/revision', view_func=UploadMessageRevisionHandler.as_view('UploadMessageRevisionHandler'))
-
-
-    flask_wsgi = tornado.wsgi.WSGIContainer(flask_app)
-
     # Parse -v, -vvv, etc for verbosity, starting with the level in settings.
     # Parse -v for INFO, -vv for DEBUG, etc
     if options.verbose > 0:
@@ -1138,15 +1177,32 @@ def main():
             tornado_settings['serve_traceback=True'] = True
             flask_settings['DEBUG'] = True
 
+    # Create an instance of Flask, so we can add it to the Tornado routing table, below.
+    flask_app = flask.Flask(__name__)
+    flask_app.config.update(flask_settings)
+    flask_app.add_url_rule('/new/message', view_func=UploadMessageHandler.as_view('UploadMessageHandler'))
+    flask_app.add_url_rule('/new/reply', view_func=UploadMessageReplyHandler.as_view('UploadMessageReplyHandler'))
+    flask_app.add_url_rule('/new/attachment', view_func=UploadAttachmentHandler.as_view('UploadAttachmentHandler'))
+    flask_app.add_url_rule('/new/pm', view_func=UploadPrivateMessageHandler.as_view('UploadPrivateMessageHandler'))
+    flask_app.add_url_rule('/new/revision', view_func=UploadMessageRevisionHandler.as_view('UploadMessageRevisionHandler'))
+    flask_wsgi = tornado.wsgi.WSGIContainer(flask_app)
+    flask_wsgi.port = server.serversettings.settings['webtav']['port']
     paths = [
             (r"/", EntryHandler),
             (r"/__xsrf", XSRFHandler),
 
-            (r"/t/(.*)/(.*)/(.*)/history", MessageHistoryHandler),
-            (r"/t/(.*)/(.*)/(.*)", MessageHandler),
-            (r"/t/(.*)/settings", TopicPropertiesHandler),
+            # Things that effect the Topic
+            # /t/TopicName
             (r"/t/(.*)/new", NewMessageHandler),
+            (r"/t/(.*)/settings", TopicPropertiesHandler),
+
+            # Things that effect a Message within a Topic
+            # /t/TopicName/Subject/UUID/foo
+            (r"/t/(?:.*)/(?:.*)/(.*)/history", MessageHistoryHandler),
+            (r"/t/(?:.*)/(?:.*)/(.*)/reply", NewReplyHandler),
+            (r"/t/(?:.*)/(?:.*)/(.*)", MessageHandler),
             (r"/t/(.*)", TopicHandler),
+
             (r"/all/saved", AllSavedHandler),
             (r"/all", AllMessagesHandler),
 
@@ -1190,7 +1246,7 @@ def main():
             (r"/new/attachment", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
             (r"/new/pm", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
             (r"/new/revision", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
-            (r"/new", NewMessageHandler), # The Form
+            (r"/new/reply", webbase.FlaskHandler, dict(fallback=flask_wsgi)),
             (r".*", CatchallHandler),
             ]
 

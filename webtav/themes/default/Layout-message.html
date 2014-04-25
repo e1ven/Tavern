@@ -1,0 +1,42 @@
+{% extends "Layout-dualpane.html" %}
+{% block column2 %}
+    {% set _ = handler.add_js(files=['epiceditor.min.js','jquery.ui.widget.min.js','jquery.iframe-transport.min.js','jquery.fileupload.min.js','newmessage.min.js']) %}
+    <div id='formwrapper' class="padder">
+
+        {% block formblock %}
+            {# The Formblock contains the <form> tag, since they send to different endpoints.
+                It also contains any page-specific fields
+            #}
+        {% end %}
+
+            {% module xsrf_form_html() %}
+
+            <div id="contenteditable"></div>
+            <textarea name="body" rows=8 cols=80 id='textareabody'></textarea>
+
+            <br/><br/>
+            <input class="single_file_upload" type="file" name="attached_file"/><br/>
+            <div id="filelist"></div>
+
+            <input type="checkbox" name="include_location" {% if handler.user.include_location %}checked{% end %}/>Include Location<br/>
+            <input type="submit" value="Submit Message"/>
+        </form>
+
+        <br/><br/>
+        <form class='uploadfileform hiddenupload' action='/new/attachment' references='{{handler.timestamp}}' id="file upload-{{handler.timestamp}}" style="position:relative;bottom:5px">
+            <div class='uploadbox'>
+                <i class='icon-up-circled2'></i>
+            </div>
+            {% module xsrf_form_html() %}
+            <input  class='uploadonly' id="1234" type="file" name="files[]" multiple/>
+            <p class='hiddenupload' id='dragdroptext'></p>
+        </form>
+
+        <div id='spacer'></div>
+
+        <br>
+        <div id='filelist_{{handler.timestamp}}' class='uploadfileform hiddenupload'></div>
+        <div id='progress_{{handler.timestamp}}' style="display:none"></div>
+    </div> <!-- formwrapper -->
+
+{% end %}

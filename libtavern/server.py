@@ -351,16 +351,13 @@ class Server(libtavern.utils.instancer):
         self.binaries.safe.ensure_index('fs.files', '_id')
         self.binaries.safe.ensure_index('fs.files', 'uploadDate')
 
-        # Get a list of all the valid web templates that can be used, to compare
-        # against later on.
+        # Get a list of all the valid web templates that can be used, to compare against later on.
         self.availablethemes = []
         basethemedir = 'webtav/themes'
         for name in os.listdir(basethemedir):
             if os.path.isdir(os.path.join(basethemedir, name)):
                 if name[:1] != ".":
                     self.availablethemes.append(name)
-
-        self.serversettings.settings['static-revision'] = libtavern.utils.gettime(format='longstr')
 
         self.fortune = libtavern.utils.randomWords(fortunefile="datafiles/header-fortunes")
         self.wordlist = libtavern.utils.randomWords(fortunefile="datafiles/wordlist")
@@ -378,7 +375,7 @@ class Server(libtavern.utils.instancer):
         self.external = libtavern.embedis.Embedis(server=self)
         self.logger.info("Loading Browser info")
         self.browserdetector = libtavern.uasparser.UASparser(server=self)
-        
+
         # Start pregenerating random keys to assign out.
         self.keygen.start()
 
@@ -455,28 +452,24 @@ class Server(libtavern.utils.instancer):
             -The Barkeep
             """
         e = libtavern.envelope.Envelope(server=self)
-        e.dict['envelope']['payload'] = OrderedDict()
-        e.dict['envelope']['payload']['subject'] = subject
-        e.dict['envelope']['payload']['topic'] = topic
-        e.dict['envelope']['payload']['formatting'] = "markdown"
-        e.dict['envelope']['payload']['class'] = "message"
-        e.dict['envelope']['payload'][
-            'body'] = body
-        e.dict['envelope']['payload']['author'] = OrderedDict()
-        e.dict['envelope']['payload']['author']['pubkey'] = "1234"
-        e.dict['envelope']['payload']['author']['friendlyname'] = "ERROR!"
-        e.dict['envelope']['payload']['author']['useragent'] = "Error Agent"
-        e.dict['envelope']['payload']['author']['friendlyname'] = "Error"
+        e.payload.dict = OrderedDict()
+        e.payload.dict['subject'] = subject
+        e.payload.dict['topic'] = topic
+        e.payload.dict['formatting'] = "markdown"
+        e.payload.dict['class'] = "message"
+        e.payload.dict['body'] = body
+        e.payload.dict['author'] = OrderedDict()
+        e.payload.dict['author']['pubkey'] = "1234"
+        e.payload.dict['author']['friendlyname'] = "Error"
+        e.flatten()
         e.addStamp(
             stampclass='author',
             passkey=self.serveruser.passkey,
             keys=self.serveruser.Keys['master'],
             friendlyname=self.serversettings.settings['hostname'])
-        e.flatten()
         e.munge()
         e.dict['envelope']['local']['time_added'] = 1297440000
-        e.dict['envelope']['local'][
-            'author_wordhash'] = "Automatically generated message"
+        e.dict['envelope']['local']['author_wordhash'] = "Automatically generated message"
         e.dict['envelope']['local']['sorttopic'] = "error"
         e.dict['envelope']['local']['payload_sha512'] = e.payload.hash()
         return e
@@ -556,9 +549,9 @@ class Server(libtavern.utils.instancer):
 
 
         # Store our Envelope
-        c.saveMongo()
+        env.saveMongo()
 
-        return self.url_for(envelope=c)
+        return self.url_for(envelope=env)
 
 #    @libtavern.utils.memorise(ttl=defaultsettings.settings['cache']['formatText']['seconds'], maxsize=defaultsettings.settings['cache']['formatText']['size'])
     def formatText(self, text=None, formatting='markdown'):
@@ -668,7 +661,7 @@ class Server(libtavern.utils.instancer):
             else:
                 raise Exception("url_for must be given an Envelope object.")
         elif user:
-            if isinstance(user,libtarvern.user.User):
+            if isinstance(user,libtavern.user.User):
                 url =  "/u/" + ''.join(user.Keys['master'].pubkey.split())
             else:
                 raise Exception("User must be user object")

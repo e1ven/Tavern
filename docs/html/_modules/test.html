@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Overview: module code &mdash; Tavern  documentation</title>
+    <title>test &mdash; Tavern  documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -24,7 +24,8 @@
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
     <link rel="shortcut icon" href="../_static/favicon.ico"/>
-    <link rel="top" title="Tavern  documentation" href="../index.html" /> 
+    <link rel="top" title="Tavern  documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -36,7 +37,8 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Tavern  documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -45,26 +47,26 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <h1>All modules for which code is available</h1>
-<ul><li><a href="libtavern/baseobj.html">libtavern.baseobj</a></li>
-<li><a href="libtavern/embedis.html">libtavern.embedis</a></li>
-<li><a href="libtavern/envelope.html">libtavern.envelope</a></li>
-<li><a href="libtavern/key.html">libtavern.key</a></li>
-<li><a href="libtavern/keygen.html">libtavern.keygen</a></li>
-<li><a href="libtavern/lockedkey.html">libtavern.lockedkey</a></li>
-<li><a href="libtavern/payloads.html">libtavern.payloads</a></li>
-<li><a href="libtavern/server.html">libtavern.server</a></li>
-<li><a href="libtavern/serversettings.html">libtavern.serversettings</a></li>
-<li><a href="libtavern/topic.html">libtavern.topic</a></li>
-<li><a href="libtavern/uasparser.html">libtavern.uasparser</a></li>
-<li><a href="libtavern/user.html">libtavern.user</a></li>
-<li><a href="libtavern/utils.html">libtavern.utils</a></li>
-<li><a href="test.html">test</a></li>
-<li><a href="webtav/flasknado.html">webtav.flasknado</a></li>
-<li><a href="webtav/uimodules.html">webtav.uimodules</a></li>
-<li><a href="webtav/webbase.html">webtav.webbase</a></li>
-<li><a href="webtav/webfront.html">webtav.webfront</a></li>
-</ul>
+  <h1>Source code for test</h1><div class="highlight"><pre>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">Flask</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="n">abort</span><span class="p">,</span> <span class="n">redirect</span><span class="p">,</span> <span class="n">url_for</span>
+<span class="n">app</span> <span class="o">=</span> <span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+
+
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/new/reply&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="index"><a class="viewcode-back" href="../test.html#test.index">[docs]</a><span class="k">def</span> <span class="nf">index</span><span class="p">():</span>
+    <span class="k">return</span> <span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/foo&#39;</span><span class="p">)</span>
+
+</div>
+<span class="nd">@app.route</span><span class="p">(</span><span class="s">&#39;/login&#39;</span><span class="p">)</span>
+<div class="viewcode-block" id="login"><a class="viewcode-back" href="../test.html#test.login">[docs]</a><span class="k">def</span> <span class="nf">login</span><span class="p">():</span>
+    <span class="n">abort</span><span class="p">(</span><span class="mi">401</span><span class="p">)</span>
+    <span class="n">this_is_never_executed</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">app</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+</pre></div>
 
           </div>
         </div>
@@ -100,7 +102,8 @@
         <li class="right" >
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
-        <li><a href="../index.html">Tavern  documentation</a> &raquo;</li> 
+        <li><a href="../index.html">Tavern  documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -74,8 +74,10 @@
 <span class="kn">import</span> <span class="nn">tornado.web</span>
 <span class="kn">import</span> <span class="nn">tornado.escape</span>
 <span class="kn">import</span> <span class="nn">tornado.wsgi</span>
+
 <span class="kn">import</span> <span class="nn">flask</span>
 
+<span class="kn">import</span> <span class="nn">pygeoip</span>
 
 
 <div class="viewcode-block" id="EntryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.EntryHandler">[docs]</a><span class="k">class</span> <span class="nc">EntryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
@@ -89,12 +91,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="s">&#39;/t/sitecontent&#39;</span><span class="p">,</span><span class="n">permanent</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 </div></div>
 <div class="viewcode-block" id="MessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-<div class="viewcode-block" id="MessageHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">topic</span><span class="p">,</span><span class="n">short_sub</span><span class="p">,</span><span class="n">messageid</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">messageid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Displays a given message.</span>
 <span class="sd">        Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons.</span>
-<span class="sd">        :param topic: (not used) - The topic that the message is in.</span>
-<span class="sd">        :param short_sub: (not used) - The Short version of the message&#39;s subject.</span>
 <span class="sd">        :param messageid: The ID of the message</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
@@ -113,7 +113,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div></div>
 <div class="viewcode-block" id="MessageHistoryHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler">[docs]</a><span class="k">class</span> <span class="nc">MessageHistoryHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
-<div class="viewcode-block" id="MessageHistoryHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messageid</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">short_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+<div class="viewcode-block" id="MessageHistoryHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.MessageHistoryHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messageid</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Display the various edits to a message.&quot;&quot;&quot;</span>
 
         <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
@@ -122,7 +122,7 @@
                                   <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m terribly sorry, but I can&#39;t find any history for the message that&#39;s been requested.&quot;</span><span class="p">)</span>
 
         <span class="c"># Get the original message</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">payloads</span><span class="o">.</span><span class="n">Message</span><span class="p">):</span>
             <span class="n">original</span> <span class="o">=</span> <span class="n">e</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="p">,</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="o">.</span><span class="n">MessageRevision</span><span class="p">):</span>
             <span class="n">original</span> <span class="o">=</span> <span class="n">e</span><span class="o">.</span><span class="n">get_original</span><span class="p">()</span>
@@ -132,7 +132,6 @@
 
         <span class="c"># Create a list of unique message ids, and the time we first saw it.</span>
         <span class="n">edits</span> <span class="o">=</span> <span class="p">[]</span>
-
         <span class="c"># Append in the original message&#39;s information</span>
         <span class="n">edits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">original</span><span class="p">)</span>
 
@@ -143,17 +142,15 @@
                 <span class="n">e</span><span class="o">.</span><span class="n">loaddict</span><span class="p">(</span><span class="n">editdict</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">e</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">edits</span><span class="p">:</span>
                     <span class="n">edits</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-
         <span class="c"># Sort the edits.</span>
         <span class="n">edits</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">],</span> <span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">])))</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">edits</span> <span class="o">=</span> <span class="n">edits</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span> <span class="o">=</span> <span class="n">original</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;topic&#39;</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;History for &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;subject&#39;</span><span class="p">]</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-messagehistory.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-messagehistory.html&#39;</span><span class="p">,</span><span class="n">edits</span><span class="o">=</span><span class="n">edits</span><span class="p">)</span>
 
 </div></div>
 <div class="viewcode-block" id="TopicHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.TopicHandler">[docs]</a><span class="k">class</span> <span class="nc">TopicHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
@@ -172,7 +169,7 @@
                 <span class="n">body</span><span class="o">=</span><span class="s">&quot;&quot;&quot;The particular topic you&#39;re viewing doesn&#39;t have any posts in it yet.</span>
 <span class="s">                You can be the first! Like Neil Armstrong, Edmund Hillary, or Ferdinand Magellan, you have the chance to start something.</span>
 <span class="s">                Don&#39;t be nervous. Breathe. You can do this.</span>
-<span class="s">                Click the [New Message](&quot;&quot;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/newmessage&#39;</span> <span class="o">+</span><span class="s">&quot;&quot;&quot; &quot;Post Something!&quot;) button, and get started.</span>
+<span class="s">                Click the [New Message](&quot;&quot;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/new&#39;</span> <span class="o">+</span><span class="s">&quot;&quot;&quot; &quot;Post Something!&quot;) button, and get started.</span>
 <span class="s">                We&#39;re rooting you.&quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
@@ -193,8 +190,7 @@
                 <span class="n">topic</span><span class="o">=</span><span class="s">&quot;None&quot;</span><span class="p">,</span>
                 <span class="n">body</span><span class="o">=</span><span class="s">&quot;&quot;&quot;This Tavern server has __NO__ messages posted yet.</span>
 <span class="s">                If it&#39;s public, it should sync up with some other servers soon.</span>
-<span class="s">                If not, click the [New Message](&quot;&quot;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/newmessage&#39;</span><span class="o">+</span><span class="s">&quot;&quot;&quot; &quot;Post Something!&quot;) button, and get things started.&quot;&quot;&quot;</span><span class="p">)</span>
-
+<span class="s">                If not, click the [New Message](&quot;&quot;&quot;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;/new&#39;</span><span class="o">+</span><span class="s">&quot;&quot;&quot; &quot;Post Something!&quot;) button, and get things started.&quot;&quot;&quot;</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-showmessage.html&#39;</span><span class="p">)</span>
 </div></div>
@@ -317,7 +313,7 @@
 <div class="viewcode-block" id="RegisterHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Register for a new account&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-newuser.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-new_user.html&#39;</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="RegisterHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.RegisterHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Create the user in the DB, as requested.&quot;&quot;&quot;</span>
@@ -334,14 +330,15 @@
 
         <span class="c"># Create a temporary user, set it to current user.</span>
         <span class="n">u</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">username</span>
-        <span class="n">u</span><span class="o">.</span><span class="n">ensure_keys</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-        <span class="n">u</span><span class="o">.</span><span class="n">changepass</span><span class="p">(</span><span class="n">newpassword</span><span class="o">=</span><span class="n">pass1</span><span class="p">,</span><span class="n">oldpasskey</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">ensure_keys</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
+        <span class="k">print</span><span class="p">(</span><span class="n">u</span><span class="o">.</span><span class="n">changepass</span><span class="p">(</span><span class="n">newpassword</span><span class="o">=</span><span class="n">pass1</span><span class="p">,</span><span class="n">oldpasskey</span><span class="o">=</span><span class="n">u</span><span class="o">.</span><span class="n">passkey</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">email</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">add_email</span><span class="p">(</span><span class="n">email</span><span class="p">)</span>
         <span class="n">u</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">u</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">save_session</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">base</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">u</span><span class="p">))</span>
 </div></div>
 <div class="viewcode-block" id="LoginHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.LoginHandler">[docs]</a><span class="k">class</span> <span class="nc">LoginHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -385,8 +382,8 @@
 <span class="c"># def ChangepasswordHandler_get():</span>
 <span class="c">#     self.getvars()</span>
 <span class="c">#       self.js = &quot;&quot;&quot;{% block extraJS %}</span>
-<span class="c">#     &lt;script defer src=&quot;/static/scripts/zxcvbn.min.js?v={{serversettings.settings[&#39;static-revision&#39;]}}&quot;&gt;&lt;/script&gt;</span>
-<span class="c">#     &lt;script defer src=&quot;/static/scripts/register.min.js?v={{serversettings.settings[&#39;static-revision&#39;]}}&quot;&gt;&lt;/script&gt;</span>
+<span class="c">#     &lt;script defer src=&quot;/static/scripts/zxcvbn.min.js}}&quot;&gt;&lt;/script&gt;</span>
+<span class="c">#     &lt;script defer src=&quot;/static/scripts/register.min.js}}&quot;&gt;&lt;/script&gt;</span>
 <span class="c"># {% end extraJS %}&quot;&quot;&quot;</span>
 <span class="c">#     if not self.recentauth():</span>
 <span class="c">#         numcharacters = 100 + libtavern.TavernUtils.randrange(1, 100)</span>
@@ -719,14 +716,21 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;New Message&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topic</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/new&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-newmessage.html&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-new_message.html&#39;</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="NewReplyHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewReplyHandler">[docs]</a><span class="k">class</span> <span class="nc">NewReplyHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseTornado</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates a new message in reply to a message we already have.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="NewReplyHandler.get"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewReplyHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">regarding</span><span class="p">):</span>
+        <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">regarding</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;The original message can&#39;t be found :(&quot;</span><span class="p">,</span>
+                                  <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m terribly sorry, but I can&#39;t load the original message you are trying to reply to.&quot;</span><span class="p">)</span>
 
-</div>
-<div class="viewcode-block" id="NewMessageHandler.options"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.NewMessageHandler.options">[docs]</a>    <span class="k">def</span> <span class="nf">options</span><span class="p">(</span><span class="n">flag</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Methods&#39;</span><span class="p">,</span>
-                        <span class="s">&#39;OPTIONS, HEAD, GET, POST, PUT, DELETE&#39;</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&#39;Access-Control-Allow-Origin&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">)</span>
-
+        <span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span> <span class="o">=</span> <span class="n">e</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;/reply&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="s">&#39;View-new_replymessage.html&#39;</span><span class="p">,</span><span class="n">regarding</span><span class="o">=</span><span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;payload_sha512&#39;</span><span class="p">])</span>
 
 <span class="c"># def NewPrivateMessageHandler_get(urlto=None):</span>
 <span class="c">#     self.getvars()</span>
@@ -928,10 +932,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">basepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">application</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;template_path&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">basepath</span> <span class="o">+</span> <span class="s">&#39;/robots&#39;</span>
+
 </div></div>
 <div class="viewcode-block" id="UploadMessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadMessageHandler</span><span class="p">(</span><span class="n">webbase</span><span class="o">.</span><span class="n">BaseFlask</span><span class="p">):</span>
-
-<div class="viewcode-block" id="UploadMessageHandler.sign_and_deliver"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageHandler.sign_and_deliver">[docs]</a>    <span class="k">def</span> <span class="nf">sign_and_deliver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">envelope</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Receive a message POSTed to the server.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="UploadMessageHandler.sign_and_deliver"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageHandler.sign_and_deliver">[docs]</a>    <span class="k">def</span> <span class="nf">sign_and_deliver</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">envelope</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sign the message with the Author&#39;s info, and upload to the server.</span>
 <span class="sd">        :return: ID of insert (if successful)</span>
@@ -953,6 +960,10 @@
         <span class="n">envelope</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;replyto&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">new_posted_key</span><span class="p">()</span><span class="o">.</span><span class="n">pubkey</span>
         <span class="n">envelope</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;author&#39;</span><span class="p">][</span><span class="s">&#39;friendlyname&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">friendlyname</span>
 
+
+        <span class="c"># Import the Payload into the parent dict, then objectify it</span>
+        <span class="n">envelope</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
         <span class="c"># Add a Stamp, which signs the message with the Author&#39;s key.</span>
         <span class="n">envelope</span><span class="o">.</span><span class="n">addStamp</span><span class="p">(</span><span class="n">stampclass</span><span class="o">=</span><span class="s">&#39;author&#39;</span><span class="p">,</span><span class="n">friendlyname</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">friendlyname</span><span class="p">,</span><span class="n">keys</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">],</span><span class="n">passkey</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">)</span>
 
@@ -962,12 +973,14 @@
 
         <span class="c"># Send to the server</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">receive_envelope</span><span class="p">(</span><span class="n">env</span><span class="o">=</span><span class="n">envelope</span><span class="p">):</span>
-            <span class="k">print</span><span class="p">(</span><span class="s">&quot;Message submitted.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">return</span> <span class="bp">False</span>
 </div>
 <div class="viewcode-block" id="UploadMessageHandler.receive_files"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageHandler.receive_files">[docs]</a>    <span class="k">def</span> <span class="nf">receive_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Receive files, save them out.</span>
+<span class="sd">        Receive and store files.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
 
         <span class="c"># Each file in self.request.files is a Werkzeug FileStorage object.</span>
         <span class="c"># http://werkzeug.pocoo.org/docs/datastructures/#werkzeug.datastructures.FileStorage</span>
@@ -1002,7 +1015,6 @@
 
         <span class="c"># If there are any files that were sent along with the envelope, save them out.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">receive_files</span><span class="p">()</span>
-
         <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
         <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;markdown&quot;</span>
         <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;message&quot;</span>
@@ -1014,13 +1026,47 @@
 
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_and_deliver</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;Oh Noes!&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Failure to insert message.&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="UploadMessageReplyHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageReplyHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadMessageReplyHandler</span><span class="p">(</span><span class="n">UploadMessageHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Upload a reply to an earlier message.&quot;&quot;&quot;</span>
+
+    <span class="nd">@webbase.BaseTornado.requires_acct</span>
+<div class="viewcode-block" id="UploadMessageReplyHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageReplyHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># If there are any files that were sent along with the envelope, save them out.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">receive_files</span><span class="p">()</span>
+
+        <span class="c"># Load original</span>
+        <span class="n">original</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">original</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="n">mongo_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;regarding&quot;</span><span class="p">)):</span>
+            <span class="k">raise</span> <span class="n">weberror</span><span class="p">(</span><span class="n">short</span><span class="o">=</span><span class="s">&quot;The original message can&#39;t be found :(&quot;</span><span class="p">,</span>
+                                  <span class="nb">long</span><span class="o">=</span><span class="s">&quot;I&#39;m terribly sorry, but I can&#39;t load the original message you are trying to reply to.&quot;</span><span class="p">)</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">()</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;formatting&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;markdown&quot;</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;message&quot;</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">original</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;topic&#39;</span><span class="p">]</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;subject&quot;</span><span class="p">,</span><span class="n">original</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;subject&#39;</span><span class="p">])</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;body&quot;</span><span class="p">)</span>
+        <span class="n">e</span><span class="o">.</span><span class="n">payload</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;regarding&quot;</span><span class="p">)</span>
+
+        <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_and_deliver</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;Oh Noes!&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Failure to insert message.&quot;</span><span class="p">)</span>
+
 </div></div>
 <div class="viewcode-block" id="UploadMessageRevisionHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageRevisionHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadMessageRevisionHandler</span><span class="p">(</span><span class="n">UploadMessageHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Upload a revision to an earlier message.&quot;&quot;&quot;</span>
 
+    <span class="nd">@webbase.BaseTornado.requires_acct</span>
 <div class="viewcode-block" id="UploadMessageRevisionHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadMessageRevisionHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Receive Envelopes and their attachments.&quot;&quot;&quot;</span>
 
@@ -1044,11 +1090,14 @@
 
         <span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sign_and_deliver</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">res</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">redirect</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">url_for</span><span class="p">(</span><span class="n">envelope</span><span class="o">=</span><span class="n">e</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s">&quot;Oh Noes!&quot;</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s">&quot;Failure to insert message.&quot;</span><span class="p">)</span>
 </div></div>
 <div class="viewcode-block" id="UploadAttachmentHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadAttachmentHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadAttachmentHandler</span><span class="p">(</span><span class="n">UploadMessageHandler</span><span class="p">):</span>
+
+    <span class="nd">@webbase.BaseTornado.requires_acct</span>
 <div class="viewcode-block" id="UploadAttachmentHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadAttachmentHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Receive a POST request containing a file from JS, and return the JSON formatted reply it&#39;s expecting.&quot;&quot;&quot;</span>
 
@@ -1073,6 +1122,7 @@
 <div class="viewcode-block" id="UploadPrivateMessageHandler"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadPrivateMessageHandler">[docs]</a><span class="k">class</span> <span class="nc">UploadPrivateMessageHandler</span><span class="p">(</span><span class="n">UploadMessageHandler</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Receive text, encrypt, send to dest.&quot;&quot;&quot;</span>
 
+    <span class="nd">@webbase.BaseTornado.requires_acct</span>
 <div class="viewcode-block" id="UploadPrivateMessageHandler.post"><a class="viewcode-back" href="../../webtav.html#webtav.webfront.UploadPrivateMessageHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 
         <span class="c"># If there are any files that were sent along with the envelope, save them out.</span>
@@ -1162,17 +1212,6 @@
     <span class="n">flask_settings</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;flask&#39;</span><span class="p">])</span>
 
 
-    <span class="c"># Create an instance of Flask, so we can add it to the Tornado routing table, below.</span>
-    <span class="n">flask_app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
-    <span class="n">flask_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flask_settings</span><span class="p">)</span>
-    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/message&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadMessageHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadMessageHandler&#39;</span><span class="p">))</span>
-    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/attachment&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadAttachmentHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadAttachmentHandler&#39;</span><span class="p">))</span>
-    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/pm&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadPrivateMessageHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadPrivateMessageHandler&#39;</span><span class="p">))</span>
-    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/revision&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadMessageRevisionHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadMessageRevisionHandler&#39;</span><span class="p">))</span>
-
-
-    <span class="n">flask_wsgi</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">flask_app</span><span class="p">)</span>
-
     <span class="c"># Parse -v, -vvv, etc for verbosity, starting with the level in settings.</span>
     <span class="c"># Parse -v for INFO, -vv for DEBUG, etc</span>
     <span class="k">if</span> <span class="n">options</span><span class="o">.</span><span class="n">verbose</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -1188,15 +1227,32 @@
             <span class="n">tornado_settings</span><span class="p">[</span><span class="s">&#39;serve_traceback=True&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
             <span class="n">flask_settings</span><span class="p">[</span><span class="s">&#39;DEBUG&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
 
+    <span class="c"># Create an instance of Flask, so we can add it to the Tornado routing table, below.</span>
+    <span class="n">flask_app</span> <span class="o">=</span> <span class="n">flask</span><span class="o">.</span><span class="n">Flask</span><span class="p">(</span><span class="n">__name__</span><span class="p">)</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">flask_settings</span><span class="p">)</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/message&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadMessageHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadMessageHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/reply&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadMessageReplyHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadMessageReplyHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/attachment&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadAttachmentHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadAttachmentHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/pm&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadPrivateMessageHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadPrivateMessageHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_app</span><span class="o">.</span><span class="n">add_url_rule</span><span class="p">(</span><span class="s">&#39;/new/revision&#39;</span><span class="p">,</span> <span class="n">view_func</span><span class="o">=</span><span class="n">UploadMessageRevisionHandler</span><span class="o">.</span><span class="n">as_view</span><span class="p">(</span><span class="s">&#39;UploadMessageRevisionHandler&#39;</span><span class="p">))</span>
+    <span class="n">flask_wsgi</span> <span class="o">=</span> <span class="n">tornado</span><span class="o">.</span><span class="n">wsgi</span><span class="o">.</span><span class="n">WSGIContainer</span><span class="p">(</span><span class="n">flask_app</span><span class="p">)</span>
+    <span class="n">flask_wsgi</span><span class="o">.</span><span class="n">port</span> <span class="o">=</span> <span class="n">server</span><span class="o">.</span><span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;webtav&#39;</span><span class="p">][</span><span class="s">&#39;port&#39;</span><span class="p">]</span>
     <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span>
             <span class="p">(</span><span class="s">r&quot;/&quot;</span><span class="p">,</span> <span class="n">EntryHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/__xsrf&quot;</span><span class="p">,</span> <span class="n">XSRFHandler</span><span class="p">),</span>
 
-            <span class="p">(</span><span class="s">r&quot;/t/(.*)/(.*)/(.*)/history&quot;</span><span class="p">,</span> <span class="n">MessageHistoryHandler</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">r&quot;/t/(.*)/(.*)/(.*)&quot;</span><span class="p">,</span> <span class="n">MessageHandler</span><span class="p">),</span>
-            <span class="p">(</span><span class="s">r&quot;/t/(.*)/settings&quot;</span><span class="p">,</span> <span class="n">TopicPropertiesHandler</span><span class="p">),</span>
+            <span class="c"># Things that effect the Topic</span>
+            <span class="c"># /t/TopicName</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/t/(.*)/settings&quot;</span><span class="p">,</span> <span class="n">TopicPropertiesHandler</span><span class="p">),</span>
+
+            <span class="c"># Things that effect a Message within a Topic</span>
+            <span class="c"># /t/TopicName/Subject/UUID/foo</span>
+            <span class="p">(</span><span class="s">r&quot;/t/(?:.*)/(?:.*)/(.*)/history&quot;</span><span class="p">,</span> <span class="n">MessageHistoryHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/t/(?:.*)/(?:.*)/(.*)/reply&quot;</span><span class="p">,</span> <span class="n">NewReplyHandler</span><span class="p">),</span>
+            <span class="p">(</span><span class="s">r&quot;/t/(?:.*)/(?:.*)/(.*)&quot;</span><span class="p">,</span> <span class="n">MessageHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/t/(.*)&quot;</span><span class="p">,</span> <span class="n">TopicHandler</span><span class="p">),</span>
+
             <span class="p">(</span><span class="s">r&quot;/all/saved&quot;</span><span class="p">,</span> <span class="n">AllSavedHandler</span><span class="p">),</span>
             <span class="p">(</span><span class="s">r&quot;/all&quot;</span><span class="p">,</span> <span class="n">AllMessagesHandler</span><span class="p">),</span>
 
@@ -1240,7 +1296,7 @@
             <span class="p">(</span><span class="s">r&quot;/new/attachment&quot;</span><span class="p">,</span> <span class="n">webbase</span><span class="o">.</span><span class="n">FlaskHandler</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fallback</span><span class="o">=</span><span class="n">flask_wsgi</span><span class="p">)),</span>
             <span class="p">(</span><span class="s">r&quot;/new/pm&quot;</span><span class="p">,</span> <span class="n">webbase</span><span class="o">.</span><span class="n">FlaskHandler</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fallback</span><span class="o">=</span><span class="n">flask_wsgi</span><span class="p">)),</span>
             <span class="p">(</span><span class="s">r&quot;/new/revision&quot;</span><span class="p">,</span> <span class="n">webbase</span><span class="o">.</span><span class="n">FlaskHandler</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fallback</span><span class="o">=</span><span class="n">flask_wsgi</span><span class="p">)),</span>
-            <span class="p">(</span><span class="s">r&quot;/new&quot;</span><span class="p">,</span> <span class="n">NewMessageHandler</span><span class="p">),</span> <span class="c"># The Form</span>
+            <span class="p">(</span><span class="s">r&quot;/new/reply&quot;</span><span class="p">,</span> <span class="n">webbase</span><span class="o">.</span><span class="n">FlaskHandler</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">fallback</span><span class="o">=</span><span class="n">flask_wsgi</span><span class="p">)),</span>
             <span class="p">(</span><span class="s">r&quot;.*&quot;</span><span class="p">,</span> <span class="n">CatchallHandler</span><span class="p">),</span>
             <span class="p">]</span>
 

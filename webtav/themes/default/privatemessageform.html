@@ -1,9 +1,0 @@
-<form enctype="multipart/form-data" action="/new/pm" method="post">
-  {% module xsrf_form_html() %}
-To: <input type="text" name="to" {% if urlto is not None %} value="{{urlto}}" {% end %}><br>
-Subject: <input type="text" name="subject"><br>
-Body: <textarea name="body" rows=8 cols=80></textarea><br><br>
-<input type="checkbox"  name="include_location" checked>Include Location<br>
-<input type="submit" value="Submit Message">
-</form>
-

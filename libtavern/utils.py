@@ -101,6 +101,9 @@ def gettime(format='timestamp',timestamp=None):
     """
     if timestamp is None:
         timestamp = time.time()
+    else:
+        # Avoid complications with the str version of dates.
+        timestamp = float(timestamp)
 
     def dt(x) : return datetime.datetime.fromtimestamp(x,tz=datetime.timezone.utc)
 
@@ -108,8 +111,8 @@ def gettime(format='timestamp',timestamp=None):
         return int(float(timestamp))
     elif format == 'datetime':
         return dt(timestamp)
-    elif format == 'longstr':
-        return str(int(time.time() * 1000000))
+    elif format == 'milliseconds':
+        return int(timestamp * 1000000)
     elif format == 'relative':
         delta = int(time.time() - timestamp)
         if delta < 3:

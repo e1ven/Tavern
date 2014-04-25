@@ -195,14 +195,11 @@
 <span class="sd">        :return: True/False - Is the password right?</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">successful</span> <span class="o">=</span> <span class="bp">False</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">tmp_passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_passkey</span><span class="p">(</span><span class="n">password</span><span class="p">)</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">tmp_passkey</span><span class="p">):</span>
-                <span class="c"># We&#39;ve successfully unlocked.</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">lastauth</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
-                <span class="n">successful</span> <span class="o">=</span> <span class="bp">True</span>
-        <span class="k">except</span><span class="p">:</span>
-            <span class="k">pass</span>
+        <span class="n">tmp_passkey</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get_passkey</span><span class="p">(</span><span class="n">guessed_password</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">Keys</span><span class="p">[</span><span class="s">&#39;master&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">unlock</span><span class="p">(</span><span class="n">tmp_passkey</span><span class="p">):</span>
+            <span class="c"># We&#39;ve successfully unlocked.</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastauth</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;timestamp&#39;</span><span class="p">)</span>
+            <span class="n">successful</span> <span class="o">=</span> <span class="bp">True</span>
 
         <span class="k">if</span> <span class="n">successful</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">True</span>
@@ -544,6 +541,9 @@
             <span class="n">pub</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pubs</span>
 </div>
+<div class="viewcode-block" id="User.CantChangePassException"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.CantChangePassException">[docs]</a>    <span class="k">class</span> <span class="nc">CantChangePassException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+        <span class="k">pass</span>
+</div>
 <div class="viewcode-block" id="User.changepass"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.changepass">[docs]</a>    <span class="k">def</span> <span class="nf">changepass</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newpassword</span><span class="p">,</span> <span class="n">oldpasskey</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Change the User&#39;s password.</span>
@@ -563,8 +563,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">save_mongo</span><span class="p">()</span>
             <span class="k">return</span> <span class="bp">True</span>
 
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">False</span>
+        <span class="k">raise</span> <span class="bp">self</span><span class="o">.</span><span class="n">CantChangePassException</span>
 </div>
 <div class="viewcode-block" id="User.to_dict"><a class="viewcode-back" href="../../libtavern.html#libtavern.user.User.to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>

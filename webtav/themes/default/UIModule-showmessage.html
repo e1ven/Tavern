@@ -124,7 +124,7 @@
                             </abbr>
                         </div>
                         <div class="message_replylink">
-                            <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}">
+                            <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(envelope=envelope)}}/reply">
                                 Reply
                             </a>
                             {% if handler.user.Keys['master'].pubkey == envelope.dict['envelope']['local']['author']['pubkey'] %}
@@ -158,7 +158,7 @@
                             {% if envelope.countChildren() == 1 %}
                                 1 Reply
                             {% elif envelope.countChildren() == 0 %}
-                                <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/reply/{{envelope.dict['envelope']['payload']['topic']}}/{{envelope.dict['envelope']['local']['payload_sha512']}}"> Be the first to reply to this comment </a>
+                                <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(envelope=envelope)}}/reply"> Be the first to reply to this comment </a>
                             {% else %}
                                {{envelope.countChildren()}} Replies
                             {% end %}

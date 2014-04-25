@@ -151,6 +151,9 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">timestamp</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
         <span class="n">timestamp</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c"># Avoid complications with the str version of dates.</span>
+        <span class="n">timestamp</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">dt</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="p">:</span> <span class="k">return</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">fromtimestamp</span><span class="p">(</span><span class="n">x</span><span class="p">,</span><span class="n">tz</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
 
@@ -158,8 +161,8 @@
         <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">timestamp</span><span class="p">))</span>
     <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;datetime&#39;</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">dt</span><span class="p">(</span><span class="n">timestamp</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;longstr&#39;</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000000</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;milliseconds&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">timestamp</span> <span class="o">*</span> <span class="mi">1000000</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">format</span> <span class="o">==</span> <span class="s">&#39;relative&#39;</span><span class="p">:</span>
         <span class="n">delta</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">timestamp</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">delta</span> <span class="o">&lt;</span> <span class="mi">3</span><span class="p">:</span>

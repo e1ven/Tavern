@@ -1,0 +1,7 @@
+{% extends "Layout-message.html" %}
+
+{% block formblock %}
+    <form data-persist="garlic" enctype="multipart/form-data" action="/new/reply" method="post" class="messageform" id='{{handler.timestamp}}'>
+        <input type="hidden" name="regarding" value = "{{regarding}}"/>
+        <p>What would you like your reply to say?</p>
+{% end %}

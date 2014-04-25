@@ -2,22 +2,22 @@ User-agent: *
 Sitemap: /siteindex
 Crawl-delay: 4
 
-Disallow: /register
-Disallow: /login
-Disallow: /logout
+# This page shouldn't be exposed, but just in case
+Disallow: /__xsrf
 
-Disallow: /reply/
-Disallow: /vote/
-Disallow: /usertrust/
-Disallow: /followuser/
-Disallow: /followtopic/
-Disallow: /showprivates/
-Disallow: /newm/
-Disallow: /uploadnewm/
-Disallow: /uploadprivatem/
-Disallow: /privatem/
-Disallow: /changepassword/
-Disallow: /uploadfile/
-Disallow: /usernote/
-Disallow: /changesetting/
-Disallow: /avatar/
+# /all is computationally intensive, and changes per user
+Disallow: /all
+Disallow: /all/saved
+
+# No command/action URLs (These are POST only, but just avoid them)
+Disallow: /t/*/new
+Disallow: /t/*/settings
+Disallow: /logout
+Disallow: /new/*
+
+# Pulling history forces it into cache unnecessarily
+Disallow: /t/*/history
+
+# Please don't automatically download binaries.
+# It'll make things go slow, and waste bw.
+Disallow: /b/*

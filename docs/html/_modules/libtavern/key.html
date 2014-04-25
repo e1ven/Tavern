@@ -107,7 +107,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">expires</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gnuhome</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="nb">dir</span><span class="o">=</span><span class="s">&#39;tmp/gpgfiles&#39;</span><span class="p">)</span>
 
-    
+
         <span class="c"># If we are in debug mode, then pass debug to GPG</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">getEffectiveLevel</span><span class="p">()</span> <span class="o">&lt;</span> <span class="mi">10</span><span class="p">:</span>
             <span class="n">verbose</span> <span class="o">=</span> <span class="bp">True</span>
@@ -329,7 +329,7 @@
             <span class="c"># generated, since it&#39;s not based on current time</span>
 
             <span class="c"># Calculate this by advancing the date until the month changes 2x</span>
-            <span class="c"># then go to midnight, then back one second. </span>
+            <span class="c"># then go to midnight, then back one second.</span>
 
             <span class="n">tmpdate</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;datetime&#39;</span><span class="p">)</span>
             <span class="k">while</span> <span class="n">tmpdate</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;datetime&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">month</span><span class="p">:</span>
@@ -338,7 +338,7 @@
 
             <span class="k">while</span> <span class="n">tmpdate</span><span class="o">.</span><span class="n">month</span> <span class="o">==</span> <span class="n">next_month</span><span class="o">.</span><span class="n">month</span><span class="p">:</span>
                 <span class="n">tmpdate</span> <span class="o">+=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            
+
             <span class="n">beginning_of_day</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="n">year</span><span class="o">=</span><span class="n">tmpdate</span><span class="o">.</span><span class="n">year</span><span class="p">,</span><span class="n">day</span><span class="o">=</span><span class="n">tmpdate</span><span class="o">.</span><span class="n">day</span><span class="p">,</span><span class="n">month</span><span class="o">=</span><span class="n">tmpdate</span><span class="o">.</span><span class="n">month</span><span class="p">,</span><span class="n">microsecond</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="n">tzinfo</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span>
             <span class="n">expires_on</span> <span class="o">=</span> <span class="n">beginning_of_day</span> <span class="o">-</span>  <span class="n">datetime</span><span class="o">.</span><span class="n">timedelta</span><span class="p">(</span><span class="n">seconds</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
@@ -431,7 +431,7 @@
             <span class="k">return</span> <span class="bp">False</span>
         <span class="n">decrypted_string</span> <span class="o">=</span> <span class="n">decrypted</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">decrypted_string</span>
-    
+
 </div>
     <span class="nd">@privatekeyaccess</span>
 <div class="viewcode-block" id="Key.encrypt_file"><a class="viewcode-back" href="../../libtavern.html#libtavern.key.Key.encrypt_file">[docs]</a>    <span class="k">def</span> <span class="nf">encrypt_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newfile</span><span class="p">):</span>
@@ -443,7 +443,7 @@
         <span class="n">recipient</span><span class="o">.</span><span class="n">_format_keys</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpg</span><span class="o">.</span><span class="n">import_keys</span><span class="p">(</span><span class="n">recipient</span><span class="o">.</span><span class="n">pubkey</span><span class="p">)</span>
 
-        <span class="n">tmpfilename</span> <span class="o">=</span> <span class="s">&quot;tmp/gpgfiles/&quot;</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;longstr&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">tmpfilename</span> <span class="o">=</span> <span class="s">&quot;tmp/gpgfiles/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;milliseconds&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">gpg</span><span class="o">.</span><span class="n">encrypt_file</span><span class="p">(</span>
             <span class="n">stream</span><span class="o">=</span><span class="n">oldfile</span><span class="p">,</span>
@@ -457,7 +457,7 @@
     <span class="nd">@privatekeyaccess</span>
 <div class="viewcode-block" id="Key.decrypt_file"><a class="viewcode-back" href="../../libtavern.html#libtavern.key.Key.decrypt_file">[docs]</a>    <span class="k">def</span> <span class="nf">decrypt_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tmpfile</span><span class="p">):</span>
 
-        <span class="n">tmpfilename</span> <span class="o">=</span> <span class="s">&quot;tmp/gpgfiles/&quot;</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;longstr&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+        <span class="n">tmpfilename</span> <span class="o">=</span> <span class="s">&quot;tmp/gpgfiles/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">gettime</span><span class="p">(</span><span class="n">format</span><span class="o">=</span><span class="s">&#39;milliseconds&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">randstr</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">gpg</span><span class="o">.</span><span class="n">decrypt_file</span><span class="p">(</span><span class="n">tmpfile</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="n">tmpfilename</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">tmpfilename</span>
 </div>

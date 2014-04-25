@@ -53,7 +53,6 @@
 
 
 <div class="viewcode-block" id="ShowMessage"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessage">[docs]</a><span class="k">class</span> <span class="nc">ShowMessage</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
-
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Show a Tavern Message.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -81,14 +80,6 @@
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
             <span class="s">&quot;UIModule-showmessage.html&quot;</span><span class="p">,</span> <span class="n">envelope</span><span class="o">=</span><span class="n">envelope</span><span class="p">,</span> <span class="n">top</span><span class="o">=</span><span class="n">top</span><span class="p">,</span><span class="n">avatarsize</span><span class="o">=</span><span class="n">avatarsize</span><span class="p">,</span><span class="n">medialink</span><span class="o">=</span><span class="n">medialink</span><span class="p">,</span><span class="n">messagerating</span><span class="o">=</span><span class="n">messagerating</span><span class="p">,</span><span class="n">note</span><span class="o">=</span><span class="n">note</span><span class="p">)</span>
 </div></div>
-<div class="viewcode-block" id="ShowGlobalmenu"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowGlobalmenu">[docs]</a><span class="k">class</span> <span class="nc">ShowGlobalmenu</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ShowGlobalmenu.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowGlobalmenu.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
-            <span class="s">&quot;UIModule-globalmenu.html&quot;</span><span class="p">)</span>
-</div></div>
 <div class="viewcode-block" id="ShowMessagelist"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowMessagelist">[docs]</a><span class="k">class</span> <span class="nc">ShowMessagelist</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Show the Message List (generally the middle pane)</span>
@@ -113,15 +104,6 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
             <span class="s">&quot;UIModule-messagelist.html&quot;</span><span class="p">,</span><span class="n">show_older</span><span class="o">=</span><span class="n">show_older</span><span class="p">,</span><span class="n">show_newer</span><span class="o">=</span><span class="n">show_newer</span><span class="p">)</span>
-</div></div>
-<div class="viewcode-block" id="ShowPrivateMessagelist"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowPrivateMessagelist">[docs]</a><span class="k">class</span> <span class="nc">ShowPrivateMessagelist</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Show the Global Menu (generally the first pane on the left)</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="ShowPrivateMessagelist.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowPrivateMessagelist.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">messages</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span>
-            <span class="s">&quot;UIModule-privatemessagelist.html&quot;</span><span class="p">,</span><span class="n">messages</span><span class="o">=</span><span class="n">messages</span><span class="p">)</span>
-
 </div></div>
 <div class="viewcode-block" id="ShowUserdetails"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.ShowUserdetails">[docs]</a><span class="k">class</span> <span class="nc">ShowUserdetails</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -150,26 +132,7 @@
 <span class="sd">    This overwrites the default tornado xsrf_form_html, with a version that includes via SSI.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="xsrf_form_html.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.xsrf_form_html.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s">&quot;&quot;&quot;&lt;input type=&quot;hidden&quot; name=&quot;_xsrf&quot; value=&quot;&lt;!--# echo var=&#39;xsrftoken&#39; default=&#39;no&#39; --&gt;&quot;/&gt;&quot;&quot;&quot;</span>
-</div></div>
-<div class="viewcode-block" id="NewMessage"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage">[docs]</a><span class="k">class</span> <span class="nc">NewMessage</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">UIModule</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Prints the form to submit a new message</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="NewMessage.render"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage.render">[docs]</a>    <span class="k">def</span> <span class="nf">render</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">template</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="n">rendered</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">render_string</span><span class="p">(</span><span class="n">template</span><span class="p">,</span><span class="o">*</span><span class="n">args</span><span class="p">,</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-</div>
-<div class="viewcode-block" id="NewMessage.javascript_files"><a class="viewcode-back" href="../../webtav.html#webtav.uimodules.NewMessage.javascript_files">[docs]</a>    <span class="k">def</span> <span class="nf">javascript_files</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Add the JS files that are specific to newmessages</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="p">[</span>
-            <span class="s">&#39;/static/scripts/epiceditor.min.js?v=&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
-            <span class="s">&#39;/static/scripts/jquery.ui.widget.min.js?v=&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
-            <span class="s">&#39;/static/scripts/jquery.iframe-transport.min.js&#39;</span> <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
-            <span class="s">&#39;/static/scripts/jquery.fileupload.min.js&#39;</span>  <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">],</span>
-            <span class="s">&#39;/static/scripts/newmessage.min.js&#39;</span>  <span class="o">+</span> <span class="n">serversettings</span><span class="o">.</span><span class="n">settings</span><span class="p">[</span><span class="s">&#39;static-revision&#39;</span><span class="p">]</span>
-        <span class="p">]</span></div></div>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;&lt;input type=&quot;hidden&quot; name=&quot;_xsrf&quot; value=&quot;&lt;!--# echo var=&#39;xsrftoken&#39; default=&#39;no&#39; --&gt;&quot;/&gt;&quot;&quot;&quot;</span></div></div>
 </pre></div>
 
           </div>

@@ -171,7 +171,7 @@ class Flasknado(MethodView):
     def set_cookie(self,name,value,*args,**kwargs):
         """Sets the given cookie name/value with the given options."""
         self.response.set_cookie(name, value,*args,**kwargs)
-    
+
     def create_signed_value(self, name, value):
         """Signs and timestamps a string so it cannot be forged.
 

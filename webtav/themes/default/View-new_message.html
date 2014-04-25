@@ -1,0 +1,15 @@
+{% extends "Layout-message.html" %}
+
+{% block formblock %}
+    <form data-persist="garlic" enctype="multipart/form-data" action="/new/message" method="post" class="messageform" id='{{handler.timestamp}}'>
+
+        {% if len(handler.topic.topics) != 1 %}
+            Topic: <input type="text" size=25 name="topic" placeholder="Try a topic like: Funny" maxlength='200' />
+        {% else %}
+            <input type="hidden" name="topic" value="{{handler.topic.sortname}}">
+        {% end %}
+
+        Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
+
+        <p>What would you like your message to say?</p>
+{% end block %}

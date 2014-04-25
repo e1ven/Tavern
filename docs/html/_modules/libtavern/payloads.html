@@ -131,8 +131,14 @@
 <span class="sd">        :return True/False: Is this a valid payload</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
+        <span class="c"># Ensure we&#39;re already in order.</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">alphabetize</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tmp</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Not in alphabetical order.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">False</span>
 
+        <span class="k">return</span> <span class="bp">True</span>
 </div>
 <div class="viewcode-block" id="BasePayload.add_to_parent"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.BasePayload.add_to_parent">[docs]</a>    <span class="k">def</span> <span class="nf">add_to_parent</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">parent</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot; Called on a child envelope, so it can store it&#39;s id in it&#39;s parent.</span>
@@ -183,7 +189,7 @@
 
         <span class="c"># If this is a reply, verify the original is also a &#39;message&#39;</span>
         <span class="k">if</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
-            <span class="n">e</span> <span class="o">=</span> <span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">)</span>
+            <span class="n">e</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">envelope</span><span class="o">.</span><span class="n">Envelope</span><span class="p">(</span><span class="n">server</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">loadmongo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;regarding&#39;</span><span class="p">]):</span>
                 <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;payload&#39;</span><span class="p">][</span><span class="s">&#39;class&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;message&#39;</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;This envelope was trying to modify something that was not a message.&quot;</span><span class="p">)</span>
@@ -194,8 +200,9 @@
 </div></div>
 <div class="viewcode-block" id="PrivateMessage"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.PrivateMessage">[docs]</a><span class="k">class</span> <span class="nc">PrivateMessage</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
 
+    <span class="nd">@property</span>
 <div class="viewcode-block" id="PrivateMessage.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.PrivateMessage.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="s">&#39;to&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
@@ -208,8 +215,9 @@
 </div></div>
 <div class="viewcode-block" id="Rating"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Rating">[docs]</a><span class="k">class</span> <span class="nc">Rating</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
 
+    <span class="nd">@property</span>
 <div class="viewcode-block" id="Rating.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.Rating.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super fails&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="s">&#39;rating&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
@@ -238,8 +246,9 @@
 </div></div>
 <div class="viewcode-block" id="UserTrust"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.UserTrust">[docs]</a><span class="k">class</span> <span class="nc">UserTrust</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
 
+    <span class="nd">@property</span>
 <div class="viewcode-block" id="UserTrust.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.UserTrust.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="s">&#39;trusted_pubkey&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;No trusted_pubkey to set trust for.&quot;</span><span class="p">)</span>
@@ -255,8 +264,10 @@
         <span class="k">return</span> <span class="bp">True</span>
 </div></div>
 <div class="viewcode-block" id="MessageRevision"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.MessageRevision">[docs]</a><span class="k">class</span> <span class="nc">MessageRevision</span><span class="p">(</span><span class="n">BasePayload</span><span class="p">):</span>
+
+    <span class="nd">@property</span>
 <div class="viewcode-block" id="MessageRevision.validates"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.MessageRevision.validates">[docs]</a>    <span class="k">def</span> <span class="nf">validates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">():</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">BasePayload</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">)</span><span class="o">.</span><span class="n">validates</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Super does not Validate&quot;</span><span class="p">)</span>
             <span class="k">return</span> <span class="bp">False</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;regarding&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">:</span>
@@ -303,7 +314,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">dict</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;edits&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span>
             <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;priority&#39;</span><span class="p">],(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;envelope&#39;</span><span class="p">][</span><span class="s">&#39;local&#39;</span><span class="p">][</span><span class="s">&#39;time_added&#39;</span><span class="p">])))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">saveMongo</span><span class="p">()</span>
-</pre></div></div></div>
+
+</div></div>
+<div class="viewcode-block" id="UnknownPayloadException"><a class="viewcode-back" href="../../libtavern.html#libtavern.payloads.UnknownPayloadException">[docs]</a><span class="k">class</span> <span class="nc">UnknownPayloadException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Raised when we can&#39;t identify the type of Payload</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+</pre></div></div>
 
           </div>
         </div>

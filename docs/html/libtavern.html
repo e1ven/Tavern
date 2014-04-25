@@ -159,7 +159,8 @@ this message.</p>
 <dl class="method">
 <dt id="libtavern.envelope.Envelope.flatten">
 <tt class="descname">flatten</tt><big>(</big><em>striplocal=False</em><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.flatten"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.flatten" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Pull in the .payload() to store in the local dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.envelope.Envelope.get_original">
@@ -202,7 +203,9 @@ this message.</p>
 <dl class="method">
 <dt id="libtavern.envelope.Envelope.registerpayload">
 <tt class="descname">registerpayload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/envelope.html#Envelope.registerpayload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.envelope.Envelope.registerpayload" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Load the appropriate payload class for this message
+Returns true if successfully registered</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="libtavern.envelope.Envelope.reloadfile">
@@ -557,9 +560,9 @@ Note - Both the original message, and any replies, are both Messages.</p>
 :param Envelope parent: The original envelope which was edited.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="libtavern.payloads.MessageRevision.validates">
-<tt class="descname">validates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#MessageRevision.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.MessageRevision.validates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">validates</tt><a class="reference internal" href="_modules/libtavern/payloads.html#MessageRevision.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.MessageRevision.validates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -568,9 +571,9 @@ Note - Both the original message, and any replies, are both Messages.</p>
 <dt id="libtavern.payloads.PrivateMessage">
 <em class="property">class </em><tt class="descclassname">libtavern.payloads.</tt><tt class="descname">PrivateMessage</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#PrivateMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.PrivateMessage" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#libtavern.payloads.BasePayload" title="libtavern.payloads.BasePayload"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.payloads.BasePayload</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="libtavern.payloads.PrivateMessage.validates">
-<tt class="descname">validates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#PrivateMessage.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.PrivateMessage.validates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">validates</tt><a class="reference internal" href="_modules/libtavern/payloads.html#PrivateMessage.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.PrivateMessage.validates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -586,20 +589,27 @@ Note - Both the original message, and any replies, are both Messages.</p>
 :param Envelope parent: The original message which we rated.</p>
 </dd></dl>
 
-<dl class="method">
+<dl class="attribute">
 <dt id="libtavern.payloads.Rating.validates">
-<tt class="descname">validates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#Rating.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.Rating.validates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">validates</tt><a class="reference internal" href="_modules/libtavern/payloads.html#Rating.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.Rating.validates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="exception">
+<dt id="libtavern.payloads.UnknownPayloadException">
+<em class="property">exception </em><tt class="descclassname">libtavern.payloads.</tt><tt class="descname">UnknownPayloadException</tt><a class="reference internal" href="_modules/libtavern/payloads.html#UnknownPayloadException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.UnknownPayloadException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.Exception</span></tt></p>
+<p>Raised when we can&#8217;t identify the type of Payload</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="libtavern.payloads.UserTrust">
 <em class="property">class </em><tt class="descclassname">libtavern.payloads.</tt><tt class="descname">UserTrust</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#UserTrust"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.UserTrust" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#libtavern.payloads.BasePayload" title="libtavern.payloads.BasePayload"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.payloads.BasePayload</span></tt></a></p>
-<dl class="method">
+<dl class="attribute">
 <dt id="libtavern.payloads.UserTrust.validates">
-<tt class="descname">validates</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/libtavern/payloads.html#UserTrust.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.UserTrust.validates" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">validates</tt><a class="reference internal" href="_modules/libtavern/payloads.html#UserTrust.validates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.payloads.UserTrust.validates" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -942,8 +952,14 @@ param str useragent: A user agent string, such as NCSA_Mosaic/2.0 (Windows 3.1)<
 <em class="property">class </em><tt class="descclassname">libtavern.user.</tt><tt class="descname">User</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/libtavern/user.html#User"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#libtavern.baseobj.Baseobj" title="libtavern.baseobj.Baseobj"><tt class="xref py py-class docutils literal"><span class="pre">libtavern.baseobj.Baseobj</span></tt></a></p>
 <dl class="exception">
+<dt id="libtavern.user.User.CantChangePassException">
+<em class="property">exception </em><tt class="descname">CantChangePassException</tt><a class="reference internal" href="_modules/libtavern/user.html#User.CantChangePassException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.CantChangePassException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
 <dt id="libtavern.user.User.UsernameNotInMongoError">
-<em class="property">exception </em><tt class="descname">UsernameNotInMongoError</tt><a class="reference internal" href="_modules/libtavern/user.html#User.UsernameNotInMongoError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.UsernameNotInMongoError" title="Permalink to this definition">¶</a></dt>
+<em class="property">exception </em><tt class="descclassname">User.</tt><tt class="descname">UsernameNotInMongoError</tt><a class="reference internal" href="_modules/libtavern/user.html#User.UsernameNotInMongoError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#libtavern.user.User.UsernameNotInMongoError" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">builtins.Exception</span></tt></p>
 </dd></dl>
 

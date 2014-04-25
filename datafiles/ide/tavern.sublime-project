@@ -2,6 +2,13 @@
     "folders":
     [
         {
+            "folder_exclude_patterns":
+            [
+                "__pycache__",
+                ".DS_Store"
+            ]
+        },
+        {
             "path": "../../libtavern",
             "name": "Core Tavern functionality"
         },
@@ -10,8 +17,9 @@
             "name": "Tavern Web Interface"
         },
         {
-            "path": "../../docs",
-            "name": "Documentation"
+            "path": "../../docs/documentation_sources",
+            "name": "Documentation",
+            "folder_exclude_patterns": ["_build"]
         },
         {
             "path": "../../utils",
@@ -47,13 +55,24 @@
     "settings":
     {
         "tab_size": 4,
+        "translate_tabs_to_spaces": true,
         "python_interpreter_path": "tmp/env/bin/python",
+        "python_interpreter":"tmp/env/bin/python",
         "python_package_paths": [
             "libs",
             "libtavern",
             "webtav",
             "utils"
-            ]
+            ],
+        "trim_trailing_white_space_on_save": true,
+        "ensure_newline_at_eof_on_save": true,
+        "rulers": [ 80, 120, 160 ],
+        "pylinter":
+        {
+            "use_icons": true,
+            "run_on_save": true,
+            "message_stay": true
+        }
     },
     "build_systems":
     [

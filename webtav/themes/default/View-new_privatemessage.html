@@ -1,0 +1,15 @@
+{% extends "Layout-message.html" %}
+
+{% block formblock %}
+    <form data-persist="garlic" enctype="multipart/form-data" action="/new/message" method="post" class="messageform" id='{{handler.timestamp}}'>
+        {% if recipient is not None %}
+            <input type="hidden" name="recipient" value = "{{recipient}}"/>
+        {% else %}
+            To:
+            <input type="text" name="recipient"><br>
+            Who is this message being sent to?
+        {% end if %}
+
+        Subject: <input type="text" size=85 name="subject" placeholder="Something about your specific post, such as: My Dad's favorite joke" maxlength='200'/><br/>
+        <p>What would you like your private message to say?</p>
+{% end %}

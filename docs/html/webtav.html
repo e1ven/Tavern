@@ -208,24 +208,6 @@ The default is 302 (temporary).</p>
 <div class="section" id="module-webtav.uimodules">
 <span id="webtav-uimodules-module"></span><h2>webtav.uimodules module<a class="headerlink" href="#module-webtav.uimodules" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="webtav.uimodules.NewMessage">
-<em class="property">class </em><tt class="descclassname">webtav.uimodules.</tt><tt class="descname">NewMessage</tt><big>(</big><em>handler</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#NewMessage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.NewMessage" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.UIModule</span></tt></p>
-<p>Prints the form to submit a new message</p>
-<dl class="method">
-<dt id="webtav.uimodules.NewMessage.javascript_files">
-<tt class="descname">javascript_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#NewMessage.javascript_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.NewMessage.javascript_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add the JS files that are specific to newmessages</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="webtav.uimodules.NewMessage.render">
-<tt class="descname">render</tt><big>(</big><em>template</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#NewMessage.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.NewMessage.render" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="webtav.uimodules.ShowAttachments">
 <em class="property">class </em><tt class="descclassname">webtav.uimodules.</tt><tt class="descname">ShowAttachments</tt><big>(</big><em>handler</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowAttachments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowAttachments" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.UIModule</span></tt></p>
@@ -233,18 +215,6 @@ The default is 302 (temporary).</p>
 <dl class="method">
 <dt id="webtav.uimodules.ShowAttachments.render">
 <tt class="descname">render</tt><big>(</big><em>envelope</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowAttachments.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowAttachments.render" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="webtav.uimodules.ShowGlobalmenu">
-<em class="property">class </em><tt class="descclassname">webtav.uimodules.</tt><tt class="descname">ShowGlobalmenu</tt><big>(</big><em>handler</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowGlobalmenu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowGlobalmenu" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.UIModule</span></tt></p>
-<p>Show the Global Menu (generally the first pane on the left)</p>
-<dl class="method">
-<dt id="webtav.uimodules.ShowGlobalmenu.render">
-<tt class="descname">render</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowGlobalmenu.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowGlobalmenu.render" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -269,18 +239,6 @@ The default is 302 (temporary).</p>
 <dl class="method">
 <dt id="webtav.uimodules.ShowMessagelist.render">
 <tt class="descname">render</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowMessagelist.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowMessagelist.render" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="webtav.uimodules.ShowPrivateMessagelist">
-<em class="property">class </em><tt class="descclassname">webtav.uimodules.</tt><tt class="descname">ShowPrivateMessagelist</tt><big>(</big><em>handler</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowPrivateMessagelist"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowPrivateMessagelist" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.UIModule</span></tt></p>
-<p>Show the Global Menu (generally the first pane on the left)</p>
-<dl class="method">
-<dt id="webtav.uimodules.ShowPrivateMessagelist.render">
-<tt class="descname">render</tt><big>(</big><em>messages</em><big>)</big><a class="reference internal" href="_modules/webtav/uimodules.html#ShowPrivateMessagelist.render"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.uimodules.ShowPrivateMessagelist.render" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -587,11 +545,9 @@ Checks a username against mongo, and sees if their password unlocks the key.</p>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.MessageHandler.get">
-<tt class="descname">get</tt><big>(</big><em>topic</em>, <em>short_sub</em>, <em>messageid</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>messageid</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Displays a given message.
 Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons.
-:param topic: (not used) - The topic that the message is in.
-:param short_sub: (not used) - The Short version of the message&#8217;s subject.
 :param messageid: The ID of the message</p>
 </dd></dl>
 
@@ -603,7 +559,7 @@ Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
 <dl class="method">
 <dt id="webtav.webfront.MessageHistoryHandler.get">
-<tt class="descname">get</tt><big>(</big><em>messageid</em>, <em>topic=None</em>, <em>short_name=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHistoryHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHistoryHandler.get" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get</tt><big>(</big><em>messageid</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#MessageHistoryHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.MessageHistoryHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Display the various edits to a message.</p>
 </dd></dl>
 
@@ -619,9 +575,16 @@ Parameters Topic and Short_sub are ignored - They are in the URL for SEO reasons
 <tt class="descname">get</tt><big>(</big><em>topic=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.NewReplyHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">NewReplyHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewReplyHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewReplyHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseTornado" title="webtav.webbase.BaseTornado"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseTornado</span></tt></a></p>
+<p>Creates a new message in reply to a message we already have.</p>
 <dl class="method">
-<dt id="webtav.webfront.NewMessageHandler.options">
-<tt class="descname">options</tt><big>(</big><em>flag=None</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewMessageHandler.options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewMessageHandler.options" title="Permalink to this definition">¶</a></dt>
+<dt id="webtav.webfront.NewReplyHandler.get">
+<tt class="descname">get</tt><big>(</big><em>regarding</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#NewReplyHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.NewReplyHandler.get" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -750,6 +713,7 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dt id="webtav.webfront.UploadMessageHandler">
 <em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadMessageHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#webtav.webbase.BaseFlask" title="webtav.webbase.BaseFlask"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webbase.BaseFlask</span></tt></a></p>
+<p>Receive a message POSTed to the server.</p>
 <dl class="attribute">
 <dt id="webtav.webfront.UploadMessageHandler.methods">
 <tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.methods" title="Permalink to this definition">¶</a></dt>
@@ -764,7 +728,7 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dl class="method">
 <dt id="webtav.webfront.UploadMessageHandler.receive_files">
 <tt class="descname">receive_files</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageHandler.receive_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageHandler.receive_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Receive files, save them out.</p>
+<dd><p>Receive and store files.</p>
 </dd></dl>
 
 <dl class="method">
@@ -773,6 +737,23 @@ Since each sitemap.xml file can only contain 50K urls, we need to split these.</
 <dd><p>Sign the message with the Author&#8217;s info, and upload to the server.
 :return: ID of insert (if successful)</p>
 </dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webtav.webfront.UploadMessageReplyHandler">
+<em class="property">class </em><tt class="descclassname">webtav.webfront.</tt><tt class="descname">UploadMessageReplyHandler</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageReplyHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageReplyHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webtav.webfront.UploadMessageHandler" title="webtav.webfront.UploadMessageHandler"><tt class="xref py py-class docutils literal"><span class="pre">webtav.webfront.UploadMessageHandler</span></tt></a></p>
+<p>Upload a reply to an earlier message.</p>
+<dl class="attribute">
+<dt id="webtav.webfront.UploadMessageReplyHandler.methods">
+<tt class="descname">methods</tt><em class="property"> = ['POST']</em><a class="headerlink" href="#webtav.webfront.UploadMessageReplyHandler.methods" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webtav.webfront.UploadMessageReplyHandler.post">
+<tt class="descname">post</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webtav/webfront.html#UploadMessageReplyHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webtav.webfront.UploadMessageReplyHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </dd></dl>
 

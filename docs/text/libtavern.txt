@@ -89,6 +89,8 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
 
    flatten(striplocal=False)
 
+      Pull in the .payload() to store in the local dict
+
    get_original()
 
       Returns the original message, without any edits
@@ -111,6 +113,9 @@ class class libtavern.envelope.Envelope(*args, **kwargs)
       images.
 
    registerpayload()
+
+      Load the appropriate payload class for this message Returns true
+      if successfully registered
 
    reloadfile()
 
@@ -377,13 +382,13 @@ class class libtavern.payloads.MessageRevision(*args, **kwargs)
       let us note that in the original. :param Envelope parent: The
       original envelope which was edited.
 
-   validates()
+   validates
 
 class class libtavern.payloads.PrivateMessage(*args, **kwargs)
 
    Bases: "libtavern.payloads.BasePayload"
 
-   validates()
+   validates
 
 class class libtavern.payloads.Rating(*args, **kwargs)
 
@@ -395,13 +400,19 @@ class class libtavern.payloads.Rating(*args, **kwargs)
       rating in the original message. :param Envelope parent: The
       original message which we rated.
 
-   validates()
+   validates
+
+exception exception libtavern.payloads.UnknownPayloadException
+
+   Bases: "builtins.Exception"
+
+   Raised when we can't identify the type of Payload
 
 class class libtavern.payloads.UserTrust(*args, **kwargs)
 
    Bases: "libtavern.payloads.BasePayload"
 
-   validates()
+   validates
 
 
 libtavern.server module
@@ -619,7 +630,11 @@ class class libtavern.user.User(*args, **kwargs)
 
    Bases: "libtavern.baseobj.Baseobj"
 
-   exception exception UsernameNotInMongoError
+   exception exception CantChangePassException
+
+      Bases: "builtins.Exception"
+
+   exception exception User.UsernameNotInMongoError
 
       Bases: "builtins.Exception"
 

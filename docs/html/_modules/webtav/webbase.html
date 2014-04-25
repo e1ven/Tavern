@@ -153,7 +153,7 @@
 <span class="sd">        http://www.djangoproject.com/weblog/2011/feb/08/security/</span>
 <span class="sd">        http://weblog.rubyonrails.org/2011/2/8/csrf-protection-bypass-in-ruby-on-rails</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">token</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_body_argument</span><span class="p">(</span><span class="s">&quot;_xsrf&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span>
                  <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Xsrftoken&quot;</span><span class="p">)</span> <span class="ow">or</span>
                  <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;X-Csrftoken&quot;</span><span class="p">))</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span><span class="p">:</span>
@@ -256,7 +256,6 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">canon</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">messages</span> <span class="o">=</span> <span class="bp">None</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">newmessage</span> <span class="o">=</span> <span class="s">&quot;/newmessage&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">topic</span> <span class="o">=</span> <span class="n">libtavern</span><span class="o">.</span><span class="n">topic</span><span class="o">.</span><span class="n">Topic</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">displayenvelope</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">scripts</span> <span class="o">=</span> <span class="p">[]</span>
@@ -463,9 +462,8 @@
         <span class="k">def</span> <span class="nf">decorated</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
             <span class="c"># Pull in the `self` argument, so we can access members</span>
             <span class="n">handler</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="n">handler</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;This function requires a unique acct&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">has_unique_key</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">passkey</span><span class="p">:</span>
-                <span class="n">handler</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;The user now has one ;)&quot;</span><span class="p">)</span>
+                <span class="n">handler</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;This method requires a unique acct; Generating key for user&quot;</span><span class="p">)</span>
                 <span class="n">handler</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">ensure_keys</span><span class="p">(</span><span class="n">AllowGuestKey</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
                 <span class="n">handler</span><span class="o">.</span><span class="n">save_session</span><span class="p">()</span>
             <span class="k">return</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>

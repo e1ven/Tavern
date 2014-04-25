@@ -1,11 +1,11 @@
-{% include 'header.html' %}
+{% include 'Component-header.html' %}
 
 <table id="wrappertable" class='wrappertable' cellpadding="0" cellspacing="0" valign="top" role="presentation">
     <tr>
         <td id="column1" valign="top" BACKGROUND="/static/images/texture.png" width="180px">
             <div id="scrollablediv1" class="fullscroller">
                 {% block column1 %}
-                    {% module ShowGlobalmenu() %}
+                    {% include 'Component-globalmenu.html' %}
                 {% end %}
             </div>
         </td>
@@ -19,4 +19,4 @@
     </tr>
 </table>
 
-{% include 'footer.html' %}
+{% include 'Component-footer.html' %}

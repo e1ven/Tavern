@@ -22,7 +22,7 @@
     <br><p>
     Display the name of the client used to post a message: <input type="checkbox" name="display_useragent" {% if handler.user.display_useragent %}checked{% end %}>
 
-    {# 
+    {#
     The following block of code shows the available themes, if there are any, and lets you choose one.
     The business with the popping is to pull the current theme, and put it at the top of the list, so it's the first-displayed choice.
     #}
@@ -34,7 +34,7 @@
         {% set themelist.insert(0,current) %}
     {% end %}
     <br>
-    Which theme should Tavern use: 
+    Which theme should Tavern use:
     <select name='theme'>
         {% for i in themelist %}
         <option value="{{i}}">{{i}}</option>

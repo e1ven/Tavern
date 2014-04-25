@@ -1,15 +1,15 @@
 {% extends 'Layout-dualpane.html' %}
 {% block column2 %}
 
-	<h1>All Topics</h1>
+    <h1>All Topics</h1>
 
-	<p>Here is a list of topics.<Br>
-			If you find ones you like, you can save them to your favorites on the left.
-	</p><br><Br><p>
+    <p>Here is a list of topics.<Br>
+            If you find ones you like, you can save them to your favorites on the left.
+    </p><br><Br><p>
 
-	<ul>
-		{% for topic in topics %}
-		    <li><b><a href="{{url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
+    <ul>
+        {% for topic in topics %}
+            <li><b><a href="{{url_for(topic=topic)}}" <bdi>{{topic.name}} - {{topic.count()}} posts</bdi></a></b>  -
                 {% if handler.user.follows_topic(topic) %}
                     <form class = "followtopic" action="/changesetting/unfollowtopic" method="post">
                         {% module xsrf_form_html() %}
@@ -23,9 +23,9 @@
                         <input type="submit" value='Save this topic' class="textbutton topicpref">
                     </form>
                 {% end %}
-		    </li>
-		{% end %}
-	</ul>
+            </li>
+        {% end %}
+    </ul>
     {% if page > 1 %}
         <a href="/showtopics/{{ page - 1 }}">Previous Topics</a>
     {% end if %}

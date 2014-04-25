@@ -3,7 +3,6 @@ import libtavern.envelope
 
 
 class ShowMessage(tornado.web.UIModule):
-
     """
     Show a Tavern Message.
     """
@@ -31,14 +30,6 @@ class ShowMessage(tornado.web.UIModule):
         return self.render_string(
             "UIModule-showmessage.html", envelope=envelope, top=top,avatarsize=avatarsize,medialink=medialink,messagerating=messagerating,note=note)
 
-class ShowGlobalmenu(tornado.web.UIModule):
-    """
-    Show the Global Menu (generally the first pane on the left)
-    """
-    def render(self):
-        return self.render_string(
-            "UIModule-globalmenu.html")
-
 class ShowMessagelist(tornado.web.UIModule):
     """
     Show the Message List (generally the middle pane)
@@ -63,15 +54,6 @@ class ShowMessagelist(tornado.web.UIModule):
 
         return self.render_string(
             "UIModule-messagelist.html",show_older=show_older,show_newer=show_newer)
-
-class ShowPrivateMessagelist(tornado.web.UIModule):
-    """
-    Show the Global Menu (generally the first pane on the left)
-    """
-    def render(self,messages):
-        return self.render_string(
-            "UIModule-privatemessagelist.html",messages=messages)
-
 
 class ShowUserdetails(tornado.web.UIModule):
     """
@@ -101,22 +83,3 @@ class xsrf_form_html(tornado.web.UIModule):
     """
     def render(self):
         return """<input type="hidden" name="_xsrf" value="<!--# echo var='xsrftoken' default='no' -->"/>"""
-
-class NewMessage(tornado.web.UIModule):
-    """
-    Prints the form to submit a new message
-    """
-    def render(self,template,*args,**kwargs):
-        rendered = self.render_string(template,*args,**kwargs)
-
-    def javascript_files(self):
-        """
-        Add the JS files that are specific to newmessages
-        """
-        return [
-            '/static/scripts/epiceditor.min.js?v=' + serversettings.settings['static-revision'],
-            '/static/scripts/jquery.ui.widget.min.js?v=' + serversettings.settings['static-revision'],
-            '/static/scripts/jquery.iframe-transport.min.js' + serversettings.settings['static-revision'],
-            '/static/scripts/jquery.fileupload.min.js'  + serversettings.settings['static-revision'],
-            '/static/scripts/newmessage.min.js'  + serversettings.settings['static-revision']
-        ]
