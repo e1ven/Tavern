@@ -374,8 +374,9 @@ class ServerSettings(libtavern.utils.instancer):
             self.settings['KeyGenerator'] = {}
         if not 'num_pregens' in self.settings['KeyGenerator']:
             self.settings['KeyGenerator']['num_pregens'] = 5
+
         if not 'workers' in self.settings['KeyGenerator']:
-            self.settings['KeyGenerator']['workers'] = 1
+            self.settings['KeyGenerator']['workers'] = 2
 
         if not 'keys' in self.settings:
             self.settings['keys'] = {}
@@ -405,22 +406,22 @@ class ServerSettings(libtavern.utils.instancer):
 
         if not 'guestuser' in self.settings:
             self.settings['guestuser'] = {}
-        if not 'pubkey' in self.settings['guestuser']:
-            self.settings['guestuser']['pubkey'] = None
+        if not 'public_key' in self.settings['guestuser']:
+            self.settings['guestuser']['public_key'] = None
         if not 'passkey' in self.settings['guestuser']:
             self.settings['guestuser']['passkey'] = None
 
         if not 'defaultuser' in self.settings:
             self.settings['defaultuser'] = {}
-        if not 'pubkey' in self.settings['defaultuser']:
-            self.settings['defaultuser']['pubkey'] = None
+        if not 'public_key' in self.settings['defaultuser']:
+            self.settings['defaultuser']['public_key'] = None
         if not 'passkey' in self.settings['defaultuser']:
             self.settings['defaultuser']['passkey'] = None
 
         if not 'serveruser' in self.settings:
             self.settings['serveruser'] = {}
-        if not 'pubkey' in self.settings['serveruser']:
-            self.settings['serveruser']['pubkey'] = None
+        if not 'public_key' in self.settings['serveruser']:
+            self.settings['serveruser']['public_key'] = None
         if not 'passkey' in self.settings['serveruser']:
             self.settings['serveruser']['passkey'] = None
 

@@ -7,8 +7,8 @@
                  {% if not top %}
                     <div class="main rating_{{messagerating}}" rating={{messagerating}}>
                  {% end %}
-                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
-                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['pubkey'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
+                    <a class="details" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(user=envelope.dict['envelope']['local']['author']['public_key'])}}" rel="author">
+                        <img class="clear avatar lazyload" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" width="{{avatarsize}}" height="{{avatarsize}}" alt="User Details" data-src="{{handler.server.external.getavatar(myid=envelope.dict['envelope']['local']['author']['public_key'],datauri=handler.datauri,width=avatarsize,height=avatarsize)}}" />
                     </a>
                     {% if top %}
                     <abbr title="{{envelope.dict['envelope']['payload']['subject']}}">
@@ -127,7 +127,7 @@
                             <a class="buffer reply" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(envelope=envelope)}}/reply">
                                 Reply
                             </a>
-                            {% if handler.user.Keys['master'].pubkey == envelope.dict['envelope']['local']['author']['pubkey'] %}
+                            {% if handler.user.Keys['master'].public == envelope.dict['envelope']['local']['author']['public_key'] %}
                                 <a class="buffer reply iconLabelColorDark" message="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="/edit/{{envelope.dict['envelope']['local']['payload_sha512']}}">
                                     Edit
                                 </a>

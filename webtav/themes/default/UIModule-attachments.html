@@ -64,7 +64,7 @@
                 <input type="submit" value='Always display external content' class="textbutton"> <br>
             </form>
             <br>
-            <p>You can always change this setting in <a href="{{url_for(Keys['master'].pubkey)}}">your user preferences</a></p>
+            <p>You can always change this setting in <a href="{{url_for(user=Keys['master'].public)}}">your user preferences</a></p>
         </div>
     {% elif handler.user.allowembed is False %}
         {# Pass. This is intentionally blank for users who have opted out of embeds #}

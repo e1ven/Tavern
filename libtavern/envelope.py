@@ -9,7 +9,7 @@ import magic
 from bs4 import BeautifulSoup
 
 import libtavern.baseobj
-import libtavern.key
+import libtavern.crypto
 import libtavern.utils
 import libtavern.topic
 import libtavern.payloads
@@ -78,36 +78,17 @@ class Envelope(libtavern.baseobj.Baseobj):
                 return False
 
             # Retrieve the key, ensure it's valid.
-            stampkey = libtavern.key.Key(pub=stamp['pubkey'])
-            if stampkey is None:
-                self.server.logger.debug("Key is invalid.")
+            try:
+                stampkey = libtavern.crypto.Keypair(usage=libtavern.crypto.Usage.signing,public=stampkey)
+            except:
                 return False
 
-            if stampkey.keydetails['algorithm'] not in ['ElGamal', 'RSA', 'DSA']:
-                self.server.logger.debug(
-                    "Key does not use an acceptable algorithm.")
+            if len(stampkey.public) != 43:
+                self.server.logger.debug("Key length isn't correct.")
                 return False
 
-            if stampkey.keydetails['algorithm'] in ['ElGamal', 'RSA', 'DSA']:
-                if int(stampkey.keydetails['length']) < 3072:
-                    self.server.logger.debug("Key is too small.")
-                    return False
-
-            elif stampkey.keydetails['algorithm'] == 'ECDSA':
-                if int(stampkey.keydetails['length']) < 233:
-                    self.server.logger.debug("Key is too small.")
-                    return False
-
-            for uid in stampkey.keydetails['uids']:
-                if uid not in [None, 'TAVERN', '']:
-                    self.server.logger.debug(
-                        "Key UID is potentially leaking information.")
-                    return False
-
-            # Ensure it matches the signature.
-            if not stampkey.verify_string(stringtoverify=self.payload.text(), signature=stamp['signature']):
-                self.server.logger.debug("Signature Failed to verify for stamp :: " +
-                                         stamp['class'] + " :: " + stamp['pubkey'])
+            if not libtavern.crypto.verify_signature(text=self.payload.text(),signature=stamp['signature'],signing_key=stamp['public_key']):
+                self.server.logger.debug("Signature Failed to verify for stamp :: " + stamp['class'] + " :: " + stamp['public_key'])
                 return False
 
             # If they specify a proof-of-work in the stamp, make sure it's
@@ -225,7 +206,7 @@ class Envelope(libtavern.baseobj.Baseobj):
 
         if 'author' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['author_wordhash'] = self.server.wordlist.wordhash(
-                self.dict['envelope']['local']['author']['pubkey'])
+                self.dict['envelope']['local']['author']['public_key'])
         if not 'priority' in self.dict['envelope']['local']:
             self.dict['envelope']['local']['priority'] = 0
 
@@ -266,16 +247,16 @@ class Envelope(libtavern.baseobj.Baseobj):
             {"envelope.local.ancestors": self.payload.hash()})
         return results
 
-    def addStamp(self, stampclass, keys, passkey=None, **kwargs):
+    def add_stamp(self, stampclass, keys, passkey=None, **kwargs):
         """Adds a stamp of type `class` to the current envelope."""
 
-        signature = keys.signstring(self.payload.text(),passkey=passkey)
+        signature = keys.sign(self.payload.text())
 
         # Generate the full stamp obj we will insert.
         fullstamp = {}
         fullstamp['class'] = stampclass
         fullstamp['keyformat'] = keys.keydetails['format']
-        fullstamp['pubkey'] = keys.pubkey
+        fullstamp['public_key'] = keys.public
         fullstamp['signature'] = signature
         fullstamp['time_added'] = libtavern.utils.gettime(format='timestamp')
 

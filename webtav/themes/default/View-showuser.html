@@ -4,23 +4,23 @@
 
     <h1> Details about <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} </h1>
 
-    <img class="bigavatar" id="avatar_{{thatguy.Keys['master'].pubkey}}" class="portrait" width="200px" height="200px"
-        alt="User Portrait" src="{{handler.server.external.getavatar(myid=thatguy.Keys['master'].pubkey,datauri=False,height=200,width=200)}}" /><br>
+    <img class="bigavatar" id="avatar_{{thatguy.Keys['master'].public}}" class="portrait" width="200px" height="200px"
+        alt="User Portrait" src="{{handler.server.external.getavatar(myid=thatguy.Keys['master'].public,datauri=False,height=200,width=200)}}" /><br>
     {# If it's me, include my settings page #}
-    {% if thatguy.Keys['master'].pubkey == handler.user.Keys['master'].pubkey %}
+    {% if thatguy.Keys['master'].public == handler.user.Keys['master'].public %}
         {% include 'mysettings.html' %}
     {% else %}
         {# See if he's posted a communication Key #}
-        {# for post in handler.server.get_all_user_posts(thatguy.Keys['master'].pubkey) #}
+        {# for post in handler.server.get_all_user_posts(thatguy.Keys['master'].public) #}
         {% if thatguy.Keys['posted'] is not None %}
             <p><a href="/pm/{{thatguy.Keys['posted'][0]}}">Send <b>{{thatguy.friendlyname}}@{{thatguy.author_wordhash}} a private message</a></p>
         {% end %}
     {% end %}
 
 
-    {% set trust = handler.user.gatherTrust(askingabout=thatguy.Keys['master'].pubkey) %}
+    {% set trust = handler.user.gatherTrust(askingabout=thatguy.Keys['master'].public) %}
         You <abbr title='{{trust}}'>{{handler.user.translateTrustToWords(trust)}}</abbr> this user.<br>
-        {% set note = handler.user.get_note(thatguy.Keys['master'].pubkey) %}
+        {% set note = handler.user.get_note(thatguy.Keys['master'].public) %}
         {% if note is not None %}
             You set the following note about this user:<Br>
             <div class="note"><i>{{note}}</i></div>
@@ -30,7 +30,7 @@
             Set a note about this user:<Br>
             <form action="/usernote" method="post" class="usernote">
                  {% module xsrf_form_html() %}
-                <input type="hidden" name="pubkey" value="{{thatguy.Keys['master'].pubkey}}">
+                <input type="hidden" name="public" value="{{thatguy.Keys['master'].public}}">
                 <input class="usernote" type="text" value="" name="note" {% if note is None %} placeholder="Add a note about this user" {% else %} placeholder="{{note}}" {% end %} >
             </form>
 

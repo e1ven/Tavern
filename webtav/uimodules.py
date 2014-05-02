@@ -9,7 +9,7 @@ class ShowMessage(tornado.web.UIModule):
     def render(self,envelope, top):
 
         messagerating = self.handler.user.getRatings(postInQuestion=envelope.dict['envelope']['local']['payload_sha512'])
-        note = self.handler.user.get_note(noteabout=envelope.dict['envelope']['local']['author']['pubkey'])
+        note = self.handler.user.get_note(noteabout=envelope.dict['envelope']['local']['author']['public_key'])
         if envelope.dict['envelope']['local'].get('medialink',None):
             medialink = self.handler.server.serversettings.settings['webtav']['downloads_url'] + envelope.dict['envelope']['local']['medialink']
         else:
@@ -62,8 +62,8 @@ class ShowUserdetails(tornado.web.UIModule):
     def render(self,envelope,note=None):
 
         # Get the details on the guy we're looking up.
-        trust = self.handler.user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['pubkey'])
-        note = self.handler.user.get_note(envelope.dict['envelope']['local']['author']['pubkey'])
+        trust = self.handler.user.gatherTrust(askingabout=envelope.dict['envelope']['local']['author']['public_key'])
+        note = self.handler.user.get_note(envelope.dict['envelope']['local']['author']['public_key'])
 
         return self.render_string(
             "UIModule-userdetails.html",envelope=envelope,note=note,trust=trust)

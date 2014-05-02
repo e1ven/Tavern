@@ -19,7 +19,7 @@ class ModList(object):
                             if ( (mtime + 15724800) > timestamp )
                                 {
                                     var topic = this.envelope.payload.topic;
-                                    var moderator = this.envelope.payload.trusted_pubkey;
+                                    var moderator = this.envelope.payload.trusted_public_key;
                                     var trust = this.envelope.payload.trust;
                                     emit({topic:topic,moderator:moderator},{trust:trust,count:1});
                                 }

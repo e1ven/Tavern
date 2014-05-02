@@ -1,48 +1,49 @@
 import multiprocessing
-from multiprocessing.managers import BaseManager
-from multiprocessing import Queue
-
-import platform
-from time import sleep
-
-import json
-import signal
-import pdb
-import os
-import time
 import libtavern.baseobj
-import libtavern.lockedkey
+import libtavern.crypto
 
 class KeyGenerator(libtavern.baseobj.Baseobj):
-
     """
-    Pre-generates GPG keys.
+    The KeyGenerator spawns several processes to pre-generate keys.
+    They are then stored in the server.
     """
 
     def __init2__(self):
-        """Initialize our main module, and create threads."""
-        # Create a hopper for all the emails to reside in
+        """
+        Create the master Keygens, then create threads.
+        """
         self.procs = []
         self.server.logger.debug("Init KeyGen")
 
     def start(self):
-        """Start up all subprocs."""
-        count = 0
-
+        """
+        Start up each of the processes.
+        """
         self.stop()
         self.procs = []
-        for proc in range(0, self.server.serversettings.settings['KeyGenerator']['workers']):
-            newproc = multiprocessing.Process(target=self.GenerateAsNeeded, args=())
-            self.procs.append(newproc)
-            print(" Created KeyGenerator - " + str(proc))
 
+        if self.server.serversettings.settings['KeyGenerator']['workers'] < 2:
+            raise Exception("Not enough workers. Keys will not be created. Nothing will work right.")
+        # Create each of our processes.
+        # Dedicate 1/2 of them to signing, 1/2 to encryption
+        for proc in range(0, self.server.serversettings.settings['KeyGenerator']['workers']):
+            if proc % 2:
+                newproc = multiprocessing.Process(target=self.run_forever, args=[libtavern.crypto.Usage.signing])
+            else:
+                newproc = multiprocessing.Process(target=self.run_forever, args=[libtavern.crypto.Usage.encryption])
+            self.procs.append(newproc)
+            self.server.logger.debug(" Created KeyGenerator - " + str(proc))
+
+        count = 0
         for proc in self.procs:
             proc.start()
-            print(" Started KeyGenerator" + str(count))
+            print("Started KeyGenerator" + str(count))
             count += 1
 
     def stop(self):
-        """Terminate all subprocs."""
+        """
+        Terminate all subprocesses.
+        """
         count = 0
         self.server.logger.info("Stopping KeyGenerator")
         for proc in self.procs:
@@ -51,21 +52,20 @@ class KeyGenerator(libtavern.baseobj.Baseobj):
             count += 1
         self.server.logger.info("All KeyGenerator threads ceased.")
 
-    def CreateUnusedLK(self):
+    def create_unused_lockedkey(self,usage):
         """Create a LockedKey with a random password."""
-        lk = libtavern.lockedkey.LockedKey(server=self.server)
-        password = lk.generate(random=True)
+        lk = libtavern.crypto.LockedKey(usage=usage)
+        passkey = lk.generate()
         unusedkey = lk.to_dict()
-        unusedkey['passkey'] = lk.passkey
+        unusedkey['passkey'] = passkey
         return unusedkey
 
-    def GenerateAsNeeded(self):
-        """Watch to see if the queue gets low, and then add users."""
-
+    def run_forever(self,usage):
+        """
+        Generate keys everytime a queue gets low. Forever.
+        :param usage: The type of key to generate.
+        """
         while True:
-
-            # Create a LK, and push it up.
-            # If the queue is full, we'll block, so we just wait.
-            unusedkey = self.CreateUnusedLK()
-            self.server.unusedkeycache.put(unusedkey, block=True)
-            # print(self.server.unusedkeycache.qsize())
+            # Everytime the queue is not full, create a LockedKey, and add it.
+            unusedkey = self.create_unused_lockedkey(usage)
+            self.server.unusedkeys[usage].put(unusedkey, block=True)

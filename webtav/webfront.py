@@ -10,7 +10,7 @@ from robohash import Robohash
 import libtavern.server
 import libtavern.envelope
 import libtavern.utils
-import libtavern.key
+import libtavern.crypto
 import libtavern.topic
 import libtavern.user
 
@@ -379,12 +379,12 @@ class UserHandler(webbase.BaseTornado):
 
     If this is your account, also shows an UI to change settings.
     """
-    def get(self,pubkey):
+    def get(self,public_key):
 
-        # Generate a new user, using the pubkey we just received.
+        # Generate a new user, using the public key we just received.
         # We are careful not to retrieve anything secret.
         u = libtavern.user.User()
-        u.load_publicinfo_by_pubkey(pubkey)
+        u.load_publicinfo_by_publickey(public_key)
 
         self.write(self.render_string(
             'View-showuser.html', thatguy=u))
@@ -907,7 +907,7 @@ class UploadMessageHandler(webbase.BaseFlask):
 
         # Add a Author section, with info on how to contact the author.
         envelope.payload.dict['author'] = {}
-        envelope.payload.dict['author']['replyto'] = self.user.new_posted_key().pubkey
+        envelope.payload.dict['author']['replyto'] = self.user.new_posted_key().public
         envelope.payload.dict['author']['friendlyname'] = self.user.friendlyname
 
 
@@ -915,11 +915,11 @@ class UploadMessageHandler(webbase.BaseFlask):
         envelope.flatten()
 
         # Add a Stamp, which signs the message with the Author's key.
-        envelope.addStamp(stampclass='author',friendlyname=self.user.friendlyname,keys=self.user.Keys['master'],passkey=self.user.passkey)
+        envelope.add_stamp(stampclass='author',friendlyname=self.user.friendlyname,keys=self.user.Keys['master'],passkey=self.user.passkey)
 
         # Opt-in way to debug/explore network.
         if self.server.serversettings.settings['mark-seen']:
-                envelope.addStamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
+                envelope.add_stamp(stampclass='origin',keys=server.ServerKeys,hostname=server.serversettings.settings['hostname'])
 
         # Send to the server
         if self.server.receive_envelope(env=envelope):
@@ -1087,7 +1087,7 @@ class UploadPrivateMessageHandler(UploadMessageHandler):
         single_use_key = self.user.get_pmkey()
         single_use_key.unlock(self.user.passkey)
         e.payload.dict['author'] = {}
-        e.payload.dict['author']['replyto'] = single_use_key.pubkey
+        e.payload.dict['author']['replyto'] = single_use_key.public
         e.payload.dict['author']['friendlyname'] = self.user.UserSettings['friendlyname']
 
         # We'll use our Envelope as a wrapper, and create a whole second message inside of it.
@@ -1106,11 +1106,11 @@ class UploadPrivateMessageHandler(UploadMessageHandler):
                 enc.payload.dict['attachments'].append(file.sha)
 
         # Sign the inner-message
-        enc.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        enc.add_stamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
 
         # Encrypt the inner envelope, store in outer env.
         e.payload.dict['encrypted'] = single_use_key.encrypt(encryptstring=enc.text(),encrypt_to=e.payload.dict['to'])
-        e.addStamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
+        e.add_stamp(stampclass='author',friendlyname=self.user.UserSettings['friendlyname'],keys=self.user.Keys['master'],passkey=self.user.passkey)
         self.server.receive_envelope(env=e)
         self.redirect("/pms")
 

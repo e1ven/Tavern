@@ -66,9 +66,7 @@ class Simulation():
             node.server.start()
 
             print("We have node - " + str(node.servernum))
-            SHA512 = hashlib.sha512()
-            SHA512.update(node.server.ServerKeys.pubkey.encode('utf-8'))
-            print("Our keyhash is - " + SHA512.hexdigest())
+            print("Our key is - " + node.server.ServerKeys.public)
 
             for count in range(0,messages_per_server):
                 e = Envelope(srv=node.server)
@@ -87,11 +85,11 @@ class Simulation():
                 user = User(AllowGuestKey=False)
 
                 e.payload.dict['author'] = OrderedDict()
-                e.payload.dict['author']['replyto'] = user.new_posted_key().pubkey
+                e.payload.dict['author']['replyto'] = user.new_posted_key().public
 
                 e.payload.dict['author']['friendlyname'] = user.UserSettings['friendlyname']
 
-                e.addStamp(stampclass='author',friendlyname=user.UserSettings['friendlyname'],keys=user.Keys['master'],passkey=user.passkey)
+                e.add_stamp(stampclass='author',friendlyname=user.UserSettings['friendlyname'],keys=user.Keys['master'],passkey=user.passkey)
 
                 msgid = node.server.receive_envelope(env=e)
                 print("Sent " + msgid + "to server- " + str(node.servernum))

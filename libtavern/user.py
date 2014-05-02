@@ -1,12 +1,10 @@
 import json
 from collections import OrderedDict
-import hashlib
 import math
 import libtavern.baseobj
-import libtavern.lockedkey
 import libtavern.envelope
 import libtavern.utils
-import libtavern.key
+import libtavern.crypto
 import libtavern.topic
 
 import enum
@@ -21,7 +19,6 @@ class User(libtavern.baseobj.Baseobj):
     def __init2__(self):
         """
         Create a Tavern user.
-
         Only creates keys if asked to.
         """
         self.username = None
@@ -88,11 +85,9 @@ class User(libtavern.baseobj.Baseobj):
         Ensure that we have the hashed versions of the Pubkey for this user.
         """
         if self.Keys['master'] is not None:
-            self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].pubkey)
-            self.author_sha512 = hashlib.sha512(self.Keys['master'].pubkey.encode('utf-8')).hexdigest()
+            self.author_wordhash = self.server.wordlist.wordhash(self.Keys['master'].public)
         else:
             self.author_wordhash = None
-            self.author_sha512 = None
 
 
     def ensure_keys(self,AllowGuestKey=True):
@@ -109,10 +104,9 @@ class User(libtavern.baseobj.Baseobj):
                 self.Keys = self.server.guestuser.Keys
                 self.has_unique_key = False
             elif AllowGuestKey in [False,keygen.generate]:
-                pulledkey = self.server.unusedkeycache.get(block=True)
-                self.Keys['master'] = libtavern.lockedkey.LockedKey()
-                self.Keys['master'].from_dict(pulledkey,passkey=pulledkey['passkey'])
-                self.passkey = self.Keys['master'].passkey
+                pulledkey = self.server.unusedkeys[libtavern.crypto.Usage.signing].get(block=True)
+                self.Keys['master'] = libtavern.crypto.LockedKey(usage=libtavern.crypto.Usage.signing,keydict=pulledkey)
+                self.passkey = pulledkey['passkey']
                 self.has_unique_key = True
 
         self.make_hashes()
@@ -130,8 +124,8 @@ class User(libtavern.baseobj.Baseobj):
             raise Exception("Must have a valid passkey to run this method")
 
         # Step 1, Create a new Key for this person.
-        newkey = libtavern.lockedkey.LockedKey()
-        newkey.generate(passkey=self.passkey, autoexpire=True)
+        newkey = libtavern.crypto.LockedKey(usage=libtavern.crypto.Usage.encryption)
+        newkey.generate(passkey=self.passkey,autoexpire=True)
         self.Keys['posted'].append(newkey)
         self.save_mongo()
         return newkey
@@ -146,21 +140,18 @@ class User(libtavern.baseobj.Baseobj):
         """
         successful = False
         tmp_passkey = self.Keys['master'].get_passkey(guessed_password)
-        if self.Keys['master'].unlock(tmp_passkey):
+        try:
+            self.Keys['master'].unlock(tmp_passkey)
             # We've successfully unlocked.
             self.lastauth = libtavern.utils.gettime(format='timestamp')
             successful = True
-
-        if successful:
-            return True
-        elif tryinverted:
-            # Based on the FB-technique, as described at
-            # http://blog.agilebits.com/2011/09/13/facebook-and-caps-lock-unintuitive-security/
-            # Prevents users with Caplocks on
-            return self.verify_password(guessed_password=guessed_password.swapcase(), tryinverted=False)
-        else:
-            return False
-
+        except libtavern.crypto.Exceptions.InvalidPassword:
+           if tryinverted:
+                # Based on the FB-technique, as described at
+                # http://blog.agilebits.com/2011/09/13/facebook-and-caps-lock-unintuitive-security/
+                # Prevents users with Caplocks on
+                return self.verify_password(guessed_password=guessed_password.swapcase(), tryinverted=False)
+        return successful
 
     def get_note(self, noteabout):
         """
@@ -168,17 +159,13 @@ class User(libtavern.baseobj.Baseobj):
         :param noteabout: Look for notes about this user
         :return string: The Note for the requested user. (or None)
         """
-        # Make sure the key we're asking about is formatted right.
-        # I don't trust myself ;)
 
-        key = libtavern.key.Key(pub=noteabout)
-        noteabout = key.pubkey
         # Retrieve the note from mongo
         note = self.server.db.unsafe.find_one(
-            'notes', {"user": self.Keys['master'].pubkey, "noteabout": noteabout})
+            'notes', {"user": self.Keys['master'].public, "noteabout": noteabout})
         if note is not None:
             return note['note']
-        elif noteabout == self.Keys['master'].pubkey:
+        elif noteabout == self.Keys['master'].public:
             # I'm asking about myself, and I haven't set a note yet.
             return "This is you!"
         else:
@@ -187,16 +174,12 @@ class User(libtavern.baseobj.Baseobj):
     def save_note(self, noteabout, note=""):
         """Save a note to mongo about a user"""
 
-        # Format the Key.
-        key = libtavern.key.Key(pub=noteabout)
-        noteabout = key.pubkey
-
         # Retrieve any existing note.
         # We do this so we can them save the new note out as an update.
 
-        newnote = self.server.db.unsafe.find_one('notes', {"user": self.Keys['master'].pubkey, "noteabout": noteabout})
+        newnote = self.server.db.unsafe.find_one('notes', {"user": self.Keys['master'].public, "noteabout": noteabout})
         if newnote is None:
-            newnote = {"user": self.Keys['master'].pubkey,"noteabout": noteabout, "note": note}
+            newnote = {"user": self.Keys['master'].public,"noteabout": noteabout, "note": note}
         newnote['note'] = note
         self.server.db.unsafe.save('notes', newnote)
 
@@ -211,11 +194,6 @@ class User(libtavern.baseobj.Baseobj):
             [Have any FOF or FOFOF rated this person]
             [Each generation of friends gets their trust multiplied by .4, since you trust them less and less]
         """
-        # Ensure we have proper formatting for the key we're examining, so we
-        # find it in the DB.
-        key = libtavern.key.Key(pub=askingabout)
-        askingabout = key.pubkey
-
         # Our opinion of everyone starts off Neutral
         trust = 0
 
@@ -225,7 +203,7 @@ class User(libtavern.baseobj.Baseobj):
         maxtrust = .4 * incomingtrust
 
         # We trust ourselves implicitly
-        if askingabout == self.Keys['master'].pubkey:
+        if askingabout == self.Keys['master'].public:
             self.logger.info("I trust me.")
             return round(incomingtrust)
 
@@ -239,9 +217,9 @@ class User(libtavern.baseobj.Baseobj):
         myvote = self.server.db.unsafe.find_one(
             collection='envelopes',
             query={"envelope.payload.class": "usertrust",
-                   "envelope.payload.trusted_pubkey": str(askingabout),
+                   "envelope.payload.trusted_public_key": str(askingabout),
                    "envelope.payload.trust": {"$exists": "true"},
-                   "envelope.local.author.pubkey": str(self.Keys['master'].pubkey)},
+                   "envelope.local.author.public": self.Keys['master'].public},
             sortkey="envelope.local.time_added",
             sortdirection='descending')
 
@@ -259,7 +237,7 @@ class User(libtavern.baseobj.Baseobj):
                 'envelopes',
                 {"envelope.payload.class": "usertrust",
                  "envelope.payload.trust": {"$gt": 0},
-                 "envelope.local.author.pubkey": self.Keys['master'].pubkey})
+                 "envelope.local.author.public": self.Keys['master'].public})
             combinedFriendTrust = 0
             friendcount = 0
 
@@ -271,7 +249,7 @@ class User(libtavern.baseobj.Baseobj):
                 # Load in our friend from the DB.
                 u = User()
                 u.load_dict(
-                    trusted['envelope']['payload']['trusted_pubkey'])
+                    trusted['envelope']['payload']['trusted_public_key'])
                 # TODO -
                 # MAKE THIS NOT LOAD BY PUBKEY
                 # WE WANT TO RE-CREATE FROM PUBLIC DATA, NOT LOAD LOCALLY!!
@@ -285,7 +263,7 @@ class User(libtavern.baseobj.Baseobj):
                     askingabout=trusted[
                         'envelope'][
                         'payload'][
-                        'trusted_pubkey'],
+                        'trusted_public_key'],
                     incomingtrust=maxtrust)
                 amountMyFriendTrustsAskingAbout = u.gatherTrust(
                     askingabout=askingabout, incomingtrust=maxtrust)
@@ -382,7 +360,7 @@ class User(libtavern.baseobj.Baseobj):
              "envelope.payload.regarding": postInQuestion})
         combinedrating = 0
         for vote in allvotes:
-            author = vote['envelope']['local']['author']['pubkey']
+            author = vote['envelope']['local']['author']['public_key']
             rating = vote['envelope']['payload']['rating']
             authorTrust = self.gatherTrust(askingabout=author)
 
@@ -403,7 +381,7 @@ class User(libtavern.baseobj.Baseobj):
                     # if it was posted directly to OUR server, we can ip limit
                     # it, give it a +1
                     if stamp['class'] == "origin":
-                        if stamp['pubkey'] == self.server.ServerKeys.pubkey:
+                        if stamp['public_key'] == self.server.ServerKeys.public:
                             combinedrating += 1
 
         return combinedrating
@@ -461,25 +439,25 @@ class User(libtavern.baseobj.Baseobj):
                 matched = True
         return matched
 
-    def decrypt(self, text, passkey=None):
+    def decrypt(self, text):
         """Decrypt a message sent to me, using one of my communication keys.
 
         Note - We don't try to decrypt using the master key, even though it's technically possible.
         This is intentional, so that other clients don't start sending PMs to the master key, and compromise security.
 
         """
-        if self.passkey is not None:
-            passkey = self.passkey
-
         for key in self.Keys['posted']:
+
+            # If we have a locked key, replace with unlocked version
+            # Try every key we have.
             if isinstance(key, LockedKey):
-                key.unlock(passkey)
-            result = key.decrypt(text)
+                key = key.unlock(passkey)
+            try:
+                return key.decrypt(text)
+            except libtavern.crypto.Exceptions.WrongKeyException:
+                pass
 
-            if len(result) > 0:
-                return result
-
-    def get_pubkeys(self):
+    def get_public_keys(self):
         """ Returns a list of all public keys for a user.
         Typically used to search for messages belonging to that user.
         :return: A list of all public keys.
@@ -488,7 +466,7 @@ class User(libtavern.baseobj.Baseobj):
         keys.append(self.Keys['master'])
         pubs = []
         for key in Keys:
-            pub.append(key.pubkey)
+            pub.append(key.public)
         return pubs
 
     class CantChangePassException(Exception):
@@ -543,7 +521,7 @@ class User(libtavern.baseobj.Baseobj):
             if key.expires > libtavern.utils.gettime(format='timestamp'):
                 userdict['keys']['posted'].append(keydict)
 
-        userdict['_id'] = self.Keys['master'].pubkey
+        userdict['_id'] = self.Keys['master'].public
         return userdict
 
 
@@ -565,15 +543,13 @@ class User(libtavern.baseobj.Baseobj):
         self.Keys = {}
 
         # Restore our master key
-        self.Keys['master'] = libtavern.lockedkey.LockedKey()
-        self.Keys['master'].from_dict(userdict['keys']['master'])
+        self.Keys['master'] = libtavern.crypto.LockedKey(usage=libtavern.crypto.Usage.signing,keydict=userdict['keys']['master'])
         self.logger.info("Reconstructed with encryptedprivkey")
 
         self.Keys['posted'] = []
         # Restore any posted communication keys
         for key in userdict['keys']['posted']:
-            lk = libtavern.lockedkey.LockedKey()
-            lk.from_dict(key)
+            lk = libtavern.crypto.LockedKey(userdict=key)
             self.Keys['posted'].append(lk)
 
         self.Keys['posted'].sort(key=lambda e: (e.expires), reverse=True)
@@ -592,11 +568,9 @@ class User(libtavern.baseobj.Baseobj):
             self.load_string(filecontents)
 
 
-    def load_mongo_by_pubkey(self, pubkey):
-        """Returns a user object for a given pubkey."""
-        # Get Formatted key for searching.
-        tmpkey = libtavern.key.Key(pub=pubkey)
-        user = self.server.db.safe.find_one('users',{"keys.master.pubkey": tmpkey.pubkey})
+    def load_mongo_by_publickey(self, publickey):
+        """Returns a user object for a given public key."""
+        user = self.server.db.safe.find_one('users',{"keys.master.public": publickey})
         if user is not None:
             # If we find a local user, load in their priv and pub keys.
             return self.load_string(libtavern.utils.to_json(user))
@@ -631,21 +605,19 @@ class User(libtavern.baseobj.Baseobj):
             return None
         elif session['expires'] < libtavern.utils.gettime(format='timestamp'):
             return None
-        return self.load_mongo_by_pubkey(session['pubkey'])
+        return self.load_mongo_by_public(session['public_key'])
 
-    def load_publicinfo_by_pubkey(self,pubkey):
+    def load_publicinfo_by_publickey(self,public):
         """
         Retrieves publicly available information for a given user.
         This does leak what messages the server has received.
         But shouldn't give them anything about a user they couldn't get from another server.
         """
-        pubkeyonly = libtavern.key.Key(pub=pubkey)
+        pubkeyonly = libtavern.crypto.Keypair(public=public)
         self.Keys['master'] = pubkeyonly
         self.has_unique_key = True
-
         _friendly = None
-
-        for envelope in self.server.db.safe.find('envelopes', {'envelope.local.author.pubkey': self.Keys['master'].pubkey, 'envelope.payload.class': 'message'}, limit=self.maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
+        for envelope in self.server.db.safe.find('envelopes', {'envelope.local.author.public': self.Keys['master'].public, 'envelope.payload.class': 'message'}, limit=self.maxposts, sortkey='envelope.local.time_added', sortdirection='descending'):
             e = libtavern.envelope.Envelope()
             e.loaddict(envelope)
             if _friendly is None and 'friendlyname' in e.dict['envelope']['local']['author']:
@@ -653,7 +625,7 @@ class User(libtavern.baseobj.Baseobj):
                 _friendly = e.dict['envelope']['local']['author']['friendlyname']
             if 'replyto' in e.dict['envelope']['payload']['author']:
                 # Take the newest key we see.
-                key = libtavern.key.Key(pub=e.dict['envelope']['payload']['author']['replyto'])
+                key = libtavern.crypto.Keypair(public=e.dict['envelope']['payload']['author']['replyto'])
                 self.Keys['posted'].append(key)
         if _friendly:
             self.friendlyname = _friendly
@@ -673,7 +645,7 @@ class User(libtavern.baseobj.Baseobj):
     def save_mongo(self,overwriteguest=False):
         userdict = self.to_dict()
         if not overwriteguest:
-            if self.Keys['master'].pubkey != self.server.guestuser.Keys['master'].pubkey:
+            if self.Keys['master'].public != self.server.guestuser.Keys['master'].public:
                 self.server.db.safe.save('users', userdict)
         else:
             self.server.db.safe.save('users', userdict)
@@ -685,6 +657,6 @@ class User(libtavern.baseobj.Baseobj):
         sessiondict = {}
         sessiondict['sessionid'] = hex(libtavern.utils.randbits(128)).lstrip("0x")
         sessiondict['expires'] = libtavern.utils.gettime(format='timestamp') + self.server.serversettings.settings['webtav']['session_lifetime']
-        sessiondict['pubkey'] = self.Keys['master'].pubkey
+        sessiondict['public_key'] = self.Keys['master'].public
         self.server.sessions.safe.save('sessions', sessiondict)
         return sessiondict['sessionid']

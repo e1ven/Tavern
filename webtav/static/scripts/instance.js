@@ -28,7 +28,7 @@
 
 
 
-    // Notice if Pubkey has changed, and clear localstorage. Primarily used if we logout, etc.
+    // Notice if public key has changed, and clear localstorage. Primarily used if we logout, etc.
     if (jQuery("#youravatar").length)
       youravatar = jQuery('#youravatar').attr('src');
     else 

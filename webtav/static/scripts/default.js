@@ -294,7 +294,7 @@ function setupNotes(jqueryobj)
                   url = jQueryform.attr( 'action' );
 
               /* Send the data using post and put the results in a div */
-              jQuery.post( url, { 'pubkey': jQueryform.find( 'input[name="pubkey"]' ).val(),
+              jQuery.post( url, { 'public_key': jQueryform.find( 'input[name="public"]' ).val(),
                              '_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),
                              'note' : jQueryform.find( 'input[name="note"]' ).val() },
                 function( data ) {
@@ -491,7 +491,7 @@ function setupFollowUser(jqueryobj)
               ref.children().hide();
               ref.append('One moment please..');
               /* Send the data using post and put the results in a div */
-              jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'pubkey' : jQueryform.find( 'input[name="pubkey"]' ).val() },
+              jQuery.post( url, {'_xsrf' : jQueryform.find( 'input[name="_xsrf"]' ).val(),'public' : jQueryform.find( 'input[name="public"]' ).val() },
                 function( data ) {
                     ref.empty().append("All set.");
                     jQuery.getScript(stripTrailingSlash(document.URL) +'/?js=yes&divs=column1,followuser' + "&timestamp=" + Math.round(new Date().getTime())  );

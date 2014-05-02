@@ -19,7 +19,7 @@
                         {% if 'topic' in envelope.dict['envelope']['payload'] %}
                             <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
                         {% end %}
-                        <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
+                        <input type="hidden" name="trusted_public_key" value="{{envelope.dict['envelope']['local']['author']['public_key']}}">
                         <input class="textbutton icon-label" type="submit" value="Endorse this user">
                     </form>
             </div>
@@ -33,14 +33,14 @@
                     {% if 'topic' in envelope.dict['envelope']['payload'] %}
                         <input type="hidden" name="topic" value="{{envelope.dict['envelope']['payload']['topic']}}">
                     {% end %}
-                    <input type="hidden" name="trusted_pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
+                    <input type="hidden" name="trusted_public_key" value="{{envelope.dict['envelope']['local']['author']['public_key']}}">
                     <input class="textbutton icon-label" type="submit" value="Warn others about this user.">
                 </form>
             </div>
         {% end %}
         <form action="/usernote" method="post" class="usernote">
              {% module xsrf_form_html() %}
-            <input type="hidden" name="pubkey" value="{{envelope.dict['envelope']['local']['author']['pubkey']}}">
+            <input type="hidden" name="public" value="{{envelope.dict['envelope']['local']['author']['public_key']}}">
             <input class="usernote" type="text" value="" name="note"
             {% if note is None %}
                 {% set placeholder="Add a note to yourself about this user" %}
@@ -51,6 +51,6 @@
         </form>
         <div class='DetailsOption'>
             <i class="icon icon-twitter-squared"></i>
-            <a href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}">Full Details</a>
+            <a href="{{url_for(user=envelope.dict['envelope']['local']['author']['public_key'])}}">Full Details</a>
         </div>
 </div>

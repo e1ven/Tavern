@@ -4,7 +4,7 @@ Each Payload inherits from the BasePayload class, then overrides/extends
 Validate and add_to_parent
 """
 import libtavern.baseobj
-import libtavern.key
+import libtavern.crypto
 import libtavern.utils
 import libtavern.topic
 import collections
@@ -200,8 +200,8 @@ class UserTrust(BasePayload):
     def validates(self):
         if not BasePayload(self.dict).validates:
             return False
-        if 'trusted_pubkey' not in self.dict:
-            self.server.logger.debug("No trusted_pubkey to set trust for.")
+        if 'trusted_public_key' not in self.dict:
+            self.server.logger.debug("No trusted_public_key to set trust for.")
             return False
         if self.dict['trust'] not in [-100, 0, 100]:
             self.server.logger.debug(
@@ -252,8 +252,8 @@ class MessageRevision(BasePayload):
 
         # Ensure the edit is by the same author as the original.
         # Do this here, rather than in validate, since we can receive messages in either order.
-        if self.dict['envelope']['local']['author']['pubkey'] != parent.dict['envelope']['local']['author']['pubkey']:
-            self.server.logger.debug("Invalid Revision. Author pubkey must match original message.")
+        if self.dict['envelope']['local']['author']['public_key'] != parent.dict['envelope']['local']['author']['public_key']:
+            self.server.logger.debug("Invalid Revision. Author public key must match original message.")
             return False
 
         self.dict['envelope']['local']['edits'].append(newmessage.dict)

@@ -250,7 +250,7 @@ class BaseTornado(XSRFBaseHandler):
         # Ensure we have a user that is valid
         # If not, clear cookies, delete user, treat as not-logged-in.
             try:
-                if self.user.Keys['master'].pubkey is None:
+                if self.user.Keys['master'].public is None:
                     raise
             except:
                 self.clear_cookie('passkey')

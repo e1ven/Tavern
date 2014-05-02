@@ -1,12 +1,12 @@
 {% import datetime %}
-{% set note = user.get_note(envelope.dict['envelope']['local']['author']['pubkey']) %}
+{% set note = user.get_note(envelope.dict['envelope']['local']['author']['public_key']) %}
 <div id="firstMessage" class="comment">
     <ul>
         <li>
 
-             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(pubkey=envelope.dict['envelope']['local']['author']['pubkey'])}}" rel="author">
+             <a class="details firstDetails" user="{{envelope.dict['envelope']['local']['payload_sha512']}}" href="{{url_for(user=envelope.dict['envelope']['local']['author']['public_key'])}}" rel="author">
 
-                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['pubkey'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
+                <img class="floatLeft clear firstcommentavatar" id="avatar_{{envelope.dict['envelope']['local']['payload_sha512']}}" class="floatLeft" src="{{server.external.getavatar(myid=''.join(envelope.dict['envelope']['local']['author']['public_key'].split()),datauri=user.datauri,width=80,height=80)}}" alt="profile icon" width=80 height=80/>
 
                 <abbr title="{{envelope.dict['envelope']['payload']['subject']}}"</abbr>
                     <h1>{{envelope.dict['envelope']['payload']['subject']}}</h1>
