@@ -1,5 +1,8 @@
 Tavern is a Decentralized, Anonymous, Peer to Peer forum, written in Tornado and Python3.
-It is designed to be censorship resistant, and is based on the idea of passing signed messages.
+I had worked on it a few years ago, but ran into several problems that I couldn't fix, so put the project on hold.
+I would not recommend using Tavern for anything - It's incomplete, and there are bugs in the design.
+
+It is designed to be censorship resistant, and is based on the idea of passing signed messages to subscribing servers, conceptually similar to usenet.
 
 There is a Specification for messages in the "Spec" directory, but the basic format is very simple.
 Each message is a JSON document, signed by a RSA Public Key that is unique to each user.
